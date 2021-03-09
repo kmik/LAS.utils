@@ -1,0 +1,791 @@
+package tools;
+import LASio.*;
+import utils.*;
+
+import java.io.*;
+import java.util.*;
+
+/**
+ *  Prunes the LAS points. Points are removed by keeping only
+ *  either the highest or the lowest point within a square area.
+ *
+ *
+ * @author  Kukkonen Mikko
+ * @version 0.1
+ * @since 06.03.2018
+ */
+
+public class Thinner{
+
+    String oparse = "xyz";
+    double step = 2.0;
+
+    String outputName = "thin.txt";
+
+    LASReader pointCloud = null;
+
+    PointInclusionRule rule = new PointInclusionRule(true);
+
+    boolean lowest = true;
+
+    File outputFile;
+
+    argumentReader aR;
+
+    Random rand = new Random();
+
+    int coreNumber = 0;
+
+    int n_ranodm = 1;
+
+    boolean thin3d = false;
+
+    public Thinner(){
+
+
+    }
+
+    public Thinner(LASReader pointCloud2){
+
+        this.pointCloud = pointCloud2;
+    }
+
+
+    public Thinner(LASReader pointCloud2, double step2, argumentReader aR, int coreNumber) throws IOException{
+
+        //System.out.println("thread: " + coreNumber + " file: " + pointCloud2.getFile().getName());
+
+        this.coreNumber = coreNumber;
+
+        this.step = step2;
+        this.pointCloud = pointCloud2;
+        this.aR = aR;
+
+        this.n_ranodm = aR.few;
+
+        outputFile = aR.createOutputFile(pointCloud2);
+
+        aR.p_update.lasthin_kernel = this.step;
+        aR.p_update.lasthin_random = this.n_ranodm;
+
+        this.thin3d = aR.thin3d;
+
+        this.thin3d = true;
+
+        if(thin3d) {
+            aR.p_update.lasthin_mode = "3d";
+            aR.p_update.updateProgressThin();
+            thin3D();
+        }
+        else {
+            aR.p_update.lasthin_mode = "2d";
+            aR.p_update.updateProgressThin();
+            thin();
+        }
+
+    }
+
+    /**
+     * Constructor
+     *
+     * @param pointCloud2 		Input point cloud
+     * @param step2 				Side length of the square that is used
+     *							in thinning
+     * @param lowest2 			Keep lowest (true) or the highest (false)
+     */
+
+    public Thinner(LASReader pointCloud2, double step2, boolean lowest2){
+
+        this.step = step2;
+        this.pointCloud = pointCloud2;
+        lowest = lowest2;
+    }
+
+
+    /**
+     * Perform the thinning
+     */
+
+    public void thin() throws IOException {
+
+
+
+        //Cantor homma = new Cantor();
+        double minX = pointCloud.getMinX();
+        double maxX = pointCloud.getMaxX();
+        double minY = pointCloud.getMinY();
+        double maxY = pointCloud.getMaxY();
+
+        double numberOfPixelsX = (int)Math.ceil((maxX - minX) / step) + 1;
+        double numberOfPixelsY = (int)Math.ceil((maxY - minY) / step) + 1;
+
+        //HashMap<Long, ArrayList<Integer>> data = new HashMap<>();
+
+        int[][] minIndex = new int[(int)numberOfPixelsX][(int)numberOfPixelsY];
+        float[][] min_z = new float[(int)numberOfPixelsX][(int)numberOfPixelsY];
+
+        for(int x = 0; x < numberOfPixelsX; x++){
+            for(int y = 0; y < numberOfPixelsY; y++) {
+                min_z[x][y] = Float.POSITIVE_INFINITY;
+                minIndex[x][y] = -1;
+            }
+        }
+
+
+        double tempx = minX;
+        double tempy = maxY;
+
+        long countx = 0;
+        long county = 0;
+        int count2 = 0;
+/*
+        while(countx < numberOfPixelsX){
+            while(county < numberOfPixelsY){
+
+                long[] temp = new long[2];
+                temp[0] = countx;
+                temp[1] = county;
+                data.put(homma.pair(countx, county), new ArrayList<Integer>());
+                tempy -= (double)step;
+                county++;
+                count2++;
+            }
+            tempx += (double)step;
+            tempy = maxY;
+            countx++;
+            county = 0;
+        }
+*/
+        long n = pointCloud.getNumberOfPointRecords();
+
+        LasPoint tempPoint = new LasPoint();
+
+        int maxi = 0;
+
+        aR.p_update.threadFile[coreNumber-1] = "initial pass";
+
+        aR.p_update.threadEnd[coreNumber-1] = (int)pointCloud.getNumberOfPointRecords();
+        aR.p_update.threadProgress[coreNumber-1] = 0;
+
+        //pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
+
+            int x_index;
+            int y_index;
+
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000){
+
+            maxi = (int)Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+            try {
+                pointCloud.readRecord_noRAF(i, tempPoint, maxi);
+            }catch(Exception e){
+                e.printStackTrace();//pointCloud.braf.buffer.position(0);
+            }
+
+            for (int j = 0; j < maxi; j++) {
+                //Sstem.out.println(j);
+                pointCloud.readFromBuffer(tempPoint);
+
+                //for(long i = 0; i < n; i++){
+                //count++;
+                //long[] temppi = new long[2];
+                //pointCloud.readRecord(i, tempPoint);
+
+                //if (rule.ask(tempPoint, (int) i+j, true)) {
+                    //System.out.println(tempPoint);
+
+                    x_index = (int)Math.floor((tempPoint.x - minX) / step);
+                    y_index = (int)Math.floor((maxY - tempPoint.y) / step);
+
+                    //System.out.println(tempPoint.y + " " + tempPoint.z + " core: " + this.coreNumber);
+
+                    if(tempPoint.z < min_z[x_index][y_index]){
+                        min_z[x_index][y_index] = (float)tempPoint.z;
+                        minIndex[x_index][y_index] = i+j;
+
+
+                    }
+
+                    //temppi[0] = (long) Math.floor((tempPoint.x - minX) / step);   //X INDEX
+                    //temppi[1] = (long) Math.floor((maxY - tempPoint.y) / step);
+
+                    //System.out.println(data.containsKey(Arrays.hashCode(temppi)));
+                   // data.get(homma.pair(temppi[0], temppi[1])).add(i + j);
+                //}
+                aR.p_update.threadProgress[coreNumber-1]++;
+
+                if(aR.p_update.threadProgress[coreNumber-1] % 10000 == 0)
+                    aR.p_update.updateProgressThin();
+
+            }
+            //System.out.println(data.get(Arrays.hashCode(temppi)).size());
+        }
+
+        aR.p_update.updateProgressThin();
+
+        //ArrayList<Integer> chosen = new ArrayList<Integer>();
+
+        if(outputFile.exists())
+            outputFile.delete();
+
+        outputFile.createNewFile();
+
+        LASraf br = new LASraf(outputFile);
+
+        LASwrite.writeHeader(br, "lasthin", this.pointCloud.versionMajor, this.pointCloud.versionMinor,
+                this.pointCloud.pointDataRecordFormat, this.pointCloud.pointDataRecordLength,
+                pointCloud.headerSize, pointCloud.offsetToPointData, pointCloud.numberVariableLengthRecords,
+                pointCloud.fileSourceID, pointCloud.globalEncoding,
+                pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
+                pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset);
+        int pointCount = 0;
+
+        aR.p_update.threadFile[coreNumber-1] = "outputting";
+        aR.p_update.threadEnd[coreNumber-1] = (int)numberOfPixelsX * (int)numberOfPixelsY;
+        aR.p_update.threadProgress[coreNumber-1] = 0;
+
+        for(int x = 0; x < numberOfPixelsX; x++) {
+            for (int y = 0; y < numberOfPixelsY; y++) {
+
+                if(minIndex[x][y] != -1){
+
+                    pointCloud.readRecord(minIndex[x][y], tempPoint);
+                    if(br.writePoint( tempPoint, rule, pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
+                            pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, minIndex[x][y]))
+                        pointCount++;
+
+                    //if(coreNumber == 2)
+                      //  System.out.println("II!!O");
+                    //System.out.println(MKid4pointsLAS.concatString(tempPoint, this.oparse));
+                }
+                aR.p_update.threadEnd[coreNumber-1]++;
+
+                if(aR.p_update.threadEnd[coreNumber-1] % 10000 == 0){
+                    aR.p_update.updateProgressThin();
+                }
+
+            }
+        }
+
+        br.writeBuffer2();
+        br.updateHeader2();
+
+        aR.p_update.updateProgressThin();
+/*
+        for(Long key : data.keySet()){
+
+            double min = Double.POSITIVE_INFINITY;
+            double max = Double.NEGATIVE_INFINITY;
+
+            int minIndex = -99;
+            int maxIndex = -99;
+
+            for(int i = 0; i < data.get(key).size(); i++){
+
+					/* No need to ask, because only applicable points
+					are left!
+
+                pointCloud.readRecord(data.get(key).get(i), tempPoint);
+
+                if(tempPoint.z < min)
+                    minIndex = data.get(key).get(i).intValue();
+                if(tempPoint.z > max)
+                    maxIndex = data.get(key).get(i).intValue();
+
+
+            }
+
+            if(lowest)
+                chosen.add(minIndex);
+            else
+                chosen.add(maxIndex);
+
+            aR.p_update.threadProgress[coreNumber-1]++;
+
+            if(aR.p_update.threadProgress[coreNumber-1] % 1000 == 0)
+                aR.p_update.updateProgressThin();
+        }
+*/
+/*
+        aR.p_update.updateProgressThin();
+        //System.out.println(chosen);
+
+        /*
+        File testi = new File(outputName);
+
+        if(testi.exists())
+            testi.delete();
+
+
+        if(outputFile.exists())
+            outputFile.delete();
+
+        outputFile.createNewFile();
+
+        LASraf br = new LASraf(outputFile);
+
+        aR.p_update.threadFile[coreNumber-1] = "outputting";
+        aR.p_update.threadEnd[coreNumber-1] = chosen.size();
+        aR.p_update.threadProgress[coreNumber-1] = 0;
+
+        LASwrite.writeHeader(br, "lasthin", this.pointCloud.versionMajor, this.pointCloud.versionMinor, this.pointCloud.pointDataRecordFormat, this.pointCloud.pointDataRecordLength);
+        int pointCount = 0;
+
+        //System.out.println("OUTPUTTING! " + chosen.size());
+
+        try{
+            FileWriter fw = new FileWriter(outputName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter outt = new PrintWriter(bw);
+
+            for(int i: chosen){
+
+                if(i != -99){
+                    pointCloud.readRecord(i, tempPoint);
+                    //System.out.println("GOT HERE");
+                    //outt.println(concatString(tempPoint, this.oparse));
+                    if(br.writePoint( tempPoint, rule, 0.01, 0.01, 0.01, 0, 0, 0, pointCloud.pointDataRecordFormat, i))
+                        pointCount++;
+
+                    //System.out.println(MKid4pointsLAS.concatString(tempPoint, this.oparse));
+                }
+                aR.p_update.threadEnd[coreNumber-1]++;
+
+                if(aR.p_update.threadEnd[coreNumber-1] % 10000 == 0){
+                    aR.p_update.updateProgressThin();
+                }
+
+            }
+
+            br.writeBuffer2();
+            br.updateHeader2();
+
+            outt.close();
+        }catch(Exception e){
+            System.out.println(e);
+        }
+
+
+        //GroundDetector.convertTxt2Las(outputName, oparse);
+
+ */
+    }
+
+    public class Pair implements Comparable<Pair> {
+        public final int index;
+        public final long value;
+
+        public Pair(int index, long value) {
+            this.index = index;
+            this.value = value;
+        }
+
+        @Override
+        public int compareTo(Pair other) {
+            //multiplied to -1 as the author need descending sort order
+
+            return 1 * Long.valueOf(this.value).compareTo(other.value);
+        }
+    }
+
+
+    public void thin3D() throws IOException{
+
+
+        Random random = new Random();
+
+        double minX = pointCloud.getMinX();
+        double maxX = pointCloud.getMaxX();
+        double minY = pointCloud.getMinY();
+        double maxY = pointCloud.getMaxY();
+        double minZ = pointCloud.getMinZ();
+        double maxZ = pointCloud.getMaxZ();
+
+        int numberOfPixelsX = (int)Math.ceil((maxX - minX) / step) + 1;
+        int numberOfPixelsY = (int)Math.ceil((maxY - minY) / step) + 1;
+        int numberOfPixelsZ = (int)Math.ceil((maxY - minY) / step) + 1;
+
+        int n = (int)pointCloud.getNumberOfPointRecords();
+
+        if(outputFile.exists())
+            outputFile.delete();
+
+        outputFile.createNewFile();
+/*
+        LASraf br = new LASraf(outputFile);
+
+        LASwrite.writeHeader(br, "lasthin3d", this.pointCloud.versionMajor, this.pointCloud.versionMinor,
+                this.pointCloud.pointDataRecordFormat, this.pointCloud.pointDataRecordLength,
+                pointCloud.headerSize, pointCloud.offsetToPointData, pointCloud.numberVariableLengthRecords,
+                pointCloud.fileSourceID, pointCloud.globalEncoding,
+                pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
+                pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset);
+
+ */
+        int pointCount = 0;
+
+        int nParts = (int)Math.ceil((n * 4.0 / 1000000.0) / 1000.0);
+
+        int pienin;
+        int suurin;
+        int jako = (int)Math.ceil((double)n / (double) nParts);
+
+        TreeMap<Long, ArrayList<Integer>> hashmappi = new TreeMap<>();
+
+/*
+        for(int c = 0; c < nParts; c++) {
+
+            //System.out.println(plotID1.size() / (double)cores);
+            if(c != nParts){
+
+                pienin = (nParts - 1) * jako;
+                suurin = nParts * jako;
+            }
+
+            else{
+                pienin = (c - 1) * jako;
+                suurin = numberOfPixelsX;
+            }
+
+            n = suurin - pienin;
+            */
+
+            Pair[] parit = new Pair[n];
+
+            LasPoint tempPoint = new LasPoint();
+
+            int xCoord;
+            int yCoord;
+            int zCoord;
+
+            int voxelNumber;
+            long voxelNumber_long;
+
+            long current;
+            long replace;
+
+            long maxValue = 0;
+            int indeksi = 0;
+
+            long voxelCount = numberOfPixelsX * numberOfPixelsY * numberOfPixelsZ;
+
+            int[] vox = new int[1000000];
+
+            int maxi = 0;
+
+            //pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
+
+        aR.p_update.threadFile[coreNumber-1] = "first pass";
+        aR.p_update.threadEnd[coreNumber-1] = (int)pointCloud.getNumberOfPointRecords();
+        aR.p_update.threadProgress[coreNumber-1] = 0;
+
+            for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000){
+
+                maxi = (int)Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+                try {
+                    pointCloud.readRecord_noRAF(i, tempPoint, maxi);
+                }catch(Exception e){
+                 e.printStackTrace();//pointCloud.braf.buffer.position(0);
+                }
+
+                for (int j = 0; j < maxi; j++) {
+                    //Sstem.out.println(j);
+                    pointCloud.readFromBuffer(tempPoint);
+
+
+                    //for (int i = 0; i < n; i++) {
+
+                    //pointCloud.readRecord(i, tempPoint);
+
+                    xCoord = (int) ((tempPoint.x - minX) / step);
+                    yCoord = (int) ((maxY - tempPoint.y) / step);
+                    zCoord = (int) ((tempPoint.z - minZ) / step);
+
+                    //voxelNumber = yCoord * numberOfPixelsX + xCoord + zCoord * (numberOfPixelsX * numberOfPixelsY);
+                    voxelNumber_long = yCoord * numberOfPixelsX + xCoord + zCoord * (numberOfPixelsX * numberOfPixelsY);
+
+                    parit[indeksi] = new Pair(i+j, voxelNumber_long);
+                    indeksi++;
+/*
+                    if(hashmappi.containsKey(voxelNumber_long)){
+
+                        hashmappi.get(voxelNumber_long).add(i+j);
+
+                    }else{
+
+                        hashmappi.put(voxelNumber_long, new ArrayList<>());
+                        hashmappi.get(voxelNumber_long).add(i+j);
+
+                    }
+*/
+                    if (voxelNumber_long > maxValue)
+                        maxValue = voxelNumber_long;
+                    //}
+
+                    aR.p_update.threadProgress[coreNumber-1]++;
+
+                    if(aR.p_update.threadProgress[coreNumber-1] % 10000 == 0){
+                        aR.p_update.updateProgressThin();
+                    }
+
+                }
+
+            }
+
+        aR.p_update.updateProgressThin();
+            int endIndex = n;
+
+            /*
+            for(int i = 0; i < n; i++){
+
+                if(parit[i] == null) {
+                    endIndex = i;
+                    break;
+                }
+            }
+            */
+
+        parit = Arrays.copyOfRange(parit, 0, endIndex);
+
+            long prevValue = parit[0].value;
+            //long prevValue = 0;
+
+            Arrays.sort(parit);
+            //int[] takeRandom = new int[100000];
+            ArrayList<Integer> takeRandomList = new ArrayList<>();
+            //System.out.println("SORTERD!");
+
+
+
+            int[] randomit = new int[this.n_ranodm];
+            int randomIndex = 0;
+
+            int writeIndex = 0;
+        aR.p_update.threadFile[coreNumber-1] = "second pass";
+        aR.p_update.threadEnd[coreNumber-1] = parit.length;
+        //aR.p_update.threadEnd[coreNumber-1] = hashmappi.size();
+        aR.p_update.threadProgress[coreNumber-1] = 0;
+        ArrayList<Integer> a;
+
+        pointWriterMultiThread pw = new pointWriterMultiThread(outputFile,pointCloud, "lasthin", aR);
+
+        LasPointBufferCreator buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+
+        boolean[] includeOrNot = new boolean[(int)pointCloud.getNumberOfPointRecords()];
+
+        if(false)
+        for (Map.Entry<Long, ArrayList<Integer>> entry : hashmappi.entrySet())
+        {
+            a = entry.getValue();
+
+            if(a.size() > this.n_ranodm) {
+                //writeIndex = takeRandom(takeRandom, randomIndex);
+                //System.out.println(Arrays.toString(takeRandomList.toArray()));
+                take_n_Random(a, this.n_ranodm, randomit);
+
+                //System.out.println(randomit[0] + " " + randomit[1]);
+
+                for (int kkk = 0; kkk < this.n_ranodm; kkk++) {
+
+                    //pointCloud.readRecord(randomit[kkk], tempPoint);
+                    includeOrNot[randomit[kkk]] = true;
+                    //buf.writePoint(tempPoint, aR.inclusionRule, pointCount);
+                       // pointCount++;
+                }
+            }
+
+            else{
+                //writeIndex = takeRandom[0];
+                for(int kkk = 0; kkk < a.size(); kkk++){
+
+                    //pointCloud.readRecord(a.get(kkk), tempPoint);
+                    includeOrNot[a.get(kkk)] = true;
+                    //buf.writePoint(tempPoint, aR.inclusionRule, pointCount);
+                     //   pointCount++;
+
+                }
+            }
+
+
+            aR.p_update.threadProgress[coreNumber-1]++;
+
+            if(aR.p_update.threadProgress[coreNumber-1] % 1000 == 0){
+                aR.p_update.updateProgressThin();
+            }
+        }
+
+
+
+        for(int i = 0; i < parit.length; i++){
+
+            if(parit[i].value == prevValue){
+                //takeRandom[randomIndex] = parit[i].index;
+                takeRandomList.add(parit[i].index);
+                //randomIndex++;
+
+            }
+            else{
+                //System.out.println("--------------");
+                //if(randomIndex > 1)
+
+                if(takeRandomList.size() > this.n_ranodm) {
+                    //writeIndex = takeRandom(takeRandom, randomIndex);
+                    //System.out.println(Arrays.toString(takeRandomList.toArray()));
+                    take_n_Random(takeRandomList, this.n_ranodm, randomit);
+
+                    //System.out.println(randomit[0] + " " + randomit[1]);
+
+                    for (int kkk = 0; kkk < this.n_ranodm; kkk++) {
+                        includeOrNot[randomit[kkk]] = true;
+                    }
+                }
+
+                else{
+                    //writeIndex = takeRandom[0];
+                    for(int kkk = 0; kkk < takeRandomList.size(); kkk++){
+                        includeOrNot[takeRandomList.get(kkk)] = true;
+                    }
+                }
+
+                takeRandomList.clear();
+                takeRandomList.add(parit[i].index);
+            }
+
+
+            prevValue = parit[i].value;
+
+            aR.p_update.threadProgress[coreNumber-1]++;
+
+            if(aR.p_update.threadProgress[coreNumber-1] % 1000 == 0){
+                aR.p_update.updateProgressThin();
+            }
+            //System.out.println(parit[i].value + " ; " + parit[i].index);
+        }
+
+
+        aR.p_update.threadFile[coreNumber-1] = "third pass";
+        //aR.p_update.threadEnd[coreNumber-1] = parit.length;
+        aR.p_update.threadEnd[coreNumber-1] = hashmappi.size();
+        aR.p_update.threadProgress[coreNumber-1] = 0;
+
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+
+            maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+            try {
+                pointCloud.readRecord_noRAF(i, tempPoint, 10000);
+            } catch (Exception e) {
+
+            }
+            //pointCloud.braf.buffer.position(0);
+
+            for (int j = 0; j < maxi; j++) {
+
+                pointCloud.readFromBuffer(tempPoint);
+
+                if(includeOrNot[i+j]){
+
+                    buf.writePoint(tempPoint, aR.inclusionRule, i+j);
+                    pointCount++;
+
+                }
+
+
+            }
+
+
+
+        }
+
+        buf.close();
+        pw.close();
+
+
+        //br.writeBuffer2();
+            //br.updateHeader2();
+
+            n = numberOfPixelsX * numberOfPixelsY * numberOfPixelsZ;
+        //}
+
+    }
+
+    public int takeRandom(int[] arrayIn, int maxIndex){
+
+        return(arrayIn[rand.nextInt(maxIndex - 1)]);
+
+    }
+
+    public void take_n_Random(ArrayList<Integer> arrayIn, int n, int[] outArray){
+
+        Collections.shuffle(arrayIn);
+
+        for(int i = 0; i < n; i++){
+
+            outArray[i] = arrayIn.get(i);
+
+        }
+        //return(arrayIn[rand.nextInt(maxIndex - 1)]);
+
+    }
+
+    public static String concatString(LasPoint point, String oparse){
+
+        char[] array = oparse.toCharArray();
+
+        String output = "";
+
+        if(oparse.equals("all")){
+
+            output += " " + point.x;
+
+            output += " " + point.y;
+
+            output += " " + point.z;
+
+            output += " " + point.intensity;
+
+            output += " " + point.classification;
+
+            output += " " + (double)point.gpsTime;
+
+            output += " " + point.numberOfReturns;
+
+            output += " " + point.returnNumber;
+
+        }
+
+        for(int i = 0; i < array.length; i++){
+
+            if(array[i] == ('x'))
+                output += " " + point.x;
+
+            if(array[i] == ('y'))
+                output += " " + point.y;
+
+            if(array[i] == ('z'))
+                output += " " + point.z;
+
+            if(array[i] == ('i'))
+                output += " " + point.intensity;
+
+            if(array[i] == ('c'))
+                output += " " + point.classification;
+
+            if(array[i] == ('t'))
+                output += " " + (double)point.gpsTime;
+
+            if(array[i] == ('n'))
+                output += " " + point.numberOfReturns;
+
+            if(array[i] == ('r'))
+                output += " " + point.returnNumber;
+
+            if(array[i] == ('s'))
+                output += " " + 0;
+        }
+        return output;
+
+    }
+
+}
