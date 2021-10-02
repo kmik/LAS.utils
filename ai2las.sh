@@ -24,8 +24,8 @@ fc	ps	ppx	ppy
 
 	where	fc = focal length (m)
 		ps = pixel size (mm)
-		ppx = principal point x offset (m, left from center)
-		ppy = principal point y offset (m, down from center)
+		ppx = principal point x offset (m)
+		ppy = principal point y offset (m)
 
 External orientation (tab delimited):
 	

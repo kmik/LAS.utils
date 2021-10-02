@@ -1180,6 +1180,12 @@ public class createCHM{
 
                     //temppi_band.ReadRaster(j, i, 1, 1, floatArray);
                     input_band.ReadRaster(j, i, 1, 1, floatArray);
+                    Double[] nodata = new Double[1];
+                    input_band.GetNoDataValue(nodata);
+
+
+
+
 
                     //System.out.println(floatArray[0] + " " + floatArray2[0]);
 
@@ -1988,6 +1994,18 @@ public class createCHM{
 
             tempFile = new File("tempRasterPriority"+coreNumber+".tif");
             tempFile.delete();
+
+
+ /*
+            raster_id_b.FlushCache();
+            raster_id.delete();
+
+            raster_flag.FlushCache();
+            raster_flag.delete();
+
+            raster_flag.FlushCache();
+            raster_priority.delete();
+*/
         }
 
  		public Pixel get(int x, int y){
@@ -3531,7 +3549,7 @@ public class createCHM{
                         image.get(x, y).attach(output);
                         altaat.get((int)output).add(image.get(x, y));
 
-                        //System.out.println("Area: " + altaat.get((int)output).area());
+                        System.out.println("Area: " + altaat.get((int)output).area());
                         image.get(x, y).dequeue();
                     }
 
@@ -3657,7 +3675,8 @@ public class createCHM{
 
                     image.raster_z_b.ReadRaster(x, y, 1, 1, floatArray);
 
-                    if(floatArray[0] >= altaat.get((int)output).zMiddle * 0 && distance < 12){
+                    if((floatArray[0] >= altaat.get((int)output).zMiddle * 0.2 || floatArray[0] > 2.0) && distance < 12){
+
                         //System.out.println("ATTACHED!");
                         image.attach(x, y, output);
                         //image.get(x, y).attach(output);
@@ -3760,7 +3779,7 @@ public class createCHM{
 
 
 
-            double zThreshold = 0.5;
+            double zThreshold = 2.0;
 
             //zThreshold = z_treetop * 0.25;
 
@@ -3970,7 +3989,7 @@ public class createCHM{
             long[] ids = new long[8];
 
 
-            double zThreshold = 0.2;
+            double zThreshold = 2.0;
 
 
             image.raster_id_b.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3);
@@ -4012,7 +4031,7 @@ public class createCHM{
                                 //image.get(x - 1, y).dequeue();
                             }
                             else{
-
+                                /** ALWAYS GO HERE!! */
                                 jono2_tif.offer(new cellItem(xIndex, yIndex, -floatArray3x3_3[i]));
                                 //jono2.offer(image.get(x - 1, y));
                                 image.queue(xIndex, yIndex);
@@ -5814,7 +5833,7 @@ public class createCHM{
 
             //System.out.println("kernel: " + kernelSize);
 
-            if(zMiddle < 2.0f || Double.isNaN(zMiddle))
+            if(zMiddle < 4.0f || Double.isNaN(zMiddle))
                 return false;
             //zMiddle = input[x][y];
             double kernel_size_meters = 1.1 + 0.002 * (zMiddle*zMiddle);
@@ -6205,10 +6224,6 @@ public class createCHM{
                                 floatArray[0] = Float.NaN;
                                 band_filterd.WriteRaster(x, y, 1, 1, floatArray);
                             }
-
-
-
-
                         }
                     }
                 }
@@ -6216,8 +6231,6 @@ public class createCHM{
             }
 
             band_filterd.SetNoDataValue(Double.NaN);
-
-
             //String tempName = "temp" + coreNumber + ".tif";
 
             String tempName = "tempFilter_" + coreNumber + ".tif";
@@ -6270,10 +6283,12 @@ public class createCHM{
 
             Dataset outti = gdaltranslate(outputFileName, filtered, optit); //gdal.Translate(name, inputdata, optit);
 
-            //outti.FlushCache();
+            outti.FlushCache();
 
             File deleteFile = new File(tempName);
             File deleteFile2 = new File("tempFilter_" + coreNumber + ".tif.aux.xml");
+
+            //filtered.delete();
             deleteFile.delete();
             deleteFile2.delete();
 
@@ -6323,7 +6338,7 @@ public class createCHM{
 
              */
 
-            outti.FlushCache();
+            //outti.FlushCache();
 		}
 
 	}

@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.io.IOException;
 
+import com.github.mreutegg.laszip4j.laslib.LASfilter;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
 import org.gdal.ogr.DataSource;
@@ -652,7 +653,7 @@ public class RunId4pointsLAS{
                 for(int i = 0; i < tiedostot.size(); i++){
 
                     //System.out.println("thread: " + coreNumber + " " + i);
-                    LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", " ", rule);
+                    LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", " ", rule, false);
                     to.get(i).writeBuffer2();
                     //System.out.println(to.get(i).getFileReference().getName());
 
@@ -750,8 +751,8 @@ public class RunId4pointsLAS{
 
         String pathSep = System.getProperty("file.separator");
 
-        if(!System.getProperty("os.name").equals("Linux"))
-            pathSep = "\\" + pathSep;
+        //if(!System.getProperty("os.name").equals("Linux"))
+          //  pathSep = "\\" + pathSep;
 
         //System.loadLibrary("opencv_java320");
 
@@ -910,7 +911,7 @@ public class RunId4pointsLAS{
                     String id = "";
 
                     if(tempF.GetFieldCount() > 0)
-                        id = tempF.GetFieldAsString(0);
+                        id = tempF.GetFieldAsString(aR.field);
                     else
                         id = String.valueOf(i);
 
@@ -1009,8 +1010,12 @@ public class RunId4pointsLAS{
 
         //boolean wildCard = pathi.split(pathSep)[(pathi.split(pathSep)).length - 1].split("\\.")[0].equals("*");
 
-        boolean lasFormat = aR.files[0].split("\\.")[1].equals("las");
-        boolean txtFormat = aR.files[0].split("\\.")[1].equals("txt");
+        boolean lasFormat;// = aR.files[0].split("\\.")[1].equals("las");
+        boolean txtFormat;// = aR.files[0].split("\\.")[1].equals("txt");
+
+        lasFormat = new File(aR.files[0]).getName().split("\\.")[1].equals("las");
+        //lasFormat = aR.files[0].split("\\.")[1].equals("las");
+        txtFormat = new File(aR.files[0]).getName().split("\\.")[1].equals("txt");
 
         //System.out.println(pathi.split(pathSep)[(pathi.split(pathSep)).length - 1]);
         //System.out.println(wildCard + " " + txtFormat);
@@ -1193,14 +1198,16 @@ public class RunId4pointsLAS{
          */
 
         String indeksi_pathi_all = "";//pathi.split(pathSep)[pathi.split(pathSep).length - 2] + pathSep + "all.lasxALL";
-        String[] tokens = aR.files[0].split(pathSep);
+        //String[] tokens = aR.files[0].split(pathSep);
 
-        for(int i = 0; i < tokens.length - 1; i++)
-            indeksi_pathi_all += (tokens[i] + pathSep);
+        indeksi_pathi_all = new File(aR.files[0]).getParent();
+
+        //for(int i = 0; i < tokens.length - 1; i++)
+           // indeksi_pathi_all += (tokens[i] + pathSep);
 
         String workingDir = indeksi_pathi_all;
 
-        indeksi_pathi_all += "all.lasxALL";
+        indeksi_pathi_all += pathSep + "all.lasxALL";
         //System.out.println(indeksi_pathi_all);
         File allFile = new File(indeksi_pathi_all);
 
@@ -1289,14 +1296,16 @@ public class RunId4pointsLAS{
         if(aR.split){
 
             System.out.println(pointClouds.size());
-            for(int i = 0; i < pointClouds.size(); i++){
 
-                File tempFile1 = aR.createOutputFile(pointClouds.get(i));
+            for(int i = 0; i < aR.inputFiles.size(); i++){
+
+                LASReader tempFile11 = new LASReader(aR.inputFiles.get(i));
+                File tempFile1 = aR.createOutputFile(tempFile11);
 
 
                 LASraf tempraf = new LASraf(tempFile1);
 
-                pointWriterMultiThread pwriteTemp = new pointWriterMultiThread(tempFile1, pointClouds.get(0), "lasClip", aR);
+                pointWriterMultiThread pwriteTemp = new pointWriterMultiThread(tempFile1, tempFile11, "lasClip", aR);
                 outputFiles.add(pwriteTemp);
 
                 System.out.println(tempFile1.getAbsolutePath());

@@ -186,6 +186,7 @@ public class VoxelNeighborhood {
         colMeans[2] /= (double)capacity;
 
         Data dat = new Data(data, colMeans);
+
         //System.out.println("Raw data:");
         //Matrix.print(data);
         dat.center();
@@ -196,13 +197,12 @@ public class VoxelNeighborhood {
         double[][] vals = {eigen.values};
         //double flatness = 1.0 - (vals[0][2] / (vals[0][0] + vals[0][1] + vals[0][2]));
 
-
         this.normal = (float)angle;
 
         if(!Double.isNaN(angle)) {
             //System.out.println(data[0][data[0].length-1]);
             //System.out.println("z angle: " + angle);
-            if(Math.abs(angle - 90) <= 20){
+            if(Math.abs(angle - 90) <= 25.0){
                 //System.out.println("flatness: " + flatness);
                 this.stem = true;
             }

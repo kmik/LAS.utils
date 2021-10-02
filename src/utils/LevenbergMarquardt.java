@@ -19,7 +19,7 @@ import javax.swing.text.TableView;
  *
  * <p>
  * In each iteration the parameters are updated using the following equations:<br>
- * <br>
+ * <br>RcF.cost_all
  * P<sub>i+1</sub> = (H + &lambda; I)<sup>-1</sup> d <br>
  * d =  (1/N) Sum{ i=1..N , (f(x<sub>i</sub>;P<sub>i</sub>) - y<sub>i</sub>) * jacobian(:,i) } <br>
  * H =  (1/N) Sum{ i=1..N , jacobian(:,i) * jacobian(:,i)<sup>T</sup> }
@@ -31,14 +31,14 @@ import javax.swing.text.TableView;
  */
 public class LevenbergMarquardt {
     // Convergence criteria
-    private int maxIterations = 1000;
+    private int maxIterations = 100;
     private double ftol = 1e-12;
     private double gtol = 1e-12;
 
     // how much the numerical jacobian calculation perturbs the parameters by.
     // In better implementation there are better ways to compute this delta.  See Numerical Recipes.
     //private double DELTA = 1e-1;
-    private double DELTA = 0.01;
+    private double DELTA = 0.1;
 
     // Dampening. Larger values means it's more like gradient descent
     private double initialLambda;
@@ -189,7 +189,7 @@ public class LevenbergMarquardt {
                 lambda /= 10.0;
 
                 if( converged ) {
-                    System.out.println( iter + " CONVEREGD!");
+                    //System.out.println( iter + " CONVEREGD!");
                     return true;
                 }
             } else {
@@ -289,25 +289,27 @@ public class LevenbergMarquardt {
 
         //DMatrixRMaj jacobian_multithread = jacobian.copy();
         long startTime = System.currentTimeMillis();
+        if(true)
+        if(param.getNumElements() >= n_threads * 10) {
+            for (int i = 0; i < n_threads; i++) {
 
-        for(int i = 0; i < n_threads; i++){
+                DMatrixRMaj param_temp = param.copy();
+                DMatrixRMaj resid_temp = residuals.copy();
+                DMatrixRMaj temp1_copy = temp1.copy();
+                DMatrixRMaj temp0_copy = temp0.copy();
+                int mini = i * n_funk_per_thread;
+                int maxi = Math.min(param.numRows, mini + n_funk_per_thread);
+                threads[i] = new jacobianParallel(function, mini, maxi, jacobian, param_temp, resid_temp, DELTA, temp0_copy, temp1_copy);
+                threads[i].start();
+            }
 
-            DMatrixRMaj param_temp = param.copy();
-            DMatrixRMaj resid_temp = residuals.copy();
-            DMatrixRMaj temp1_copy = temp1.copy();
-            DMatrixRMaj temp0_copy = temp0.copy();
-            int mini = i*n_funk_per_thread;
-            int maxi = Math.min(param.numRows, mini+n_funk_per_thread);
-            threads[i] = new jacobianParallel(function, mini,maxi, jacobian, param_temp, resid_temp, DELTA, temp0_copy, temp1_copy);
-            threads[i].start();
-        }
+            for (int i = 0; i < threads.length; i++) {
 
-        for(int i = 0; i < threads.length; i++){
-
-            try {
-                threads[i].join();
-            }catch (Exception e){
-                e.printStackTrace();
+                try {
+                    threads[i].join();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         long estimatedTime = System.currentTimeMillis() - startTime;

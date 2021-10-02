@@ -174,6 +174,74 @@ public class pointCloudMetrics {
 
         }
 
+        if(z_above_threshold.size() < cutoff_n_points){
+            /** Should we have insufficient number of points to calculate metrics,
+             * then we just output NaN for all metrics.
+             */
+            //if(z.size() < cutoff_n_points){
+
+                int p_size = (int)Math.ceil((0.95 / this.percentile_step_orig));
+
+                colnames.add("max_z" + suffix);
+                output.add(Double.NaN);
+                colnames.add("min_z" + suffix);
+                output.add(Double.NaN);
+                colnames.add("sd_z" + suffix);
+                output.add(Double.NaN);
+                colnames.add("median_z" + suffix);
+                output.add(Double.NaN);
+                colnames.add("mean_z" + suffix);
+                output.add(Double.NaN);
+                colnames.add("skewness_z" + suffix);
+                output.add(Double.NaN);
+                colnames.add("kurtosis_z" + suffix);
+                output.add(Double.NaN);
+                colnames.add("max_i" + suffix);
+                output.add(Double.NaN);
+                colnames.add("min_i" + suffix);
+                output.add(Double.NaN);
+                colnames.add("sd_i" + suffix);
+                output.add(Double.NaN);
+                colnames.add("median_i" + suffix);
+                output.add(Double.NaN);
+                colnames.add("mean_i" + suffix);
+                output.add(Double.NaN);
+                colnames.add("skewness_i" + suffix);
+                output.add(Double.NaN);
+                colnames.add("kurtosis_i" + suffix);
+                output.add(Double.NaN);
+                int counter22 = 0;
+
+                double[] percentiles_names = new double[p_size];
+                double percentile_step_z2 = percentile_step_orig;
+                for(int i = 0; i < p_size; i++){
+
+                    percentiles_names[i] = percentile_step_z2;
+                    percentile_step_z2 += percentile_step_orig;
+
+                }
+
+                for(int i = 0 ; i < p_size; i++){
+
+                    colnames.add("p_" + (double)(Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
+                    output.add(Double.NaN);
+
+                }
+                counter22 = 0;
+                for(int i = 0 ; i < p_size; i++){
+
+                    colnames.add("p_" + (double)(Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_i" + suffix);
+                    output.add(Double.NaN);
+                }
+                for(int i = 0; i < densities.length; i++) {
+
+                    colnames.add("d_" + densities[i] + "_z" + suffix);
+                    output.add(Double.NaN);
+                }
+                return output;
+            //}
+        }
+
         mean_z = sum_z / (double)z_above_threshold.size();
         mean_i = sum_i / (double)i_above_threshold.size();
 
@@ -242,6 +310,7 @@ public class pointCloudMetrics {
         Collections.sort(z_above_threshold);
 
         if (z_above_threshold.size() % 2 == 0) {
+            //System.out.println(z_above_threshold.size());
             median_z = ( ((double) z_above_threshold.get(z_above_threshold.size() / 2) + (double) z_above_threshold.get(z_above_threshold.size() / 2 - 1) ) / 2.0);
 
             median_i = ( ((double) i_above_threshold.get(i_above_threshold.size() / 2) + (double) i_above_threshold.get(i_above_threshold.size() / 2 - 1)) / 2.0);

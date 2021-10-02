@@ -93,6 +93,9 @@ public class las2las{
 
                 //buf.writePoint(tempPoint, aR.inclusionRule, i+j);
                 try {
+
+
+
                     aR.pfac.writePoint(tempPoint, i + j, thread_n);
                 }catch (Exception e){
                     e.printStackTrace();

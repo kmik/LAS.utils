@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import org.gdal.gdal.gdal;
@@ -40,6 +41,7 @@ import org.gdal.ogr.*;
 import tools.*;
 import utils.*;
 
+import static runners.MKid4pointsLAS.clipPlots_singleLASfile;
 import static runners.MKid4pointsLAS.readPolygonsFromWKT;
 
 //import Tinfour.*;
@@ -262,15 +264,18 @@ public class RunLASutils{
         ArrayList<String> returnList = new ArrayList<String>();
         int numberOfCores;
         int coreNumber;
+        boolean echoClass = false;
         String odir;
 
-        public multiTXT2LAS (ArrayList<String> tiedostot2, String parse2, int numberOfCores2, int coreNumber2, String odir2){
+        public multiTXT2LAS (ArrayList<String> tiedostot2, String parse2, int numberOfCores2, int coreNumber2, String odir2, boolean echoClass){
 
             tiedostot = tiedostot2;
             parse = parse2;
             numberOfCores = numberOfCores2;
             coreNumber = coreNumber2;
             odir = odir2;
+            this.echoClass = echoClass;
+
         }
 
         public ArrayList<String> getList(){
@@ -358,7 +363,7 @@ public class RunLASutils{
 
                 for(int i = 0; i < tiedostot.size(); i++){
 
-                    LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", "\t", rule);
+                    LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", " ", rule, echoClass);
                     to.get(i).writeBuffer2();
                     to.get(i).close();
                     //System.out.println("GOT HERE");
@@ -1019,8 +1024,8 @@ public class RunLASutils{
         //wildCard = aR.input.split(pathSep)[(aR.input.split(pathSep)).length - 1].charAt(0) == '*';
 
         ArrayList<String> filesList = new ArrayList<String>();
-        ogr.RegisterAll(); //Registering all the formats..
-        gdal.AllRegister();
+        //ogr.RegisterAll(); //Registering all the formats..
+        //gdal.AllRegister();
         ArrayList<LASReader> pointClouds = new ArrayList<LASReader>();
         ArrayList<File> inputFiles = new ArrayList<>();
         //System.out.println(aR.files[0].split("\\.")[1]);
@@ -1052,7 +1057,7 @@ public class RunLASutils{
 
         if(txtFormat){
 
-
+            System.out.println("converting txt to las");
 
             proge.setName("Converting .txt to .las ...");
             ArrayList<String> tempList = new ArrayList<String>();
@@ -1077,7 +1082,7 @@ public class RunLASutils{
             for(int ii = 1; ii <= aR.cores; ii++){
 
                 proge.addThread();
-                Thread temp = new Thread(new multiTXT2LAS(tempList, aR.iparse, aR.cores, ii, aR.odir));
+                Thread temp = new Thread(new multiTXT2LAS(tempList, aR.iparse, aR.cores, ii, aR.odir, aR.echoClass));
                 lista11.add(temp);
                 temp.start();
 
@@ -1382,7 +1387,7 @@ public class RunLASutils{
 
                 LASraf asd2 = new LASraf(tempFile);
                 //txt2las(File from, LASraf to, String parse, String softwareName)
-                LASwrite.txt2las(fromFile, asd2, aR.iparse, "txt2las", aR.sep, aR.getInclusionRule());
+                LASwrite.txt2las(fromFile, asd2, aR.iparse, "txt2las", aR.sep, aR.getInclusionRule(), false);
                 //createCHM.chm testi = new createCHM.chm(pointClouds.get(i), step, output, method);
             }
 
@@ -1582,6 +1587,7 @@ public class RunLASutils{
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
 
                     try {
+
                         tooli.convert(temp, aR);
                     }catch (Exception e){
                         e.printStackTrace();
@@ -1602,6 +1608,7 @@ public class RunLASutils{
 
         if(aR.tool == 15){
 
+            ogr.RegisterAll();
             ArrayList<Integer> plotID = new ArrayList<>();
 
             ArrayList<double[][]> polyBank = new ArrayList<double[][]>();
@@ -1611,7 +1618,7 @@ public class RunLASutils{
 
                 int checkShp = 1;
                 DataSource ds = ogr.Open( aR.poly);
-                //System.out.println("Layer count: " + ds.GetLayerCount());
+
                 Layer layeri = ds.GetLayer(0);
                 //System.out.println("Feature count: " + layeri.GetFeatureCount());
 
@@ -1850,12 +1857,13 @@ public class RunLASutils{
 
         if(aR.tool == 20){
 
-            File trees = new File(aR.poly);
+            File trees = aR.measured_trees;
 
             int plotSize = (int)aR.step;
 
-            ITDstatistics stats = new ITDstatistics();
+            ITDstatistics stats = new ITDstatistics(aR);
 
+            if(aR.measured_trees != null)
             stats.readMeasuredTrees(trees);
 
             stats.setOutput(new File(aR.output));
@@ -1864,15 +1872,13 @@ public class RunLASutils{
 
             String ext = stats.outFile.getName().substring(0,index);
 
-
-
             String parent = stats.outFile.getParent() == null ? "" : stats.outFile.getParent() + "/";
 
             stats.setStemOutput(new File(parent + ext + "_stem.txt"));
             stats.setStemOutput2(new File(parent + ext + "_stem_2.txt"));
             stats.setStemOutput3(new File(parent + ext + "_stem_3.txt"));
 
-            stats.readFieldPlots(new File("/home/koomikko/Documents/processing_directory/spectral/dz/itd/GridPlots_2020.shp"));
+            stats.readFieldPlots(new File(aR.poly));
 
             for(int i = 0; i < aR.inputFiles.size(); i++){
 
@@ -1884,9 +1890,14 @@ public class RunLASutils{
             }
 
             stats.labelTrees();
-            stats.showDetectionRate(plotSize);
+            //if(stats.groundMeasuredOK)
+              //  stats.showDetectionRate(plotSize);
+
             stats.printOutput();
+
             stats.closeFile();
+
+
         }
 
         if(aR.tool == 21){
@@ -1904,7 +1915,28 @@ public class RunLASutils{
             System.out.println("NEURAL TEST");
 
             try {
-                neuralNetWorkTest te = new neuralNetWorkTest();
+                neuralNetWorkTest_3d_treespecies te = new neuralNetWorkTest_3d_treespecies(aR);
+                //convolution te = new convolution(aR);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        if(aR.tool == 221){
+
+            neuralNetworkTools ntool = new neuralNetworkTools(aR);
+            //ntool.printNetwork(aR.model);
+            ntool.searchArbiterOutput();
+        }
+
+        if(aR.tool == 222){
+
+            System.out.println("NEURAL HYPERPARAMETER OPTIMIZATION");
+
+            try {
+                //neuralNetworkHyperparameterOptimization te = new neuralNetworkHyperparameterOptimization(aR);
+                //neuralNetworkHyperparameterOptimization_convolution te = new neuralNetworkHyperparameterOptimization_convolution(aR);
+                neuralNetworkHyperparameterOptimization_convolution_mix te = new neuralNetworkHyperparameterOptimization_convolution_mix(aR);
             }catch(Exception e){
                 e.printStackTrace();
             }
@@ -1969,7 +2001,7 @@ public class RunLASutils{
                 for(int i = 0; i < aR.inputFiles.size(); i++) {
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
 
-                    stemDetector sd = new stemDetector(temp, 0.10, 0.25, 1, aR);
+                    stemDetector sd = new stemDetector(temp, 0.1, 0.5, 1, aR);
 
                     sd.setUpOutputFiles(temp);
 
@@ -1982,6 +2014,214 @@ public class RunLASutils{
             }
         }
 
+        if(aR.tool == 27){
+
+            HashMap<Integer, int[]> trunkMatches = new HashMap<>();
+            int[] n_trunks = new int[]{1};
+
+            try{
+
+                for(int i = 0; i < aR.inputFiles.size(); i++) {
+
+                    LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+                    trunkDBH t_DBH = new trunkDBH(temp, aR, trunkMatches, n_trunks);
+
+                    t_DBH.process();
+
+                }
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            FileOutputStream fos = new FileOutputStream("trunks.ser");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(trunkMatches);
+            oos.close();
+
+        }
+
+        if(aR.tool == 28){
+
+            File shapeFile = new File(aR.poly);
+
+            ogr.RegisterAll(); //Registering all the formats..
+            gdal.AllRegister();
+
+            int shapeType = -1;
+
+            File fout = null;
+
+            int checkShp = 0;
+
+
+
+            try{
+
+
+                Thread.sleep(0);
+
+            }catch(InterruptedException e){}
+
+            if(shapeFile.getName().contains(".shp")){
+
+                checkShp = 1;
+                DataSource ds = ogr.Open( aR.poly);
+                //System.out.println("Layer count: " + ds.GetLayerCount());
+                Layer layeri = ds.GetLayer(0);
+                //System.out.println("Feature count: " + layeri.GetFeatureCount());
+
+                try{
+                    fout = new File("tempWKT.csv");
+
+                    if(fout.exists())
+                        fout.delete();
+
+                    fout.createNewFile();
+
+                    FileOutputStream fos = new FileOutputStream(fout);
+                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+
+                    bw.write("WKT,plot_id");
+                    bw.newLine();
+
+                    for(long i = 0; i < layeri.GetFeatureCount(); i++ ){
+
+                        Feature tempF = layeri.GetFeature(i);
+                        //System.out.println(layeri.GetFeatureCount());
+                        Geometry tempG = tempF.GetGeometryRef();
+
+                        if(tempG == null)
+                            continue;
+
+                        String id = "";
+
+                        if(tempF.GetFieldCount() > 0)
+                            id = tempF.GetFieldAsString(0);
+                        else
+                            id = String.valueOf(i);
+
+                        String out = "\"" + tempG.ExportToWkt() + "\"," + id;
+
+                        bw.write(out);
+                        bw.newLine();
+
+
+                    }
+
+                    bw.close();
+                }catch(IOException e){
+
+                }
+
+                aR.poly = "tempWKT.csv";
+                shapeType = 2;
+
+            }
+
+            try{
+
+                for(int i = 0; i < aR.inputFiles.size(); i++) {
+
+                    LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+                    clipPlots_singleLASfile(aR.poly, aR, temp);
+
+                    System.out.println("HERE");
+
+                }
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        if(aR.tool == 29){
+
+            HashMap<Integer, double[]> trunkFile = new HashMap<>();
+            readTrunkFile(new File("trunk_dbh_out.txt"), trunkFile);
+            HashSet<Integer> upperStoreyTrunks = new HashSet<>();
+            HashSet<Integer> underStoreyTrunks = new HashSet<>();
+            HashMap<Integer, Integer> trunk_to_crown = new HashMap<>();
+
+
+            try{
+
+                for(int i = 0; i < aR.inputFiles.size(); i++) {
+
+                    LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+                    classifyTrunks c_trunks = new classifyTrunks(temp, aR, trunkFile,
+                                                upperStoreyTrunks,
+                                                underStoreyTrunks,
+                                                trunk_to_crown);
+
+                    c_trunks.classify();
+
+                }
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            File o_trunk_file = aR.createOutputFileWithExtension(new File("trunk_dbh_out.txt"), "_underOver.txt");
+
+
+            BufferedWriter bw2 = new BufferedWriter(new FileWriter(o_trunk_file, true));
+
+            for(int key : trunkFile.keySet()){
+
+                String o_string = key + "\t";
+
+                for(int i = 0; i < trunkFile.get(key).length; i++){
+                    o_string += trunkFile.get(key)[i] + "\t";
+                }
+
+                if(upperStoreyTrunks.contains(key))
+                    o_string += 1 + "\t";
+
+                else if(underStoreyTrunks.contains(key))
+                    o_string += 0 + "\t";
+                else
+                    o_string += 2 + "\t";
+
+                if(trunk_to_crown.containsKey(key))
+                    o_string += trunk_to_crown.get(key) + "\t";
+                else
+                    o_string += -1;
+
+                bw2.write(o_string);
+                bw2.newLine();
+
+            }
+
+            bw2.close();
+        }
+
+    }
+    public static void readTrunkFile(File trunkFile, HashMap<Integer, double[]> fil) throws Exception{
+
+        try (BufferedReader br = new BufferedReader(new FileReader(trunkFile))) {
+
+            String line;
+
+            while ((line = br.readLine()) != null) {
+
+                String[] tokens = line.split("\t");
+
+                fil.put(Integer.parseInt(tokens[0]), new double[]{Double.parseDouble(tokens[1]),
+                        Double.parseDouble(tokens[2]),
+                        Double.parseDouble(tokens[3]),
+                        Double.parseDouble(tokens[4])
+                });
+                //System.out.println(tokens[0]);
+                //System.out.println(Arrays.toString(this.trunkFile.get(Integer.parseInt(tokens[0]))));
+
+            }
+
+        }
     }
 
 }
+

@@ -1210,6 +1210,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
             this.setNumFunctions(n_residuals);
             this.setNumFunctions(n_residuals_circleWise);
             this.setNumFunctions(n_residuals_trunk_centers);
+
         }else{
 
         }

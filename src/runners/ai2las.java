@@ -5,6 +5,8 @@ import java.lang.reflect.Array;
 import java.util.*;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
@@ -15,18 +17,19 @@ import org.gdal.gdal.Band;
 
 //import Tinfour.*;
 import LASio.*;
+//import org.nd4j.linalg.primitives.Atomic;
+import org.nd4j.shade.guava.util.concurrent.AtomicDoubleArray;
 import utils.*;
 class ai2las{
 	public static listOfFiles tiedostoLista = new listOfFiles();
 	public static ThreadProgressBar proge = new ThreadProgressBar();
 
+	public int n_bands = -1;
+
 	public static fileOperations fo = new fileOperations();
 	//public static double[][] rotationMatrix = new double[3][3];
 
 	public static class ThreadProgressBar{
-
-
-
 		int current = 0;
 		int end = 0;
 		String name = "give me name!";
@@ -227,7 +230,7 @@ class ai2las{
 
 				for(int i = 0; i < tiedostot.size(); i++){
 
-					LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", " ", rule);
+					LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", " ", rule, false);
 					to.get(i).writeBuffer2();
 					to.get(i).close();
 					//System.out.println("GOT HERE");
@@ -253,7 +256,7 @@ class ai2las{
 
 
 	public static void readImages(File eoInformation, ArrayList<Dataset> images, ArrayList<ArrayList<Dataset>> threadImages, ArrayList<Integer> imageID, ArrayList<double[]> eos, String sep, double[] interior, ArrayList<double[]> extents,
-								  double minZ, double[][] rotationMatrix, ArrayList<String> imageNames){
+								  double minZ, double[][] rotationMatrix, ArrayList<String> imageNames, argumentReader aR){
 
 
 		int cores = 5;
@@ -277,14 +280,28 @@ class ai2las{
 				//System.out.println("Address: " + tokens[0]);
 				Dataset tempDataset = null;
 
-				if(System.getProperty("os.name").equals("Linux"))
-					tempDataset = gdal.Open("/" + tokens[0]);
-				else
-					tempDataset = gdal.Open(tokens[0]);
+				try {
+					if (System.getProperty("os.name").equals("Linux"))
+						tempDataset = gdal.Open("/" + tokens[0]);
+					else
+						tempDataset = gdal.Open(tokens[0]);
+				}catch (Exception e){
+					System.out.println("WARNING!! " + tokens[0] + " DOES NOT EXIST!!");
+					continue;
+				}
 
+
+				try{
+					double test = (double)tempDataset.GetRasterXSize();
+				}catch (Exception e){
+					System.out.println("WARNING!! " + tokens[0] + " DOES NOT EXIST!!");
+					continue;
+				}
 				System.out.print(count++ + " Images read\r");
 				double sensorSize = interior[1] * (double)tempDataset.GetRasterXSize();
 				double focalLength_millimeters = interior[0] * 1000.0;
+
+
 
 				//System.out.println(focalLength_millimeters);
 				//System.out.println(tempDataset);
@@ -300,10 +317,13 @@ class ai2las{
 				eoTemp[5] = Double.parseDouble(tokens[7]);
 
 				double flyingHeight = eoTemp[2] - minZ;
-				flyingHeight = 125.0;
+
+				if(aR.altitude != 0.0)
+					flyingHeight = aR.altitude;
+
 				double gsd = ((sensorSize * flyingHeight * 100.0) / (focalLength_millimeters * (double)tempDataset.GetRasterXSize())) / 100.0;
 
-				System.out.println("fluing height: " + flyingHeight + " gsd: " + gsd);
+				System.out.println("img altitude: " + flyingHeight + " gsd: " + gsd);
 
 
 				tempPoint.x = eoTemp[0];
@@ -633,6 +653,14 @@ class ai2las{
 			poison = true;
 
 		}
+
+		public pointAI(int n_bands){
+
+			poison = true;
+			channelMeans = new double[n_bands];
+
+		}
+
 
 		public pointAI(LasPoint point1, int iteration2){
 
@@ -981,6 +1009,9 @@ class ai2las{
 
 	public static void main(String[] args) throws IOException {
 
+
+
+
 		argumentReader aR = new argumentReader(args);
 		aR.setExecDir( System.getProperty("user.dir"));
 		aR.parseArguents();
@@ -1124,10 +1155,12 @@ class ai2las{
 		ArrayList<ArrayList<Dataset>> threadImages = new ArrayList<ArrayList<Dataset>>();
 
 		ArrayList<double[]> exteriors = new ArrayList<double[]>();
-		double[] interior = new double[4];
+		double[] interior2 = new double[4];
 
 
-		interior = readIo(interiorFile, "\t");
+		interior2 = readIo(interiorFile, "\t");
+
+		final double[] interior = interior2;
 
 		ArrayList<Integer> imageIDs = new ArrayList<Integer>();
 
@@ -1142,7 +1175,9 @@ class ai2las{
 		ArrayList<Dataset> datasets = new ArrayList<Dataset>();
 		ArrayList<String> imageNames = new ArrayList<>();
 
-		readImages(exteriorFile, datasets, threadImages, imageIDs, exteriors, "\t", interior, extents, minZ, rotationMatrix, imageNames);
+		readImages(exteriorFile, datasets, threadImages, imageIDs, exteriors, "\t", interior, extents, minZ, rotationMatrix, imageNames, aR);
+
+		int n_bands = datasets.get(0).GetRasterCount();
 
 		ArrayList<Integer> shuffle = new ArrayList<Integer>();
 
@@ -1180,7 +1215,7 @@ class ai2las{
 			odir = "";
 
 
-		pointAI tempP = new pointAI();
+		pointAI tempP = new pointAI(n_bands);
 
 		//LinkedList<ArrayList<int[]>> cachedImages = new LinkedList<>();
 
@@ -1219,9 +1254,9 @@ class ai2las{
 				//File ofile = new File("testi.txt");
 				String oname = odir + (tempFile.getName().split(".las")[0] + ".txt");
 
-				File ofile2 = new File(oname);
+				File ofile2 = aR.createOutputFileWithExtension(tempFile, "_ai.txt");
 
-				System.out.println(oname);
+				//File ofile2 = new File(oname);
 
 
 				//if(ofile.exists())
@@ -1326,10 +1361,73 @@ class ai2las{
 
 							int recent = -1;
 							//lStartTime_debug = System.currentTimeMillis();
+							double p_x = tempPoint.x;
+							double p_y = tempPoint.y;
+							double p_z = tempPoint.z;
+							/*
+							AtomicDoubleArray channels = new AtomicDoubleArray(datasets.get(0).GetRasterCount());
+							AtomicInteger n_img = new AtomicInteger(0);
+							if(aR.cores > 1){
+
+								IntStream s = IntStream.range(0, datasets.size());
+
+								s.parallel().forEach(j_ -> {
+									int[] array1 = new int[1];
+									//System.out.println(j_);
+									//thisLocation[0] = exteriors.get(j_)[2];
+									//thisLocation[1] = exteriors.get(j_)[3];
+
+
+									//System.out.println(notClose(thisLocation[0], thisLocation[1], valmiit, 15.0) + " " + valmiit.size());
+
+									if (p_x >= extents.get(j_)[0] && p_x <= extents.get(j_)[1] && p_y >= extents.get(j_)[2] && p_y <= extents.get(j_)[3]) {
+										//if(true){
+										//visited++;
+
+										//temp = collinearStuff(tempPoint, interior, exteriors.get(j_), rotationMatrix, x_s, y_s);
+										double[] temp2 = collinearStuff3(p_x, p_y, p_z, interior, exteriors.get(j_), rotationMatrices.get(j_), x_s, y_s);
+
+										if (temp2[0] > pix_threshold_x && temp2[0] < (x_s - pix_threshold_x)
+												&& temp2[1] > pix_threshold_y && temp2[1] < (y_s - pix_threshold_y)) {
+
+											System.out.println("HERE");
+											//channels[0]++;
+											for(int i = 1; i <= datasets.get(j_).GetRasterCount(); i++){
+
+												//System.out.println(i + " " + image.getRasterCount());
+												Band temp_b = datasets.get(j_).GetRasterBand(i);
+
+												int a = temp_b.ReadRaster((int)temp2[0],
+														(int)temp2[1],
+														1,
+														1,
+														array1);
+
+												channels.getAndAdd(i - 1, array1[0]);
+
+											}
+											n_img.incrementAndGet();
+											//.addObservation(datasets.get(j_), imageIDs.get(j_), temp2[0], temp2[1]);
+
+											//pointFound = true;
+											//valmiit.add(new double[]{thisLocation[0], thisLocation[1]});
+											//numberOfimages++;
+											//recent = j_;
+											//outWrite += " " + imageIDs.get(j);
+
+										}
+									}
+
+								});
+
+							}
+
+							else
+								*/
 							for (int j_ = 0; j_ < datasets.size(); j_++) {
 
-								thisLocation[0] = exteriors.get(j_)[2];
-								thisLocation[1] = exteriors.get(j_)[3];
+								//thisLocation[0] = exteriors.get(j_)[2];
+								//thisLocation[1] = exteriors.get(j_)[3];
 
 
 								//System.out.println(notClose(thisLocation[0], thisLocation[1], valmiit, 15.0) + " " + valmiit.size());
@@ -1452,9 +1550,11 @@ class ai2las{
 							}
 
 							if (!aR.olas) {
-								for (int l = 0; l < 5; l++) {
 
-									outWrite2 += LASwrite.LASpoint2String(tempP.getPoint(), oparse); //tempP.point.x + " " + tempP.point.y + " " + tempP.point.z;
+								outWrite2 += LASwrite.LASpoint2String(tempPoint, oparse); //tempP.point.x + " " + tempP.point.y + " " + tempP.point.z;
+
+								for (int l = 0; l < n_bands; l++) {
+
 
 									//double channelMean = 0.0;
 						/*
@@ -1466,16 +1566,16 @@ class ai2las{
 						}
 						*/
 									//channelMean /= tempP.imagesVisible.size();
-									outWrite2 += " " + tempP.channelMeans[l];
+									outWrite2 += "\t" + tempP.channelMeans[l];
 
-
+									//System.out.println("opas: " + outWrite2);
 									//outWrite += ";";
 
 								}
 
 								//outti.write(outWrite2);
 
-								tempP = null;
+								//tempP = null;
 
 								bw2.write(outWrite2);
 								bw2.newLine();
@@ -1519,9 +1619,11 @@ class ai2las{
 				//n = null;
 				tempFile = null;
 
+				if(aR.olas){
+					buf.close();
+					pw.close();
+				}
 
-				buf.close();
-				pw.close();
 
 
 			}

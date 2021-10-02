@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,9 +32,18 @@ public class argumentReader {
 
     public File debug_file = null;
 
+
     public boolean olas = false;
 
+    public double altitude = 0.0;
     public String[] files;
+
+    public int layers = 1;
+
+    public File measured_trees = null;
+
+    public int field = 0;
+
 
     public String execDir;
     public File execDir_file;
@@ -48,6 +56,11 @@ public class argumentReader {
 
     public int tool;
 
+    public int batch_size = 32;
+
+
+    public int prepare_nn_input = 0;
+
     public double orig_x = -1;
     public double orig_y = -1;
 
@@ -56,6 +69,10 @@ public class argumentReader {
     public boolean lasrelate = false;
 
     public boolean dz_on_the_fly = false;
+
+    public int label_index = 160;
+
+    public String neural_mode = "merged";
 
     public String args[];
     public PointInclusionRule inclusionRule;
@@ -66,15 +83,30 @@ public class argumentReader {
     public String output = "asd";
     public String input = "asd";;
 
+    public File train_2 = null;
+    public File test_2 = null;
+    public File validation_2 = null;
+
+
+    public File train = null;
+    public File validation = null;
+    public File test = null;
+    public int time = 1;
+
+
     public double buffer = 0;
 
     public double res = 10.0;
 
     public String odir = "asd";
+    public String idir = "asd";
 
     public int few = 5;
 
+
     public double step = 1;
+
+    public boolean dense = false;
 
     public int ground_class = 2;
 
@@ -92,6 +124,10 @@ public class argumentReader {
     public String groundPoints = "-999";
 
     public boolean debug = false;
+
+
+
+    public int set_seed = -1;
 
     public boolean by_gps_time = true;
     public boolean by_z_order = false;
@@ -135,6 +171,8 @@ public class argumentReader {
 
     public double theta = 1.0;
 
+    public double learning_rate = 0.01;
+
     public int kernel = 3;
 
     public double delta = 5.0;
@@ -143,6 +181,8 @@ public class argumentReader {
     public LasBlock blokki;
 
     public progressUpdater p_update; // = new progressUpdater(this);
+
+    public String save_file = "bestModel_graph.bin";
 
     public double concavity = 50.0;
 
@@ -154,6 +194,9 @@ public class argumentReader {
 
     public int change_point_type = -999;
 
+    public int convolution_option = 1;
+
+
     public ArrayList<double[][]> polyBank = new ArrayList<>();
 
     public boolean setNegativeZero = false;
@@ -163,6 +206,8 @@ public class argumentReader {
     public int min_points = 10;
 
     public boolean o_dz = false;
+
+    public File model = null;
 
     public boolean mem_efficient = false;
 
@@ -201,7 +246,7 @@ public class argumentReader {
     public void createOpts(){
 
         options = new Options();
-        options.addOption(Option.builder("i")
+        options.addOption( org.apache.commons.cli.Option.builder("i")
                 .longOpt("input")
                 .hasArg(true)
                 .desc("Input data")
@@ -251,6 +296,41 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("prep_nn_input")
+                .hasArg(true)
+                .desc("Reshape .txt input into .nnin")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("measured_trees")
+                .hasArg(true)
+                .desc("Field measured trees")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("learning_rate")
+                .hasArg(true)
+                .desc("neural network learning rate")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("layers")
+                .hasArg(true)
+                .desc("neural network layers")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("neural_mode")
+                .hasArg(true)
+                .desc("neural network mode")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("seq")
                 .hasArgs()
                 .desc("Sequence")
@@ -265,9 +345,79 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("train")
+                .hasArg(true)
+                .desc("neural network train set")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("test")
+                .hasArg(true)
+                .desc("neural network test set")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("validation")
+                .hasArg(true)
+                .desc("neural network validation set")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("label_index")
+                .hasArg(true)
+                .desc("label index")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("train2")
+                .hasArg(true)
+                .desc("neural network train 2 set")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("test2")
+                .hasArg(true)
+                .desc("neural network test 2 set")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("validation2")
+                .hasArg(true)
+                .desc("neural network validation 2 set")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("field")
+                .hasArg(true)
+                .desc("field")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("interior")
                 .hasArg(true)
                 .desc("inter")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("alt")
+                .hasArg(true)
+                .desc("flying altitude")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("model")
+                .hasArg(true)
+                .desc("neural network model")
                 .required(false)
                 .build());
 
@@ -287,6 +437,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("set_seed")
+                .hasArg(true)
+                .desc("output only stemalign input")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("change_point_type")
                 .hasArg(false)
                 .desc("Change point type")
@@ -297,6 +454,13 @@ public class argumentReader {
                 .longOpt("dz_")
                 .hasArg(false)
                 .desc("dz on the fly")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("dense")
+                .hasArg(false)
+                .desc("output dense ground")
                 .required(false)
                 .build());
 
@@ -318,6 +482,13 @@ public class argumentReader {
                 .longOpt("dist")
                 .hasArg(true)
                 .desc("Dist")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("save_file")
+                .hasArg(true)
+                .desc("name of the file to be saved")
                 .required(false)
                 .build());
 
@@ -592,6 +763,14 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("convolution_option")
+                .hasArg(true)
+                .desc("Choose which convolution config to use")
+                .required(false)
+                .build());
+
+
+        options.addOption(Option.builder()
                 .longOpt("interval")
                 .hasArg(true)
                 .desc("Inteval?")
@@ -602,6 +781,13 @@ public class argumentReader {
                 .longOpt("odir")
                 .hasArg(true)
                 .desc("Output directory")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("idir")
+                .hasArg(true)
+                .desc("Input directory")
                 .required(false)
                 .build());
 
@@ -638,6 +824,13 @@ public class argumentReader {
                 .longOpt("ground_class")
                 .hasArg(true)
                 .desc("Class number of ground points")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("batch_size")
+                .hasArg(true)
+                .desc("b size")
                 .required(false)
                 .build());
 
@@ -709,6 +902,13 @@ public class argumentReader {
                 .longOpt("axGrid")
                 .hasArg(true)
                 .desc("axGrid")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("time")
+                .hasArg(true)
+                .desc("neural network train time")
                 .required(false)
                 .build());
 
@@ -901,12 +1101,14 @@ public class argumentReader {
 
                 for(String s : files){
                     //if(new LASraf(new File(s)).check()){
-                    if(s.split("\\.")[1].equals("las")){
+                    if(new File(s).getName().split("\\.")[1].equals("las")){
                         temp.add(s);
                         this.inputFiles.add(new File(s));
                     }else{
+                        temp.add(s);
+                        this.inputFiles.add(new File(s));
                         System.out.println(s + " is not a LAS file, terminating");
-                        System.exit(1);
+                        //System.exit(1);
                     }
                     //}
                 }
@@ -943,10 +1145,33 @@ public class argumentReader {
                 this.cores = Integer.parseInt(cmd.getOptionValue("c"));
             }
 
+            if (cmd.hasOption("set_seed")) {
+
+                this.set_seed = Integer.parseInt(cmd.getOptionValue("set_seed"));
+            }
+
+            if (cmd.hasOption("label_index")) {
+
+                this.label_index = Integer.parseInt(cmd.getOptionValue("label_index"));
+            }
+
             if (cmd.hasOption("drop_classification")) {
 
                 this.inclusionRule.dropClassification(Integer.parseInt(cmd.getOptionValue("drop_classification")));
             }
+
+
+
+            if (cmd.hasOption("learning_rate")) {
+
+                this.learning_rate = (Double.parseDouble(cmd.getOptionValue("learning_rate")));
+            }
+
+            if (cmd.hasOption("layers")) {
+
+                this.layers = (Integer.parseInt(cmd.getOptionValue("layers")));
+            }
+
 
             if (cmd.hasOption("iparse")) {
 
@@ -974,6 +1199,18 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("alt")) {
+
+                this.altitude = Double.parseDouble(cmd.getOptionValue("alt"));
+
+            }
+
+            if (cmd.hasOption("prep_nn_input")) {
+
+                this.prepare_nn_input = Integer.parseInt(cmd.getOptionValue("prep_nn_input"));
+
+            }
+
             if (cmd.hasOption("few")) {
 
                 this.few = Integer.parseInt(cmd.getOptionValue("few"));
@@ -998,6 +1235,20 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("convolution_option")) {
+
+                this.convolution_option = Integer.parseInt(cmd.getOptionValue("convolution_option"));
+
+            }
+
+
+
+            if (cmd.hasOption("measured_trees")) {
+
+                this.measured_trees = new File(cmd.getOptionValue("measured_trees"));
+
+            }
+
             if (cmd.hasOption("dist")) {
 
                 this.dist = Double.parseDouble(cmd.getOptionValue("dist"));
@@ -1009,6 +1260,12 @@ public class argumentReader {
                 this.inclusionRule.setClassification(Integer.parseInt(cmd.getOptionValue("set_classification")));
 
             }
+            if (cmd.hasOption("field")) {
+
+                this.field = Integer.parseInt(cmd.getOptionValue("field"));
+
+            }
+
 
             if (cmd.hasOption("drop_noise")) {
 
@@ -1034,6 +1291,48 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("train")) {
+
+                this.train = new File(cmd.getOptionValue("train"));
+
+            }
+
+            if (cmd.hasOption("test")) {
+
+                this.test = new File(cmd.getOptionValue("test"));
+
+            }
+
+            if (cmd.hasOption("validation")) {
+
+                this.validation = new File(cmd.getOptionValue("validation"));
+
+            }
+
+            if (cmd.hasOption("train2")) {
+
+                this.train_2 = new File(cmd.getOptionValue("train2"));
+
+            }
+
+            if (cmd.hasOption("test2")) {
+
+                this.test_2 = new File(cmd.getOptionValue("test2"));
+
+            }
+
+            if (cmd.hasOption("validation2")) {
+
+                this.validation_2 = new File(cmd.getOptionValue("validation2"));
+
+            }
+
+            if (cmd.hasOption("time")) {
+
+                this.time = Integer.parseInt(cmd.getOptionValue("time"));
+
+            }
+
             if (cmd.hasOption("dz_")) {
 
                 this.dz_on_the_fly = true;
@@ -1045,6 +1344,14 @@ public class argumentReader {
                 this.interior = cmd.getOptionValue("interior");
 
             }
+
+            if (cmd.hasOption("save_file")) {
+
+                this.save_file = cmd.getOptionValue("save_file");
+
+            }
+
+
 
             if (cmd.hasOption("axGrid")) {
 
@@ -1092,6 +1399,12 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("model")) {
+
+                this.model = new File(cmd.getOptionValue("model"));
+
+            }
+
 
             if (cmd.hasOption("exterior")) {
 
@@ -1117,12 +1430,23 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("neural_mode")) {
+
+
+                this.neural_mode = cmd.getOptionValue("neural_mode");
+
+            }
 
             if (cmd.hasOption("method")) {
 
                 this.method = cmd.getOptionValue("method");
 
-            }
+            }options.addOption(Option.builder()
+                .longOpt("dz_")
+                .hasArg(false)
+                .desc("dz on the fly")
+                .required(false)
+                .build());
 
             if (cmd.hasOption("traj")) {
 
@@ -1130,9 +1454,40 @@ public class argumentReader {
 
             }
 
-            if (cmd.hasOption("odir")) {
+            if (cmd.hasOption("idir")) {
+
+                this.idir = cmd.getOptionValue("idir");
+                File odr = new File(idir);
+
+                if (!odr.isDirectory()) {
+
+                    odr.mkdir();
+                    System.out.println(odr.getAbsolutePath());
+                    System.out.println("IDIR IS NOT DIRECTORY, exiting");
+                    System.exit(1);
+                }
+
+                this.idir = odr.getCanonicalPath() + System.getProperty("file.separator");
+
+            }
+
+                if (cmd.hasOption("odir")) {
 
                 this.odir = cmd.getOptionValue("odir");
+                File odr = new File(odir);
+
+                if(!odr.isDirectory()){
+
+                    odr.mkdir();
+                    System.out.println(odr.getAbsolutePath());
+                    System.out.println("ODIR IS NOT DIRECTORY, exiting");
+                    System.exit(1);
+                }
+
+                this.odir = odr.getCanonicalPath() + System.getProperty("file.separator");
+
+                //
+
 
                 if(false)
                 if(odir.charAt(0) == '/' || odir.charAt(0) == '\\'){
@@ -1141,8 +1496,11 @@ public class argumentReader {
 
                 String odirFirst = "asd";
 
+
+    /*
                 if(odir.split(System.getProperty("file.separator")).length > 1)
                     odirFirst = odir.split(System.getProperty("file.separator"))[0];
+
 
                 execDir = System.getProperty("user.dir");
 
@@ -1157,7 +1515,7 @@ public class argumentReader {
                         }
                     }
 
-
+*/
             }
 
             if (cmd.hasOption("split")) {
@@ -1180,6 +1538,12 @@ public class argumentReader {
             if (cmd.hasOption("min_points")) {
 
                 this.min_points = Integer.parseInt(cmd.getOptionValue("min_points"));
+
+            }
+
+            if (cmd.hasOption("batch_size")) {
+
+                this.batch_size = Integer.parseInt(cmd.getOptionValue("batch_size"));
 
             }
 
@@ -1239,6 +1603,12 @@ public class argumentReader {
             if (cmd.hasOption("interval")) {
 
                 this.interval = Double.parseDouble(cmd.getOptionValue("interval"));
+
+            }
+
+            if (cmd.hasOption("dense")) {
+
+                this.dense = true;
 
             }
 
@@ -1661,7 +2031,7 @@ public class argumentReader {
     }
 
     public File createOutputFileWithExtension(LASReader in, String extension) throws IOException {
-
+/*
         File tempFile;
         String tempPath = this.output;
 
@@ -1688,11 +2058,47 @@ public class argumentReader {
         tempFile.createNewFile();
 
         return tempFile;
+*/
 
+        File tempFile = null;
+        String tempPath = this.output;
+
+        if(this.output.equals("asd"))
+            tempFile = in.getFile();
+        else
+            tempFile = new File(this.output);
+
+        if(!odir.equals("asd")) {
+
+            //System.out.println("odir: " + odir);
+
+            File diri = new File(odir);
+
+            //System.out.println("ODIR: " + diri.getAbsolutePath());
+            tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
+        }
+
+        String extensionHere = extension;
+        //System.out.println("EXIST " + tempFile.getAbsolutePath());
+        if(tempFile.exists()){
+            //tempPath = pointClouds.get(i).getFile().getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las";
+
+            tempFile = fo.createNewFileWithNewExtension(tempFile, extensionHere);
+            //new File(tempFile.getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las");
+        }
+
+        if(tempFile.exists())
+            tempFile.delete();
+
+        //System.out.println(tempFile.getAbsolutePath());
+
+        tempFile.createNewFile();
+
+        return tempFile;
     }
 
     public File createOutputFileWithExtension(File in, String extension) throws IOException {
-
+/*
         File tempFile;
         String tempPath = in.getAbsolutePath();
 
@@ -1717,6 +2123,43 @@ public class argumentReader {
 
         if(tempFile.exists())
             tempFile.delete();
+
+        tempFile.createNewFile();
+
+        return tempFile;
+        */
+
+        File tempFile = null;
+        String tempPath = this.output;
+
+        if(this.output.equals("asd"))
+            tempFile = in;
+        else
+            tempFile = new File(this.output);
+
+        if(!odir.equals("asd")) {
+
+            //System.out.println("odir: " + odir);
+
+            File diri = new File(odir);
+
+            //System.out.println("ODIR: " + diri.getAbsolutePath());
+            tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
+        }
+
+        String extensionHere = extension;
+        //System.out.println("EXIST " + tempFile.getAbsolutePath());
+        if(tempFile.exists()){
+            //tempPath = pointClouds.get(i).getFile().getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las";
+
+            tempFile = fo.createNewFileWithNewExtension(tempFile, extensionHere);
+            //new File(tempFile.getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las");
+        }
+
+        if(tempFile.exists())
+            tempFile.delete();
+
+        //System.out.println(tempFile.getAbsolutePath());
 
         tempFile.createNewFile();
 

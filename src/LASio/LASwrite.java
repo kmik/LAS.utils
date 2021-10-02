@@ -375,7 +375,7 @@ public class LASwrite {
 	* 	@since 09.03.2018  
 	*/
 
-	public static void txt2las(File from, LASraf to, String parse, String softwareName, String sep, PointInclusionRule rule) throws IOException{
+	public static void txt2las(File from, LASraf to, String parse, String softwareName, String sep, PointInclusionRule rule, boolean echoClass) throws IOException{
 
 		//PointInclusionRule rule = new PointInclusionRule();
 		//PointModifyRule prule = new PointModifyRule();
@@ -444,7 +444,7 @@ public class LASwrite {
 	    to.writeUnsignedInt(0);// = braf.readUnsignedInt();
 
 	    //System.out.println((int)from.numberVariableLengthRecords);
-	    to.writeUnsignedByte((byte)2);// = braf.readUnsignedByte();
+	    to.writeUnsignedByte((byte)3);// = braf.readUnsignedByte();
 	    to.writeUnsignedShort((short)34);// = braf.readUnsignedShort();
 	    
 	    to.writeUnsignedInt((int)0);// = braf.readUnsignedInt();
@@ -522,6 +522,26 @@ public class LASwrite {
 	        	//System.out.println("line: " + line);
 	        	String2LASpoint(tempPoint, line, parse, sep);
 	        	//System.out.println(tempPoint.z + " " + tempPoint.R + " " + tempPoint.N);
+
+				if(echoClass){
+
+					if(tempPoint.numberOfReturns == 0){
+						tempPoint.numberOfReturns = 1;
+						tempPoint.returnNumber = 1;
+					}
+					else if(tempPoint.numberOfReturns == 1){
+						tempPoint.numberOfReturns = 2;
+						tempPoint.returnNumber = 1;
+					}
+					else if(tempPoint.numberOfReturns == 2){
+						tempPoint.numberOfReturns = 2;
+						tempPoint.returnNumber = 2;
+					}
+					else if(tempPoint.numberOfReturns == 3){
+						tempPoint.numberOfReturns = 3;
+						tempPoint.returnNumber = 2;
+					}
+				}
 
 	        	if(rule.ask(tempPoint, count, true)){
 

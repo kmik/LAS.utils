@@ -960,8 +960,8 @@ public class GroundDetector{
                                        // System.out.println(fullfilledCriteria);
                                         //System.out.println("------------------");
 
-                                        //if(meanAngle / 3.0 < angleThreshold){
-                                        if(maxAngle < angleThreshold){
+                                        if(meanAngle / 3.0 < angleThreshold){
+                                        //if(maxAngle < angleThreshold){
                                         //if (fullfilledCriteria > 0) {
 
                                             counter++;
@@ -1155,7 +1155,7 @@ public class GroundDetector{
         //org.tinfour.interpolation.NaturalNeighborInterpolator polator = new org.tinfour.interpolation.NaturalNeighborInterpolator(tin);
         polator.resetForChangeToTin();
         pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
-        if(false)
+        if(aR.dense)
         for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 10000) {
             //for(int i = 0; i < n; i++){
 
@@ -1195,7 +1195,8 @@ public class GroundDetector{
                     distance = Math.abs(distanceSigned);
 
                     if(distance <= 0.05)
-                        doneIndexes.add(p+j);
+                        doneInd[p+j] = true;
+                        //doneIndexes.add(p+j);
 
                 }
 

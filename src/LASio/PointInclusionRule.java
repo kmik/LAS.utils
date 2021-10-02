@@ -384,7 +384,6 @@ public class PointInclusionRule{
 	public void setUserData(int in){
 
 		set_user_data = in;
-
 	}
 
 	public void translate_x(double in){
@@ -465,6 +464,7 @@ public class PointInclusionRule{
 			 *
 			 */
 
+
 			if(drop_first == true)
 				if(tempPoint.returnNumber == 1)
 					return false;
@@ -490,6 +490,8 @@ public class PointInclusionRule{
 					
 					return false;
 				}
+
+
 
 			if(drop_synthetic == true)
 				if(tempPoint.synthetic == true)
@@ -572,7 +574,7 @@ public class PointInclusionRule{
 			 *
 			 */
 
-			
+
 				
 			if(first_only == true)
 				if(tempPoint.returnNumber == 1)
@@ -654,7 +656,6 @@ public class PointInclusionRule{
 
 			if(this.set_user_data != -999)
 			    tempPoint.userData = this.set_user_data;
-
 
 
 			// MODIFY POINT DATA RULES!

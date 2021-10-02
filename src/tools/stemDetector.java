@@ -138,7 +138,7 @@ public class stemDetector{
         //System.out.println("Max stem diameter: " + this.maxStemDiameter);
 
         this.pointCloud = pointCloud;
-
+        this.pointCloud_thin = new LASReader(this.pointCloud.getFile());
         this.cloudMaxX = pointCloud.getMaxX();
         this.cloudMaxY = pointCloud.getMaxY();
         this.cloudMinX = pointCloud.getMinX();
@@ -189,7 +189,7 @@ public class stemDetector{
                             double ratio1 = (sp.maxX - sp.minX) / (sp.maxZ - sp.minZ);
                             double ratio2 = (sp.maxY - sp.minY) / (sp.maxZ - sp.minZ);
 
-                            if(sp.voxels.size() > min_n_voxels && ratio1 < 0.35 && ratio2 < 0.35) {
+                            if(sp.voxels.size() > min_n_voxels && ratio1 < 0.30 && ratio2 < 0.30) {
 
                                 sp.setId(id);
                                 sp.label(id);
@@ -279,7 +279,7 @@ public class stemDetector{
 
             int neighs = 1;
 
-            while(distance < (0.75 / y_interval)){
+            while(distance < (0.5 / y_interval)){
 
 
                 patches.get(treePoints.get(i).getIndex()).merge(patches.get(nearest.get(nearest.size()-1).getIndex()));
@@ -309,13 +309,15 @@ public class stemDetector{
             if(patches.get(i).maxZ - patches.get(i).minZ < (1.0 / y_interval)){
                 patches.get(i).renderUseles();
             }
-
+/*
             else if(patches.get(i).maxX - patches.get(i).minX > (1.0 / y_interval)){
                 patches.get(i).renderUseles();
             }
             else if(patches.get(i).maxY - patches.get(i).minY > (1.0 / y_interval)){
                 patches.get(i).renderUseles();
             }
+
+ */
         }
     }
 
@@ -323,14 +325,16 @@ public class stemDetector{
 
         aR.step = this.y_interval;
         System.out.println(this.y_interval);
-        aR.few = 5;
+        aR.few = 10;
         aR.thin3d = true;
         aR.cores = 1;
         aR.p_update = new progressUpdater(aR);
 
-        Thinner thin = new Thinner(pointCloud, aR.step, aR, 1);
+        //Thinner thin = new Thinner(pointCloud, aR.step, aR, 1);
 
-        this.pointCloud_thin = new LASReader(thin.outputFile);
+
+        //this.pointCloud_thin = new LASReader(thin.outputFile);
+        //this.pointCloud_thin = new LASReader(this.pointCloud.getFile());
     }
 
     /**
@@ -422,7 +426,7 @@ public class stemDetector{
 
     }
 
-    public void detect(boolean dz) throws IOException {
+    public void detect(boolean dz) throws Exception {
 
         if(!dz){
             //System.out.println("creating tin");
@@ -778,15 +782,25 @@ public class stemDetector{
 
         //PointInclusionRule rule = new PointInclusionRule();
 
-        asd2 = new LASraf(outputFile);
+        //asd2 = new LASraf(outputFile);
 
+        int thread_n = aR.pfac.addReadThread(pointCloud);
+
+        pointWriterMultiThread pw = new pointWriterMultiThread(outputFile, pointCloud, "las2las", aR);
+
+        LasPointBufferCreator buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+
+        aR.pfac.addWriteThread(thread_n, pw, buf);
+        /*
         LASwrite.writeHeader(asd2, "lasStem", pointCloud.versionMajor, pointCloud.versionMinor,
                 pointCloud.pointDataRecordFormat, pointCloud.pointDataRecordLength,
                 pointCloud.headerSize, pointCloud.offsetToPointData, pointCloud.numberVariableLengthRecords,
                 pointCloud.fileSourceID, pointCloud.globalEncoding,
                 pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
                 pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset);
+
         pointCount = 0;
+         */
 
         HashMap<Short, Short> trees = new HashMap<>();
 
@@ -804,43 +818,56 @@ public class stemDetector{
         n = pointCloud.getNumberOfPointRecords();
 
         /** HERE WE ARE WRITING STEMS TO A FILE */
-        for(int i = 0; i < n; i++){
+        //for(int i = 0; i < n; i++){
 
-            pointCloud.readRecord(i, tempPoint);
-            //if(goodIndices.contains(i))
+            //pointCloud.readRecord(i, tempPoint);
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
-            if(!dz){
+            maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-                //raster_dz[xCoord][yCoord] = (float)groundLevel(tempPoint);
-                tempPoint.z -= polator.interpolate(tempPoint.x, tempPoint.y, valuator); //= tempPoint.z - raster_dz[xCoord][yCoord];
 
-            }
+            //in.readRecord_noRAF(i, tempPoint, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, 10000);
 
-            if(tempPoint.z >= z_cutoff && tempPoint.z < z_cutoff_max){// && tempPoint.pointSourceId > 0) {
+            //pointCloud.braf.buffer.position(0);
 
-                int xLocation = (int) Math.floor((tempPoint.x - cloudMinX) / y_interval);
-                int yLocation = (int) Math.floor((cloudMaxY - tempPoint.y) / y_interval);
-                int zLocation = (int) Math.floor((tempPoint.z - cloudMinZ) / y_interval);
+            for (int j = 0; j < maxi; j++) {
 
-                //if(voxels[xLocation][yLocation][zLocation] < 0) {
-                if(surface[xLocation][yLocation][zLocation] != null) {
+                pointCloud.readFromBuffer(tempPoint);
+                //if(goodIndices.contains(i))
 
-                    if (surface[xLocation][yLocation][zLocation].isSurface && surface[xLocation][yLocation][zLocation].id >= 0) {
+                if (!dz) {
 
-                        /** IF THE ITD TREE HAS NOT YET BEEN OBSERVED IN THE POINTS */
-                        if (!treesBank.containsKey(tempPoint.pointSourceId)) { //   && !idsAlreadyDone.contains((short)surface[xLocation][yLocation][zLocation].id )
-                            //if(!trees.containsKey(tempPoint.pointSourceId)){
+                    //raster_dz[xCoord][yCoord] = (float)groundLevel(tempPoint);
+                    tempPoint.z -= polator.interpolate(tempPoint.x, tempPoint.y, valuator); //= tempPoint.z - raster_dz[xCoord][yCoord];
 
-                            //idsAlreadyDone.add((short)surface[xLocation][yLocation][zLocation].id );
+                }
 
-                            treesBank.put(tempPoint.pointSourceId, new HashSet<>());
-                            treesBank.get(tempPoint.pointSourceId).add((short) surface[xLocation][yLocation][zLocation].id);
-                            //trees.put(tempPoint.pointSourceId, (short)-voxels[xLocation][yLocation][zLocation]);
-                            //doubleStems[tempPoint.pointSourceId] = true;
-                            //doubleStemId[]
-                            //tempPoint.pointSourceId = (short)-voxels[xLocation][yLocation][zLocation];
+                if (tempPoint.z >= z_cutoff && tempPoint.z < z_cutoff_max) {// && tempPoint.pointSourceId > 0) {
 
-                        } //else if(!idsAlreadyDone.contains((short)surface[xLocation][yLocation][zLocation].id )) {
+                    int xLocation = (int) Math.floor((tempPoint.x - cloudMinX) / y_interval);
+                    int yLocation = (int) Math.floor((cloudMaxY - tempPoint.y) / y_interval);
+                    int zLocation = (int) Math.floor((tempPoint.z - cloudMinZ) / y_interval);
+
+                    //if(voxels[xLocation][yLocation][zLocation] < 0) {
+                    if (surface[xLocation][yLocation][zLocation] != null) {
+
+                        if (surface[xLocation][yLocation][zLocation].isSurface && surface[xLocation][yLocation][zLocation].id >= 0) {
+
+                            /** IF THE ITD TREE HAS NOT YET BEEN OBSERVED IN THE POINTS */
+                            if (!treesBank.containsKey(tempPoint.pointSourceId)) { //   && !idsAlreadyDone.contains((short)surface[xLocation][yLocation][zLocation].id )
+                                //if(!trees.containsKey(tempPoint.pointSourceId)){
+
+                                //idsAlreadyDone.add((short)surface[xLocation][yLocation][zLocation].id );
+
+                                treesBank.put(tempPoint.pointSourceId, new HashSet<>());
+                                treesBank.get(tempPoint.pointSourceId).add((short) surface[xLocation][yLocation][zLocation].id);
+                                //trees.put(tempPoint.pointSourceId, (short)-voxels[xLocation][yLocation][zLocation]);
+                                //doubleStems[tempPoint.pointSourceId] = true;
+                                //doubleStemId[]
+                                //tempPoint.pointSourceId = (short)-voxels[xLocation][yLocation][zLocation];
+
+                            } //else if(!idsAlreadyDone.contains((short)surface[xLocation][yLocation][zLocation].id )) {
 
                             else if (!treesBank.get(tempPoint.pointSourceId).contains((short) surface[xLocation][yLocation][zLocation].id)) {
                                 unders++;
@@ -848,25 +875,27 @@ public class stemDetector{
                                 //System.out.println("Understorey tree! " + treesBank.get(tempPoint.pointSourceId).size());
                             }
                             //tempPoint.pointSourceId = trees.get(tempPoint.pointSourceId);
-                       // }
+                            // }
 
-                        //System.out.println(xLocation + " " + yLocation + " " + zLocation);
-                        //System.out.println(surface[xLocation][yLocation][zLocation].id);
-                        stemITDid[ (short)surface[xLocation][yLocation][zLocation].id ] = tempPoint.pointSourceId;
+                            //System.out.println(xLocation + " " + yLocation + " " + zLocation);
+                            //System.out.println(surface[xLocation][yLocation][zLocation].id);
+                            stemITDid[(short) surface[xLocation][yLocation][zLocation].id] = tempPoint.pointSourceId;
 
-                        tempPoint.pointSourceId = (short)surface[xLocation][yLocation][zLocation].id;
+                            tempPoint.pointSourceId = (short) surface[xLocation][yLocation][zLocation].id;
 
-                            if(asd2.writePoint(tempPoint, rule, pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
-                                    pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, i))
-                                pointCount++;
+                            //if (asd2.writePoint(tempPoint, rule, pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
+                             //       pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, i))
+                             //   pointCount++;
+                            aR.pfac.writePoint(tempPoint, i + j, thread_n);
+                            stemPointCounts[tempPoint.pointSourceId]++;
 
-                        stemPointCounts[tempPoint.pointSourceId]++;
-
+                        }
                     }
                 }
             }
         }
 
+        aR.pfac.closeThread(thread_n);
         System.out.println("UNDERS: " + unders + " ITD trees: " + treesBank.size());
 
         HashSet<Short> badStems = new HashSet<>();
@@ -1305,7 +1334,7 @@ public class stemDetector{
 
 
 
-                RansacLinearRegression RLR = new RansacLinearRegression(dataForRansac, 0.2, 0.3, 0.05);
+                RansacLinearRegression RLR = new RansacLinearRegression(dataForRansac, 0.2, 0.3, 0.05, aR.set_seed);
 
                 RLR.addFixedPoint(new double[]{zet, 0.0});
 
@@ -1313,7 +1342,6 @@ public class stemDetector{
                 String regressionString_ransac = "0\t0\t0";
 
                 boolean[] inliers = new boolean[dataForRansac.size()];
-
 
                 if(dataForRansac.size() > 6){
 
@@ -1579,6 +1607,7 @@ public class stemDetector{
 
         double delta_z = 0.0;
 
+
         for(int i = 0; i < n; i++) {
 
             pointCloud.readRecord(i, tempPoint);
@@ -1608,8 +1637,7 @@ public class stemDetector{
                 //System.out.println(xLocation + " " + yLocation + " " + zLocation);
                 if (surface[xLocation][yLocation][zLocation] != null) {
 
-                    if (surface[xLocation][yLocation][zLocation].isSurface && surface[xLocation][yLocation][zLocation].id >= 0 &&
-                            !badStems.contains((short) surface[xLocation][yLocation][zLocation].id)) {
+                    if (surface[xLocation][yLocation][zLocation].isSurface && surface[xLocation][yLocation][zLocation].id >= 0 && !badStems.contains((short) surface[xLocation][yLocation][zLocation].id)) {
 
                         tempPoint.classification = 1;
 
@@ -1626,7 +1654,7 @@ public class stemDetector{
                         if (underStoreyIds.containsKey((short) surface[xLocation][yLocation][zLocation].id)) {
 
                             //System.out.println("HERE1");
-                            tempPoint.classification = 2;
+                            tempPoint.classification = 5;
                             //tempPoint.intensity = underStoreyIds.get((short) surface[xLocation][yLocation][zLocation].id);
 
                             //tempPoint.classification = (short) 5;

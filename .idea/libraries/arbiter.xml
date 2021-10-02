@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="arbiter">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/lib/arbiter" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/lib/arbiter" recursive="false" />
+  </library>
+</component>

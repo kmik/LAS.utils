@@ -364,10 +364,7 @@ public class Thinner{
         }catch(Exception e){
             System.out.println(e);
         }
-
-
         //GroundDetector.convertTxt2Las(outputName, oparse);
-
  */
     }
 

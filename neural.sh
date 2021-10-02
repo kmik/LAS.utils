@@ -6,7 +6,7 @@ export GDAL_DATA=$curDir/gdal/gdal_data
 echo $LD_LIBRARY_PATH 
 
 
-java -Djava.library.path=$curDir/gdal/java/ -cp ".:$curDir/lib/*:$curDir/target/" runners.RunLASutils 22 $@
+java -Xmx24g -Djava.library.path=$curDir/gdal/java/ -cp ".:$curDir/lib/*:$curDir/target/:$curDir/lib/dl_cuda/*:" runners.RunLASutils 22 $@
 
 set +f
 

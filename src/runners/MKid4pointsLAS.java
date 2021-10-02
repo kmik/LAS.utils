@@ -1827,7 +1827,7 @@ class MKid4pointsLAS{
 
                                             if (otype.equals("las")) {
 
-                                                tempPoint.pointSourceId = plotID.get(j).shortValue();
+                                                //tempPoint.pointSourceId = plotID.get(j).shortValue();
                                                 //tempPoint.gpsTime = plotID.get(j).doubleValue();
 
                                                 //System.out.println(tempPoint.gpsTime);
@@ -1851,7 +1851,7 @@ class MKid4pointsLAS{
                                         sum_i_f += tempPoint.intensity;
 
                                         gridPoints_z_f.add(tempPoint.z);
-                                        gridPoints_i_f.add(tempPoint.intensity);
+                                        gridPointsclip_i_f.add(tempPoint.intensity);
 
                                          */
                                                         gridPoints_z_f.add(tempPoint.z);
@@ -1945,7 +1945,7 @@ class MKid4pointsLAS{
                     ArrayList<Double> metrics_f = pCM.calc_with_RGB(gridPoints_z_f, gridPoints_i_f, sum_z_f, sum_i_f, "_f", colnames_f, gridPoints_RGB_f);
                     ArrayList<Double> metrics_l = pCM.calc(gridPoints_z_l, gridPoints_i_l, sum_z_l, sum_i_l, "_l", colnames_l);
                     ArrayList<Double> metrics_i = pCM.calc(gridPoints_z_i, gridPoints_i_i, sum_z_i, sum_i_i, "_i", colnames_i);
-                    aR.lCMO.writeLine(metrics_a, metrics_f, metrics_l, metrics_i, colnames_a, colnames_f, colnames_l, colnames_i, plotID.get(j).shortValue());
+                    aR.lCMO.writeLine(metrics_a, metrics_f, metrics_l, metrics_i, colnames_a, colnames_f, colnames_l, colnames_i, plotID.get(j));
 
                 }
 
@@ -1971,6 +1971,608 @@ class MKid4pointsLAS{
                 System.gc();
 
                 aR.p_update.threadProgress[part-1]++;
+                aR.p_update.updateProgressClip();
+                aR.p_update.fileProgress++;
+            }
+        }
+
+        aR.p_update.updateProgressClip();
+
+        if(!aR.split)
+            pointBuffer.close();
+        else{
+            for(int i = 0; i < outputBuffers.size(); i++)
+                outputBuffers.get(i).close();
+        }
+
+    }
+
+    public static void clipPlots_singleLASfile(String coords,
+
+                            argumentReader aR,
+                                               LASReader pointCloud)throws Exception{
+
+
+
+        pointCloudMetrics pCM = new pointCloudMetrics(aR);
+
+        double sum_z_a = 0.0;
+        double sum_i_a = 0.0;
+        double sum_z_f = 0.0;
+        double sum_i_f = 0.0;
+        double sum_z_l = 0.0;
+        double sum_i_l = 0.0;
+        double sum_z_i = 0.0;
+        double sum_i_i = 0.0;
+
+        ArrayList<String> colnames_a = new ArrayList<>(), colnames_f = new ArrayList<>(), colnames_l = new ArrayList<>(), colnames_i = new ArrayList<>();
+
+        ArrayList<Double> gridPoints_z_a = new ArrayList<>();
+        ArrayList<Integer> gridPoints_i_a = new ArrayList<>();
+
+        ArrayList<Double> gridPoints_z_f = new ArrayList<>();
+        ArrayList<Integer> gridPoints_i_f = new ArrayList<>();
+        ArrayList<int[]> gridPoints_RGB_f = new ArrayList<>();
+
+        ArrayList<Double> gridPoints_z_l = new ArrayList<>();
+        ArrayList<Integer> gridPoints_i_l = new ArrayList<>();
+
+        ArrayList<Double> gridPoints_z_i = new ArrayList<>();
+        ArrayList<Integer> gridPoints_i_i = new ArrayList<>();
+
+        aR.p_update.updateProgressClip();
+
+        ArrayList<LASReader> pointClouds = aR.pointClouds;
+
+        LASReader templateCloud = new LASReader(aR.inputFiles.get(0));
+
+        ArrayList<LasPointBufferCreator> outputBuffers = new ArrayList<>();
+/*
+        for(int i = 0; i < aR.pointClouds.size(); i++){
+            pointClouds.add(new LASReader(new File(aR.pointClouds.get(i).getFile().getAbsolutePath())));
+        }
+*/
+
+        File outputFile = aR.createOutputFile(pointCloud);
+
+        pointWriterMultiThread pw = new pointWriterMultiThread(outputFile, pointCloud, "lasclip", aR);
+
+        LasPointBufferCreator pointBuffer = null;
+
+
+        pointBuffer = new LasPointBufferCreator(templateCloud.pointDataRecordLength, 1, pw);
+
+
+        LasPointBufferCreator buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+
+
+        ArrayList<String> pisteet = new ArrayList<String>();   //TULOSTEPISTELISTA
+
+        ArrayList<Double> coords1_x1 = new ArrayList<Double>();   //TULOSTEPISTELISTA
+        ArrayList<Double> coords1_y1 = new ArrayList<Double>();   //TULOSTEPISTELISTA
+        ArrayList<Double> plot_radi = new ArrayList<Double>();   //TULOSTEPISTELISTA
+        ArrayList<Integer> plotID1 = new ArrayList<Integer>();   //TULOSTEPISTELISTA
+
+        ArrayList<Double> all_min_y = new ArrayList<Double>();
+        ArrayList<Double> all_max_y = new ArrayList<Double>();
+        ArrayList<Double> all_min_x = new ArrayList<Double>();
+        ArrayList<Double> all_max_x = new ArrayList<Double>();
+
+        ArrayList<String> all_filename = new ArrayList<String>();
+        String all_index_line;
+
+
+
+        String line1;
+
+        Cantor homma = new Cantor();
+
+        ArrayList<Double> z = new ArrayList<>();
+        ArrayList<Double> intensity = new ArrayList<>();
+
+        int debugCounter = 0;
+        /* Shapefile */
+        if(true) {
+
+            ArrayList<Integer> plotID;
+
+            ArrayList<double[][]> polyBank1 = new ArrayList<double[][]>();
+            ArrayList<double[][]> polyBank = new ArrayList<double[][]>();
+            ArrayList<double[][]> polyBank_for_indexing = new ArrayList<double[][]>();
+
+            polyBank1 = readPolygonsFromWKT(coords, plotID1);
+            aR.p_update.totalFiles = plotID1.size();
+
+            int pienin = -1;
+            int suurin = -1;
+
+
+                plotID = new ArrayList<Integer>(plotID1);
+                polyBank = new ArrayList<double[][]>(polyBank1);
+
+
+
+            double[][] polyBank_index = new double[polyBank.size()][4];
+
+            for(int i = 0; i < polyBank_index.length; i++){
+                polyBank_index[i][0] = Double.MAX_VALUE;
+                polyBank_index[i][1] = Double.MIN_VALUE;
+                polyBank_index[i][2] = Double.MAX_VALUE;
+                polyBank_index[i][3] = Double.MIN_VALUE;
+            }
+
+            for(int i = 0; i < polyBank.size(); i++){
+
+                //System.out.println(polyBank.get(i)[0].length);
+
+                for(int j = 0; j < polyBank.get(i).length; j++){
+
+                    if(polyBank.get(i)[j][0] < polyBank_index[i][0])
+                        polyBank_index[i][0] = polyBank.get(i)[j][0];
+                    if(polyBank.get(i)[j][0] > polyBank_index[i][1])
+                        polyBank_index[i][1] = polyBank.get(i)[j][0];
+
+                    if(polyBank.get(i)[j][1] < polyBank_index[i][2])
+                        polyBank_index[i][2] = polyBank.get(i)[j][1];
+                    if(polyBank.get(i)[j][1] > polyBank_index[i][3])
+                        polyBank_index[i][3] = polyBank.get(i)[j][1];
+                }
+            }
+
+            int kountti = polyBank.size();
+
+            int i = 0;
+            double[] plotC = new double[2];
+            double[] haku = new double[2];
+
+            int npoints = 0;
+
+            aR.p_update.threadEnd[1-1] = kountti;
+            aR.p_update.threadProgress[1-1] = 0;
+
+            aR.p_update.updateProgressClip();
+
+            double[] extentti2 = new double[4];
+            extentti2[0] = pointCloud.minX;
+            extentti2[1] = pointCloud.maxX;
+            extentti2[2] = pointCloud.minY;
+            extentti2[3] = pointCloud.maxY;
+
+            for (int j = 0; j < kountti; j++) {
+
+                double[][] tempPolygon = polyBank.get(j);
+
+
+                double[] minmaxXY = findMinMax(tempPolygon);
+
+                    if (isWithin(extentti2, minmaxXY[0], minmaxXY[3]) || isWithin(extentti2, minmaxXY[0], minmaxXY[2]) ||
+                            isWithin(extentti2, minmaxXY[1], minmaxXY[3]) || isWithin(extentti2, minmaxXY[1], minmaxXY[2])){
+
+                    }else{
+                        continue;
+                    }
+
+                sum_z_a = 0.0;
+                sum_i_a = 0.0;
+                sum_z_f = 0.0;
+                sum_i_f = 0.0;
+                sum_z_l = 0.0;
+                sum_i_l = 0.0;
+                sum_z_i = 0.0;
+                sum_i_i = 0.0;
+
+                colnames_a.clear();
+                colnames_f.clear();
+                colnames_l.clear();
+                colnames_i.clear();
+
+                gridPoints_z_a.clear();
+                gridPoints_i_a.clear();
+
+                gridPoints_z_f.clear();
+                gridPoints_i_f.clear();
+                gridPoints_RGB_f.clear();
+
+
+
+                gridPoints_z_l.clear();
+                gridPoints_i_l.clear();
+
+                gridPoints_z_i.clear();
+                gridPoints_i_i.clear();
+
+                aR.p_update.threadFile[1-1] = plotID.get(j).toString();
+
+                //System.gc();
+
+                TIntHashSet doneIndexes = new TIntHashSet();
+                //HashSet<Integer> doneIndexes2 = new HashSet<>();
+
+                //HashSet<String> pisteMappi = new HashSet<String>();
+
+                //double[][] tempPolygon = polyBank.get(j);
+
+                //in[i][0] > maxX
+                Path2D polyg = new Path2D.Double();
+                Path2D polyg_for_index = new Path2D.Double();
+
+
+                polyg.moveTo(tempPolygon[0][0], tempPolygon[0][1]);
+
+                for (int o = 1; o < tempPolygon.length; o++) {
+                    //System.out.println("pol: " + Arrays.toString(tempPolygon[o]));
+                    polyg.lineTo(tempPolygon[o][0], tempPolygon[o][1]);
+                }
+
+                polyg_for_index.moveTo(polyBank_index[j][1], polyBank_index[j][3]);
+                polyg_for_index.lineTo(polyBank_index[j][1], polyBank_index[j][2]);
+
+                polyg_for_index.lineTo(polyBank_index[j][0], polyBank_index[j][2]);
+                polyg_for_index.lineTo(polyBank_index[j][0], polyBank_index[j][3]);
+                polyg_for_index.closePath();
+                polyg = polyg_for_index;
+                //System.out.println(Arrays.toString(polyBank_index[j]));
+
+                //polyg.closePath();
+
+                //double[] minmaxXY = findMinMax(tempPolygon);
+
+                npoints = 0;
+
+
+
+                //for (int va = 0; va < valinta.size(); va++) {
+
+
+                    doneIndexes.clear();
+                    LASReader asd = pointCloud; //pointClouds.get(valinta.get(va));
+
+                    int readPoints = 0;
+
+                    if (asd.isIndexed) {
+
+                        asd.queryPoly2(minmaxXY[0], minmaxXY[1], minmaxXY[2], minmaxXY[3]);
+
+                        LasPoint tempPoint = new LasPoint();
+
+                        try {
+                            FileWriter fw = null;
+
+                            if(asd.queriedIndexes2.size() > 0)
+
+                                for (int u = 0; u < asd.queriedIndexes2.size(); u++) {
+
+
+
+                                    long n1 = asd.queriedIndexes2.get(u)[1] - asd.queriedIndexes2.get(u)[0];
+                                    long n2 = asd.queriedIndexes2.get(u)[1];
+
+                                    int parts = (int) Math.ceil((double) n1 / 20000.0);
+                                    int jako = (int) Math.ceil((double) n1 / (double) parts);
+
+                                    int ero;
+
+                                    // System.out.println("Start: " + asd.queriedIndexes2.get(u)[0] + " end: " + asd.queriedIndexes2.get(u)[1]);
+                                    // System.out.println("n1: " + n1 + " n2: " + n2 + " parts: " + parts + " jako: " + jako);
+
+                                    if(parts > 1){
+                                        debugCounter++;
+                                    }
+
+                                    for (int c = 1; c <= parts; c++) {
+
+                                        if (c != parts) {
+                                            pienin = (c - 1) * jako;
+                                            suurin = c * jako;
+                                        } else {
+                                            pienin = (c - 1) * jako;
+                                            suurin = (int) n1;
+                                        }
+
+                                        pienin = pienin + asd.queriedIndexes2.get(u)[0];
+                                        suurin = suurin + asd.queriedIndexes2.get(u)[0];
+
+
+                                        ero = suurin - pienin + 1;
+
+                                        //System.out.println("pienin: " + pienin + " suurin: " + suurin + " ero: " + ero);
+                                        //System.out.println(ero + " " + c + " / " + parts);
+                                        //System.out.println();
+
+                                        //try {
+
+                                        asd.readRecord_noRAF(pienin, tempPoint, ero);
+
+                                        //} catch (Exception e) {
+                                        //  e.printStackTrace();
+                                        //}
+
+                                        int count1 = 0;
+                                        debugCounter = 0;
+
+                                        for (int p = pienin; p <= suurin; p++) {
+                                            debugCounter++;
+
+                                            if (!doneIndexes.contains(p)) {
+
+                                                asd.readFromBuffer(tempPoint);
+                                                readPoints++;
+                                                doneIndexes.add(p);
+                                                //asd.readRecord(p, tempPoint);
+
+                                                haku[0] = tempPoint.x;
+                                                haku[1] = tempPoint.y;
+
+                                                if (pointInPolygon(haku, tempPolygon)) {
+                                                    //if (true) {
+
+                                                    //if (otype.equals("las")) {
+
+                                                        //tempPoint.pointSourceId = plotID.get(j).shortValue();
+
+
+                                                        if(aR.omet){
+
+                                                            gridPoints_z_a.add(tempPoint.z);
+                                                            gridPoints_i_a.add(tempPoint.intensity);
+
+                                                            sum_z_a += tempPoint.z;
+                                                            sum_i_a += tempPoint.intensity;
+
+                                                            //System.out.println("intensity" + tempPoint.intensity);
+
+                                                            if (tempPoint.returnNumber == 1) {
+                                        /*
+                                        sum_z_f += tempPoint.z;
+                                        sum_i_f += tempPoint.intensity;
+
+                                        gridPoints_z_f.add(tempPoint.z);
+                                        gridPoints_i_f.add(tempPoint.intensity);
+
+                                         */
+                                                                gridPoints_z_f.add(tempPoint.z);
+                                                                gridPoints_i_f.add(tempPoint.intensity);
+
+                                                                gridPoints_RGB_f.add(new int[]{tempPoint.R,tempPoint.G,tempPoint.B});
+                                                                //System.out.println(Arrays.toString(gridPoints_RGB_f.get(gridPoints_RGB_f.size()-1)));
+                                                                sum_z_f += tempPoint.z;
+                                                                sum_i_f += tempPoint.intensity;
+                                                            }
+                                                            if (tempPoint.returnNumber == tempPoint.numberOfReturns) {
+/*
+                                        sum_z_l += tempPoint.z;
+                                        sum_i_l += tempPoint.intensity;
+
+                                        gridPoints_z_l.add(tempPoint.z);
+                                        gridPoints_i_l.add(tempPoint.intensity);
+
+ */
+                                                                gridPoints_z_l.add(tempPoint.z);
+                                                                gridPoints_i_l.add(tempPoint.intensity);
+
+                                                                sum_z_l += tempPoint.z;
+                                                                sum_i_l += tempPoint.intensity;
+
+                                                            }
+                                                            if (tempPoint.returnNumber > 1 && tempPoint.returnNumber != tempPoint.numberOfReturns) {
+/*
+                                        sum_z_i += tempPoint.z;
+                                        sum_i_i += tempPoint.intensity;
+                                        gridPoints_z_i.add(tempPoint.z);
+                                        gridPoints_i_i.add(tempPoint.intensity);
+ */
+                                                                gridPoints_z_i.add(tempPoint.z);
+                                                                gridPoints_i_i.add(tempPoint.intensity);
+
+                                                                sum_z_i += tempPoint.z;
+                                                                sum_i_i+=  tempPoint.intensity;
+
+                                                            }
+
+                                                        }
+
+
+                                                            pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), (int)p);
+
+                                                        aR.p_update.lasclip_clippedPoints++;
+
+                                                        if(aR.p_update.lasclip_clippedPoints % 10000 == 0)
+                                                            aR.p_update.updateProgressClip();
+
+                                                    //}
+
+                                                    npoints++;
+                                                    i++;
+                                                    //}
+                                                }
+                                            }else{
+                                                asd.skipPointInBuffer();
+                                            }
+                                        }
+
+                                        //System.out.println(debugCounter + " ?==? " + ero);
+                                    }
+                                }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    // NOT INDEXED
+                    else{
+                        LasPoint tempPoint = new LasPoint();
+
+                        try {
+
+                            int maxi = 0;
+
+                            int counter = 0;
+
+                            //asd.braf.raFile.seek(asd.braf.raFile.length());
+
+                            for(int p = 0; p < asd.getNumberOfPointRecords(); p += 10000){
+
+                                maxi = (int)Math.min(10000, Math.abs(asd.getNumberOfPointRecords() - p));
+
+
+                                int count = 0;
+                                asd.readRecord_noRAF(p, tempPoint, maxi);
+                                //pointCloud.braf.buffer.position(0);
+
+                                for (int s = 0; s < maxi; s++) {
+                                    //Sstem.out.println(j);
+
+                                    if(!doneIndexes.contains(p+s)) {
+                                        asd.readFromBuffer(tempPoint);
+
+                                        //System.out.println((p+s) + " " + va);
+
+
+
+
+
+                                        haku[0] = tempPoint.x;
+                                        haku[1] = tempPoint.y;
+
+                                        if (pointInPolygon(haku, tempPolygon)) {
+
+                                            doneIndexes.add( (p + s));
+
+                                            //if (otype.equals("las")) {
+
+                                                //tempPoint.pointSourceId = plotID.get(j).shortValue();
+                                                //tempPoint.gpsTime = plotID.get(j).doubleValue();
+
+                                                //System.out.println(tempPoint.gpsTime);
+                                                //LasPoint clonePoint = (LasPoint) tempPoint.clone();
+                                                //queueLAS.put(clonePoint);
+
+
+                                                if(aR.omet){
+
+                                                    gridPoints_z_a.add(tempPoint.z);
+                                                    gridPoints_i_a.add(tempPoint.intensity);
+
+                                                    sum_z_a += tempPoint.z;
+                                                    sum_i_a += tempPoint.intensity;
+
+                                                    //System.out.println("intensity" + tempPoint.intensity);
+
+                                                    if (tempPoint.returnNumber == 1) {
+                                        /*
+                                        sum_z_f += tempPoint.z;
+                                        sum_i_f += tempPoint.intensity;
+
+                                        gridPoints_z_f.add(tempPoint.z);
+                                        gridPointsclip_i_f.add(tempPoint.intensity);
+
+                                         */
+                                                        gridPoints_z_f.add(tempPoint.z);
+                                                        gridPoints_i_f.add(tempPoint.intensity);
+
+                                                        gridPoints_RGB_f.add(new int[]{tempPoint.R,tempPoint.G,tempPoint.B});
+
+                                                        sum_z_f += tempPoint.z;
+                                                        sum_i_f += tempPoint.intensity;
+                                                    }
+                                                    if (tempPoint.returnNumber == tempPoint.numberOfReturns) {
+/*
+                                        sum_z_l += tempPoint.z;
+                                        sum_i_l += tempPoint.intensity;
+
+                                        gridPoints_z_l.add(tempPoint.z);
+                                        gridPoints_i_l.add(tempPoint.intensity);
+
+ */
+                                                        gridPoints_z_l.add(tempPoint.z);
+                                                        gridPoints_i_l.add(tempPoint.intensity);
+
+                                                        sum_z_l += tempPoint.z;
+                                                        sum_i_l += tempPoint.intensity;
+
+                                                    }
+                                                    if (tempPoint.returnNumber > 1 && tempPoint.returnNumber != tempPoint.numberOfReturns) {
+/*
+                                        sum_z_i += tempPoint.z;
+                                        sum_i_i += tempPoint.intensity;
+                                        gridPoints_z_i.add(tempPoint.z);
+                                        gridPoints_i_i.add(tempPoint.intensity);
+ */
+                                                        gridPoints_z_i.add(tempPoint.z);
+                                                        gridPoints_i_i.add(tempPoint.intensity);
+
+                                                        sum_z_i += tempPoint.z;
+                                                        sum_i_i+=  tempPoint.intensity;
+
+                                                    }
+
+                                                }
+
+
+                                                    pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), (int) p);
+
+                                                //LasPoint clonePoint = (LasPoint) tempPoint.clone();
+
+
+                                                aR.p_update.lasclip_clippedPoints++;
+
+                                                if(aR.p_update.lasclip_clippedPoints % 10000 == 0)
+                                                    aR.p_update.updateProgressClip();
+
+
+                                            //}
+
+                                            npoints++;
+                                            i++;
+                                            //}
+                                        }
+                                    }else{
+                                        asd.skipPointInBuffer();
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    asd = null;
+                    System.gc();
+                //}
+
+
+                /** if we want to output metrics per polyon */
+                if(aR.omet){
+
+                    ArrayList<Double> metrics_a = pCM.calc(gridPoints_z_a, gridPoints_i_a, sum_z_a, sum_i_a, "_a", colnames_a);
+                    ArrayList<Double> metrics_f = pCM.calc_with_RGB(gridPoints_z_f, gridPoints_i_f, sum_z_f, sum_i_f, "_f", colnames_f, gridPoints_RGB_f);
+                    ArrayList<Double> metrics_l = pCM.calc(gridPoints_z_l, gridPoints_i_l, sum_z_l, sum_i_l, "_l", colnames_l);
+                    ArrayList<Double> metrics_i = pCM.calc(gridPoints_z_i, gridPoints_i_i, sum_z_i, sum_i_i, "_i", colnames_i);
+                    aR.lCMO.writeLine(metrics_a, metrics_f, metrics_l, metrics_i, colnames_a, colnames_f, colnames_l, colnames_i, plotID.get(j).shortValue());
+
+                }
+
+                if (npoints != 0) {
+                    aR.p_update.threadInt[1-1]++;
+                } else {
+
+                    aR.p_update.lasclip_empty++;
+                }
+
+                if (npoints == 0) {
+                    //nopointplots++;
+                }
+                // RunId4pointsLAS.proge.updateCurrent(1);
+                // RunId4pointsLAS.proge.print();
+                // RunId4pointsLAS.output.addDone();
+                //pisteet.clear();
+
+                System.gc();
+                System.gc();
+                System.gc();
+                System.gc();
+                System.gc();
+
+                aR.p_update.threadProgress[1-1]++;
                 aR.p_update.updateProgressClip();
                 aR.p_update.fileProgress++;
             }

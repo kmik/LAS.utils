@@ -1,7 +1,7 @@
 package utils;
 
 import LASio.LASReader;
-import org.bytedeco.libfreenect._freenect_context;
+//import org.bytedeco.libfreenect._freenect_context;
 
 import java.io.File;
 import java.io.FileWriter;

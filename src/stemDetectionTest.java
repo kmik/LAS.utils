@@ -8,7 +8,7 @@ public class stemDetectionTest {
 
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
 
         //File lasFile = new File("/media/koomikko/LaCie/ITD_understorey/cloudData/las/delineated/kernel_40/3_ITD.las");
 
