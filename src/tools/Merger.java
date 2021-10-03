@@ -34,6 +34,18 @@ public class Merger{
 
     }
 
+    /**
+     *
+     * This tool merges multiple pointClouds in the arraylist pointClouds2 to one
+     * pointcloud.
+     *
+     * @param pointClouds2
+     * @param output
+     * @param rule2
+     * @param odir2
+     * @param aR
+     * @throws IOException
+     */
     public Merger(ArrayList<File> pointClouds2, String output, PointInclusionRule rule2, String odir2, argumentReader aR) throws IOException {
 
         this.aR = aR;
