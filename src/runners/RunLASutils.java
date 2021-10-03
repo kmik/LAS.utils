@@ -1180,7 +1180,6 @@ public class RunLASutils{
 
         if(aR.tool == 4){
 
-            //System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
             if(aR.cores > 1){
                 proge.setEnd(aR.inputFiles.size());
