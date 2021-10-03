@@ -1273,6 +1273,12 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("thin3d")) {
+
+                this.thin3d = true;
+
+            }
+
             if (cmd.hasOption("photogrammetry")) {
 
                 this.photogrammetry = true;
