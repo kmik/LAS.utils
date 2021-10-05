@@ -1619,8 +1619,6 @@ class MKid4pointsLAS{
 
                             for (int u = 0; u < asd.queriedIndexes2.size(); u++) {
 
-
-
                                 long n1 = asd.queriedIndexes2.get(u)[1] - asd.queriedIndexes2.get(u)[0];
                                 long n2 = asd.queriedIndexes2.get(u)[1];
 

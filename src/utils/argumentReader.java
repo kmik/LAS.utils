@@ -1675,61 +1675,6 @@ public class argumentReader {
                 this.by_gps_time = true;
 
             }
-/*
-
-            this.poly = args[48]; //MOVE TO LAST
-
-            if(Double.parseDouble(args[49]) != -999)
-                this.inclusionRule.translate_x(Double.parseDouble(args[49]));
-            if(Double.parseDouble(args[50]) != -999)
-                this.inclusionRule.translate_y(Double.parseDouble(args[50]));
-            if(Double.parseDouble(args[51]) != -999)
-                this.inclusionRule.translate_z(Double.parseDouble(args[51]));
-
-            this.skip_global = Integer.parseInt(args[52]) == 1;
-
-            this.trajectory = args[53];
-
-            this.translate_i = Double.parseDouble(args[54]);
-
-            if(Integer.parseInt(args[55]) != 0){
-                this.thin3d = true;
-            }
-
-            this.splitBy = args[56];
-
-            if(Integer.parseInt(args[57]) != 0) {
-                this.remove_buffer = true;
-                this.inclusionRule.removeBuffer();
-            }
-
-            this.dist = Double.parseDouble(args[58]);
-
-            this.theta = Double.parseDouble(args[59]);
-
-            this.kernel = Integer.parseInt(args[60]);
-
-            this.lambda = Double.parseDouble(args[61]);
-            this.delta = Double.parseDouble(args[62]);
-
-            this.concavity = Double.parseDouble(args[63]);
-
-            this.interval = Double.parseDouble(args[64]);
-
-            this.echoClass = Integer.parseInt(args[65]) == 1;
-
-            this.keep_classification = Integer.parseInt(args[66]);
-
-
-            this.inclusionRule.keepClassification(this.keep_classification);
-
-            this.change_point_type = Integer.parseInt(args[67]);
-
-*/
-
-
-
-
         }catch (Exception pe) {
             System.out.println("Error parsing command-line arguments!");
             System.out.println("Please, follow the instructions below:");
@@ -1740,9 +1685,6 @@ public class argumentReader {
 
             System.exit(1);
         }
-
-        //HelpFormatter formatter = new HelpFormatter();
-        //formatter.printHelp( "Log messages to sequence diagrams converter", options );
 
         p_update = new progressUpdater(this);
 
@@ -1769,32 +1711,7 @@ public class argumentReader {
         }
 
         files = temp.toArray(new String[0]);
-        /*
-        if(input.charAt(0) == pathSep.charAt(0)){
-            input = input.substring(1, input.length());
-        }
 
-        if(input.equals("asd")){
-
-        }
-        else if(input.charAt(0) == '*'){
-
-            input = execDir + System.getProperty("file.separator") + input;
-
-        }else if(input.split(System.getProperty("file.separator")).length > 1){
-
-            String temp = input.split(System.getProperty("file.separator"))[0];
-
-            for(File f : execDir_file.listFiles()){
-                if(f.getName().equals(temp))
-                    input = execDir_file.getAbsolutePath() + input;
-            }
-        }else{
-
-            input = execDir_file.getAbsolutePath() + System.getProperty("file.separator") + input;
-        }
-
-         */
 
         if(Integer.parseInt(args[5]) != 0)
             this.inclusionRule.dropNoise();

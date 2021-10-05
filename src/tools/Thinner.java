@@ -123,8 +123,6 @@ public class Thinner{
         double numberOfPixelsX = (int)Math.ceil((maxX - minX) / step) + 1;
         double numberOfPixelsY = (int)Math.ceil((maxY - minY) / step) + 1;
 
-        //HashMap<Long, ArrayList<Integer>> data = new HashMap<>();
-
         int[][] minIndex = new int[(int)numberOfPixelsX][(int)numberOfPixelsY];
         float[][] min_z = new float[(int)numberOfPixelsX][(int)numberOfPixelsY];
 

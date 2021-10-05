@@ -372,7 +372,6 @@ public class LASReader {
         temp99[1] = f;
 
         paritus = Cantor.pair(temp99[0], temp99[1]);
-        //System.out.println(Cantor.pair(temp99[0], temp99[1]));
         if(indexMap2.containsKey(paritus) && paritus != -1L){
 
           for (int u = 0; u < indexMap.get(Cantor.pair(temp99[0], temp99[1])).size() - 1; u += 2) {
@@ -386,11 +385,7 @@ public class LASReader {
             System.out.println("HERE!!");
             qIndex.add(indexMap.get(Cantor.pair(temp99[0], temp99[1])).get(0).intValue());
           }
-          //System.out.println(Arrays.toString(indexMap.get(Cantor.pair(temp99[0], temp99[1])).toArray()));
-          //for(int i = indexMap.get(Cantor.pair(temp99[0], temp99[1])).get(0).intValue(); i < indexMap.get(Cantor.pair(temp99[0], temp99[1])).get(1); i++)
-
         }
-        //queriedIndexes.addAll(indexMap.get(Cantor.pair(temp99[0], temp99[1])));
 
       }
 
