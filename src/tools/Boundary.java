@@ -4,6 +4,7 @@ import LASio.LASReader;
 import LASio.LasPoint;
 import LASio.PointInclusionRule;
 import javafx.scene.shape.Path;
+import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
 import org.tinfour.common.Circumcircle;
 import org.tinfour.common.GeometricOperations;
@@ -120,7 +121,7 @@ public class Boundary extends tool{
 			*/
 
 
-        concave = true;
+        concave = false;
 
         if(concave){
             //prune();
@@ -254,6 +255,12 @@ public class Boundary extends tool{
 
     }
 
+    /**
+     * This is the easy one. Just add a point to the tin if it
+     * lies outside it. The final boundary is then the boundary
+     * of the tin.
+     * @throws Exception
+     */
     public void makeConvex() throws Exception{
 
         HashSet<Double> donet = new HashSet<Double>();
@@ -289,39 +296,10 @@ public class Boundary extends tool{
                 tempV.setIndex(i);
                 tin.add(tempV);
 
-            }/*
-            else{
-
-                closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(tempPoint.x, tempPoint.x, 0, 0);
-                //System.out.println(tempPoint.x + " " + tempPoint.y);
-                //System.out.println(closest.get(0).getIndex() + " " + closest.get(1).getIndex() + " " + closest.get(2).getIndex());
-                //System.out.println(perim.contains(closest.get(0).getIndex()) + " " + perim.contains(closest.get(1).getIndex()) + " " + perim.contains(closest.get(2).getIndex()));
-                count += perim.contains(closest.get(0).getIndex()) ? 1 : 0;
-                count += perim.contains(closest.get(1).getIndex()) ? 1 : 0;
-                count += perim.contains(closest.get(2).getIndex()) ? 1 : 0;
-
-                //System.out.println(count);
-                if(count >= 2){
-                    tempV = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, 0.0);
-                    //perim.add(i);
-                    tempV.setIndex(i);
-                    tin.add(tempV);
-                }else{
-                    //System.out.println("!!!");
-                    //System.out.println("!!!");
-                    //System.out.println("!!!");
-                    ///System.out.println("!!!");
-                    ///System.out.println("!!!");
-                }
-
             }
-            */
 
             if(i % 10000 == 0){
                 calcPerim();
-
-                //System.out.print("\033[2K"); // Erase line content
-                //System.out.print(i + "|" + n + " ; " + " tin: " + tin.getVertices().size() + "\r" );
             }
 
         }
@@ -332,16 +310,22 @@ public class Boundary extends tool{
 
         concaveEdges = tin.getPerimeter();
 
-        //System.out.println("final edges: " + concaveEdges.size());
-
         concaveHullInput = new Point[concaveEdges.size()];
 
         Point comparatorPoint = new Point(1,1);
 
+        double[] start = new double[]{0,0};
+
         for(int i = 0; i < concaveEdges.size(); i++){
+
 
             org.tinfour.common.Vertex tempA = concaveEdges.get(i).getA();
             org.tinfour.common.Vertex tempB = concaveEdges.get(i).getB();
+
+            if(i == 0){
+                start[0] = tempA.x;
+                start[1] = tempA.y;
+            }
 
             if(!vertexSetConcave.contains(tempA)){
                 vertexSetConcave.add(tempA);
@@ -354,6 +338,14 @@ public class Boundary extends tool{
             }
 
         }
+
+        for(org.tinfour.common.Vertex v : vertexSetConcave){
+
+            border.add(new double[]{v.x, v.y});
+
+        }
+
+        border.add(new double[]{start[0], start[1]});
 
         String pathSep = System.getProperty("file.separator");
 
@@ -373,11 +365,14 @@ public class Boundary extends tool{
 
     }
 
+    /**
+     * This is a difficult one to implement. Need to do some clever spatial indexing.
+     * Depends on some parameters, such as
+     * @throws Exception
+     */
     public void makeConcave3() throws Exception{
 
         HashSet<Double> donet = new HashSet<Double>();
-
-        //Arrays.sort(boundary);
 
         List<org.tinfour.common.Vertex> closest = new ArrayList<>();
 
@@ -415,16 +410,16 @@ public class Boundary extends tool{
         aR.p_update.threadEnd[coreNumber-1] = (int)pointCloud.getNumberOfPointRecords();
         aR.p_update.threadProgress[coreNumber-1] = 0;
 
+        /** First find the index of the lowest Y point
+         */
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000){
 
             maxi = (int)Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
             count = 0;
             pointCloud.readRecord_noRAF(i, tempPoint, maxi);
-            //pointCloud.braf.buffer.position(0);
 
             for (int j = 0; j < maxi; j++) {
-                //Sstem.out.println(j);
                 pointCloud.readFromBuffer(tempPoint);
 
                 if(tempPoint.y < minY) {
@@ -438,36 +433,28 @@ public class Boundary extends tool{
                 if(counter % 10000 == 0){
                     aR.p_update.updateProgressNoise();
                 }
-                //System.out.println(tempPoint.x);
             }
-
         }
 
         aR.p_update.threadFile[coreNumber-1] = "finding border";
-        //aR.p_update.threadFile[coreNumber-1] = this.pointCloud.getFile().getName();
 
         aR.p_update.updateProgressNBorder();
 
-       // System.out.println(minY + " == " + pointCloud.getMinY());
-
         LasPoint tempPoint1 = new LasPoint();
-
         LasPoint tempPoint2 = new LasPoint();
-
         LasPoint tempPoint3 = new LasPoint();
 
+        /**
+         * tempPoint3 now holds the lowest Y point
+         */
         pointCloud.readRecord(minYindex, tempPoint3);
 
         int startIndex = minYindex;
-
-       // System.out.println(startIndex + " == " + minYindex);
 
         double[] prevSegment = new double[]{0,0,0,0};
 
         tempPoint1.x = 0;
         tempPoint1.y = 0;
-
-        //double[] prevPoint = new double[]{tempPoint2.x - 25.0, tempPoint.y};
 
         HashSet<Long> doneIndexes = new HashSet<>();
 
@@ -490,43 +477,14 @@ public class Boundary extends tool{
 
         double increase = 0.0;
 
+
         while (this.pointCloud.queriedIndexes2.size() <= 1) {
 
             this.pointCloud.query2(tempPoint3.x - concavity + increase, tempPoint3.x + concavity + increase, tempPoint3.y - concavity + increase, tempPoint3.y + concavity + increase);
-            //pointCloud.querySquare(tempPoint.x, tempPoint.y, 1);
             increase += 5.0;
-            //  size++;
-/*
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-            System.out.println("HERE!!!! " + pointCloud.queriedIndexes2.size() + " " + increase + " " + coreNumber);
-*/
+
 
         }
-        //}
-
-       // System.out.println("te: " + size);
-
         boolean running = true;
 
         int counti = 0;
@@ -545,6 +503,7 @@ public class Boundary extends tool{
 
         int counteri = 0;
 
+        /** Seems sketchy, but trust me, it will halt! */
         while(running) {
 
             minidisti =-5.0;
@@ -552,37 +511,18 @@ public class Boundary extends tool{
             double smallestAngle = Double.POSITIVE_INFINITY;
             long angleIndex = 0;
 
-            //System.out.println("qu: " + pointCloud.queriedIndexes2.size());
-            //for(int p : pointCloud.qIndex){
+
             for (int u = 0; u < pointCloud.queriedIndexes2.size(); u++) {
-
-                //System.out.println(Arrays.toString(pointCloud.queriedIndexes.toArray()));
-
-                //System.out.println(u + " " + pointCloud.queriedIndexes.get(u));
-                //for (long p = pointCloud.queriedIndexes.get(u); p < pointCloud.queriedIndexes.get(u + 1); p++) {
-
-                    //pointCloud.readRecord((int)p, tempPoint2);
-                    //maxi = (int)Math.min(10000, pointCloud.getNumberOfPointRecords() - i);
 
                     long n1 = pointCloud.queriedIndexes2.get(u)[1] - pointCloud.queriedIndexes2.get(u)[0];
                     long n2 = pointCloud.queriedIndexes2.get(u)[1];
-/*
-                    //int p = pointCloud.queriedIndexes.get(u).intValue();
-                    System.out.println(pointCloud.queriedIndexes2.get(u)[0]);
-                    System.out.println(pointCloud.queriedIndexes2.get(u)[1]);
-                    System.out.println(n1 + " " + n2);
-                    System.out.println(pointCloud.getNumberOfPointRecords());
-                    //System.out.println(u + " " + (pointCloud.queriedIndexes.size() - 1));
-                    System.out.println("--------------");
-*/
-                    int parts = (int)Math.ceil((double)n1 / 50000.0);
+
+                    int parts = (int)Math.ceil((double)n1 / 20000.0);
                     int jako = (int)Math.ceil((double)n1 / (double) parts);
 
                     int pienin;
                     int suurin;
                     int ero;
-                    //System.out.println(n1 + " " + parts + " " + jako);
-
 
                     for(int i = 1; i <= parts; i++) {
 
@@ -601,27 +541,19 @@ public class Boundary extends tool{
                         suurin = suurin + pointCloud.queriedIndexes2.get(u)[0];
                         ero = suurin - pienin;
 
-                        //System.out.println("pienin: " + pienin + " suurin: " + suurin);
-                        //System.out.println("ero: " + ero);
-
 
                         pointCloud.readRecord_noRAF(pienin, tempPoint, ero);
 
                         int count1 = 0;
 
                         for (long p = pienin; p <suurin; p++) {
-                            //Sstem.out.println(j);
-                            //System.out.println(p + " " + n2);
-                            //System.out.println(p + " " + n2 + " " + count1 + " " + n1);
+
+                            //System.out.println("READ");
                             pointCloud.readFromBuffer(tempPoint2);
 
-                            //System.out.println(tempPoint2.x);
-
                             dist = euclideanDistance(tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
-                            //System.out.println(euclideanDistance(tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y));
 
                             if (p != prevIndex && dist < concavity) { //  && !path.contains(tempPoint2.x, tempPoint2.y)
-                                //angle = angleBetween2Lines(tempPoint1.x, tempPoint1.y, tempPoint3.x, tempPoint3.y, tempPoint3.x, tempPoint3.y, tempPoint2.x, tempPoint2.y);
 
                                 angle = angleBetween(tempPoint1.x, tempPoint1.y, tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
 
@@ -629,19 +561,6 @@ public class Boundary extends tool{
                                     angle = 360 + angle;
 
                                 if (angle < smallestAngle && angle != 0.0) {
-
-    /*
-                                    //if(doneIndexes.size() == 20) {
-                                        System.out.println(angle);
-                                        System.out.println(tempPoint1.x + " " + tempPoint1.y);
-                                        System.out.println(tempPoint3.x + " " + tempPoint3.y);
-                                        System.out.println(tempPoint2.x + " " + tempPoint2.y);
-                                        System.out.println(dist);
-                                        System.out.println(p);
-
-                                        System.out.println("*****************");
-                                    //}
-    */
 
                                     if (!intersection(tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y) || (prevIndex != startIndex && p == startIndex)) {
                                         minidisti = dist;
@@ -658,15 +577,11 @@ public class Boundary extends tool{
                             count1++;
                         }
                     }
-                    //System.out.println("HERE!");
-                    //counteri++;
-
-                    //if(counteri >= 1000)
-                      //  break;
-                //}
             }
 
-            //System.out.println(angleIndex);
+            /** prevIndex always points to the previous vertex in the boundary. This guarantees that
+             * we don't trace back our steps in the bounday.
+             */
             prevIndex = (int)angleIndex;
 
             prevSegment[0] = tempPoint1.x;
@@ -676,28 +591,30 @@ public class Boundary extends tool{
 
             segments.add(prevSegment.clone());
 
+            /** tempPoint now holds the next vertice of the boundary */
             pointCloud.readRecord((int)angleIndex, tempPoint);
 
+            /** Assign temporary points as planned */
             tempPoint1.x = tempPoint3.x;
             tempPoint1.y = tempPoint3.y;
             tempPoint3.x = tempPoint.x;
             tempPoint3.y = tempPoint.y;
 
-            //doneIndexes.add(angleIndex);
-
+            /** Add the vertice to the boundary */
             border.add(new double[]{tempPoint.x, tempPoint.y});
 
             increase = 0.0;
 
+            /** We search for points in the proximity of the new boundary vertex.
+             */
             while (pointCloud.queriedIndexes2.size() <= 1) {
                 pointCloud.query2(tempPoint.x - concavity + increase, tempPoint.x + concavity + increase, tempPoint.y - concavity + increase, tempPoint.y + concavity + increase);
-                //pointCloud.querySquare(tempPoint.x, tempPoint.y, 1);
                 increase += 5.0;
-              //  size++;
             }
-            //pointCloud.
-            //System.out.println("Smallest angle point " + angleIndex + " angle: " + smallestAngle + " " + minidisti + " " + doneIndexes.size() + " " + tin.getVertices().size());
 
+            /** Here is the termination condition! If the current vertex is the same as the starting vertex,
+             * we stop!
+             */
             if(angleIndex == startIndex)
                 running = false;
 
@@ -969,8 +886,8 @@ public class Boundary extends tool{
 
     public void exportShapefile(String outputFileName){
 
-        //ogr.RegisterAll(); //Registering all the formats..
-        //gdal.AllRegister();
+        ogr.RegisterAll(); //Registering all the formats..
+        gdal.AllRegister();
 
         Geometry outShpGeom2 = new Geometry(ogr.wkbLinearRing);
         Geometry outShpGeom = new Geometry(ogr.wkbPolygon);
@@ -990,33 +907,21 @@ public class Boundary extends tool{
         Feature outShpFeat = new Feature(outShpFeatDefn);
 
 
-        if(!concave)
-            for(int i = 0; i < concaveHullInput.length; i++){
+        if(!concave) {
+
+            for(int i = 0; i < border.size(); i++)
+                outShpGeom2.AddPoint(border.get(i)[0], border.get(i)[1]);
+
+            if(false)
+            for (int i = 0; i < concaveHullInput.length; i++) {
                 outShpGeom2.AddPoint(boundary[i].x, boundary[i].y);
-                //System.out.println(boundary[i] + "\n" + concaveHullInput[i] + "\n--------------");
 
             }
-        if(concave)
-	      		/*
-	      		for(tinfour.common.Vertex v : vertexSetConcave){
-	      			outShpGeom2.AddPoint(v.x, v.y);
-	      		}
-	      		*/
-            //for(int i = 0; i < vertexSetConcave2.size(); i++)
-              //  outShpGeom2.AddPoint(vertexSetConcave2.get(i).x, vertexSetConcave2.get(i).y);
-
-        for(int i = 0; i < border.size(); i++)
-            outShpGeom2.AddPoint(border.get(i)[0], border.get(i)[1]);
-
-        //outShpGeom2.AddPoint(border.get(i)[0], border.get(i)[1]);
-        //}
-
-      		/*
-      		for(int i = 0; i < concave.size(); i++){
-      			outShpGeom2.AddPoint(concave.get(i).x, concave.get(i).y);
-
-      		}
-			*/
+        }
+        if(concave) {
+            for (int i = 0; i < border.size(); i++)
+                outShpGeom2.AddPoint(border.get(i)[0], border.get(i)[1]);
+        }
         outShpGeom.AddGeometry(outShpGeom2);
 
         outShpFeat.SetField("id",0);
@@ -1024,8 +929,6 @@ public class Boundary extends tool{
         outShpFeat.SetGeometryDirectly(outShpGeom);
         outShpLayer.CreateFeature(outShpFeat);
         System.out.println("features: " + outShpLayer.GetFeatureCount());
-
-        //System.out.println(outShpGeom.ExportToWkt());
 
     }
 
