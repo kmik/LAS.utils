@@ -113,19 +113,10 @@ public class Boundary extends tool{
         this.concave = concaveOrNot;
 
         aR.p_update.lasborder_mode = "concave";
-			/*
-			if(!concave){
-				prune();
-				make(false);
-			}
-			*/
-
 
         concave = aR.concave;
 
         if(concave){
-            //prune();
-            //make(true);
             try {
                 makeConcave3();
             }catch (Exception e){
@@ -138,8 +129,6 @@ public class Boundary extends tool{
                 e.printStackTrace();
             }
         }
-
-
     }
 
 
