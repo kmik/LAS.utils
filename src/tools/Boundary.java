@@ -121,7 +121,7 @@ public class Boundary extends tool{
 			*/
 
 
-        concave = true;
+        concave = aR.concave;
 
         if(concave){
             //prune();
