@@ -121,7 +121,7 @@ public class Boundary extends tool{
 			*/
 
 
-        concave = false;
+        concave = true;
 
         if(concave){
             //prune();
@@ -327,9 +327,15 @@ public class Boundary extends tool{
                 start[1] = tempA.y;
             }
 
+            //System.out.println("ADD " + i);
+            border.add(new double[]{tempA.x, tempA.y});
+
             if(!vertexSetConcave.contains(tempA)){
+
                 vertexSetConcave.add(tempA);
                 vertexSetConcave2.add(tempA);
+
+
             }
 
             if(!vertexSetConcave.contains(tempB)){
@@ -339,11 +345,7 @@ public class Boundary extends tool{
 
         }
 
-        for(org.tinfour.common.Vertex v : vertexSetConcave){
 
-            border.add(new double[]{v.x, v.y});
-
-        }
 
         border.add(new double[]{start[0], start[1]});
 
@@ -793,7 +795,7 @@ public class Boundary extends tool{
             pisteet.add(new ConcaveHull.Point(tempPoint.x, tempPoint.y));
 
         }
-        //System.out.println("GOT HERE");
+
         hulli = conkaavi.calculateConcaveHull(pisteet, 100);
 
         String oput = "";
@@ -827,15 +829,11 @@ public class Boundary extends tool{
 
     public void make(boolean getConvex) throws IOException{
 
-
-
         long n = pointCloud.getNumberOfPointRecords();
         Point[] hullInputTemp = new Point[(int)n];
 
         LasPoint tempPoint = new LasPoint();
         int hullCount = 0;
-
-        //ArrayList<ConcaveHull.Point> concPoints = new ArrayList<ConcaveHull.Point>();
 
         for(int i = 0; i < n; i++){
 
@@ -886,7 +884,7 @@ public class Boundary extends tool{
 
     public void exportShapefile(String outputFileName){
 
-        ogr.RegisterAll(); //Registering all the formats..
+        //ogr.RegisterAll(); //Registering all the formats..
         gdal.AllRegister();
 
         Geometry outShpGeom2 = new Geometry(ogr.wkbLinearRing);
@@ -909,18 +907,21 @@ public class Boundary extends tool{
 
         if(!concave) {
 
-            for(int i = 0; i < border.size(); i++)
-                outShpGeom2.AddPoint(border.get(i)[0], border.get(i)[1]);
+            for(int i = 0; i < border.size(); i++) {
+
+                //System.out.println("Wrote " + i);
+                outShpGeom2.AddPoint_2D(border.get(i)[0], border.get(i)[1]);
+            }
 
             if(false)
             for (int i = 0; i < concaveHullInput.length; i++) {
-                outShpGeom2.AddPoint(boundary[i].x, boundary[i].y);
+                outShpGeom2.AddPoint_2D(boundary[i].x, boundary[i].y);
 
             }
         }
         if(concave) {
             for (int i = 0; i < border.size(); i++)
-                outShpGeom2.AddPoint(border.get(i)[0], border.get(i)[1]);
+                outShpGeom2.AddPoint_2D(border.get(i)[0], border.get(i)[1]);
         }
         outShpGeom.AddGeometry(outShpGeom2);
 
@@ -928,7 +929,10 @@ public class Boundary extends tool{
 
         outShpFeat.SetGeometryDirectly(outShpGeom);
         outShpLayer.CreateFeature(outShpFeat);
+        outShpLayer.SyncToDisk();
         System.out.println("features: " + outShpLayer.GetFeatureCount());
+
+
 
     }
 
