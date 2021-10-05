@@ -99,6 +99,10 @@ public class Tiler{
 
     }
 
+    /**
+     * Simply creates a list of LASReaders to pointClouds arraylist.
+     * @param in
+     */
     public void makePointCloudList(ArrayList<File> in){
 
         try {

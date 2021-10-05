@@ -1180,7 +1180,6 @@ public class RunLASutils{
 
         if(aR.tool == 4){
 
-            //System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
             if(aR.cores > 1){
                 proge.setEnd(aR.inputFiles.size());
@@ -1318,12 +1317,6 @@ public class RunLASutils{
 
                     Thinner thi = new Thinner(temp, aR.step, aR, 1);
 
-                    //System.out.println("arThin " + aR.thin3d);
-
-                    //if(aR.thin3d)
-                      //  thi.thin3D();
-                    //else
-                      //  thi.thin();
                 }
             }
 

@@ -196,6 +196,7 @@ public class argumentReader {
 
     public int convolution_option = 1;
 
+    public boolean concave = false;
 
     public ArrayList<double[][]> polyBank = new ArrayList<>();
 
@@ -292,6 +293,13 @@ public class argumentReader {
                 .longOpt("concavity")
                 .hasArg(true)
                 .desc("Concavity")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("concave")
+                .hasArg(false)
+                .desc("concave border")
                 .required(false)
                 .build());
 
@@ -1273,6 +1281,12 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("thin3d")) {
+
+                this.thin3d = true;
+
+            }
+
             if (cmd.hasOption("photogrammetry")) {
 
                 this.photogrammetry = true;
@@ -1621,6 +1635,18 @@ public class argumentReader {
             if (cmd.hasOption("lambda")) {
 
                 this.lambda = Double.parseDouble(cmd.getOptionValue("lambda"));
+
+            }
+
+            if (cmd.hasOption("concavity")) {
+
+                this.concavity = Double.parseDouble(cmd.getOptionValue("concavity"));
+
+            }
+
+            if (cmd.hasOption("concave")) {
+
+                this.concave = true;
 
             }
 

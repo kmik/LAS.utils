@@ -139,6 +139,9 @@ public class GroundDetector{
     /**
      * Constructor
      *
+     * This is an implementation of Axelsson (2000) incremental TIN
+     * generation algorithm.
+     *
      * @param pointCloud2 		Input point cloud
      * @param print2 			Print TIN or nor
      * @param outputFile2 		Output point cloud
@@ -168,28 +171,6 @@ public class GroundDetector{
         this.odir = odir2;
 
         doneInd = new boolean[(int)pointCloud.getNumberOfPointRecords()];
-        //badInd = new boolean[(int)pointCloud.getNumberOfPointRecords()];
-/*
-        if(outputFile.equals("asd"))
-            outputFile = pointCloud2.getFile().getName();
-
-
-        if(!odir.equals("asd"))
-            outputFile = odir + pathSep + outputFile;
-
-
-        this.outWriteFile = new File(outputFile);
-
-        if(outWriteFile.exists()){
-            outputFile = fo.createNewFileWithNewExtension(pointCloud2.getFile(), "_1.las").getAbsolutePath();//
-            // pointCloud2.getFile().getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las";
-            outWriteFile = fo.createNewFileWithNewExtension(outWriteFile, "_1.las");//
-            // new File(outWriteFile.getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las");
-        }
-
-        this.outputFileName = outputFile;
-
-        */
 
 
         this.outWriteFile = aR.createOutputFile(pointCloud2);
@@ -354,14 +335,8 @@ public class GroundDetector{
     public void reset(){
 
         tin.clear();
-        //perimTin = new org.tinfour.standard.IncrementalTin();
         seedPoints = 0;
-        //vertexBank = new HashSet<String>();
         doneIndexes = new HashSet<Integer>();
-        //UNdoneIndexes = new HashSet<Integer>();
-        //dtmPoints = new ArrayList<LasPoint>();
-        //perimeterVertices = new HashSet<org.tinfour.common.Vertex>();
-        //tinBank = new ArrayList<org.tinfour.standard.IncrementalTin>();
         surfaceNormalPoints.clear();
         valuator = new org.tinfour.interpolation.VertexValuatorDefault();
 
@@ -1908,14 +1883,7 @@ public class GroundDetector{
                     temppiP[2] = tempPoint.z;
                     temppiP[3] = tempPoint.classification;
                     temppiP[4] = i+j;
-/*
-                    if(tempPoint.z < data2MINS.get(inde) ){
 
-                        data2MINS.put(inde, tempPoint.z);
-                        data2.put(inde, temppiP);
-
-                    }
-*/
                 }
 
             }
@@ -1938,104 +1906,7 @@ public class GroundDetector{
 
         averagePointDensity = averagePointDensity / averagePointDensityCount;
 
-        //System.out.println("Pulse Density: " + (averagePointDensity * (1.0 / stdResolution)) + " Pulse density real: " + pulseDensity);
-        /*
-        for(long i = 0; i < n; i++){
 
-            count++;
-
-
-
-            pointCloud.readRecord(i, tempPoint);
-
-            if(rule.ask(tempPoint, (int)i, false)){
-
-                temppi[0] = (long)Math.floor((tempPoint.x - minX) / (double)axelssonGridSize);   //X INDEX
-                temppi[1] = (long)Math.floor((maxY - tempPoint.y) / (double)axelssonGridSize);
-
-                /** This will include statistics from stdResolution * stdResolution sized
-                 area as follows:
-                 [0] = number of observations
-                 [1] = sum of z values
-                 [2] = min z
-                 [3] = max Z
-                 [4] = M
-                 [5] = S
-                 [6] = standard deviation Z
-
-
-                smallX = (int)((tempPoint.x - minX) / (double)stdResolution);
-                smallY = (int)((maxY - tempPoint.y) / (double)stdResolution);
-
-                statistics[smallX][smallY][0]++;
-
-                statisticsBig[(int)temppi[0]][(int)temppi[1]][0]++;
-
-                statistics[smallX][smallY][1] += tempPoint.z;
-                statisticsBig[(int)temppi[0]][(int)temppi[1]][1] += tempPoint.z;
-
-                if(tempPoint.z > statistics[smallX][smallY][3]){
-                    statistics[smallX][smallY][3] = (float)tempPoint.z;
-                    statistics[smallX][smallY][8] = i;
-                }
-
-                if(tempPoint.z < statistics[smallX][smallY][2]){
-                    statistics[smallX][smallY][2] = (float)tempPoint.z;
-                    statistics[smallX][smallY][7] = i;
-                }
-
-                if(tempPoint.z > statisticsBig[(int)temppi[0]][(int)temppi[1]][3]){
-                    statisticsBig[(int)temppi[0]][(int)temppi[1]][3] = (float)tempPoint.z;
-                    statisticsBig[(int)temppi[0]][(int)temppi[1]][8] = i;
-                }
-
-                if(tempPoint.z < statisticsBig[(int)temppi[0]][(int)temppi[1]][2]){
-                    statisticsBig[(int)temppi[0]][(int)temppi[1]][2] = (float)tempPoint.z;
-                    statisticsBig[(int)temppi[0]][(int)temppi[1]][7] = i;
-                }
-
-                oldM = statistics[smallX][smallY][4];
-
-                oldMbig = statisticsBig[(int)temppi[0]][(int)temppi[1]][4];
-
-                M = statistics[smallX][smallY][4];
-
-                Mbig = statisticsBig[(int)temppi[0]][(int)temppi[1]][4];
-
-                // M := M + (x-M)/k
-
-                statistics[smallX][smallY][4] = M + ((float)tempPoint.z - M) / statistics[smallX][smallY][0];
-                statisticsBig[(int)temppi[0]][(int)temppi[1]][4] = Mbig + ((float)tempPoint.z - Mbig) / statisticsBig[(int)temppi[0]][(int)temppi[1]][0];
-
-                // S := S + (x-M)*(x-oldM)
-
-                statistics[smallX][smallY][5] = statistics[smallX][smallY][5] + ((float)tempPoint.z - statistics[smallX][smallY][4]) * ((float)tempPoint.z - oldM);
-                statisticsBig[(int)temppi[0]][(int)temppi[1]][5] = statisticsBig[(int)temppi[0]][(int)temppi[1]][5] + ((float)tempPoint.z - statisticsBig[(int)temppi[0]][(int)temppi[1]][4]) * ((float)tempPoint.z - oldMbig);
-                // S/(N-1)
-
-                statistics[smallX][smallY][6] = (float)Math.sqrt(statistics[smallX][smallY][5] / (statistics[smallX][smallY][0] - 1.0f));
-                statisticsBig[(int)temppi[0]][(int)temppi[1]][6] = (float)Math.sqrt(statisticsBig[(int)temppi[0]][(int)temppi[1]][5] / (statisticsBig[(int)temppi[0]][(int)temppi[1]][0] - 1.0f));
-                //System.out.println("STD: " + statistics[(int)temppi[0]][(int)temppi[1]][6]);
-
-                long inde = homma.pair(temppi[0], temppi[1]);
-
-                temppiP[0] = tempPoint.x;
-                temppiP[1] = tempPoint.y;
-                temppiP[2] = tempPoint.z;
-                temppiP[3] = tempPoint.classification;
-                temppiP[4] = i;
-
-                if(tempPoint.z < data2MINS.get(inde) ){
-
-                    data2MINS.put(inde, tempPoint.z);
-                    data2.put(inde, temppiP);
-
-                }
-
-            }
-
-        }
-        */
 
         float threshold = 0.25f;
         float threshold_std = 0.10f;
@@ -2076,6 +1947,8 @@ public class GroundDetector{
         double neigh_max_mean_difference = 1.0;
 
         //if(tin.getVertices().size() < 6)
+
+
         if(aR.photogrammetry)
         while(tin.getVertices().size() < 6) {
 
@@ -2134,9 +2007,6 @@ public class GroundDetector{
 
                     ) {
 
-                        //System.out.println("diffi: " + (statistics[j][i][3] - statistics[j][i][2]));
-
-                        //if (statistics[j][i][3] - statistics[j][i][2] < threshold) {
                         if (statistics[j][i][6] < threshold_std && (long) statistics[j][i][7] < pointCloud.getNumberOfPointRecords()
                                 && statistics[j][i][3] - statistics[j][i][2] < threshold_std*2) {
                             /** This is the lowest point in the smaller rectangle **/
@@ -2145,8 +2015,6 @@ public class GroundDetector{
 
                             if((float)tempPoint.z != statistics[j][i][2])
                                 continue;
-
-                            //System.out.println(tempPoint.z + " == " + statistics[j][i][2]);
 
                             bigX = (int) Math.floor((tempPoint.x - minX) / (double) axelssonGridSize);   //X INDEX
                             bigY = (int) Math.floor((maxY - tempPoint.y) / (double) axelssonGridSize);
@@ -2181,8 +2049,6 @@ public class GroundDetector{
                             //System.out.println(statisticsBig[bigX][bigY][2] + " " + std + " " + tempPoint.z);
 
                             /** Let's see if the point is at the lower end in the larger rectangle */
-                            //System.out.println((int)statistics[j][i][7]);
-                            //if (tempPoint.z < (meani - std * 1.3) && !seedPointIndexes.contains((int) statistics[j][i][7])) {
                             if (tempPoint.z < z_threshold && !seedPointIndexes.contains((int) statistics[j][i][7])) {
 
                                 //System.out.println(tempPoint.z);
@@ -2190,10 +2056,6 @@ public class GroundDetector{
                                 doneInd[(int) statistics[j][i][7]] = true;
                                 //doneIndexes.add((int) statistics[j][i][7]);
                                 indexes.add((int) statistics[j][i][7]);
-
-                                //LasPoint tempPoint2 = new LasPoint(tempPoint);
-
-                                //surfaceNormalPoints.add(tempPoint2);
 
                                 seedPoints++;
 
@@ -2212,12 +2074,6 @@ public class GroundDetector{
             threshold_std += 0.1f;
         }
 
-
-
-        //data.clear();
-        //data = null;
-        //System.out.println("DONE WITH SEED POINTS: " + seedPoints);
-
         int[] result = new int[indexes.size()];
         for(int i = 0; i < result.length; i++){
             result[i] = indexes.getQuick(i);
@@ -2228,15 +2084,7 @@ public class GroundDetector{
         System.gc();
 
         this.axelssonGridSize = origAxGrid;
-/*
-        if(this.tin.getVertices().size() < 5){
-            this.tin.clear();
-            seedPointVertices.clear();
-            seedPoints = 0;
-            seedPointIndexes.clear();
-        }
 
-*/
         aR.p_update.lasground_seedPoints = (int)this.seedPoints;
 
         aR.p_update.updateProgressGroundDetector();
@@ -2264,6 +2112,13 @@ public class GroundDetector{
         return false;
     }
 
+    /**
+     * This ain't done yet!!
+     *
+     * @param outputFile2
+     * @param rule
+     * @param otype
+     */
     public void normalizeZ_mem_eff(String outputFile2, PointInclusionRule rule, String otype){
 
         if(aR.ground_class == -1)
@@ -2373,10 +2228,8 @@ public class GroundDetector{
 
                     expandTin();
 
-
-                    //System.exit(1);
-
                     tin.clear();
+
                     if(false)
                     /** Second iteration of the points to normalize and output */
                     for (int u = 0; u < pointCloud.queriedIndexes2.size(); u++) {

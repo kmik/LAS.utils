@@ -4004,13 +4004,7 @@ public class createCHM{
 
                 if(x >= 0 && x < image.xDim && y >= 0 && y < image.yDim){
 
-                    //if(!giveLabel)
-                    //System.out.println(image.get(x - 1, y).inQue);
-
                     for(int i = 0; i < floatArray3x3.length; i++){
-
-
-
                         if(floatArray3x3_2[i] == 0 && floatArray3x3[i] == -999 && floatArray3x3_3[i] > zThreshold){
 
                             yIndex = i / 3;
@@ -4020,15 +4014,9 @@ public class createCHM{
                             yIndex = y - 1 + yIndex;
                             xIndex = x - 1 + xIndex;
 
-                            //System.out.println(floatArray3x3[i] + " " + floatArray3x3_2[i] + " " + floatArray3x3_3[i]);
-
-                            //image.priority(x-1+xIndex, y-1+yIndex, floatArray3x3_3[i]);
-
                             if(giveLabel){
                                 image.attach(xIndex, yIndex, (int)floatArray3x3[4]);
-                                //image.get(x - 1, y).attach(image.get(x,y).id);
                                 image.dequeue(xIndex, yIndex);
-                                //image.get(x - 1, y).dequeue();
                             }
                             else{
                                 /** ALWAYS GO HERE!! */
@@ -5075,10 +5063,6 @@ public class createCHM{
 
 		public void establish() throws IOException{
 
-			//Cantor homma = new Cantor();
-
-            //aR.p_update.threadFile[coreNumber-1] = "CHM - initial pass";
-            //aR.p_update.updateProgressITD();
 			minX = pointCloud.getMinX();
 			maxX = pointCloud.getMaxX();
 			minY = pointCloud.getMinY();
@@ -5094,11 +5078,6 @@ public class createCHM{
                 groundLevel = new float[numberOfPixelsX][numberOfPixelsY];
                 groundLevel_count = new short[numberOfPixelsX][numberOfPixelsY];
             }
-			//File imgFile = new File("testi.im");
-
-			//imgFile.createNewFile();
-
-			//ImageRaf imgRaf = new ImageRaf(imgFile, numberOfPixelsX, numberOfPixelsY, 0.0f );
 
 			cehoam = gdalE.hei(this.outputFileName, numberOfPixelsY, numberOfPixelsX, Float.NaN);
             band = cehoam.GetRasterBand(1);
@@ -5129,28 +5108,7 @@ public class createCHM{
 			long countx = 0;
 			long county = 0;
 			int count2 = 0;
-			//System.out.println("Data size: " + data.size());
-            /*
-			while(countx < numberOfPixelsX){
-				while(county < numberOfPixelsY){
 
-					long[] temp = new long[2];
-					temp[0] = countx;
-					temp[1] = county;
-
-					data.put(homma.pair(countx, county), new ArrayList<LasPoint>());
-                    //data2.put(homma.pair(countx, county), new ArrayList<LasPoint>());
-
-					tempy -= resolution;
-					county++;
-					count2++;
-				}
-				tempx += resolution;
-				tempy = maxY;
-				countx++;
-				county = 0;
-			}
-            */
             long n = pointCloud.getNumberOfPointRecords();
             LasPoint tempPoint = new LasPoint();
             if(dz_on_the_fly) {
@@ -5824,22 +5782,25 @@ public class createCHM{
             return true;
         }
 
+        /**
+         * The pixel is a tree top if it satisfies the condition:
+         *  pixel_z < all_pixel_z_in_kernel
+         * @param input
+         * @param x
+         * @param y
+         * @param kernelSize
+         * @return
+         */
         public boolean isTreeTop(Band input, int x, int y, int kernelSize){
 
             band.ReadRaster(x, y, 1, 1, floatArray);
 
             float zMiddle = floatArray[0];
 
-
-            //System.out.println("kernel: " + kernelSize);
-
             if(zMiddle < 4.0f || Double.isNaN(zMiddle))
                 return false;
-            //zMiddle = input[x][y];
             double kernel_size_meters = 1.1 + 0.002 * (zMiddle*zMiddle);
-            //System.out.println("kernel_pre: " + kernelSize + " " + this.resolution + " " + zMiddle);
             kernelSize = (int)Math.round(kernel_size_meters / this.resolution);
-            //System.out.println("kernel_aft: " + kernelSize);
 
             if(kernelSize % 2 == 0){
 

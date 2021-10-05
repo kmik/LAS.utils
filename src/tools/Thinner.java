@@ -51,6 +51,14 @@ public class Thinner{
     }
 
 
+    /**
+     *
+     * @param pointCloud2
+     * @param step2
+     * @param aR
+     * @param coreNumber
+     * @throws IOException
+     */
     public Thinner(LASReader pointCloud2, double step2, argumentReader aR, int coreNumber) throws IOException{
 
         //System.out.println("thread: " + coreNumber + " file: " + pointCloud2.getFile().getName());

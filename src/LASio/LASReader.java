@@ -182,6 +182,10 @@ public class LASReader {
 
   }
 
+  /**
+   * Tries to find a .lasx file correponding to the filename of this LASreader.
+   * @throws Exception
+   */
   public void getIndexMap() throws Exception{
 
     File temppi = fo.createNewFileWithNewExtension(this.getFile(), ".lasx");
