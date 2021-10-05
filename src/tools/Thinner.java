@@ -61,8 +61,6 @@ public class Thinner{
      */
     public Thinner(LASReader pointCloud2, double step2, argumentReader aR, int coreNumber) throws IOException{
 
-        //System.out.println("thread: " + coreNumber + " file: " + pointCloud2.getFile().getName());
-
         this.coreNumber = coreNumber;
 
         this.step = step2;
@@ -111,14 +109,12 @@ public class Thinner{
 
 
     /**
-     * Perform the thinning
+     * Perform the thinning by keeping the lowest z point
+     * inside "pixels" that are defined by aR.step
      */
 
     public void thin() throws IOException {
 
-
-
-        //Cantor homma = new Cantor();
         double minX = pointCloud.getMinX();
         double maxX = pointCloud.getMaxX();
         double minY = pointCloud.getMinY();
@@ -146,24 +142,7 @@ public class Thinner{
         long countx = 0;
         long county = 0;
         int count2 = 0;
-/*
-        while(countx < numberOfPixelsX){
-            while(county < numberOfPixelsY){
 
-                long[] temp = new long[2];
-                temp[0] = countx;
-                temp[1] = county;
-                data.put(homma.pair(countx, county), new ArrayList<Integer>());
-                tempy -= (double)step;
-                county++;
-                count2++;
-            }
-            tempx += (double)step;
-            tempy = maxY;
-            countx++;
-            county = 0;
-        }
-*/
         long n = pointCloud.getNumberOfPointRecords();
 
         LasPoint tempPoint = new LasPoint();
@@ -187,25 +166,15 @@ public class Thinner{
             try {
                 pointCloud.readRecord_noRAF(i, tempPoint, maxi);
             }catch(Exception e){
-                e.printStackTrace();//pointCloud.braf.buffer.position(0);
+                e.printStackTrace();
             }
 
             for (int j = 0; j < maxi; j++) {
-                //Sstem.out.println(j);
+
                 pointCloud.readFromBuffer(tempPoint);
-
-                //for(long i = 0; i < n; i++){
-                //count++;
-                //long[] temppi = new long[2];
-                //pointCloud.readRecord(i, tempPoint);
-
-                //if (rule.ask(tempPoint, (int) i+j, true)) {
-                    //System.out.println(tempPoint);
 
                     x_index = (int)Math.floor((tempPoint.x - minX) / step);
                     y_index = (int)Math.floor((maxY - tempPoint.y) / step);
-
-                    //System.out.println(tempPoint.y + " " + tempPoint.z + " core: " + this.coreNumber);
 
                     if(tempPoint.z < min_z[x_index][y_index]){
                         min_z[x_index][y_index] = (float)tempPoint.z;
@@ -214,24 +183,15 @@ public class Thinner{
 
                     }
 
-                    //temppi[0] = (long) Math.floor((tempPoint.x - minX) / step);   //X INDEX
-                    //temppi[1] = (long) Math.floor((maxY - tempPoint.y) / step);
-
-                    //System.out.println(data.containsKey(Arrays.hashCode(temppi)));
-                   // data.get(homma.pair(temppi[0], temppi[1])).add(i + j);
-                //}
                 aR.p_update.threadProgress[coreNumber-1]++;
 
                 if(aR.p_update.threadProgress[coreNumber-1] % 10000 == 0)
                     aR.p_update.updateProgressThin();
 
             }
-            //System.out.println(data.get(Arrays.hashCode(temppi)).size());
         }
 
         aR.p_update.updateProgressThin();
-
-        //ArrayList<Integer> chosen = new ArrayList<Integer>();
 
         if(outputFile.exists())
             outputFile.delete();
@@ -262,9 +222,6 @@ public class Thinner{
                             pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, minIndex[x][y]))
                         pointCount++;
 
-                    //if(coreNumber == 2)
-                      //  System.out.println("II!!O");
-                    //System.out.println(MKid4pointsLAS.concatString(tempPoint, this.oparse));
                 }
                 aR.p_update.threadEnd[coreNumber-1]++;
 
@@ -279,101 +236,7 @@ public class Thinner{
         br.updateHeader2();
 
         aR.p_update.updateProgressThin();
-/*
-        for(Long key : data.keySet()){
 
-            double min = Double.POSITIVE_INFINITY;
-            double max = Double.NEGATIVE_INFINITY;
-
-            int minIndex = -99;
-            int maxIndex = -99;
-
-            for(int i = 0; i < data.get(key).size(); i++){
-
-					/* No need to ask, because only applicable points
-					are left!
-
-                pointCloud.readRecord(data.get(key).get(i), tempPoint);
-
-                if(tempPoint.z < min)
-                    minIndex = data.get(key).get(i).intValue();
-                if(tempPoint.z > max)
-                    maxIndex = data.get(key).get(i).intValue();
-
-
-            }
-
-            if(lowest)
-                chosen.add(minIndex);
-            else
-                chosen.add(maxIndex);
-
-            aR.p_update.threadProgress[coreNumber-1]++;
-
-            if(aR.p_update.threadProgress[coreNumber-1] % 1000 == 0)
-                aR.p_update.updateProgressThin();
-        }
-*/
-/*
-        aR.p_update.updateProgressThin();
-        //System.out.println(chosen);
-
-        /*
-        File testi = new File(outputName);
-
-        if(testi.exists())
-            testi.delete();
-
-
-        if(outputFile.exists())
-            outputFile.delete();
-
-        outputFile.createNewFile();
-
-        LASraf br = new LASraf(outputFile);
-
-        aR.p_update.threadFile[coreNumber-1] = "outputting";
-        aR.p_update.threadEnd[coreNumber-1] = chosen.size();
-        aR.p_update.threadProgress[coreNumber-1] = 0;
-
-        LASwrite.writeHeader(br, "lasthin", this.pointCloud.versionMajor, this.pointCloud.versionMinor, this.pointCloud.pointDataRecordFormat, this.pointCloud.pointDataRecordLength);
-        int pointCount = 0;
-
-        //System.out.println("OUTPUTTING! " + chosen.size());
-
-        try{
-            FileWriter fw = new FileWriter(outputName, true);
-            BufferedWriter bw = new BufferedWriter(fw);
-            PrintWriter outt = new PrintWriter(bw);
-
-            for(int i: chosen){
-
-                if(i != -99){
-                    pointCloud.readRecord(i, tempPoint);
-                    //System.out.println("GOT HERE");
-                    //outt.println(concatString(tempPoint, this.oparse));
-                    if(br.writePoint( tempPoint, rule, 0.01, 0.01, 0.01, 0, 0, 0, pointCloud.pointDataRecordFormat, i))
-                        pointCount++;
-
-                    //System.out.println(MKid4pointsLAS.concatString(tempPoint, this.oparse));
-                }
-                aR.p_update.threadEnd[coreNumber-1]++;
-
-                if(aR.p_update.threadEnd[coreNumber-1] % 10000 == 0){
-                    aR.p_update.updateProgressThin();
-                }
-
-            }
-
-            br.writeBuffer2();
-            br.updateHeader2();
-
-            outt.close();
-        }catch(Exception e){
-            System.out.println(e);
-        }
-        //GroundDetector.convertTxt2Las(outputName, oparse);
- */
     }
 
     public class Pair implements Comparable<Pair> {

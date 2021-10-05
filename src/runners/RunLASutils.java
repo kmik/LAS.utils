@@ -821,181 +821,12 @@ public class RunLASutils{
 
     public static void main(String[] args) throws Exception {
 
-        //System.out.println("Working Directory = " +
-          //      System.getProperty("user.dir"));
-
-        //System.out.println("HERE!!  ");
-
         argumentReader aR = new argumentReader(args);
         aR.setExecDir( System.getProperty("user.dir"));
         aR.parseArguents();
 
-
-
-
         File curDir = new File(aR.execDir);
-        /*
-        for(File f : curDir.listFiles()){
-            if(f.getName().equals(aR.odir))
-                aR.odir = curDir.getAbsolutePath()+aR.odir+System.getProperty("file.separator");
-        }
-           */
-        //System.out.println(aR.input);
 
-        /*
-        if(aR.input.charAt(0) == '*'){
-
-            aR.input = aR.execDir + System.getProperty("file.separator") + aR.input;
-
-        }else{
-            for(File f : curDir.listFiles()){
-                if(f.getName().equals(aR.odir))
-                    aR.odir = curDir.getAbsolutePath()+aR.odir+System.getProperty("file.separator");
-            }
-        }
-
-        */
-        /*
-        int tool = Integer.parseInt(args[0]);
-
-        String iparse = args[1];
-        String oparse = args[2];
-
-        String output = args[3];
-        String input = args[4];
-
-        boolean drop_noise = Integer.parseInt(args[5]) != 0;
-        int drop_classification = Integer.parseInt(args[6]);
-
-        boolean first_only = Integer.parseInt(args[7]) != 0;
-        boolean keep_first = Integer.parseInt(args[8]) != 0;
-        boolean drop_first = Integer.parseInt(args[9]) != 0;
-
-        boolean last_only = Integer.parseInt(args[10]) != 0;
-        boolean keep_last = Integer.parseInt(args[11]) != 0;
-        boolean drop_last = Integer.parseInt(args[12]) != 0;
-
-        boolean drop_first_of_many = Integer.parseInt(args[13]) != 0;
-        boolean drop_last_of_many = Integer.parseInt(args[14]) != 0;
-
-        boolean keep_middle = Integer.parseInt(args[15]) != 0;
-        boolean drop_middle = Integer.parseInt(args[16]) != 0;
-
-        boolean keep_single = Integer.parseInt(args[17]) != 0;
-        boolean drop_single = Integer.parseInt(args[18]) != 0;
-        boolean keep_double = Integer.parseInt(args[19]) != 0;
-        boolean drop_double = Integer.parseInt(args[20]) != 0;
-        boolean keep_triple = Integer.parseInt(args[21]) != 0;
-        boolean drop_triple = Integer.parseInt(args[22]) != 0;
-        boolean keep_quadruple = Integer.parseInt(args[23]) != 0;
-        boolean drop_quadruple = Integer.parseInt(args[24]) != 0;
-        boolean keep_quintuple = Integer.parseInt(args[25]) != 0;
-        boolean drop_quintuple = Integer.parseInt(args[26]) != 0;
-
-        boolean drop_synthetic = Integer.parseInt(args[27]) != 0;
-        int drop_user_data = Integer.parseInt(args[28]);
-        int keep_user_data = Integer.parseInt(args[29]);
-
-        int set_classification = Integer.parseInt(args[30]);
-        int set_user_data = Integer.parseInt(args[31]);
-        double drop_z_below = Double.parseDouble(args[32]);
-        double drop_z_above = Double.parseDouble(args[33]);
-
-        double buffer = Double.parseDouble(args[34]);
-
-        String odir = args[35];
-
-        int few = Integer.parseInt(args[36]);
-
-        double step = Double.parseDouble(args[37]);
-
-        int ground_class = Integer.parseInt(args[38]);
-
-        String method = args[39];
-
-        String sep = args[40];
-
-        int cores = Integer.parseInt(args[41]);
-
-        String otype = args[42];
-
-        double numarg1 = Double.parseDouble(args[43]);
-        double numarg2 = Double.parseDouble(args[44]);
-        double numarg3 = Double.parseDouble(args[45]);
-        String groundPoints = args[46]; // NUMARG4
-
-        int br = Integer.parseInt(args[47]);
-
-        String koealat = args[48]; //MOVE TO LAST
-
-        boolean reading = (br == 0);
-
-        PointInclusionRule rule = new PointInclusionRule(reading);
-
-        PointModifyRule modRule = new PointModifyRule();
-
-        if(drop_noise)
-            rule.dropNoise();
-        if(drop_classification != -999)
-            rule.dropClassification(drop_classification);
-        if(drop_classification != -999)
-            rule.dropClassification(drop_classification);
-        if(first_only)
-            rule.firstOnly();
-        if(keep_first)
-            rule.keepFirst();
-        if(drop_first)
-            rule.dropFirst();
-        if(last_only)
-            rule.lastOnly();
-        if(keep_last)
-            rule.keepLast();
-        if(drop_last)
-            rule.dropLast();
-        if(drop_first_of_many)
-            rule.dropFirstOfMany();
-        if(drop_last_of_many)
-            rule.dropLastOfMany();
-        if(keep_middle)
-            rule.keepMiddle();
-        if(drop_middle)
-            rule.dropMiddle();
-        if(keep_single)
-            rule.keepSingle();
-        if(drop_single)
-            rule.dropSingle();
-        if(keep_double)
-            rule.keepDouble();
-        if(drop_double)
-            rule.dropDouble();
-        if(keep_triple)
-            rule.keepTriple();
-        if(drop_triple)
-            rule.dropTriple();
-        if(keep_quadruple)
-            rule.keepQuadruple();
-        if(drop_quadruple)
-            rule.dropQuadruple();
-        if(keep_quintuple)
-            rule.keepQuintuple();
-        if(drop_quintuple)
-            rule.dropQuintuple();
-        if(drop_synthetic)
-            rule.dropSynthetic();
-        if(drop_user_data != -999)
-            rule.dropUserData(drop_user_data);
-        if(keep_user_data != -999)
-            rule.keepUserData(keep_user_data);
-        if(set_classification != -999)
-            rule.setClassification(set_classification);
-        if(set_user_data != -999)
-            rule.setUserData(set_user_data);
-        if(drop_z_below != -999)
-            rule.dropZBelow(drop_z_below);
-        if(drop_z_above != -999)
-            rule.dropZAbove(drop_z_above);
-
-         */
         String pathSep = System.getProperty("file.separator");
 
         if(!System.getProperty("os.name").equals("Linux"))
@@ -1259,7 +1090,6 @@ public class RunLASutils{
                     det.oparse(aR.oparse);
 
                     if(aR.mem_efficient){
-                        //System.out.println("HERE!!");
                         det.normalizeZ_mem_eff(aR.output, aR.getInclusionRule(), aR.otype);
                     }
 
