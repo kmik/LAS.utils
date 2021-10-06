@@ -1001,6 +1001,7 @@ public class RunLASutils {
 
         }
 
+        /** Compute ITD statistics */
         if (aR.tool == 20) {
 
             File trees = aR.measured_trees;
@@ -1020,10 +1021,12 @@ public class RunLASutils {
 
             String parent = stats.outFile.getParent() == null ? "" : stats.outFile.getParent() + "/";
 
+            /** These output files are only for UAV LiDAR data that has been trunk segmented with lasStem.sh */
             stats.setStemOutput(new File(parent + ext + "_stem.txt"));
             stats.setStemOutput2(new File(parent + ext + "_stem_2.txt"));
             stats.setStemOutput3(new File(parent + ext + "_stem_3.txt"));
 
+            /** Not required. Will only segment trees within the polygon boundaries */
             stats.readFieldPlots(new File(aR.poly));
 
             for (int i = 0; i < aR.inputFiles.size(); i++) {
@@ -1139,9 +1142,8 @@ public class RunLASutils {
             }
         }
 
+        /** stem detector for e.g. UAV LiDAR data (should be useful in terrestrial photogrammetry as well?) */
         if (aR.tool == 26) {
-
-
             try {
 
                 for (int i = 0; i < aR.inputFiles.size(); i++) {

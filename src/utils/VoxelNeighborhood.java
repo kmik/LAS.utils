@@ -187,10 +187,7 @@ public class VoxelNeighborhood {
 
         Data dat = new Data(data, colMeans);
 
-        //System.out.println("Raw data:");
-        //Matrix.print(data);
         dat.center();
-        //double[][] cov = dat.covarianceMatrix();
         EigenSet eigen = dat.getCovarianceEigenSet();
 
         double angle = Math.toDegrees(Math.acos(eigen.vectors[2][2]/1.0));

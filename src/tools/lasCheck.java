@@ -539,8 +539,6 @@ public class lasCheck {
                 }
             }
         }
-
-
         // check scale factor x y z
 
         if (pointCloud.xScaleFactor <= 0.0)

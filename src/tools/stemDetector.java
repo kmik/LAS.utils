@@ -682,13 +682,7 @@ public class stemDetector{
                         surface[x][y][z].release();
                     }
                 }
-/*
-        for(int x = 0; x < this.xDim; x++)
-            for(int y = 0; y < this.yDim; y++)
-                for(int z = 0; z < this.zDim; z++)
-                    if(surface[x][y][z] != null)
-                        surface[x][y][z].release();
-*/
+
 
         System.out.println("CREATING PATCHES:!");
         createPatches(surface);
@@ -698,12 +692,6 @@ public class stemDetector{
         System.gc();
         System.gc();
         System.gc();
-        //removeShort();
-
-
-
-
-        //File outputFile = new File("stems_" + coreNumber + ".las");
 
         if(outputFile.exists())
             outputFile.delete();

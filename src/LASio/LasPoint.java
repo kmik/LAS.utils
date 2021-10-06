@@ -1,18 +1,5 @@
 package LASio;
-/**
- * A simple data-holder class for transferring data from
- * LAS file records.  This class is intended for efficient
- * use in applications that may process millions of records.
- * Therefore, it is designed so that instances
- * can be used and reused over and over again as temporary
- * containers for data.  Thus elements are exposed as public
- * without accessors methods or other protections.
- * <p>
- * There is, however, no restriction on creating instances of this class.
- * Depending on the requirements of the implementation, it may be completely
- * reasonable to do so. However, when millions of points are to be
- * processed, it will be advantageous to not create persistent instances.
- */
+
 public class LasPoint implements Cloneable {
     /** The position within the file at which the record is stored */
     public long filePosition;
