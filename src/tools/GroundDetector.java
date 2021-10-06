@@ -2343,8 +2343,6 @@ public class GroundDetector{
 
         isRectangleWithinTin(tin2.getPerimeter());
 
-        //System.out.println(tin.getVertices().size() + " " + tin2.getVertices().size() + " " + (tin.getVertices().size() + tin2.getVertices().size()));
-
         System.out.println("###########################");
         prev_y = outside_y;
         prev_x = outside_x;

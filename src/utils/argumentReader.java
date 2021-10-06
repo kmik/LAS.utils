@@ -178,6 +178,8 @@ public class argumentReader {
     public double delta = 5.0;
     public double lambda = 10.0;
 
+
+
     public LasBlock blokki;
 
     public progressUpdater p_update; // = new progressUpdater(this);
@@ -247,12 +249,13 @@ public class argumentReader {
     public void createOpts(){
 
         options = new Options();
+
         options.addOption( org.apache.commons.cli.Option.builder("i")
                 .longOpt("input")
                 .hasArg(true)
                 .desc("Input data")
                 .numberOfArgs(Option.UNLIMITED_VALUES)
-                .required(true)
+                .required(false)
                 .build());
         options.addOption(Option.builder("o")
                 .longOpt("output")
@@ -483,6 +486,13 @@ public class argumentReader {
                 .longOpt("remove_buffer")
                 .hasArg(false)
                 .desc("Remove buffer points (synthetic)")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder("h")
+                .longOpt("help")
+                .hasArg(false)
+                .desc("Display help for this tool")
                 .required(false)
                 .build());
 
@@ -1076,9 +1086,16 @@ public class argumentReader {
 
         this.pathSep = System.getProperty("file.separator");
 
-        System.out.println(Arrays.toString(args));
+        //System.out.println(Arrays.toString(args));
 
         this.tool = Integer.parseInt(args[0]);
+
+        if(args.length <= 1){
+
+            printHelp pH = new printHelp(this.tool);
+            System.exit(1);
+
+        }
 
         createOpts();
 
@@ -1089,6 +1106,14 @@ public class argumentReader {
 
         try {
             cmd = parser.parse(options, args);
+
+
+            if (cmd.hasOption("help")) {
+
+                printHelp pH = new printHelp(this.tool);
+                System.exit(1);
+
+            }
 
             if (cmd.hasOption("i")) {
 
@@ -1172,6 +1197,7 @@ public class argumentReader {
 
                 this.layers = (Integer.parseInt(cmd.getOptionValue("layers")));
             }
+
 
 
             if (cmd.hasOption("iparse")) {
