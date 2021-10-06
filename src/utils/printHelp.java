@@ -37,6 +37,13 @@ public class printHelp {
                 this.z_normalize();
                 break;
 
+            case 6:
+                this.thin();
+                break;
+            case 7:
+                this.chm();
+                break;
+
             default:
                 break;
         }
@@ -68,6 +75,28 @@ public class printHelp {
                 "\t-odir\t\tOutput directory\n  " +
                 "\t-ground_class\tGround point classification (default 2)\n" +
                 "\t-ground_points \tGround points from another .las file (class 2)\n");
+    }
+
+    public void chm(){
+        System.out.println("----------------------------------------------\n" +
+                " las2dsm -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Creates a Digital Surface Model (DSM) from .las file.\n" +
+                "-step parameter defines the output resolution (in meters)\n" +
+                "of the surface model and -theta the intensitvity of the gaussian. \n" +
+                "filter. Gaussian kernel is computed automatically using the  \n" +
+                "provided -theta parameter. \n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)\n" +
+                "\t-o\t\tOutput file\n" +
+                "\t-step\t\tDSM resolution (in meters)\n" +
+                "\t-theta\t\tGaussian theta (default 1.0)\n");
     }
 
 
@@ -131,6 +160,28 @@ public class printHelp {
                 "\n" +
                 "\t-i\t\t\"Input file(s)\"\n" +
                 "\t-o\t\tOutput file");
+    }
+
+    public void thin(){
+        System.out.println( "----------------------------------------------\n" +
+                " lasthin -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Thins a .las point cloud. -step specifies the\n" +
+                "size of the square in which -few points\n" +
+                "are kept. If -thin_3d argument is passed, the\n" +
+                "thinning is done in voxels, instead of 2d\n" +
+                "squares.\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)\n" +
+                "\t-odir\t\tOutput directory\n" +
+                "\t-step\t\tThinning parameter\n" +
+                "\t-few\t\tNumber of points kept\n");
     }
 
     public void tiler(){
