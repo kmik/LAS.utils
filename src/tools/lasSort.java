@@ -12,13 +12,10 @@ import java.util.*;
 public class lasSort {
 
     public Byte myByte1 = new Byte("00000000000000000000000000000000");
-    public byte myBitti1 = myByte1.byteValue();
 
     public Byte myByte2 = new Byte("00000000000000000000000000000000");
-    public byte myBitti2 = myByte2.byteValue();
 
     File outputFile;
-    MortonZCurve m = new MortonZCurve();
 
     argumentReader aR;
     LASReader pointCloud;
@@ -45,6 +42,10 @@ public class lasSort {
 
     }
 
+    /**
+     * Sorts the points in .las file by gps time in ascending order
+     * @throws IOException
+     */
     public void sortByGPStime() throws IOException {
 
         LasPoint tempPoint = new LasPoint();
@@ -56,9 +57,8 @@ public class lasSort {
         int suurin;
         int ero;
 
-        int count = 0;
+        int count;
         int totalCount = 0;
-        //deleteTemporaryFiles(parts);
         declareTemporaryFiles(parts);
 
         int[] pointCountsPerFile = new int[parts];
@@ -78,12 +78,7 @@ public class lasSort {
             }
 
             Pair_float[] parit = new Pair_float[suurin-pienin];
-
-            /*
-            System.out.println(" i " + i + " parts: " + parts);
-            System.out.println("su: " + suurin + " pi: " + pienin + " point cloud size " + pointCloud.getNumberOfPointRecords());
-*/
-            int maxi = 0;
+            int maxi;
 
             pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
 
@@ -96,13 +91,10 @@ public class lasSort {
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-                    //pointCloud.braf.buffer.position(0);
 
                 for (int j = 0; j < maxi; j++) {
-                    //Sstem.out.println(j);
-                    pointCloud.readFromBuffer(tempPoint);
 
-                    //System.out.println(m.EncodeM2D(new UInt32((int)(tempPoint.x*100)), new UInt32((int)(tempPoint.y*100))));
+                    pointCloud.readFromBuffer(tempPoint);
 
                     parit[count] = new Pair_float(s+j, tempPoint.gpsTime);
                     count++;
@@ -127,8 +119,6 @@ public class lasSort {
             }
 
             tempFiles.get(i-1).writeBuffer2();
-
-            parit = null;
 
             System.gc();
 
@@ -188,7 +178,7 @@ public class lasSort {
             }
         }
 
-        Pair_float tempPair2 = new Pair_float(0,0);
+        Pair_float tempPair2;// = new Pair_float(0,0);
 
         int counteri = 0;
 
@@ -269,6 +259,11 @@ public class lasSort {
 
     }
 
+    /**
+     * Sorts the points in .las file by z-count. This is very useful
+     * to do BEFORE spatial indexing.
+     * @throws IOException sdadas
+     */
     public void sortByZCount() throws IOException {
 
         int parts = (int)Math.ceil((double)pointCloud.getNumberOfPointRecords() / 2500000.0);
@@ -278,7 +273,7 @@ public class lasSort {
         int suurin;
         int ero;
 
-        int count = 0;
+        int count;// = 0;
         int totalCount = 0;
 
         declareTemporaryFiles(parts);
@@ -313,7 +308,7 @@ public class lasSort {
             System.out.println(" i " + i + " parts: " + parts);
             System.out.println("su: " + suurin + " pi: " + pienin + " point cloud size " + pointCloud.getNumberOfPointRecords());
 */
-            int maxi = 0;
+            int maxi;// = 0;
 
             pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
 

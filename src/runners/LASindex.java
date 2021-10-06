@@ -467,10 +467,10 @@ class LASindex {
 
 
 		String pathSep = System.getProperty("file.separator");
-
+/*
 		if(!System.getProperty("os.name").equals("Linux"))
           pathSep = "\\" + pathSep;
-
+*/
 		boolean lasFormat = input.split(pathSep)[(input.split(pathSep)).length - 1].split("\\.")[1].equals("las");
         boolean txtFormat = input.split(pathSep)[(input.split(pathSep)).length - 1].split("\\.")[1].equals("txt");
         boolean wildCard = input.split(pathSep)[(input.split(pathSep)).length - 1].split("\\.")[0].equals("*"); 

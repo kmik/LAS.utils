@@ -994,34 +994,11 @@ public class gridRAF implements Closeable {
         longArray[1] = (byte)(in >>>  8);
         longArray[0] = (byte)(in >>>  0);
 
-    /*
-    buffer.wrap(array);
-    buffer.flip();
-    fileChannel.write(buffer);
-    */
-        //fileChannel.position(fileChannel.size());
-        //fileChannel.write(ByteBuffer.wrap(array));
-        //allArray = concatenateByteArrays(allArray, array);
-        /*
-    writeBuffer_long.position(0);
-    writeBuffer_long.put(longArray);
-    writeBuffer_long.position(0);
-    raFile.seek(raFile.length());
-    fileChannel.write(writeBuffer_long);
-
-    if(true)
-      return;
-
-
-         */
 
         if(allArray2Index + longArray.length >= allArray2.length) {
-            //writeBuffer2();
             writeBuffer3(longArray);
             return;
         }
-        //writeBuffer.put(longArray);
-        //for(int i = 0; i < longArray.length; i++){
 
         allArray2[allArray2Index] = longArray[0];
         allArray2Index++;
@@ -1063,41 +1040,18 @@ public class gridRAF implements Closeable {
         //byte[] array = new byte[2];
         shortArray[0] = (byte) in;
         shortArray[1] = (byte) (in >> 8);
-        //writeBuffer.putShort(in);
-    /*
-    buffer.wrap(array);
-    buffer.flip();
-    fileChannel.write(buffer);
-    */
-        //fileChannel.position(fileChannel.size());
-        //allArray = concatenateByteArrays(allArray, array);
-    /*
-    writeBuffer.allocate(2).put(shortArray);
-    writeBuffer.position(0);
-    raFile.seek(raFile.length());
-    fileChannel.write(writeBuffer);
 
-    if(true)
-      return;
-
-
-     */
         if(allArray2Index + shortArray.length >= allArray2.length) {
             //writeBuffer2();
             writeBuffer3(shortArray);
             return;
         }
-        //for(int i = 0; i < shortArray.length; i++){
-        // writeBuffer.put(shortArray);
+
         allArray2[allArray2Index] = shortArray[0];
         allArray2Index++;
         allArray2[allArray2Index] = shortArray[1];
         allArray2Index++;
 
-        //}
-
-        //fileChannel.write(ByteBuffer.wrap(array));
-        //return buffer.getShort();
     }
 
     /**
