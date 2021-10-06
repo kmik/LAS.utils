@@ -90,7 +90,6 @@ public class lasGridStats {
 
         aR.output_statistics = true;
 
-
         this.grid_x_size = (int)Math.ceil((pointCloud.maxX - orig_x) / resolution);
         this.grid_y_size = (int)Math.ceil((orig_y - pointCloud.minY) / resolution);
 

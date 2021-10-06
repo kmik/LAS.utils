@@ -1093,7 +1093,7 @@ class MKid4pointsLAS{
 
 
         /* Circular plot */
-
+        /** THIS IS NOT USED ANYWHERE!!! */
         if(shapeType == 1){
 
             ArrayList<Integer> plotID;
@@ -1418,7 +1418,6 @@ class MKid4pointsLAS{
 
         }
 
-        int debugCounter = 0;
         /* Shapefile */
         if(shapeType == 2) {
 
@@ -1604,99 +1603,84 @@ class MKid4pointsLAS{
                     doneIndexes.clear();
                     LASReader asd = new LASReader(aR.inputFiles.get(valinta.get(va))); //pointClouds.get(valinta.get(va));
 
-                    int readPoints = 0;
-
                     if (asd.isIndexed) {
 
                         asd.queryPoly2(minmaxXY[0], minmaxXY[1], minmaxXY[2], minmaxXY[3]);
 
+
                         LasPoint tempPoint = new LasPoint();
+
 
                         try {
                             FileWriter fw = null;
 
-                            if(asd.queriedIndexes2.size() > 0)
+                            if(asd.indexContainsStuff()) {
 
-                            for (int u = 0; u < asd.queriedIndexes2.size(); u++) {
+                                /*
+                                for (int u = 0; u < asd.queriedIndexes2.size(); u++) {
 
-                                long n1 = asd.queriedIndexes2.get(u)[1] - asd.queriedIndexes2.get(u)[0];
-                                long n2 = asd.queriedIndexes2.get(u)[1];
+                                    long n1 = asd.queriedIndexes2.get(u)[1] - asd.queriedIndexes2.get(u)[0];
+                                    long n2 = asd.queriedIndexes2.get(u)[1];
 
-                                int parts = (int) Math.ceil((double) n1 / 20000.0);
-                                int jako = (int) Math.ceil((double) n1 / (double) parts);
+                                    int parts = (int) Math.ceil((double) n1 / 20000.0);
+                                    int jako = (int) Math.ceil((double) n1 / (double) parts);
 
-                                int ero;
-
-                               // System.out.println("Start: " + asd.queriedIndexes2.get(u)[0] + " end: " + asd.queriedIndexes2.get(u)[1]);
-                               // System.out.println("n1: " + n1 + " n2: " + n2 + " parts: " + parts + " jako: " + jako);
-
-                                if(parts > 1){
-                                    debugCounter++;
-                                }
-
-                                for (int c = 1; c <= parts; c++) {
-
-                                    if (c != parts) {
-                                        pienin = (c - 1) * jako;
-                                        suurin = c * jako;
-                                    } else {
-                                        pienin = (c - 1) * jako;
-                                        suurin = (int) n1;
-                                    }
-
-                                    pienin = pienin + asd.queriedIndexes2.get(u)[0];
-                                    suurin = suurin + asd.queriedIndexes2.get(u)[0];
+                                    int ero;
 
 
-                                    ero = suurin - pienin + 1;
+                                    for (int c = 1; c <= parts; c++) {
 
-                                    //System.out.println("pienin: " + pienin + " suurin: " + suurin + " ero: " + ero);
-                                    //System.out.println(ero + " " + c + " / " + parts);
-                                    //System.out.println();
+                                        if (c != parts) {
+                                            pienin = (c - 1) * jako;
+                                            suurin = c * jako;
+                                        } else {
+                                            pienin = (c - 1) * jako;
+                                            suurin = (int) n1;
+                                        }
 
-                                    //try {
+                                        pienin = pienin + asd.queriedIndexes2.get(u)[0];
+                                        suurin = suurin + asd.queriedIndexes2.get(u)[0];
 
-                                    asd.readRecord_noRAF(pienin, tempPoint, ero);
+                                        ero = suurin - pienin + 1;
 
-                                    //} catch (Exception e) {
-                                    //  e.printStackTrace();
-                                    //}
+                                        asd.readRecord_noRAF(pienin, tempPoint, ero);
 
-                                    int count1 = 0;
-                                    debugCounter = 0;
+                                        for (int p = pienin; p <= suurin; p++) {
+*/
+                                        int p = 0;
 
-                                    for (int p = pienin; p <= suurin; p++) {
-                                        debugCounter++;
+                                        while(!asd.index_read_terminated){
 
-                                        if (!doneIndexes.contains(p)) {
+                                            p = asd.fastReadFromQuery(tempPoint);
 
-                                            asd.readFromBuffer(tempPoint);
-                                            readPoints++;
-                                            doneIndexes.add(p);
-                                            //asd.readRecord(p, tempPoint);
+                                            //System.out.println(p);
+                                            //System.out.println(tempPoint.x + " " + tempPoint.y);
+                                            if (!doneIndexes.contains(p)) {
 
-                                            haku[0] = tempPoint.x;
-                                            haku[1] = tempPoint.y;
+                                                //asd.readFromBuffer(tempPoint);
 
-                                            if (pointInPolygon(haku, tempPolygon)) {
-                                                //if (true) {
+                                                doneIndexes.add(p);
 
-                                                if (otype.equals("las")) {
+                                                haku[0] = tempPoint.x;
+                                                haku[1] = tempPoint.y;
 
-                                                    tempPoint.pointSourceId = plotID.get(j).shortValue();
+                                                if (pointInPolygon(haku, tempPolygon)) {
 
+                                                    if (otype.equals("las")) {
 
-                                                    if(aR.omet){
+                                                        tempPoint.pointSourceId = plotID.get(j).shortValue();
 
-                                                        gridPoints_z_a.add(tempPoint.z);
-                                                        gridPoints_i_a.add(tempPoint.intensity);
+                                                        if (aR.omet) {
 
-                                                        sum_z_a += tempPoint.z;
-                                                        sum_i_a += tempPoint.intensity;
+                                                            gridPoints_z_a.add(tempPoint.z);
+                                                            gridPoints_i_a.add(tempPoint.intensity);
 
-                                                        //System.out.println("intensity" + tempPoint.intensity);
+                                                            sum_z_a += tempPoint.z;
+                                                            sum_i_a += tempPoint.intensity;
 
-                                                        if (tempPoint.returnNumber == 1) {
+                                                            //System.out.println("intensity" + tempPoint.intensity);
+
+                                                            if (tempPoint.returnNumber == 1) {
                                         /*
                                         sum_z_f += tempPoint.z;
                                         sum_i_f += tempPoint.intensity;
@@ -1705,15 +1689,15 @@ class MKid4pointsLAS{
                                         gridPoints_i_f.add(tempPoint.intensity);
 
                                          */
-                                                            gridPoints_z_f.add(tempPoint.z);
-                                                            gridPoints_i_f.add(tempPoint.intensity);
+                                                                gridPoints_z_f.add(tempPoint.z);
+                                                                gridPoints_i_f.add(tempPoint.intensity);
 
-                                                            gridPoints_RGB_f.add(new int[]{tempPoint.R,tempPoint.G,tempPoint.B});
-                                                            //System.out.println(Arrays.toString(gridPoints_RGB_f.get(gridPoints_RGB_f.size()-1)));
-                                                            sum_z_f += tempPoint.z;
-                                                            sum_i_f += tempPoint.intensity;
-                                                        }
-                                                        if (tempPoint.returnNumber == tempPoint.numberOfReturns) {
+                                                                gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B});
+                                                                //System.out.println(Arrays.toString(gridPoints_RGB_f.get(gridPoints_RGB_f.size()-1)));
+                                                                sum_z_f += tempPoint.z;
+                                                                sum_i_f += tempPoint.intensity;
+                                                            }
+                                                            if (tempPoint.returnNumber == tempPoint.numberOfReturns) {
 /*
                                         sum_z_l += tempPoint.z;
                                         sum_i_l += tempPoint.intensity;
@@ -1722,63 +1706,64 @@ class MKid4pointsLAS{
                                         gridPoints_i_l.add(tempPoint.intensity);
 
  */
-                                                            gridPoints_z_l.add(tempPoint.z);
-                                                            gridPoints_i_l.add(tempPoint.intensity);
+                                                                gridPoints_z_l.add(tempPoint.z);
+                                                                gridPoints_i_l.add(tempPoint.intensity);
 
-                                                            sum_z_l += tempPoint.z;
-                                                            sum_i_l += tempPoint.intensity;
+                                                                sum_z_l += tempPoint.z;
+                                                                sum_i_l += tempPoint.intensity;
 
-                                                        }
-                                                        if (tempPoint.returnNumber > 1 && tempPoint.returnNumber != tempPoint.numberOfReturns) {
+                                                            }
+                                                            if (tempPoint.returnNumber > 1 && tempPoint.returnNumber != tempPoint.numberOfReturns) {
 /*
                                         sum_z_i += tempPoint.z;
                                         sum_i_i += tempPoint.intensity;
                                         gridPoints_z_i.add(tempPoint.z);
                                         gridPoints_i_i.add(tempPoint.intensity);
  */
-                                                            gridPoints_z_i.add(tempPoint.z);
-                                                            gridPoints_i_i.add(tempPoint.intensity);
+                                                                gridPoints_z_i.add(tempPoint.z);
+                                                                gridPoints_i_i.add(tempPoint.intensity);
 
-                                                            sum_z_i += tempPoint.z;
-                                                            sum_i_i+=  tempPoint.intensity;
+                                                                sum_z_i += tempPoint.z;
+                                                                sum_i_i += tempPoint.intensity;
+
+                                                            }
 
                                                         }
 
+
+                                                        if (!aR.split)
+                                                            pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), (int) p);
+                                                        else
+                                                            outputBuffers.get(valinta.get(va)).writePoint(tempPoint, aR.getInclusionRule(), (int) p);
+
+                                                        aR.p_update.lasclip_clippedPoints++;
+
+                                                        if (aR.p_update.lasclip_clippedPoints % 10000 == 0)
+                                                            aR.p_update.updateProgressClip();
+
+                                                    } else if (otype.equals("txt")) {
+                                                        String tempString = " " + LASwrite.LASpoint2String(tempPoint, oparse);
+                                                        String outLine = "";
+                                                        if (!split)
+                                                            outLine = plotID.get(j).intValue() + tempString;
+                                                        else
+                                                            outLine = tempString.trim();
+                                                        queue.put(outLine);
                                                     }
 
-
-                                                    if(!aR.split)
-                                                        pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), (int)p);
-                                                    else
-                                                        outputBuffers.get(valinta.get(va)).writePoint(tempPoint, aR.getInclusionRule(), (int)p);
-
-                                                    aR.p_update.lasclip_clippedPoints++;
-
-                                                    if(aR.p_update.lasclip_clippedPoints % 10000 == 0)
-                                                        aR.p_update.updateProgressClip();
-
-                                                } else if (otype.equals("txt")) {
-                                                    String tempString = " " + LASwrite.LASpoint2String(tempPoint, oparse);
-                                                    String outLine = "";
-                                                    if (!split)
-                                                        outLine = plotID.get(j).intValue() + tempString;
-                                                    else
-                                                        outLine = tempString.trim();
-                                                    queue.put(outLine);
+                                                    npoints++;
+                                                    i++;
+                                                    //}
                                                 }
-
-                                                npoints++;
-                                                i++;
-                                                //}
+                                            } else {
+                                                asd.skipPointInBuffer();
                                             }
-                                        }else{
-                                            asd.skipPointInBuffer();
                                         }
-                                    }
 
-                                    //System.out.println(debugCounter + " ?==? " + ero);
-                                }
-                            }
+                                        //System.out.println(debugCounter + " ?==? " + ero);
+                                    }
+                                //}
+                            //}
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
