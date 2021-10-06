@@ -605,7 +605,6 @@ public class RunLASutils {
 
             } else {
                 for (int i = 0; i < filesList.size(); i++) {
-                    //System.out.println("Odir: " + odir);
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
                     Boundary bound = new Boundary(temp, aR.odir, aR.output, false, aR, 1);
 

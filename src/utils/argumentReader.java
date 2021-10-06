@@ -1139,11 +1139,6 @@ public class argumentReader {
 
                 }
 
-
-                //System.out.println(sequ);
-                //System.out.println(Arrays.toString(seqit));
-                //System.out.println(Arrays.toString(sequence));
-                //System.exit(1);
             }
 
             if (cmd.hasOption("c")) {

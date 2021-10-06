@@ -88,7 +88,6 @@ public class lasCheck {
 
             }
         }
-       // aR.pfac.closeThread(thread_n);
     }
 
 
@@ -605,7 +604,7 @@ public class lasCheck {
             fails.add(String.format("max z: should be %f and not %f", this.minMax_z[1], pointCloud.maxZ));
         }
         if(pointCloud.minZ != this.minMax_z[0]){
-            fails.add(String.format("min z: should be %f and not %f", this.minMax_z[0], pointCloud.maxZ));
+            fails.add(String.format("min z: should be %f and not %f", this.minMax_z[0], pointCloud.minZ));
         }
 
         if(pointCloud.maxX != this.minMax_x[1]){
