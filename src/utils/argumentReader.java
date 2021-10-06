@@ -1816,11 +1816,6 @@ public class argumentReader {
             }
         }
 
-        //System.out.println("odir: " + odir);
-
-
-        //System.exit(1);
-
         this.few = Integer.parseInt(args[36]);
 
         this.step = Double.parseDouble(args[37]);

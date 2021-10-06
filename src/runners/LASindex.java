@@ -451,7 +451,6 @@ class LASindex {
 
 	public static void main(String[] args) throws IOException {
 
-		//System.out.println("STARTING");
 		String directory = "las/";
 
 		int cellsize = 20;
@@ -498,27 +497,6 @@ class LASindex {
           }
         }
 
-		//ArrayList<String> lasFiles = listFiles(directory, ".las");
-
-		//System.out.println("ncores: " + nCores);
-		//System.out.println(lasFiles);
-		//BufferedReader sc = new BufferedReader( new FileReader("pointCloudHigh.las"));
-		String line1 = "";
-		/*
-		for(int i = 0; i < lasFiles.size(); i++){
-			File file1 = new File(lasFiles.get(i));
-			tinfour.las.LasFileReader asd = new tinfour.las.LasFileReader(file1);
-			//System.out.println(asd.getFile());
-			
-			tinfour.las.LasPoint pointti = new tinfour.las.LasPoint();
-			long counter = 0;
-
-			index(asd, cellsize);
-		}
-
-
-		indexAll(directory);
-		*/
 		long tStart = 0L;
 		
 		int n = Math.min(nCores, filesList.size());
