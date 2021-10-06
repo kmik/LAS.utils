@@ -197,8 +197,6 @@ public class LASReader {
 
   public int fastReadFromQuery(LasPoint tempPoint){
 
-
-    //System.out.println(braf.buffer.remaining() + " " + this.pointDataRecordLength);
     try {
 
       this.readFromBuffer(tempPoint);
@@ -209,7 +207,6 @@ public class LASReader {
       e.printStackTrace();
       System.exit(1);
     }
-    /** TODO: CHANGE THE FOLLOWING SO THAT WE CHECK IF THE BYTEBUFFER IS EMPTY!!!!!! */
 
     /** If the next index would be outside the current range AND the current maxIndex is not the last in the range AND this is not the last round */
     //if(this.index_p + 1 > this.index_maxIndex && this.index_maxIndex != this.queriedIndexes2.get(this.index_u)[1] && !this.index_last_round) {
@@ -222,7 +219,6 @@ public class LASReader {
       /** If we have more stuff to read in the current part */
       if (index_p < this.queriedIndexes2.get(this.index_u)[1]) {
 
-        System.out.println("GO TO NEXT STEP");
         this.index_minIndex = this.index_maxIndex + 1;
         this.index_maxIndex = Math.min(this.index_minIndex + 20000, this.queriedIndexes2.get(this.index_u)[1]);
         this.index_points_in_buffer = index_maxIndex - index_minIndex + 1;
@@ -233,22 +229,17 @@ public class LASReader {
           e.printStackTrace();
         }
 
-        System.out.println(this.index_minIndex + " " + this.index_maxIndex + " " + Arrays.toString(this.queriedIndexes2.get(this.index_u)));
-        System.out.println(braf.buffer.remaining());
-
         this.index_points_in_buffer = index_maxIndex - index_minIndex + 1;
 
 
       } else if (index_p == this.queriedIndexes2.get(this.index_u)[1]) {
 
-        System.out.println("GO TO NEXT PART");
 
 
         this.index_u++;
 
         if (this.index_u >= this.queriedIndexes2.size()) {
 
-          System.out.println("TERMINATE!");
           this.index_read_terminated = true;
 
           return index_p;
@@ -264,12 +255,6 @@ public class LASReader {
         } catch (Exception e) {
           e.printStackTrace();
         }
-/*
-        System.out.println(this.index_maxIndex + " == " + this.queriedIndexes2.get(this.index_u)[1]);
-        System.out.println(braf.buffer.remaining());
-        System.out.println(this.index_points_in_buffer);
-        System.exit(1);
-*/
 
         int output = index_p;
         this.index_p = this.index_minIndex;
@@ -285,13 +270,8 @@ public class LASReader {
 
   public void prepareBuffer(){
 
-    this.index_u = 0;
-    this.index_n1 = 0;
-    this.index_n2 = 0;
     this.index_min = 0;
     this.index_max = 0;
-    this.index_minIndex = 0;
-    this.index_maxIndex = 0;
     this.index_last_round = false;
     this.index_last_round_period = false;
     this.index_read_terminated = false;

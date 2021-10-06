@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.concurrent.PriorityBlockingQueue;
 
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
@@ -44,7 +43,6 @@ import utils.*;
 import static runners.MKid4pointsLAS.clipPlots_singleLASfile;
 import static runners.MKid4pointsLAS.readPolygonsFromWKT;
 
-//import Tinfour.*;
 public class RunLASutils{
 
     public static fileOperations fo = new fileOperations();
@@ -224,7 +222,7 @@ public class RunLASutils{
 
             }
             return output;
-                //System.out.print((x/n)+" ");
+            //System.out.print((x/n)+" ");
         }
         else
         {
@@ -384,6 +382,9 @@ public class RunLASutils{
 
     }
 
+    /**
+     * Just a class to divide workers for multithreaded tools.
+     */
     static class multiThreadTool implements Runnable{
 
         tool tool;
@@ -406,7 +407,6 @@ public class RunLASutils{
         public void run(){
             int jako = -1;
 
-            //System.out.println("CORES: " + aR.cores);
             int[] n_per_thread = split(aR.inputFiles.size(), aR.cores);
 
             try {
@@ -417,69 +417,24 @@ public class RunLASutils{
                 if(nCore != 0){
 
                     jako = (int)Math.ceil((double)aR.inputFiles.size() / (double) nCores);
-                    //System.out.println(plotID1.size() / (double)cores);
 
-                        int howMany = -n_per_thread[0];
-                        for (int i = 0; i < nCore; i++) {
+                    int howMany = -n_per_thread[0];
+                    for (int i = 0; i < nCore; i++) {
 
-                            howMany += n_per_thread[i];
+                        howMany += n_per_thread[i];
 
-                        }
-                        pienin = howMany;
-                        suurin = Math.min(howMany + n_per_thread[nCore-1], aR.inputFiles.size());
-
-
-                    /*
-                    if(nCore != nCores){
-
-                        pienin = (nCore - 1) * jako;
-                        suurin = nCore * jako;
                     }
+                    pienin = howMany;
+                    suurin = Math.min(howMany + n_per_thread[nCore-1], aR.inputFiles.size());
 
-                    else{
-                        pienin = (nCore - 1) * jako;
-                        suurin = aR.inputFiles.size();
-                    }
-*/
-                    //System.out.println(Arrays.toString(n_per_thread));
-                    //System.out.println(aR.inputFiles.size() + " " + pienin + " " + suurin + " " + jako + "  " + nCore + " " + nCores);
-
-                    //this.pointClouds = new ArrayList<>(aR.pointClouds.subList(pienin, suurin));
                     this.inputFiles = new ArrayList<>(aR.inputFiles.subList(pienin, suurin));
-
-/*
-                    for(int i = 0; i < this.inputFiles.size(); i++){
-                        this.inputFiles.set(i, new LASReader(pointClouds.get(i).getFile()));
-                    }
-                    */
-                    //System.out.println(tiedostot);
-                    //polyBank = new ArrayList<double[][]>(polyBank1.subList(pienin, suurin));
 
                 }
                 else{
 
-                    //tiedostot = new ArrayList<Double>(tiedostot);
-                    //polyBank = new ArrayList<double[][]>(polyBank1);
                 }
-
-                //if(true)
-                //while(true){
-
-               // }
-                /*
-                if (aR.tool == 1) {
-                    Tiler tile = new Tiler(aR.pointClouds, aR.buffer, aR.getInclusionRule(), aR.odir, (int) aR.step);
-                }
-
-                if (aR.tool == 2) {
-
-                    Merger merge = new Merger(aR.pointClouds, aR.output, aR.getInclusionRule(), aR.odir);
-
-                }
-                */
                 if (aR.tool == 3) {
 
-                    //for (int i = 0; i < this.inputFiles.size(); i++) {
                     while(true){
 
                         if(fD.isEmpty())
@@ -544,7 +499,6 @@ public class RunLASutils{
                         System.out.println(aR.groundPoints);
 
                         if(aR.mem_efficient){
-                            //System.exit(1);
                             det.normalizeZ_mem_eff(aR.output, aR.getInclusionRule(), aR.otype);
                         }
 
@@ -557,7 +511,6 @@ public class RunLASutils{
 
                         } else {
 
-                            //System.out.println("GOT HERE");
                             det.normalizeZ(aR.ground_class, aR.output, aR.getInclusionRule(), aR.otype, aR.groundPoints);
 
                         }
@@ -600,10 +553,6 @@ public class RunLASutils{
                         LASReader temp = new LASReader(f);
                         createCHM.chm testi = new createCHM.chm(temp, "y", 1, aR, nCore);
 
-                        //testi.detectTreeTops(2);
-
-                        //createCHM.WaterShed fill = new createCHM.WaterShed(testi.treeTops, 0.2, testi.output2, testi, aR);
-
                     }
 
                 }
@@ -611,9 +560,6 @@ public class RunLASutils{
 
                 if (aR.tool == 9) {
 
-                    //System.out.println("This thread load: " + this.pointClouds.size());
-                    //System.out.println("");
-                    //System.out.println("");
                     while(true){
 
                         if(fD.isEmpty())
@@ -665,7 +611,6 @@ public class RunLASutils{
 
                         LASReader temp = new LASReader(f);
                         ToShp toshape = new ToShp(aR.output, temp, aR.getInclusionRule(), aR.odir, aR.oparse);
-                        //LASutils.Boundary bound = new LASutils.Boundary(pointClouds.get(i), odir, output, false);
 
                     }
 
@@ -832,37 +777,21 @@ public class RunLASutils{
         if(!System.getProperty("os.name").equals("Linux"))
             pathSep = "\\" + pathSep;
 
-        //System.loadLibrary("opencv_java320");
 
-        //if(!System.getProperty("os.name").equals("Linux"))
-            //System.loadLibrary("gdal202");
-
-        //System.out.println(System.getProperty("java.library.path"));
-
-        //System.out.println(aR.input);
         String regex = "^.*(?:\\*.*){2}$";
-        //boolean lasFormat = aR.input.split(pathSep)[(aR.input.split(pathSep)).length - 1].split("\\.")[1].equals("las");
-        //boolean txtFormat = aR.input.split(pathSep)[(aR.input.split(pathSep)).length - 1].split("\\.")[1].equals("txt");
-        //boolean wildCard = aR.input.split(pathSep)[(aR.input.split(pathSep)).length - 1].split("\\.")[0].equals("*");
 
         boolean lasFormat = false;
         boolean txtFormat = false;
 
         lasFormat = new File(aR.files[0]).getName().split("\\.")[1].equals("las");
-        //lasFormat = aR.files[0].split("\\.")[1].equals("las");
         txtFormat = new File(aR.files[0]).getName().split("\\.")[1].equals("txt");
 
-        //wildCard = aR.input.split(pathSep)[(aR.input.split(pathSep)).length - 1].charAt(0) == '*';
 
         ArrayList<String> filesList = new ArrayList<String>();
-        //ogr.RegisterAll(); //Registering all the formats..
-        //gdal.AllRegister();
+
         ArrayList<LASReader> pointClouds = new ArrayList<LASReader>();
         ArrayList<File> inputFiles = new ArrayList<>();
-        //System.out.println(aR.files[0].split("\\.")[1]);
-        //System.out.println("las format: " + aR.files[0].split("\\.")[1]);
 
-        //System.out.println(wildCard);
         if(lasFormat){
 /*
             if(wildCard){
@@ -1687,7 +1616,7 @@ public class RunLASutils{
             ITDstatistics stats = new ITDstatistics(aR);
 
             if(aR.measured_trees != null)
-            stats.readMeasuredTrees(trees);
+                stats.readMeasuredTrees(trees);
 
             stats.setOutput(new File(aR.output));
 
@@ -1714,7 +1643,7 @@ public class RunLASutils{
 
             stats.labelTrees();
             //if(stats.groundMeasuredOK)
-              //  stats.showDetectionRate(plotSize);
+            //  stats.showDetectionRate(plotSize);
 
             stats.printOutput();
 
@@ -1976,9 +1905,9 @@ public class RunLASutils{
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
 
                     classifyTrunks c_trunks = new classifyTrunks(temp, aR, trunkFile,
-                                                upperStoreyTrunks,
-                                                underStoreyTrunks,
-                                                trunk_to_crown);
+                            upperStoreyTrunks,
+                            underStoreyTrunks,
+                            trunk_to_crown);
 
                     c_trunks.classify();
 

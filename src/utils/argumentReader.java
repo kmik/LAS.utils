@@ -1108,7 +1108,6 @@ public class argumentReader {
                 ArrayList<String> temp = new ArrayList<>();
 
                 for(String s : files){
-                    //if(new LASraf(new File(s)).check()){
                     if(new File(s).getName().split("\\.")[1].equals("las")){
                         temp.add(s);
                         this.inputFiles.add(new File(s));
@@ -1116,7 +1115,6 @@ public class argumentReader {
                         temp.add(s);
                         this.inputFiles.add(new File(s));
                         System.out.println(s + " is not a LAS file, terminating");
-                        //System.exit(1);
                     }
                     //}
                 }

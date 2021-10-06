@@ -1234,23 +1234,9 @@ public class RunId4pointsLAS{
         proge.setName("Clipping plots...");
         proge.setEnd(100);
 
-
-        //if(output.equals("asd")){
-        //output = "output." + otype;
-        //}
-
-        //if(odir.equals("asd"))
-        //odir = "";
-        //else
-        //odir = odir + System.getProperty("file.separator");
-
-        //System.out.println("PARENT:" + allFile.getParent());
-
         File merged = null;
 
         File tempFile = new File(tiedostot_sorted.get(0));
-
-        //System.out.println(aR.output + " " + aR.odir);
 
         LASReader tempReader = new LASReader(new File(tiedostot_sorted.get(0)));
         pointWriterMultiThread pwrite = null;
@@ -1258,27 +1244,7 @@ public class RunId4pointsLAS{
         if(!aR.split) {
 
             merged = aR.createOutputFile(tempReader);
-            /*
 
-            if (aR.output.equals("asd")) {
-                merged = fo.createNewFileWithNewExtension(tempFile, "." + aR.otype);
-                //output = merged.getAbsolutePath();
-            }
-
-
-            if (!aR.odir.equals("asd"))
-                merged = fo.transferDirectories(merged, aR.odir);
-            //output = odir + pathSep + output;
-
-
-            if (merged.exists()) {
-
-                merged = fo.createNewFileWithNewExtension(merged, "_1." + aR.otype);
-
-                //new File(merged.getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1." + otype);
-                //temp.delete();
-            }
-*/
             if (merged.exists()) {
                 merged.delete();
                 merged.createNewFile();
