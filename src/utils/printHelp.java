@@ -44,6 +44,22 @@ public class printHelp {
                 this.chm();
                 break;
 
+            case 8:
+                this.txt2las();
+                break;
+
+            case 9:
+                this.border();
+                break;
+
+            case 10:
+                this.border();
+                break;
+
+            case 11:
+                this.las2shp();
+                break;
+
             default:
                 break;
         }
@@ -52,6 +68,67 @@ public class printHelp {
 
     public static void las2las(){
         System.out.println("HAHAHAHA");
+    }
+
+    public void las2shp(){
+        System.out.println("----------------------------------------------\n" +
+                " lasborder -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Creates an ESRI shapefile representing the spatial extent\n" +
+                "of LAS points. By default creates a \"convex hull\", but can \n" +
+                "be changed to \"concave hull\" with -concave flag \n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s) \n" +
+                "\t-concave\tDo concave instead of convex");
+    }
+
+    public void border(){
+        System.out.println("----------------------------------------------\n" +
+                " lasborder -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Creates an ESRI shapefile representing the spatial extent\n" +
+                "of LAS points. By default creates a \"convex hull\", but can \n" +
+                "be changed to \"concave hull\" with -concave flag \n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s) \n" +
+                "\t-concave\tDo concave instead of convex");
+    }
+
+    public void txt2las(){
+        System.out.println("----------------------------------------------\n" +
+                " txt2las -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Converts .txt files into .las files. The order\n" +
+                "of columns in .txt file can be set with -iparse\n" +
+                "argument. e.g. if the order is x coordinate, y\n" +
+                "coordinate, z coordinate and intensity, \n" +
+                "-iparse xyzi. The field separator for the .txt\n" +
+                "file is tab by default, but can be set\n" +
+                "with -sep \"separator\" argument.\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)\n" +
+                "\t-o\t\tOutput file\n" +
+                "\t-odir\t\tOutput directory\n" +
+                "\t-iparse\t\t...\n" +
+                "\t-sep \t\ttxt file field separator");
     }
 
     public void z_normalize(){
