@@ -151,7 +151,7 @@ public class argumentReader {
     public double translate_z;
     public double translate_i;
 
-    public boolean skip_global = true;
+    public boolean skip_global = false;
 
     public String trajectory;
 
@@ -1300,6 +1300,9 @@ public class argumentReader {
 
             }
 
+            if(cmd.hasOption("skip_global")){
+                this.skip_global = true;
+            }
 
             if (cmd.hasOption("drop_noise")) {
 

@@ -212,6 +212,8 @@ public class ResidFunction implements LevenbergMarquardt.ResidualFunction {
         int index;
         double interpolatedvalue = 0;
 
+        int vertexCount = 0;
+
         if(optimize[0] && !optimize[1]){
 
             //makeRotationMatrix(rotationMatrix1_2, param.get(0, 0), param.get(1, 0), param.get(2, 0));
@@ -267,12 +269,18 @@ public class ResidFunction implements LevenbergMarquardt.ResidualFunction {
                         pwrSumAvg += (distiSigned * distiSigned - pwrSumAvg) / count;
                         stdDev = Math.sqrt((pwrSumAvg * count - count * average * average) / (count - 1));
 
+                        residual.set(vertexCount++, 0, disti);
                     }
+                }else{
+                    System.out.println("POINT OUTSIDE??? SHOULD NOT HAPPEN, EVER!!");
+                    residual.set(vertexCount++, 0, 20.0);
+
                 }
+
             }
 
-            residual.set(0, 0, distanceSum / (double) count);
-            this.numFunctions = residual.numRows;
+           // residual.set(0, 0, distanceSum / (double) count);
+            //this.numFunctions = residual.numRows;
 
         }
         else if(!optimize[0] && optimize[1]){
@@ -322,14 +330,17 @@ public class ResidFunction implements LevenbergMarquardt.ResidualFunction {
                         average += (distiSigned - average) / count;
                         pwrSumAvg += (distiSigned * distiSigned - pwrSumAvg) / count;
                         stdDev = Math.sqrt((pwrSumAvg * count - count * average * average) / (count - 1));
+                        residual.set(vertexCount++, 0, disti);
                     }
+                }else{
+                    residual.set(vertexCount++, 0, 20.0);
                 }
 
             }
 
-            residual.set(0, 0, distanceSum / (double) count);
+            //residual.set(0, 0, distanceSum / (double) count);
 
-            this.numFunctions = residual.numRows;
+            //this.numFunctions = residual.numRows;
 
         }
 
@@ -497,6 +508,10 @@ public class ResidFunction implements LevenbergMarquardt.ResidualFunction {
         polator1 = new org.tinfour.interpolation.TriangularFacetInterpolator(tin1);
         polator2 = new org.tinfour.interpolation.TriangularFacetInterpolator(tin2);
 
+        if(optimize1)
+            this.numFunctions = tin1.getVertices().size();
+        else
+            this.numFunctions = tin2.getVertices().size();
 
     }
 

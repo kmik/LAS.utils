@@ -110,6 +110,9 @@ public class progressUpdater {
 
     public synchronized void updateProgressLasStrip(){
 
+        if(false)
+            return;
+
         System.out.printf(((char) 0x1b) + "[16A\r" + "\033[2K" + "-------------------------------------------------------");
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "LASutils - LasStrip, version (0.1), (c) Mikko Kukkonen");
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "-------------------------------------------------------");

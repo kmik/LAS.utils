@@ -2,6 +2,7 @@ package tools;
 
 
 import LASio.*;
+import io.netty.util.internal.shaded.org.jctools.queues.IndexedQueueSizeUtil;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
@@ -9,6 +10,8 @@ import org.ejml.data.DMatrixRMaj;
 import org.jblas.DoubleMatrix;
 import org.jblas.Solve;
 import org.opencv.core.Mat;
+import org.tinfour.common.IQuadEdge;
+import org.tinfour.common.Vertex;
 import utils.*;
 
 import java.io.*;
@@ -461,53 +464,129 @@ public class lasStrip {
 
             int count = 0;
 
-            for(int i = 0; i < n1; i++) {
+            /** This part means that we start from the tin1 file of the first pair!!,
+             * if p == 0, they both are not aligned, so we make the first one aligned,
+             * i.e. reference.
+             */
+            if(p == 0)
+                blokki.aligned[currentFiles[0]] = !blokki.aligned[currentFiles[0]];
 
-                if(blokki.includedPointsFile1.get(p).contains(i)) {
-                    file1.readRecord(i, tempPoint);
-
-                    pointMatrix.put(0, 0, tempPoint.x);
-                    pointMatrix.put(0, 1, tempPoint.y);
-                    pointMatrix.put(0, 2, tempPoint.z);
-
-                    if(!boreDisabled)
-                        if(!blokki.aligned[currentFiles[0]])
-                            rotateBoresight(pointMatrix, (int)(tempPoint.gpsTime * 1000));
+            org.tinfour.interpolation.TriangularFacetInterpolator polator1 = null;
+            org.tinfour.interpolation.TriangularFacetInterpolator polator2 = null;
 
 
-                    org.tinfour.common.Vertex tempV = new org.tinfour.common.Vertex(pointMatrix.get(0, 0), pointMatrix.get(0, 1), pointMatrix.get(0, 2));
-                    tempV.setIndex((int)(tempPoint.gpsTime * 1000));
-                    tin1.add(tempV);
-                }
-            }
+            if(!blokki.aligned[currentFiles[0]]) {
+                for (int i = 0; i < n2; i++) {
 
-            org.tinfour.interpolation.TriangularFacetInterpolator polator1 = new org.tinfour.interpolation.TriangularFacetInterpolator(tin1);
+                    if (blokki.includedPointsFile2.get(p).contains(i)) {
+                        file2.readRecord(i, tempPoint);
 
-            count = 0;
+                        pointMatrix.put(0, 0, tempPoint.x);
+                        pointMatrix.put(0, 1, tempPoint.y);
+                        pointMatrix.put(0, 2, tempPoint.z);
 
-            for(int i = 0; i < n2; i++) {
-
-                if(blokki.includedPointsFile2.get(p).contains(i)) {
-                    file2.readRecord(i, tempPoint);
-
-                    pointMatrix.put(0, 0, tempPoint.x);
-                    pointMatrix.put(0, 1, tempPoint.y);
-                    pointMatrix.put(0, 2, tempPoint.z);
-
-                    if(!boreDisabled)
-                        if(!blokki.aligned[currentFiles[1]])
-                            rotateBoresight(pointMatrix, (int)(tempPoint.gpsTime * 1000));
+                        if (!boreDisabled)
+                            if (!blokki.aligned[currentFiles[1]])
+                                rotateBoresight(pointMatrix, (int) (tempPoint.gpsTime * 1000));
 
 
-                    org.tinfour.common.Vertex tempV = new org.tinfour.common.Vertex(pointMatrix.get(0, 0), pointMatrix.get(0, 1), pointMatrix.get(0, 2));
-                    tempV.setIndex((int)(tempPoint.gpsTime * 1000));
-                    tin2.add(tempV);
+                        org.tinfour.common.Vertex tempV = new org.tinfour.common.Vertex(pointMatrix.get(0, 0), pointMatrix.get(0, 1), pointMatrix.get(0, 2));
+                        tempV.setIndex((int) (tempPoint.gpsTime * 1000));
+                        tin2.add(tempV);
+                    }
+
                 }
 
+                List<IQuadEdge> tin2_perimeter = tin2.getPerimeter();
+
+                polator2 = new org.tinfour.interpolation.TriangularFacetInterpolator(tin2);
+
+
+                count = 0;
+
+                for (int i = 0; i < n1; i++) {
+
+                    if (blokki.includedPointsFile1.get(p).contains(i)) {
+                        file1.readRecord(i, tempPoint);
+
+                        pointMatrix.put(0, 0, tempPoint.x);
+                        pointMatrix.put(0, 1, tempPoint.y);
+                        pointMatrix.put(0, 2, tempPoint.z);
+
+                        if (!boreDisabled)
+                            if (!blokki.aligned[currentFiles[0]])
+                                rotateBoresight(pointMatrix, (int) (tempPoint.gpsTime * 1000));
+
+
+                        org.tinfour.common.Vertex tempV = new org.tinfour.common.Vertex(pointMatrix.get(0, 0), pointMatrix.get(0, 1), pointMatrix.get(0, 2));
+                        tempV.setIndex((int) (tempPoint.gpsTime * 1000));
+
+                        if (pointDistanceToPerimeter(tin2_perimeter, tempV) > 3.5)
+                            tin1.add(tempV);
+                    }
+                }
+
+
+                polator1 = new org.tinfour.interpolation.TriangularFacetInterpolator(tin1);
+            }else{
+
+                count = 0;
+
+                for (int i = 0; i < n1; i++) {
+
+                    if (blokki.includedPointsFile1.get(p).contains(i)) {
+                        file1.readRecord(i, tempPoint);
+
+                        pointMatrix.put(0, 0, tempPoint.x);
+                        pointMatrix.put(0, 1, tempPoint.y);
+                        pointMatrix.put(0, 2, tempPoint.z);
+
+                        if (!boreDisabled)
+                            if (!blokki.aligned[currentFiles[0]])
+                                rotateBoresight(pointMatrix, (int) (tempPoint.gpsTime * 1000));
+
+
+                        org.tinfour.common.Vertex tempV = new org.tinfour.common.Vertex(pointMatrix.get(0, 0), pointMatrix.get(0, 1), pointMatrix.get(0, 2));
+                        tempV.setIndex((int) (tempPoint.gpsTime * 1000));
+
+                            tin1.add(tempV);
+                    }
+                }
+
+
+                List<IQuadEdge> tin1_perimeter = tin1.getPerimeter();
+
+                polator1 = new org.tinfour.interpolation.TriangularFacetInterpolator(tin1);
+
+                for (int i = 0; i < n2; i++) {
+
+                    if (blokki.includedPointsFile2.get(p).contains(i)) {
+                        file2.readRecord(i, tempPoint);
+
+                        pointMatrix.put(0, 0, tempPoint.x);
+                        pointMatrix.put(0, 1, tempPoint.y);
+                        pointMatrix.put(0, 2, tempPoint.z);
+
+                        if (!boreDisabled)
+                            if (!blokki.aligned[currentFiles[1]])
+                                rotateBoresight(pointMatrix, (int) (tempPoint.gpsTime * 1000));
+
+
+                        org.tinfour.common.Vertex tempV = new org.tinfour.common.Vertex(pointMatrix.get(0, 0), pointMatrix.get(0, 1), pointMatrix.get(0, 2));
+                        tempV.setIndex((int) (tempPoint.gpsTime * 1000));
+
+                        if (pointDistanceToPerimeter(tin1_perimeter, tempV) > 3.5)
+                            tin2.add(tempV);
+                    }
+
+                }
+
+                polator2 = new org.tinfour.interpolation.TriangularFacetInterpolator(tin2);
+
+
+
+
             }
-
-
-            org.tinfour.interpolation.TriangularFacetInterpolator polator2 = new org.tinfour.interpolation.TriangularFacetInterpolator(tin2);
 
             count = 0;
 
@@ -518,8 +597,6 @@ public class lasStrip {
             double difBefore = 0.0;
             double difBefore_std = 0.0;
 
-            if(p == 0)
-                blokki.aligned[currentFiles[0]] = !blokki.aligned[currentFiles[0]];
 
             int numberOfSegments = 0;
 
@@ -815,22 +892,22 @@ public class lasStrip {
 
 
             this.averageDifference += ((difAfter - this.averageDifference) / (double) count_for_averageImrpovement);
-            this.averageDifference = round(this.averageDifference,2);
+            this.averageDifference = round(this.averageDifference,4);
 
             aR.p_update.lasstrip_averageDifference = this.averageDifference;
 
             this.averageImprovement += ((difBefore - difAfter - this.averageImprovement) / (double) count_for_averageImrpovement);
-            this.averageImprovement = round(this.averageImprovement,2);
+            this.averageImprovement = round(this.averageImprovement,4);
 
             aR.p_update.lasstrip_averageImprovement = this.averageImprovement;
 
             this.averageDifference_std += ((stdDev - this.averageDifference_std) / (double) count_for_averageImrpovement);
-            this.averageDifference_std = round(this.averageDifference_std,2);
+            this.averageDifference_std = round(this.averageDifference_std,4);
 
             aR.p_update.lasstrip_averageDifference_std = this.averageDifference_std;
 
             this.averageImprovement_std += ((Math.abs(difBefore_std) - Math.abs(stdDev) - this.averageImprovement_std) / (double) count_for_averageImrpovement);
-            this.averageImprovement_std = round(this.averageImprovement_std,2);
+            this.averageImprovement_std = round(this.averageImprovement_std,4);
 
             aR.p_update.lasstrip_averageImprovement_std = this.averageImprovement_std;
 
@@ -1065,6 +1142,27 @@ public class lasStrip {
             matrices_trans.add(new double[]{in.get(i+3), in.get(i+4), in.get(i+5)});
 
         }
+    }
+
+    public double pointDistanceToPerimeter(List<IQuadEdge> perimeter, Vertex point){
+
+        double distance = Double.POSITIVE_INFINITY;
+
+        double distance_ = 0;
+        for(IQuadEdge e : perimeter){
+
+            Vertex a = e.getA();
+
+            distance_ = a.getDistance(point);
+
+            if(distance_ < distance){
+
+                distance = distance_;
+
+            }
+        }
+
+        return distance;
     }
 
     public static double round(double value, int places) {
