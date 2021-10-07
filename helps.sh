@@ -184,7 +184,7 @@ of columns in .txt file can be set with -iparse
 argument. e.g. if the order is x coordinate, y
 coordinate, z coordinate and intensity, 
 -iparse xyzi. The field separator for the .txt
-file is whitespace by default, but can be set
+file is tab by default, but can be set
 with -sep "separator" argument.
 
 Usage:
@@ -277,7 +277,9 @@ cat << EOF
  University of Eastern Finland
 ----------------------------------------------
 
-.
+Converts a .las file to ESRI shapefile where each 
+point is a separate point feature in the .shp 
+file.
 
 Usage:
 
@@ -297,11 +299,24 @@ cat << EOF
  University of Eastern Finland
 ----------------------------------------------
 
-.
+Converts a .las file into a .txt file. Output column
+order can be given with -oparse argument. With 
+-echoClass flag, the output will contain information
+regarding the classification of the echo into:
+
+(0) only echoes
+(1) first of many and only
+(2) last of many and only 
+(3) intermediate
+
+This classification is coded to "numberOfReturns" of
+each point and the returnNumber of every point is set
+to 0.
 
 Usage:
 
 	-i		Input file(s)
+	-echoClass	Output echo classification
 
 	     
 EOF

@@ -2019,10 +2019,6 @@ public class ITDstatistics{
             /** Useless based on LDA */
             obsoleteFeatures.add(3);
 
-
-
-
-
             /** Write image */
 
             ogr.RegisterAll(); //Registering all the formats..
@@ -2036,7 +2032,6 @@ public class ITDstatistics{
             int METHOD_DBB = 1;
             int METHOD_JAVA_ARRAYS = 2;
             int method = 2;
-
 
             int xsize = 100;
             int ysize = 100;

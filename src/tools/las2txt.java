@@ -88,6 +88,8 @@ public class las2txt{
 
                     if(aR.echoClass){
 
+                        tempPoint.returnNumber = 0;
+
                         if(tempPoint.numberOfReturns == 1){
                             tempPoint.numberOfReturns = 0;
                         }else if(tempPoint.returnNumber == tempPoint.numberOfReturns){
@@ -99,8 +101,6 @@ public class las2txt{
                         }
 
                     }
-                    //System.out.println("Echo class: " + tempPoint.numberOfReturns);
-                    //System.out.println("--------------------");
 
 
                     out.println(LASwrite.LASpoint2String(tempPoint, aR.oparse));

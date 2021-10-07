@@ -1244,7 +1244,7 @@ public class argumentReader {
 
             }
 
-            if (cmd.hasOption("uef_echoClass")) {
+            if (cmd.hasOption("echoClass")) {
 
                 this.echoClass = true;
 

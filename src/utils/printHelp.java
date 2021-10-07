@@ -60,6 +60,14 @@ public class printHelp {
                 this.las2shp();
                 break;
 
+            case 12:
+                this.las2txt();
+                break;
+
+            case 13:
+                this.las2las();
+                break;
+
             default:
                 break;
         }
@@ -67,25 +75,67 @@ public class printHelp {
 
 
     public static void las2las(){
-        System.out.println("HAHAHAHA");
-    }
-
-    public void las2shp(){
         System.out.println("----------------------------------------------\n" +
-                " lasborder -- LASutils build $line\n" +
+                " las2las -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
                 " University of Eastern Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
-                "Creates an ESRI shapefile representing the spatial extent\n" +
-                "of LAS points. By default creates a \"convex hull\", but can \n" +
-                "be changed to \"concave hull\" with -concave flag \n" +
+                "Converts .las file to another .las file\n" +
+                "according to parameter specifications.\n" +
+                "\n" +
+                "See ./arguments.sh for more information\n" +
+                "about different parameters\n" +
                 "\n" +
                 "Usage:\n" +
                 "\n" +
-                "\t-i\t\tInput file(s) \n" +
-                "\t-concave\tDo concave instead of convex");
+                "\t-i\t\tInput file(s)");
+    }
+
+    public void las2txt(){
+        System.out.println("----------------------------------------------\n" +
+                " las2txt -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Converts a .las file into a .txt file. Output column\n" +
+                "order can be given with -oparse argument. With \n" +
+                "-echoClass flag, the output will contain information\n" +
+                "regarding the classification of the echo into:\n" +
+                "\n" +
+                "(0) only echoes\n" +
+                "(1) first of many and only\n" +
+                "(2) last of many and only \n" +
+                "(3) intermediate\n" +
+                "\n" +
+                "This classification is coded to \"numberOfReturns\" of\n" +
+                "each point and the returnNumber of every point is set\n" +
+                "to 0.\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)\n" +
+                "\t-echoClass\tOutput echo classification");
+    }
+
+    public void las2shp(){
+        System.out.println("----------------------------------------------\n" +
+                " las2shp -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Converts a .las file to ESRI shapefile where each \n" +
+                "point is a separate point feature in the .shp \n" +
+                "file.\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)");
     }
 
     public void border(){
