@@ -122,6 +122,9 @@ public class ToShp{
 
         }
 
+        outShpLayer.SyncToDisk();
+
+
     }
 
 }
