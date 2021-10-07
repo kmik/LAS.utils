@@ -209,8 +209,6 @@ public class ResidFunction implements LevenbergMarquardt.ResidualFunction {
 
         createPolynomialSplines(param);
 
-        //makeRotationMatrixes(param);
-
         int index;
         double interpolatedvalue = 0;
 

@@ -15,5 +15,6 @@
     <orderEntry type="library" name="de.lmu.ifi.dbs.jfeaturelib:JFeatureLib:1.6.4" level="project" />
     <orderEntry type="library" name="arbiter" level="project" />
     <orderEntry type="library" name="dl_cuda" level="project" />
+    <orderEntry type="library" name="jblas" level="project" />
   </component>
 </module>

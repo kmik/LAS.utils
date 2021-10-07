@@ -151,7 +151,7 @@ public class argumentReader {
     public double translate_z;
     public double translate_i;
 
-    public boolean skip_global = false;
+    public boolean skip_global = true;
 
     public String trajectory;
 
@@ -1281,6 +1281,13 @@ public class argumentReader {
                 this.dist = Double.parseDouble(cmd.getOptionValue("dist"));
 
             }
+
+            if (cmd.hasOption("delta")) {
+
+                this.delta = Double.parseDouble(cmd.getOptionValue("delta"));
+
+            }
+
 
             if (cmd.hasOption("set_classification")) {
 

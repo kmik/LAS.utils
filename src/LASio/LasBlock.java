@@ -117,6 +117,7 @@ public class LasBlock {
             if(oFile.exists())
                 oFile.delete();
 
+
             oFile.createNewFile();
 
             LASraf tempWriter = new LASraf(oFile);
@@ -674,7 +675,6 @@ public class LasBlock {
         KdTree.XYZPoint searchPoint = new KdTree.XYZPoint(0,0,0);
 
         org.tinfour.common.Vertex temp_v = new org.tinfour.common.Vertex(0,0,0);
-
 
 
         thinner = new boolean[(int)Math.ceil(((this.maxX - this.minX) / resolution))][(int)Math.ceil(((this.maxY - this.minY) / resolution))];

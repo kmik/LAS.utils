@@ -68,11 +68,33 @@ public class printHelp {
                 this.las2las();
                 break;
 
+            case 14:
+                this.lasStrip();
+                break;
+
             default:
                 break;
         }
     }
 
+    public static void lasStrip(){
+        System.out.println("----------------------------------------------\n" +
+                " las2las -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Converts .las file to another .las file\n" +
+                "according to parameter specifications.\n" +
+                "\n" +
+                "See ./arguments.sh for more information\n" +
+                "about different parameters\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)");
+    }
 
     public static void las2las(){
         System.out.println("----------------------------------------------\n" +

@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="jblas" type="repository">
+    <properties maven-id="org.jblas:jblas:1.2.5" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/jblas-1.2.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

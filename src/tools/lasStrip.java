@@ -126,7 +126,7 @@ public class lasStrip {
 
     argumentReader aR;
 
-    ArrayList<LASReader> fileList;
+    ArrayList<LASReader> fileList = new ArrayList<>();
 
     double[] polynomial_pitch;
     double[] polynomial_yaw;
@@ -310,8 +310,17 @@ public class lasStrip {
         //rotatedpoint = new Mat(1,3, CV_64F);
 
         //ArrayList<LASReader> fileList = readLasFiles(new File("/media/koomikko/B8C80A93C80A4FD41/Linux_downloads/UAV_LIDAR/150/gc"));
-        this.fileList = aR.pointClouds;
 
+
+
+        //this.fileList = aR.pointClouds;
+
+        for(int i = 0; i < aR.inputFiles.size(); i++){
+            this.fileList.add(new LASReader(aR.inputFiles.get(i)));
+        }
+
+        //System.out.println(this.fileList.size());
+        //System.exit(1);
         //fileList = readLasFiles(new File("/media/koomikko/B8C80A93C80A4FD41/id4points/LASutils/project/attaya/las/gc/"));
         File outputDirectory = new File("/media/koomikko/B8C80A93C80A4FD41/Linux_downloads/UAV_LIDAR/150/gc/output/");
 
@@ -330,6 +339,7 @@ public class lasStrip {
         aR.p_update.updateProgressLasStrip();
 
         for(int i = 0; i < fileList.size(); i++){
+
             blokki.addLasFile(fileList.get(i));
         }
 
@@ -802,6 +812,7 @@ public class lasStrip {
 
             difBefore = Math.abs(difBefore);
             double difAfter = Math.abs((distanceSum / (double)count) * 100.0);
+
 
             this.averageDifference += ((difAfter - this.averageDifference) / (double) count_for_averageImrpovement);
             this.averageDifference = round(this.averageDifference,2);
