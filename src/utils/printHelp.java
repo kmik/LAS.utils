@@ -80,10 +80,95 @@ public class printHelp {
                 this.lasIndex();
                 break;
 
+            case 17:
+                this.lasSort();
+                break;
+
+            case 18:
+                this.lasSplit();
+                break;
+            case 19:
+                this.lasCheck();
+                break;
+
+
             default:
                 break;
         }
     }
+
+    public static void lasCheck(){
+        System.out.println("----------------------------------------------\n" +
+                " lasCheck -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Checks that the contents of the .las file are \n" +
+                "coherent with the header information.\n" +
+                "\n" +
+                "Also does various other checks which are reported\n" +
+                "at the end of the run.\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)");
+    }
+
+
+    public static void lasSplit(){
+        System.out.println("----------------------------------------------\n" +
+                " lasSplit -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "A tool to split a LAS file under various criterion \n" +
+                "with the flag -splitBy \"classification\" / \"pointSourceId\" /\n" +
+                "\"return\" / \"userData\" / \"gps\". GPS splitting is a special case,\n" +
+                "where flight lines are extracted from the las file based\n" +
+                "on -interval flag. Interval determines the maximum\n" +
+                "gap between consecutive points in a GPS sorted LAS file.\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)\n" +
+                "\t-splitBy\tSplit by what criterion?\n" +
+                "\t-interval\tUsed in flightline (gps) splitting\n" +
+                "\t\t\tto determine bin size. (default 20.0)");
+    }
+
+
+    public static void lasSort(){
+        System.out.println("----------------------------------------------\n" +
+                " lasSort -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Sorts the points in a .las file. Can either be \n" +
+                "set to \n" +
+                "\n" +
+                "-by_gps_time (default)\n" +
+                "\n" +
+                "or\n" +
+                "\n" +
+                "-by_z_order\n" +
+                "\n" +
+                "\n" +
+                "Z-order is very useful to do prior to indexing.\n" +
+                "\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)\n" +
+                "\t-by_gps_time\tOrder by time\n" +
+                "\t-by_z_order\tOrder by z-order");
+    }
+
 
     public static void lasIndex(){
         System.out.println("----------------------------------------------\n" +

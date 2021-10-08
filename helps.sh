@@ -471,11 +471,24 @@ cat << EOF
  University of Eastern Finland
 ----------------------------------------------
 
+Sorts the points in a .las file. Can either be 
+set to 
+
+-by_gps_time (default)
+
+or
+
+-by_z_order
+
+
+Z-order is very useful to do prior to indexing.
 
 
 Usage:
 
 	-i		Input file(s)
+	-by_gps_time	Order by time
+	-by_z_order	Order by z-order
 
 	     
 EOF
