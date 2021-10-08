@@ -521,7 +521,7 @@ public class lasStrip {
                         org.tinfour.common.Vertex tempV = new org.tinfour.common.Vertex(pointMatrix.get(0, 0), pointMatrix.get(0, 1), pointMatrix.get(0, 2));
                         tempV.setIndex((int) (tempPoint.gpsTime * 1000));
 
-                        if (pointDistanceToPerimeter(tin2_perimeter, tempV) > 3.5)
+                        if (pointDistanceToPerimeter(tin2_perimeter, tempV) > 3.5 && tin2.isPointInsideTin(tempV.x, tempV.y))
                             tin1.add(tempV);
                     }
                 }
@@ -575,7 +575,7 @@ public class lasStrip {
                         org.tinfour.common.Vertex tempV = new org.tinfour.common.Vertex(pointMatrix.get(0, 0), pointMatrix.get(0, 1), pointMatrix.get(0, 2));
                         tempV.setIndex((int) (tempPoint.gpsTime * 1000));
 
-                        if (pointDistanceToPerimeter(tin1_perimeter, tempV) > 3.5)
+                        if (pointDistanceToPerimeter(tin1_perimeter, tempV) > 3.5 && tin1.isPointInsideTin(tempV.x, tempV.y))
                             tin2.add(tempV);
                     }
 
