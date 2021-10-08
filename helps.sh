@@ -357,7 +357,14 @@ cat << EOF
  University of Eastern Finland
 ----------------------------------------------
 
+Aligns the flight lines of LiDAR data. Flight lines
+should be in separate .las files and have ground
+classified (class = 2) echoes.
 
+The provided trajectory file should be in degrees 
+(NOT radians). If no trajectory file is provided,
+a pivot point in the center of the point cloud
+will be used to rotate the point cloud.
 
 Usage:
 
@@ -365,8 +372,7 @@ Usage:
 	-odir		Output directory
 	-skip_global	Do not perform boresight and
 			leverarm optimization
-	-angle		Angle threshold used in filtering
-			outliers from DTMs
+	-traj		Trajectory file (ASCII)
 	     
 EOF
 fi
@@ -381,11 +387,45 @@ cat << EOF
  University of Eastern Finland
 ----------------------------------------------
 
+Segments individual trees from point cloud data. The
+segmentation is performed using 2d methods,
+watershed segmentation from gaussian filtered
+canopy height model (CHM). The local maxima in the CHM
+are used as initial markers (i.e. treetops) for
+the watershed segmentation algorithm. The kernel size
+for the local maxima is calculated as:
 
+double kernel_size_meters = 1.1 + 0.002 * (zMiddle*zMiddle);
+
+,which means that the kernel size is larger for taller trees
+and smaller for shorter trees. 
+
+The output contains several files that are names as:
+
+(1) originalFileName_ITD.las 
+(2) originalFileName_treeTops.shp 
+(3) originalFileName_TreeSegmentation.shp 
+(4) originalFileName.tif
+
+The first file is the output .las file where each point
+is labeled with the corresponding tree segments id in 
+pointSourceId slot. This is an unsigned short, which means
+that id:s larger than 65535 will cause issues.
+
+The second file is a shapefile where each point corresponds
+to a treetop. 
+
+The third file is a polygon representation of the 
+tree crown segmentation.
+
+The fourth file is the gaussian filtered CHM.
 
 Usage:
 
 	-i		Input file(s)
+	-odir		Output directory
+	-step 		Resolution of the CHM
+	-theta		Gaussian theta
 
 	     
 EOF
@@ -401,12 +441,22 @@ cat << EOF
  University of Eastern Finland
 ----------------------------------------------
 
+Spatially indexes a .las file for faster spatial queries.
+Not all tools in this software package take use of this
+functionality of spatial indexing. Creates a .lasx file
+that is always internally linked to the .las file when 
+the .las file is opened.
+
+Tools that benefit from spatial indexing:
+
+lasClip.sh
+lasborder.sh (only convex hull)
 
 
 Usage:
 
 	-i		Input file(s)
-
+	-step		The "resolution" of indexing.
 	     
 EOF
 fi

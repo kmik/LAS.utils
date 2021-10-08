@@ -72,28 +72,121 @@ public class printHelp {
                 this.lasStrip();
                 break;
 
+            case 15:
+                this.lasITD();
+                break;
+
+            case 16:
+                this.lasIndex();
+                break;
+
             default:
                 break;
         }
     }
 
-    public static void lasStrip(){
+    public static void lasIndex(){
         System.out.println("----------------------------------------------\n" +
-                " las2las -- LASutils build $line\n" +
+                " lasIndex -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
                 " University of Eastern Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
-                "Converts .las file to another .las file\n" +
-                "according to parameter specifications.\n" +
+                "Spatially indexes a .las file for faster spatial queries.\n" +
+                "Not all tools in this software package take use of this\n" +
+                "functionality of spatial indexing. Creates a .lasx file\n" +
+                "that is always internally linked to the .las file when \n" +
+                "the .las file is opened.\n" +
                 "\n" +
-                "See ./arguments.sh for more information\n" +
-                "about different parameters\n" +
+                "Tools that benefit from spatial indexing:\n" +
+                "\n" +
+                "lasClip.sh\n" +
+                "lasborder.sh (only convex hull)\n" +
+                "\n" +
                 "\n" +
                 "Usage:\n" +
                 "\n" +
-                "\t-i\t\tInput file(s)");
+                "\t-i\t\tInput file(s)\n" +
+                "\t-step\t\tThe \"resolution\" of indexing.");
+    }
+
+
+    public static void lasITD(){
+        System.out.println("----------------------------------------------\n" +
+                " lasITD -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Segments individual trees from point cloud data. The\n" +
+                "segmentation is performed using 2d methods,\n" +
+                "watershed segmentation from gaussian filtered\n" +
+                "canopy height model (CHM). The local maxima in the CHM\n" +
+                "are used as initial markers (i.e. treetops) for\n" +
+                "the watershed segmentation algorithm. The kernel size\n" +
+                "for the local maxima is calculated as:\n" +
+                "\n" +
+                "double kernel_size_meters = 1.1 + 0.002 * (zMiddle*zMiddle);\n" +
+                "\n" +
+                ",which means that the kernel size is larger for taller trees\n" +
+                "and smaller for shorter trees. \n" +
+                "\n" +
+                "The output contains several files that are names as:\n" +
+                "\n" +
+                "(1) originalFileName_ITD.las \n" +
+                "(2) originalFileName_treeTops.shp \n" +
+                "(3) originalFileName_TreeSegmentation.shp \n" +
+                "(4) originalFileName.tif\n" +
+                "\n" +
+                "The first file is the output .las file where each point\n" +
+                "is labeled with the corresponding tree segments id in \n" +
+                "pointSourceId slot. This is an unsigned short, which means\n" +
+                "that id:s larger than 65535 will cause issues.\n" +
+                "\n" +
+                "The second file is a shapefile where each point corresponds\n" +
+                "to a treetop. \n" +
+                "\n" +
+                "The third file is a polygon representation of the \n" +
+                "tree crown segmentation.\n" +
+                "\n" +
+                "The fourth file is the gaussian filtered CHM.\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)\n" +
+                "\t-odir\t\tOutput directory\n" +
+                "\t-step \t\tResolution of the CHM\n" +
+                "\t-theta\t\tGaussian theta");
+    }
+
+
+    public static void lasStrip(){
+        System.out.println("----------------------------------------------\n" +
+                " lasStrip -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Aligns the flight lines of LiDAR data. Flight lines\n" +
+                "should be in separate .las files and have ground\n" +
+                "classified (class = 2) echoes.\n" +
+                "\n" +
+                "The provided trajectory file should be in degrees \n" +
+                "(NOT radians). If no trajectory file is provided,\n" +
+                "a pivot point in the center of the point cloud\n" +
+                "will be used to rotate the point cloud. THIS IS NOT\n" +
+                "IMPLEMENTED YET. ALWAYS USE TRAJECTORY FILE!!!\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)\n" +
+                "\t-odir\t\tOutput directory\n" +
+                "\t-skip_global\tDo not perform boresight and\n" +
+                "\t\t\tleverarm optimization\n" +
+                "\t-traj\t\tTrajectory file (ASCII)");
     }
 
     public static void las2las(){

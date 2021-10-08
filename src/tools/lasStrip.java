@@ -393,9 +393,9 @@ public class lasStrip {
         boreInProgress = true;
         aR.p_update.updateProgressLasStrip();
 
-        if(!this.boreDisabled)
+        if(!this.boreDisabled) {
             lm2.optimize(rs2, param2);
-
+        }
         makeRotationMatrix(boreRotationMatrix, param2.get(0, 0), param2.get(1, 0), param2.get(2, 0));
         leverTranslationMatrix.put(0,0, param2.get(3,0));
         leverTranslationMatrix.put(0,1, param2.get(4,0));
