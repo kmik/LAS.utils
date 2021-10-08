@@ -103,6 +103,7 @@ public class PointInclusionRule{
 
 	int set_classification = -999;
 	int set_user_data = -999;
+	int set_point_source_id = -999;
 
 	HashSet<Integer> keepIndex = new HashSet<Integer>();
 
@@ -385,6 +386,12 @@ public class PointInclusionRule{
 
 		set_user_data = in;
 	}
+
+	public void setPointSourceId(int in){
+
+		set_point_source_id = in;
+	}
+
 
 	public void translate_x(double in){
 

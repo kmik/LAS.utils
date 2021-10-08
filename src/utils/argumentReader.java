@@ -151,6 +151,8 @@ public class argumentReader {
     public double translate_z;
     public double translate_i;
 
+    public int set_point_source_id = -1;
+
     public boolean skip_global = false;
 
     public String trajectory;
@@ -429,6 +431,13 @@ public class argumentReader {
                 .longOpt("model")
                 .hasArg(true)
                 .desc("neural network model")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("set_point_source_id")
+                .hasArg(true)
+                .desc("set point source id to")
                 .required(false)
                 .build());
 
@@ -1331,6 +1340,12 @@ public class argumentReader {
             if (cmd.hasOption("splitBy")) {
 
                 this.splitBy = cmd.getOptionValue("splitBy");
+
+            }
+
+            if (cmd.hasOption("set_point_source_id")){
+
+                this.inclusionRule.setPointSourceId(Integer.parseInt(cmd.getOptionValue("set_point_source_id")));
 
             }
 

@@ -57,7 +57,7 @@ public class lasGridStats {
         this.pointCloud = pointCloud;
 
         if(!pointCloud.isIndexed){
-            pointCloud.index(5);
+            pointCloud.index(20);
         }
         this.aR = aR;
 
