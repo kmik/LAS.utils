@@ -91,11 +91,35 @@ public class printHelp {
                 this.lasCheck();
                 break;
 
+            case 20:
+                this.lasITDstats();
+                break;
+
 
             default:
                 break;
         }
     }
+
+    public static void lasITDstats(){
+        System.out.println("----------------------------------------------\n" +
+                " lasCheck -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Checks that the contents of the .las file are \n" +
+                "coherent with the header information.\n" +
+                "\n" +
+                "Also does various other checks which are reported\n" +
+                "at the end of the run.\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)");
+    }
+
 
     public static void lasCheck(){
         System.out.println("----------------------------------------------\n" +

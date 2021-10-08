@@ -123,7 +123,7 @@ public class ITDstatistics{
     double[] Gn;
     double[] Bn;
 
-    ArrayList<double[][]> polygons;
+    ArrayList<double[][]> polygons = new ArrayList<>();
     ArrayList<Double> plotIds;
 
     int plotIdIndex = 0;
@@ -1329,10 +1329,15 @@ public class ITDstatistics{
 
         inSideAPolygon = pointInPolygons(new double[]{treeTop[0], treeTop[1]});
 
+
+        /** We do not process trees outside the boundaries of the polygon.
+         * What if no polygon is input? We should continue anyway.
+         */
+        if(!inSideAPolygon && polygons.size() > 0)
+            return;
+
         double[][] poly = polygons.get(this.plotIdIndex);
 
-        if(!inSideAPolygon)
-            return;
 
         double maxZ = treeTop[2];
 
@@ -3203,6 +3208,9 @@ public class ITDstatistics{
         ogr.RegisterAll(); //Registering all the formats..
         gdal.AllRegister();
 
+        if(!plots.exists())
+            return;
+
         DataSource ds = ogr.Open(plots.getAbsolutePath());
         System.out.println("Layer count: " + ds.GetLayerCount());
         Layer layeri = ds.GetLayer(0);
@@ -3685,6 +3693,11 @@ public class ITDstatistics{
     public boolean pointInPolygons(double[] point) {
 
         double[][] poly;
+
+        /** If no polygons are input with -poly, then just return false? Is this ok? */
+        if(polygons.size() == 0){
+            return false;
+        }
 
         for(int f = 0; f < polygons.size(); f++){
 
