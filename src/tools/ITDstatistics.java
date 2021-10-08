@@ -1336,7 +1336,10 @@ public class ITDstatistics{
         if(!inSideAPolygon && polygons.size() > 0)
             return;
 
-        double[][] poly = polygons.get(this.plotIdIndex);
+        double[][] poly = null;
+
+        if(polygons.size() > 0)
+            poly = polygons.get(this.plotIdIndex);
 
 
         double maxZ = treeTop[2];
@@ -1616,7 +1619,7 @@ public class ITDstatistics{
 
         //double dimens = Math.min(minDis_x, minDis_y);
 
-        System.out.println("MINIT: " + minDis_x + " " + minDis_y);
+        //System.out.println("MINIT: " + minDis_x + " " + minDis_y);
 
         minx = treeTop[0] - minDis_x;
         maxx = treeTop[0] + minDis_x;
@@ -1905,7 +1908,7 @@ public class ITDstatistics{
             double hullRatio = (area / volume) * ( (treeTop[2] - hullMinZ) / 2.0);
 
             if(Double.isNaN(hullRatio)){
-                System.out.println(area + " " + volume + " " + tin.getVertices().size());
+                //System.out.println(area + " " + volume + " " + tin.getVertices().size());
                 return;
             }
 
@@ -1964,7 +1967,7 @@ public class ITDstatistics{
 
             Geometry crown_geom = new Geometry(ogr.wkbLinearRing);
             Geometry plot_geom = new Geometry(ogr.wkbLinearRing);
-            System.out.println(crown_geom.GetGeometryName());
+            //System.out.println(crown_geom.GetGeometryName());
 
             int counter2 = 0;
 
@@ -1985,17 +1988,22 @@ public class ITDstatistics{
             crown_geom_poly.AddGeometry(crown_geom);
             double tinArea = tin.countTriangles().getAreaSum();
 
-            int numPolyCorners = poly.length;
-            int j = numPolyCorners - 1;
-            //boolean isInside = false;
+            Geometry inter = null;
 
-            for (int i = 0; i < numPolyCorners; i++) {
-                plot_geom.AddPoint_2D(poly[i][0], poly[i][1]);
+            if(polygons.size() > 0){
+                int numPolyCorners = poly.length;
+                int j = numPolyCorners - 1;
+                //boolean isInside = false;
+
+                for (int i = 0; i < numPolyCorners; i++) {
+                    plot_geom.AddPoint_2D(poly[i][0], poly[i][1]);
+                }
+
+                plot_geom_poly.AddGeometry(plot_geom);
+
+                inter = plot_geom_poly.Intersection(crown_geom_poly);
             }
 
-            plot_geom_poly.AddGeometry(plot_geom);
-
-            Geometry inter = plot_geom_poly.Intersection(crown_geom_poly);
     /*
             System.out.println(crown_geom_poly.Area());
             System.out.println(plot_geom_poly.Area());
@@ -2003,8 +2011,6 @@ public class ITDstatistics{
             System.out.println(crown_geom_poly.GetGeometryName());
 
             System.out.println(tinArea);
-
-
 
             System.exit(1);
 */
@@ -2131,9 +2137,11 @@ public class ITDstatistics{
 
 
 
+            double areaInside = 0.0;
 
+            if(polygons.size() > 0)
+                areaInside = inter.Area();
 
-            double areaInside = inter.Area();
             boolean isIsolated = true;
             String printti = "";
 
@@ -2554,8 +2562,10 @@ public class ITDstatistics{
             }
 
             distance = tem.euclideanDistance(nearest.get(0));
+            boolean isInside = false;
 
-            boolean isInside = Integer.parseInt(output.get(tem.getIndex()).split("\t")[output.get(tem.getIndex()).split("\t").length-2]) == 1;
+            if(polygons.size() > 0)
+                isInside = Integer.parseInt(output.get(tem.getIndex()).split("\t")[output.get(tem.getIndex()).split("\t").length-2]) == 1;
 
             //if(tem.getIndex() == nearest2.get(0).getIndex()){
             if(tem.getIndex() == indeksi && nearest.size() > 0 && distance < maxDistance){

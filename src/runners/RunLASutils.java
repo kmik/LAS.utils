@@ -1037,7 +1037,9 @@ public class RunLASutils {
 
             }
 
-            stats.labelTrees();
+            if (aR.measured_trees != null)
+
+                stats.labelTrees();
             //if(stats.groundMeasuredOK)
             //  stats.showDetectionRate(plotSize);
 
