@@ -2494,9 +2494,6 @@ public class ITDstatistics{
 
     }
 
-    public void prepareKDtree(){
-
-    }
 
     public void labelTrees(){
 
@@ -2564,6 +2561,7 @@ public class ITDstatistics{
             distance = tem.euclideanDistance(nearest.get(0));
             boolean isInside = false;
 
+            /** This is just so that we can label trees without having a polygon input */
             if(polygons.size() > 0)
                 isInside = Integer.parseInt(output.get(tem.getIndex()).split("\t")[output.get(tem.getIndex()).split("\t").length-2]) == 1;
 

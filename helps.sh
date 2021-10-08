@@ -505,8 +505,8 @@ cat << EOF
 ----------------------------------------------
 
 A tool to split a LAS file under various criterion 
-with the flag -splitBy classification / pointSourceId /
-return / userData / gps. GPS splitting is a special case,
+with the flag -splitBy "classification" / "pointSourceId" /
+"return" / "userData" / "gps". GPS splitting is a special case,
 where flight lines are extracted from the las file based
 on -interval flag. Interval determines the maximum
 gap between consecutive points in a GPS sorted LAS file.
@@ -514,11 +514,74 @@ gap between consecutive points in a GPS sorted LAS file.
 Usage:
 
 	-i		Input file(s)
+	-splitBy	Split by what criterion?
 	-interval	Used in flightline (gps) splitting
 			to determine bin size. (default 20.0)
 
 	     
 EOF
 fi
+
+
+if [ "$1" == 18 ]; then
+cat << EOF
+
+----------------------------------------------
+ lasCheck -- LASutils build $line
+
+ (c) M.Kukkonen
+ University of Eastern Finland
+----------------------------------------------
+
+Checks that the contents of the .las file are 
+coherent with the header information.
+
+Also does various other checks which are reported
+at the end of the run.
+
+Usage:
+
+	-i		Input file(s)
+
+	     
+EOF
+fi
+
+
+if [ "$1" == 18 ]; then
+cat << EOF
+
+----------------------------------------------
+ lasITDstats -- LASutils build $line
+
+ (c) M.Kukkonen
+ University of Eastern Finland
+----------------------------------------------
+
+Computes tree-wise statistics from crown segmented (lasITD.sh)
+.las file. Also produces outputs for tree trunks, should they 
+be available, i.e. if the .las file has been processed
+with lasStem.sh.
+
+If field measured trees (-measured_trees) are available,
+the code will link the crown segments to field measured
+trees. This is done by using two kd-trees. Only trees that are
+<2.5 m within each other and are each other's closest neighbors
+are considered pairs.
+
+If (-poly) is provided, only trees within the boundaries of the 
+polygon are considered. 
+
+Usage:
+
+	-i		Input file(s)
+	-o		Name of the output file
+
+	     
+EOF
+fi
+
+
+set +f
 
 set +f
