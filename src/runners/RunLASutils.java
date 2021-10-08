@@ -1012,6 +1012,17 @@ public class RunLASutils {
             if (aR.measured_trees != null)
                 stats.readMeasuredTrees(trees);
 
+            File o_file = null;
+
+            if(aR.output.equals("asd")){
+                aR.output = "default_lasITD_output.txt";
+
+            }
+            o_file = new File(aR.output);
+
+            if(o_file.exists())
+                o_file.createNewFile();
+
             stats.setOutput(new File(aR.output));
 
             int index = stats.outFile.getName().lastIndexOf(".");
