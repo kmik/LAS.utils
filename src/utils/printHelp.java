@@ -95,29 +95,84 @@ public class printHelp {
                 this.lasITDstats();
                 break;
 
+            case 21:
+                this.lasLayer();
+                break;
+
+            case 25:
+                this.lasGridStats();
+                break;
+
 
             default:
                 break;
         }
     }
 
-    public static void lasITDstats(){
+    public static void lasGridStats(){
         System.out.println("----------------------------------------------\n" +
-                " lasCheck -- LASutils build $line\n" +
+                " lasLayer -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
                 " University of Eastern Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
-                "Checks that the contents of the .las file are \n" +
-                "coherent with the header information.\n" +
+                "Attempts to delineate an understory tree layer \n" +
+                "from .las file. Requires very high point density \n" +
+                "point cloud data from a forested environment.\n" +
                 "\n" +
-                "Also does various other checks which are reported\n" +
-                "at the end of the run.\n" +
+                "\n" +
                 "\n" +
                 "Usage:\n" +
                 "\n" +
                 "\t-i\t\tInput file(s)");
+    }
+
+    public static void lasLayer(){
+        System.out.println("----------------------------------------------\n" +
+                " lasLayer -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Attempts to delineate an understory tree layer \n" +
+                "from .las file. Requires very high point density \n" +
+                "point cloud data from a forested environment.\n" +
+                "\n" +
+                "\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)");
+    }
+
+    public static void lasITDstats(){
+        System.out.println("----------------------------------------------\n" +
+                " lasITDstats -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Computes tree-wise statistics from crown segmented (lasITD.sh)\n" +
+                ".las file. Also produces outputs for tree trunks, should they \n" +
+                "be available, i.e. if the .las file has been processed\n" +
+                "with lasStem.sh.\n" +
+                "\n" +
+                "If field measured trees (-measured_trees) are available,\n" +
+                "the code will link the crown segments to field measured\n" +
+                "trees. This is done by using two kd-trees. Only trees that are\n" +
+                "<2.5 m within each other and are each other's closest neighbors\n" +
+                "are considered pairs.\n" +
+                "\n" +
+                "If (-poly) is provided, only trees within the boundaries of the \n" +
+                "polygon are considered. \n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)\n" +
+                "\t-o\t\tName of the output file");
     }
 
 

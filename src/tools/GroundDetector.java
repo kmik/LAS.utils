@@ -2780,7 +2780,7 @@ public class GroundDetector{
                 this.progress_current++;
                 aR.p_update.threadProgress[coreNumber-1] = this.progress_current;
 
-                if(true) {
+                if(tin.isPointInsideTin(tempPoint.x, tempPoint.y)) {
                     distance = (tempPoint.z - polator.interpolate(tempPoint.x, tempPoint.y, valuator));
                     //distance = 0.0;
 

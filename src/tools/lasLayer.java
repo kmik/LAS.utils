@@ -62,9 +62,6 @@ public class lasLayer {
 
     public lasLayer(LASReader pointCloud, argumentReader aR, int coreNumber){
 
-        //org.tinfour.standard.IncrementalTin tini = new org.tinfour.standard.IncrementalTin();
-        //org.tinfour.voronoi.BoundedVoronoiDiagram voronoi = new org.tinfour.voronoi.BoundedVoronoiDiagram(tini);
-
         this.pointCloud = pointCloud;
         this.aR = aR;
         this.coreNumber = coreNumber;
@@ -334,7 +331,10 @@ public class lasLayer {
                     int xCoord = (int) ((tempPoint.x - minX) / resolution);
                     int yCoord = (int) ((maxY - tempPoint.y) / resolution);
                     int zCoord = (int) ((tempPoint.z - minZ) / delta);
-                    layers[xCoord][yCoord][zCoord]++;
+                    //System.out.println(xCoord + " " + yCoord + " " + zCoord);
+                    if(xCoord < numberOfPixelsX && yCoord < numberOfPixelsY && zCoord < numberOfPixelsZ)
+
+                        layers[xCoord][yCoord][zCoord]++;
                 }
             }
         }
@@ -954,14 +954,14 @@ public class lasLayer {
                     int zCoord = (int) ((tempPoint.z - minZ) / delta);
 
                     //if()
-                    canopylayer = canopy[xCoord][yCoord][zCoord];
+                    //canopylayer = canopy[xCoord][yCoord][zCoord];
 
                     //if(canopylayer == 0)
                       //  canopylayer = maxCanopies;
 
 
                     //if(canopylayer == -99) {
-                    if(zCoord > (int)understoreyHeight[xCoord][yCoord]){
+                    if(zCoord > (int)understoreyHeight[xCoord][yCoord] && zCoord < numberOfPixelsZ){
                         //tempPoint.pointSourceId = (short) 11;
 
                         //}else if (tempPoint.z <= 3.0) {

@@ -584,4 +584,35 @@ fi
 
 set +f
 
+
+if [ "$1" == 18 ]; then
+cat << EOF
+
+----------------------------------------------
+ lasLayer -- LASutils build $line
+
+ (c) M.Kukkonen
+ University of Eastern Finland
+----------------------------------------------
+
+Attempts to delineate an understory tree layer 
+from .las file. Requires very high point density 
+point cloud data from a forested environment.
+
+
+
+Usage:
+
+	-i		Input file(s)
+	-o		Name of the output file
+
+	     
+EOF
+fi
+
+
+set +f
+
+
+
 set +f

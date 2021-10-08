@@ -1613,10 +1613,7 @@ public class RunLASutils {
                 System.out.println(e.getMessage());
 
             }
-
         }
-
-
     }
 
     /**
