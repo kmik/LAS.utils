@@ -372,6 +372,8 @@ public class lasGridStats {
 
                 if(divided == 1 ){
 
+                    System.out.println("SHOULD NOT BE HERE!!!");
+                    System.exit(1);
                     do_overs.add( x * grid_y_size + y );
 
                 }else{

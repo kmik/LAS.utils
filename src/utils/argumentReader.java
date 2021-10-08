@@ -1593,6 +1593,7 @@ public class argumentReader {
                 this.res = Double.parseDouble(cmd.getOptionValue("res"));
 
             }
+
             if (cmd.hasOption("min_points")) {
 
                 this.min_points = Integer.parseInt(cmd.getOptionValue("min_points"));

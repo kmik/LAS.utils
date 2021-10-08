@@ -433,11 +433,21 @@ public class PointInclusionRule{
 	public boolean ask(LasPoint tempPoint, int i, boolean io){
 
 
+
 		/** Here we do removes that are done regardless of read or write */
 
-		if(io == false && remove_buffer)
-			if(tempPoint.synthetic)
+		if(io == false && remove_buffer) {
+			if (tempPoint.synthetic) {
 				return false;
+			}
+		}
+
+		/** We also modify the point */
+
+		if(set_point_source_id != -999){
+			tempPoint.pointSourceId = (short)this.set_point_source_id;
+		}
+
 
 
 		/*
