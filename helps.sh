@@ -582,8 +582,6 @@ EOF
 fi
 
 
-set +f
-
 
 if [ "$1" == 18 ]; then
 cat << EOF
@@ -604,14 +602,65 @@ point cloud data from a forested environment.
 Usage:
 
 	-i		Input file(s)
-	-o		Name of the output file
 
 	     
 EOF
 fi
 
 
-set +f
+if [ "$1" == 18 ]; then
+cat << EOF
+
+----------------------------------------------
+ lasGridStats -- LASutils build $line
+
+ (c) M.Kukkonen
+ University of Eastern Finland
+----------------------------------------------
+
+Computes echo-class specific statistics from the 
+point cloud at grid cells. The "origo" is the 
+TOP-LEFT corner of the grid layout. This can be
+specified using flags -orig_x X_COORDINATE and
+-orig_y Y_COORDINATE. If no origo is input, 
+the min_x and max_y header values of the .las
+file are used as the origo.
+
+The "resolution", i.e. the edge length of each
+square grid unit can be specified using the flag
+-res RESOLUTION.
+
+Currently only ONE file can be processed at a time.
+The tool can, of cource, be run parallel if executed
+multiple times for different point clouds.
+
+If the .las file has been clipped using lasclip.sh and
+pointSourceId of each point corresponds to a polygon feature,
+this tool will assign grid cells to unique pointSourceId
+values. If a grid-cell contains multiple pointSourceIds,
+the cell will be divided into parts and these parts will
+be merged with neighboring cells that contain the given
+pointSourceId. To which cell these parts are merged
+is dependent upon the size of the cells. The tool tries
+to optimize the size of the merged cells so that they
+are as close to the -res as possible.
+
+TODO: Implement a way to just give -poly shapefile to 
+do the designation of grid cells to polygon features.
+PointSourceId can be quite an important memory slot
+that is not always available for the clipping...
+
+
+Usage:
+
+	-i		Input file(s)
+	-orig_x		Origo x coordinate
+	-orig_y		Origo y coordinate
+	-res		Grid cell unit dimension
+
+	     
+EOF
+fi
 
 
 

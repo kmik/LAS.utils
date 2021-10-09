@@ -111,21 +111,51 @@ public class printHelp {
 
     public static void lasGridStats(){
         System.out.println("----------------------------------------------\n" +
-                " lasLayer -- LASutils build $line\n" +
+                " lasGridStats -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
                 " University of Eastern Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
-                "Attempts to delineate an understory tree layer \n" +
-                "from .las file. Requires very high point density \n" +
-                "point cloud data from a forested environment.\n" +
+                "Computes echo-class specific statistics from the \n" +
+                "point cloud at grid cells. The \"origo\" is the \n" +
+                "TOP-LEFT corner of the grid layout. This can be\n" +
+                "specified using flags -orig_x X_COORDINATE and\n" +
+                "-orig_y Y_COORDINATE. If no origo is input, \n" +
+                "the min_x and max_y header values of the .las\n" +
+                "file are used as the origo.\n" +
                 "\n" +
+                "The \"resolution\", i.e. the edge length of each\n" +
+                "square grid unit can be specified using the flag\n" +
+                "-res RESOLUTION.\n" +
+                "\n" +
+                "Currently only ONE file can be processed at a time.\n" +
+                "The tool can, of cource, be run parallel if executed\n" +
+                "multiple times for different point clouds.\n" +
+                "\n" +
+                "If the .las file has been clipped using lasclip.sh and\n" +
+                "pointSourceId of each point corresponds to a polygon feature,\n" +
+                "this tool will assign grid cells to unique pointSourceId\n" +
+                "values. If a grid-cell contains multiple pointSourceIds,\n" +
+                "the cell will be divided into parts and these parts will\n" +
+                "be merged with neighboring cells that contain the given\n" +
+                "pointSourceId. To which cell these parts are merged\n" +
+                "is dependent upon the size of the cells. The tool tries\n" +
+                "to optimize the size of the merged cells so that they\n" +
+                "are as close to the -res as possible.\n" +
+                "\n" +
+                "TODO: Implement a way to just give -poly shapefile to \n" +
+                "do the designation of grid cells to polygon features.\n" +
+                "PointSourceId can be quite an important memory slot\n" +
+                "that is not always available for the clipping...\n" +
                 "\n" +
                 "\n" +
                 "Usage:\n" +
                 "\n" +
-                "\t-i\t\tInput file(s)");
+                "\t-i\t\tInput file(s)\n" +
+                "\t-orig_x\t\tOrigo x coordinate\n" +
+                "\t-orig_y\t\tOrigo y coordinate\n" +
+                "\t-res\t\tGrid cell unit dimension");
     }
 
     public static void lasLayer(){

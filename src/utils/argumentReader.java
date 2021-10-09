@@ -96,7 +96,7 @@ public class argumentReader {
 
     public double buffer = 0;
 
-    public double res = 10.0;
+    public double res = 15.0;
 
     public String odir = "asd";
     public String idir = "asd";

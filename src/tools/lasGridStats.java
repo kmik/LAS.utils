@@ -372,8 +372,6 @@ public class lasGridStats {
 
                 if(divided == 1 ){
 
-                    System.out.println("SHOULD NOT BE HERE!!!");
-                    System.exit(1);
                     do_overs.add( x * grid_y_size + y );
 
                 }else{
@@ -1174,7 +1172,7 @@ public class lasGridStats {
         ArrayList<Double> metrics_l = pCM.calc(gridPoints_z_l, gridPoints_i_l, sum_z_l, sum_i_l, "_l", colnames);
         ArrayList<Double> metrics_i = pCM.calc(gridPoints_z_i, gridPoints_i_i, sum_z_i, sum_i_i, "_i", colnames);
 
-        for(int i = 0; i < 5; i++){
+        for(int i = 0; i < 7; i++){
             writer_a.write(previousLines.get(0)[i] + "\t");
             writer_f.write(previousLines.get(0)[i] + "\t");
             writer_l.write(previousLines.get(0)[i] + "\t");
