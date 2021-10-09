@@ -612,6 +612,32 @@ if [ "$1" == 18 ]; then
 cat << EOF
 
 ----------------------------------------------
+ lasStem -- LASutils build $line
+
+ (c) M.Kukkonen
+ University of Eastern Finland
+----------------------------------------------
+
+Detects, classifies and labels points belonging
+to tree stems from .las file.
+
+
+
+Usage:
+
+	-i		Input file(s)
+
+	     
+EOF
+fi
+
+
+
+
+if [ "$1" == 18 ]; then
+cat << EOF
+
+----------------------------------------------
  lasGridStats -- LASutils build $line
 
  (c) M.Kukkonen
@@ -625,6 +651,12 @@ specified using flags -orig_x X_COORDINATE and
 -orig_y Y_COORDINATE. If no origo is input, 
 the min_x and max_y header values of the .las
 file are used as the origo.
+
+The statistics are computed seperately for
+ALL_ECHOES, FIRST_OF_MANY_AND_ONLY, 
+LAST_OF_MANY_AND_ONLY and INTERMEDIATE. The output
+files are placed in the same directory as the input
+file and are named according to the input file.
 
 The "resolution", i.e. the edge length of each
 square grid unit can be specified using the flag

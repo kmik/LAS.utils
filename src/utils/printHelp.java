@@ -103,6 +103,10 @@ public class printHelp {
                 this.lasGridStats();
                 break;
 
+            case 26:
+                this.stemDetector();
+                break;
+
 
             default:
                 break;
@@ -124,6 +128,12 @@ public class printHelp {
                 "-orig_y Y_COORDINATE. If no origo is input, \n" +
                 "the min_x and max_y header values of the .las\n" +
                 "file are used as the origo.\n" +
+                "\n" +
+                "The statistics are computed seperately for\n" +
+                "ALL_ECHOES, FIRST_OF_MANY_AND_ONLY, \n" +
+                "LAST_OF_MANY_AND_ONLY and INTERMEDIATE. The output\n" +
+                "files are placed in the same directory as the input\n" +
+                "file and are named according to the input file.\n" +
                 "\n" +
                 "The \"resolution\", i.e. the edge length of each\n" +
                 "square grid unit can be specified using the flag\n" +
@@ -157,6 +167,26 @@ public class printHelp {
                 "\t-orig_y\t\tOrigo y coordinate\n" +
                 "\t-res\t\tGrid cell unit dimension");
     }
+
+    public static void stemDetector(){
+        System.out.println("----------------------------------------------\n" +
+                " lasLayer -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Attempts to delineate an understory tree layer \n" +
+                "from .las file. Requires very high point density \n" +
+                "point cloud data from a forested environment.\n" +
+                "\n" +
+                "\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)");
+    }
+
 
     public static void lasLayer(){
         System.out.println("----------------------------------------------\n" +
