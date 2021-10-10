@@ -1599,6 +1599,7 @@ class MKid4pointsLAS{
 
                 for (int va = 0; va < valinta.size(); va++) {
 
+                    //System.out.println("VA");
 
                     doneIndexes.clear();
                     LASReader asd = new LASReader(aR.inputFiles.get(valinta.get(va))); //pointClouds.get(valinta.get(va));
@@ -1627,7 +1628,6 @@ class MKid4pointsLAS{
 
                                     int ero;
 
-
                                     for (int c = 1; c <= parts; c++) {
 
                                         if (c != parts) {
@@ -1655,11 +1655,11 @@ class MKid4pointsLAS{
 
                                             //System.out.println(p);
                                             //System.out.println(tempPoint.x + " " + tempPoint.y);
-                                            if (!doneIndexes.contains(p)) {
+                                            //if (!doneIndexes.contains(p)) {
 
                                                 //asd.readFromBuffer(tempPoint);
 
-                                                doneIndexes.add(p);
+                                              //  doneIndexes.add(p);
 
                                                 haku[0] = tempPoint.x;
                                                 haku[1] = tempPoint.y;
@@ -1755,9 +1755,9 @@ class MKid4pointsLAS{
                                                     i++;
                                                     //}
                                                 }
-                                            } else {
-                                                asd.skipPointInBuffer();
-                                            }
+                                            //} else {
+                                                //asd.skipPointInBuffer();
+                                            //}
                                         }
 
                                         //System.out.println(debugCounter + " ?==? " + ero);

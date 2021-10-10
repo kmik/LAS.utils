@@ -211,8 +211,11 @@ public class lasGridStats {
 
                 foundStands.clear();
 
+                System.out.println("ONE THROUGHT");
+
                 if (pointCloud.queriedIndexes2.size() > 0) {
 
+                    /*
                     for (int u = 0; u < pointCloud.queriedIndexes2.size(); u++) {
 
                         //System.out.println(Arrays.toString(pointCloud.queriedIndexes2.get(u)));
@@ -242,8 +245,13 @@ public class lasGridStats {
                             pointCloud.readRecord_noRAF(pienin, tempPoint, ero);
 
                             for (int p = pienin; p <= suurin; p++) {
+*/
+                    int p = 0;
 
-                                pointCloud.readFromBuffer(tempPoint);
+                    while(!pointCloud.index_read_terminated){
+
+                        p = pointCloud.fastReadFromQuery(tempPoint);
+                                //pointCloud.readFromBuffer(tempPoint);
 /*
                                 if (tempPoint.z <= z_cutoff)
                                     continue;
@@ -354,8 +362,8 @@ public class lasGridStats {
                                     }
                                 }
                             }
-                        }
-                    }
+                      // }
+                    //}
                 }
 
                 /** No points in this rectangle */

@@ -31,7 +31,7 @@ public class LASraf implements Closeable {
 
   public boolean writeInProgress = false;
 
-  public int bufferSize = (int)Math.pow(2, 21);
+  public int bufferSize = (int)Math.pow(2, 20);
   //public byte[] allArray = new byte[0];
   public byte[] allArray2 = new byte[bufferSize];
   public int allArray2Index = 0;
@@ -241,6 +241,7 @@ public class LASraf implements Closeable {
    * @throws IOException In the event of an unrecoverable I/O condition.
    */
   private synchronized void prepareBufferForRead(int bytesToRead) throws IOException {
+
     int bytesNotRead = bytesToRead;
     if (raFile == null) {
       throw new IOException("Reading from a file that was closed");
@@ -251,6 +252,7 @@ public class LASraf implements Closeable {
     }
 
     boolean readEnabled = true;
+
     if (bufferContainsData) {
       int remaining = buffer.remaining();
       if (remaining >= bytesNotRead) {
@@ -272,21 +274,80 @@ public class LASraf implements Closeable {
       }
     }
 
-
+    //System.out.println("READ ENABLED: " + readEnabled);
+    //System.out.println(buffer.remaining());
     if (readEnabled) {
       raFile.seek(raFilePos);
       fileChannel.read(buffer);
+
       buffer.flip();
+
       bufferContainsData = true;
     }
     raFilePos += bytesNotRead;
   }
+
+  private synchronized void prepareBufferForRead_not_sequential(int bytesToRead) throws IOException {
+
+    int bytesNotRead = bytesToRead;
+    if (raFile == null) {
+      throw new IOException("Reading from a file that was closed");
+    }
+
+    if (raFilePos >= raFileLen) {
+      throw new EOFException("Something wrong with file: " + this.file.getAbsolutePath());
+    }
+
+    boolean readEnabled = true;
+
+    if (false) {
+      int remaining = buffer.remaining();
+      if (remaining >= bytesNotRead) {
+        readEnabled = false;
+      } else {
+        // remaining < nBytes
+        readEnabled = true;
+        if (remaining == 0) {
+          buffer.clear();
+        } else {
+          buffer.compact();
+          // note that we have to tweak our bookkeeping here
+          // because we have a partial in the buffer... so we need
+          // to advance the rafPosition ahead so that we don't re-read
+          // what we've already pulled in.
+          raFilePos += remaining;
+          bytesNotRead -= remaining;
+        }
+      }
+    }
+
+    System.out.println("READ ENABLED: " + readEnabled);
+    System.out.println(buffer.remaining());
+    if (readEnabled) {
+      raFile.seek(raFilePos);
+      fileChannel.read(buffer);
+
+      buffer.flip();
+
+      bufferContainsData = true;
+    }
+    raFilePos += bytesNotRead;
+  }
+
 
   public synchronized void read(int n_bytes) throws Exception{
 
     //System.out.println(n_bytes + " == " + buffer.capacity());
 
     prepareBufferForRead(n_bytes);
+
+  }
+
+  public synchronized void read_not_sequential(int n_bytes) throws Exception{
+
+    //System.out.println(n_bytes + " == " + buffer.capacity());
+
+    prepareBufferForRead_not_sequential(n_bytes);
 
   }
 

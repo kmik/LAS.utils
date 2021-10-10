@@ -104,7 +104,7 @@ public class argumentReader {
     public int few = 5;
 
 
-    public double step = 1;
+    public double step = 15;
 
     public boolean dense = false;
 

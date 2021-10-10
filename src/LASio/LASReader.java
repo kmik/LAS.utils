@@ -80,6 +80,13 @@ public class LASReader {
   boolean index_last_round_period = false;
   public boolean index_read_terminated = false;
   int index_points_in_buffer = 0;
+  TIntHashSet doneIndexes = new TIntHashSet();
+
+
+  int index_read_counter = 0;
+
+  ArrayList<int[]> indexMinMax = new ArrayList<>();
+
 
 
   int index_parts = 0;
@@ -91,6 +98,9 @@ public class LASReader {
   int index_p = 0;
   int index_pienin = 0;
   int index_suurin = 0;
+
+  int index_debug = 0;
+  int index_debug_read_counter = 0;
 
 
 
@@ -194,112 +204,124 @@ public class LASReader {
 
   }
 
-
   public int fastReadFromQuery(LasPoint tempPoint){
 
     try {
+      if (!doneIndexes.contains(index_p)) {
+        readFromBuffer(tempPoint);
+        doneIndexes.add(index_p);
+      } else {
 
-      this.readFromBuffer(tempPoint);
-      this.index_points_in_buffer--;
+        skipPointInBuffer();
 
-    }catch(Exception e){
+        boolean terminatus = false;
+        while (!terminatus) {
 
-      e.printStackTrace();
-      System.exit(1);
-    }
+          if (!doneIndexes.contains(++index_p)) {
 
-    /** If the next index would be outside the current range AND the current maxIndex is not the last in the range AND this is not the last round */
-    //if(this.index_p + 1 > this.index_maxIndex && this.index_maxIndex != this.queriedIndexes2.get(this.index_u)[1] && !this.index_last_round) {
+            readFromBuffer(tempPoint);
+            doneIndexes.add(index_p);
+            terminatus = true;
 
-    /** If the buffer is empty, there are three possibilities:
-     * (1)
-     */
-    if(this.index_points_in_buffer == 0) {
+          }else
+            skipPointInBuffer();
 
-      /** If we have more stuff to read in the current part */
-      if (index_p < this.queriedIndexes2.get(this.index_u)[1]) {
-
-        this.index_minIndex = this.index_maxIndex + 1;
-        this.index_maxIndex = Math.min(this.index_minIndex + 20000, this.queriedIndexes2.get(this.index_u)[1]);
-        this.index_points_in_buffer = index_maxIndex - index_minIndex + 1;
-
-        try {
-          this.readRecord_noRAF(this.index_minIndex, this.index_points_in_buffer);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-
-        this.index_points_in_buffer = index_maxIndex - index_minIndex + 1;
-
-
-      } else if (index_p == this.queriedIndexes2.get(this.index_u)[1]) {
-
-
-
-        this.index_u++;
-
-        if (this.index_u >= this.queriedIndexes2.size()) {
-
-          this.index_read_terminated = true;
-
-          return index_p;
+          if (index_p + 1 > indexMinMax.get(this.index_u)[1])
+            terminatus = true;
 
         }
-
-        this.index_minIndex = this.queriedIndexes2.get(this.index_u)[0];
-        this.index_maxIndex = Math.min(this.index_minIndex + 20000, this.queriedIndexes2.get(this.index_u)[1]);
-        this.index_points_in_buffer = index_maxIndex - index_minIndex + 1;
-
-        try {
-          this.readRecord_noRAF(this.index_minIndex, this.index_points_in_buffer);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-
-        int output = index_p;
-        this.index_p = this.index_minIndex;
-
-        return output;
 
       }
-    }
-
-    return this.index_p++;
-
-  }
-
-  public void prepareBuffer(){
-
-    this.index_min = 0;
-    this.index_max = 0;
-    this.index_last_round = false;
-    this.index_last_round_period = false;
-    this.index_read_terminated = false;
-    this.index_p = 0;
-
-    this.index_u = 0;
-    this.index_n1 = this.queriedIndexes2.get(this.index_u)[1] - this.queriedIndexes2.get(this.index_u)[0];
-    this.index_n2 = this.queriedIndexes2.get(this.index_u)[1];
-
-    this.index_minIndex = this.queriedIndexes2.get(this.index_u)[0];
-
-    this.index_maxIndex = Math.min(this.index_minIndex + 20000, (int)this.numberOfPointRecords);
-
-    if(this.index_maxIndex ==  (int)this.numberOfPointRecords){
-
-      this.index_last_round_period = true;
-
-    }
-    this.index_points_in_buffer = index_maxIndex - index_minIndex + 1;
-
-
-    try {
-      this.readRecord_noRAF(this.index_minIndex, this.index_points_in_buffer);
     }catch (Exception e){
       e.printStackTrace();
     }
 
-    this.index_p = this.index_minIndex;
+    if(index_p + 1 > indexMinMax.get(this.index_u)[1]){
+
+      index_u++;
+
+      if(this.index_u >= indexMinMax.size()){
+
+        this.index_read_terminated = true;
+        return index_p;
+
+      }
+
+      try {
+        readRecord_noRAF(indexMinMax.get(index_u)[0], indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1);
+      }catch (Exception e){
+        e.printStackTrace();
+      }
+
+      int output = this.index_p;
+
+      this.index_p = indexMinMax.get(index_u)[0];
+
+      return output;
+
+    }
+
+    return index_p++;
+  }
+
+  public void prepareBuffer(){
+
+    doneIndexes.clear();
+    int pienin, suurin;
+    this.indexMinMax.clear();
+    this.index_read_terminated = false;
+
+    for (int u = 0; u < this.queriedIndexes2.size(); u++) {
+
+      long n1 = this.queriedIndexes2.get(u)[1] - this.queriedIndexes2.get(u)[0];
+      long n2 = this.queriedIndexes2.get(u)[1];
+
+      int parts = (int) Math.ceil((double) n1 / 20000.0);
+      int jako = (int) Math.ceil((double) n1 / (double) parts);
+
+      int ero;
+
+      for (int c = 1; c <= parts; c++) {
+
+        if (c != parts) {
+          pienin = (c - 1) * jako;
+          suurin = c * jako;
+        } else {
+          pienin = (c - 1) * jako;
+          suurin = (int) n1;
+        }
+
+        pienin = pienin + this.queriedIndexes2.get(u)[0];
+        suurin = suurin + this.queriedIndexes2.get(u)[0];
+
+        ero = suurin - pienin + 1;
+
+        indexMinMax.add(new int[]{pienin, suurin});
+      }
+    }
+
+
+    this.index_u = 0;
+    try {
+      readRecord_noRAF(indexMinMax.get(index_u)[0], indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1);
+    }catch (Exception e){
+      e.printStackTrace();
+    }
+
+    this.index_p = indexMinMax.get(index_u)[0];
+
+  }
+
+  public void readRecNoRa(){
+
+
+    try {
+      this.readRecord_noRAF(this.index_minIndex, this.index_points_in_buffer);
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(1);
+
+    }
 
   }
 
@@ -310,7 +332,7 @@ public class LASReader {
 
   /**
    *
-   * @param indexMap
+   * @param indexMap hjhjhk
    */
   public void setIndexMap2(HashMap<Integer, ArrayList<int[]>> indexMap){
 
@@ -429,6 +451,7 @@ public class LASReader {
 
         indeksi = yPixel * n_pixels_x + xPixel;
 
+        /** If the current index square is not initialized */
         if(save2.get(indeksi) == null){
           save2.put(indeksi, new ArrayList<>());
           save2.get(indeksi).add(new int[]{counter, counter+1});
@@ -1446,8 +1469,9 @@ public class LASReader {
     braf.seek(filePos);
 
     //System.out.println(braf.buffer.remaining());
-
+    //braf.read(n * this.pointDataRecordLength);
     braf.read(n * this.pointDataRecordLength);
+    //System.out.println("READING: " + n + " points " + braf.buffer.remaining() );
 
     /*
     int lx = braf.buffer.getInt();
