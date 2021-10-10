@@ -17,6 +17,11 @@ public class printHelp {
 
 
         switch (tool_id){
+
+            case 0:
+                this.lasClip();
+                break;
+
             case 1:
                 this.tiler();
                 break;
@@ -411,6 +416,36 @@ public class printHelp {
                 "\t-skip_global\tDo not perform boresight and\n" +
                 "\t\t\tleverarm optimization\n" +
                 "\t-traj\t\tTrajectory file (ASCII)");
+    }
+
+    public static void lasClip(){
+        System.out.println("----------------------------------------------\n" +
+                " lasclip -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " University of Eastern Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Clips .las files. The output can be either a las\n" +
+                "file (default) or .txt file (-otype txt). The output\n" +
+                "can be merged (default) or splitted (-split). The split\n" +
+                "option does NOT split by polygon features, but rather\n" +
+                "by point clouds, i.e. one output file per input \n" +
+                "point cloud.\n" +
+                "\n" +
+                "The -omet flag is used to output stastical features\n" +
+                "of points within the boundaries of individual polygon\n" +
+                "features.\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)\n" +
+                "\t-o\t\tOutput file\n" +
+                "\t-odir\t\tOutput directory\n" +
+                "\t-otype\t\tOutput file type, \"txt\" or \"las\"\n" +
+                "\t-poly\t\tInput polygon (.shp, wkt, txt)\n" +
+                "\t-sep \t\ttxt file field separator\n" +
+                "\t-omet\t\tOutput statistical metrics");
     }
 
     public static void las2las(){

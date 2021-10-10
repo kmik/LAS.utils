@@ -702,7 +702,6 @@ public class lasGridStats {
                         }
 
                     }
-
                 }
 
                 if(pair != -1){

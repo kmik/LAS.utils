@@ -104,15 +104,24 @@ cat << EOF
 
 Clips .las files. The output can be either a las
 file (default) or .txt file (-otype txt). The output
-can be merged (default) or splitted (-split).
+can be merged (default) or splitted (-split). The split
+option does NOT split by polygon features, but rather
+by point clouds, i.e. one output file per input 
+point cloud.
+
+The -omet flag is used to output stastical features
+of points within the boundaries of individual polygon
+features.
 
 Usage:
 
 	-i		Input file(s)
 	-o		Output file
 	-odir		Output directory
+	-otype		Output file type, "txt" or "las"
 	-poly		Input polygon (.shp, wkt, txt)
 	-sep 		txt file field separator
+	-omet		Output statistical metrics
 
 	     
 EOF
