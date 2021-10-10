@@ -6,6 +6,7 @@ import utils.argumentReader;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.lang.reflect.Array;
 import java.util.*;
 import utils.*;
 import LASio.LASReader;
@@ -57,8 +58,12 @@ public class lasGridStats {
         this.pointCloud = pointCloud;
 
         if(!pointCloud.isIndexed){
-            pointCloud.index(20);
+
         }
+
+        pointCloud.index(15);
+
+
         this.aR = aR;
 
         if(aR.orig_x == -1 || aR.orig_y == -1){
@@ -183,6 +188,8 @@ public class lasGridStats {
         for(int x = 0; x < grid_x_size; x++){
             for(int y = 0; y < grid_y_size; y++) {
 
+
+                System.out.println( (grid_y_size*x+y) + " / " + (grid_y_size*grid_x_size));
                 cell_only_id[x][y] = -1;
 
                 gridPoints_z_a.clear();
@@ -211,7 +218,7 @@ public class lasGridStats {
 
                 foundStands.clear();
 
-                System.out.println("ONE THROUGHT");
+                //System.out.println("ONE THROUGHT");
 
                 if (pointCloud.queriedIndexes2.size() > 0) {
 
@@ -294,6 +301,9 @@ public class lasGridStats {
 
                                     }
 
+                                    /** In order to save memory we only add point to tin if it is outside of it. After all,
+                                     * we only need the bounday of the tin.
+                                     */
                                     if(!tins.get(order.get(tempPoint.pointSourceId)).isPointInsideTin(tempPoint.x, tempPoint.y)){
 
                                         tempV = new Vertex(tempPoint.x, tempPoint.y, 0.0);
@@ -370,7 +380,7 @@ public class lasGridStats {
                 if(ids.size() == 0)
                     continue;
 
-                double area = tin.countTriangles().getAreaSum();
+                //double area = tin.countTriangles().getAreaSum();
 
                 ArrayList<Double> areas = new ArrayList<>();
 
@@ -394,8 +404,11 @@ public class lasGridStats {
 
                     areas.add(tins.get(ii).countTriangles().getAreaSum());
                     tins.get(ii).clear();
+                    tins.get(ii).dispose();
+                    tins.set(ii, new IncrementalTin());
 
                 }
+                System.gc();
 
                 double x_coord = orig_x + resolution * x;
                 double y_coord = orig_y - resolution * y;
@@ -496,7 +509,12 @@ public class lasGridStats {
 
                     if(gridPoints_z_i.get(ii).size() > aR.min_points) {
 
+                        long startTime = System.currentTimeMillis();
+
                         metrics = pCM.calc(gridPoints_z_i.get(ii), gridPoints_i_i.get(ii), sum_z_i.get(ii), sum_i_i.get(ii), "_i", colnames);
+
+                        long stopTime = System.currentTimeMillis();
+                        System.out.println(stopTime - startTime);
 
                         if(colnames_metrics_i.size() == 0)
                             colnames_metrics_i = (ArrayList<String>)colnames.clone();
@@ -681,12 +699,7 @@ public class lasGridStats {
                             pair = pos2;
                             optimal_pair_grid_id = grid_id2;
 
-                            //System.out.println("INTERMADIANAE: " + bestSize + " " + area + " " + areaOrig + " " + optimalSize);
-
                         }
-
-                        //System.out.println("pos: " + pos2);
-                        //System.out.println(plot_id + " " + area + " " + divided + " " + modded);
 
                     }
 
@@ -1233,5 +1246,35 @@ public class lasGridStats {
         return false;
 
     }
+
+
+    public static class calcAndWrite extends Thread{
+
+        ArrayList<Double> zets;
+        ArrayList<Double> zets_sum;
+        ArrayList<Integer> intensities;
+        ArrayList<Integer> intensities_sum;
+        gridRAF binFile;
+
+        public calcAndWrite(ArrayList<Double> zets, ArrayList<Double> zets_sum, ArrayList<Integer> intensities, ArrayList<Integer> intensities_sum, gridRAF binFile){
+
+            this.zets = zets;
+            this.zets_sum = zets_sum;
+            this.intensities = intensities;
+            this.intensities_sum = intensities_sum;
+
+            this.binFile = binFile;
+
+        }
+
+        @Override
+        public void run() {
+
+
+
+        }
+
+    }
+
 
 }

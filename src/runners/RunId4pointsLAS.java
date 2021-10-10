@@ -1258,7 +1258,6 @@ public class RunId4pointsLAS{
 
         ArrayList<pointWriterMultiThread> outputFiles = new ArrayList<>();
 
-
         if(aR.split){
 
             System.out.println(pointClouds.size());
