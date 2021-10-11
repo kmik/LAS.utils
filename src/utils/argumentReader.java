@@ -18,6 +18,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+@SuppressWarnings("unchecked")
 public class argumentReader {
 
     public lasReadWriteFactory pfac;
@@ -71,14 +72,14 @@ public class argumentReader {
 
     public String neural_mode = "merged";
 
-    public String args[];
+    public String[] args;
     public PointInclusionRule inclusionRule;
     public PointModifyRule modifyRule;
 
     public String iparse = "xyz";
     public String oparse = "xyz";
     public String output = "asd";
-    public String input = "asd";;
+    public String input = "asd";
 
     public File train_2 = null;
     public File test_2 = null;
@@ -2147,6 +2148,7 @@ public class argumentReader {
 
     }
 
+    @SuppressWarnings("unchecked")
     public void addIndexFiles() throws Exception{
 
         File temppi;

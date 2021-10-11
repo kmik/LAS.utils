@@ -184,16 +184,16 @@ public class neuralNetworkHyperparameterOptimization_convolution_mix {
             }
 
             FileWriter fw = new FileWriter(outFile, true);
-            String outLinePred = Integer.toString(pred.get(0)) + ",";
-            String outLineObs = Integer.toString(obs.get(0)) + ",";
+            String outLinePred = pred.get(0) + ",";
+            String outLineObs = obs.get(0) + ",";
 
             System.out.println(Arrays.toString(pred.toArray()));
 
 
             for (int i = 1; i < pred.size(); i++) {
 
-                outLinePred += Integer.toString(pred.get(i)) + ",";
-                outLineObs += Integer.toString(obs.get(i)) + ",";
+                outLinePred += pred.get(i) + ",";
+                outLineObs += obs.get(i) + ",";
 
 
             }
@@ -361,23 +361,23 @@ public class neuralNetworkHyperparameterOptimization_convolution_mix {
 
             }
 
-            ArrayList<INDArray> test_out[] = new ArrayList[2];
+            ArrayList<INDArray>[] test_out = new ArrayList[2];
 
             test_out[0] = testSet;
             test_out[1] = testSet_labels;
 
-            ArrayList<INDArray> test_out2[] = new ArrayList[2];
+            ArrayList<INDArray>[] test_out2 = new ArrayList[2];
 
             test_out2[0] = testSet_2;
             test_out2[1] = testSet_2_labels;
 
 
-            ArrayList<INDArray> train_out[] = new ArrayList[2];
+            ArrayList<INDArray>[] train_out = new ArrayList[2];
 
             train_out[0] = trainingSet;
             train_out[1] = trainingSet_labels;
 
-            ArrayList<INDArray> train_out2[] = new ArrayList[2];
+            ArrayList<INDArray>[] train_out2 = new ArrayList[2];
 
             train_out2[0] = trainingSet_2;
             train_out2[1] = trainingSet_2_labels;
@@ -515,10 +515,10 @@ public class neuralNetworkHyperparameterOptimization_convolution_mix {
             ObjectInputStream ois3 = new ObjectInputStream(fis3);
             ObjectInputStream ois4 = new ObjectInputStream(fis4);
 
-            ArrayList<INDArray> train_in[] = null;
-            ArrayList<INDArray> train_in_2[] = null;
-            ArrayList<INDArray> test_in[] = null;
-            ArrayList<INDArray> test_in_2[] = null;
+            ArrayList<INDArray>[] train_in = null;
+            ArrayList<INDArray>[] train_in_2 = null;
+            ArrayList<INDArray>[] test_in = null;
+            ArrayList<INDArray>[] test_in_2 = null;
 
             train_in = (ArrayList<INDArray>[]) ois1.readObject();
             train_in_2 = (ArrayList<INDArray>[]) ois2.readObject();

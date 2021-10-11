@@ -1189,7 +1189,7 @@ public class trunkDBH {
         return combinations;
     }
 
-    private void helper(List<int[]> combinations, int data[], int start, int end, int index) {
+    private void helper(List<int[]> combinations, int[] data, int start, int end, int index) {
         if (index == data.length) {
             int[] combination = data.clone();
             combinations.add(combination);
@@ -1247,7 +1247,7 @@ public class trunkDBH {
         return output;
     }
 
-    int findCrossOver(double arr[], int low, int high, double x)
+    int findCrossOver(double[] arr, int low, int high, double x)
     {
         // Base cases
         if (arr[high] <= x) // x is greater than all
@@ -1272,7 +1272,7 @@ public class trunkDBH {
 
     // This function prints k closest elements to x in arr[].
     // n is the number of elements in arr[]
-    int[] printKclosest(double arr[], double x, int k, int n)
+    int[] printKclosest(double[] arr, double x, int k, int n)
     {
         int[] output = new int[k];
         // Find the crossover point

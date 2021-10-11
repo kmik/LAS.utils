@@ -4946,7 +4946,7 @@ public class createCHM{
         org.tinfour.standard.IncrementalTin tin = new org.tinfour.standard.IncrementalTin();
 
         org.tinfour.interpolation.VertexValuatorDefault valuator = new org.tinfour.interpolation.VertexValuatorDefault();
-        TriangularFacetInterpolator polator  = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);;
+        TriangularFacetInterpolator polator  = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);
 
 
 

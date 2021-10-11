@@ -311,17 +311,11 @@ class MKid4pointsLAS{
                         temp2[0] = mapx;
                         temp2[1] = mapy;
 
-
-//homma.pair(countx, county)
                         long code1 = homma.pair(temp[0], temp[1]);
                         long code2 = homma.pair(temp2[0], temp2[1]);
 
-                        //combined = "" + ex + ey;
-                        //combined2 = "" + mapx + mapy;
-                        //System.out.println(ex);
-                        String tempString = " " + LASwrite.LASpoint2String(tempPoint, oparse);;
+                        String tempString = " " + LASwrite.LASpoint2String(tempPoint, oparse);
                         outt.println(code2 + tempString + " " + code1);
-
 
                     }
                 }
@@ -329,8 +323,6 @@ class MKid4pointsLAS{
                 sc.close();
                 outt.close();
             } catch( IOException ioException ){}
-
-            //System.out.print("HilaFile " + (i+1) + " out of " + pilvi1.size() + "\r");
 
         }
     }
@@ -895,9 +887,9 @@ class MKid4pointsLAS{
         String binny;
         for(int t=0;t < pituus;t++){
             binny=one.substring(0+t, 1+t);
-            storage += (String.valueOf(binny));
+            storage += ((binny));
             if(t < pituus2){binny=two.substring(0+t, 1+t);
-                storage += (String.valueOf(binny));}
+                storage += ((binny));}
         }
         return storage;
 

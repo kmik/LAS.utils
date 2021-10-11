@@ -852,7 +852,7 @@ class ai2las{
 
 		double perUnit = (double)elapsed / (double)i;
 
-		String remaining = Double.toString( roundAvoid(perUnit * ((double)n - (double)i) / 1000000000.0,2)) + " s ";
+		String remaining = ( roundAvoid(perUnit * ((double)n - (double)i) / 1000000000.0,2)) + " s ";
 
 
 

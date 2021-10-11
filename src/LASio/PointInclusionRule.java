@@ -624,12 +624,6 @@ public class PointInclusionRule{
 				else
 					return false;
 
-			if(keep_middle == true)
-				if(tempPoint.numberOfReturns != 1 && tempPoint.returnNumber != 1 && tempPoint.returnNumber != tempPoint.numberOfReturns)
-					return true;
-				else
-					return false;
-
 			if(keep_double == true)
 				if(tempPoint.numberOfReturns == 2)
 					return true;

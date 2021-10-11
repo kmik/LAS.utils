@@ -39,6 +39,7 @@ import static org.deeplearning4j.util.ModelSerializer.*;
 //import static org.datavec.image.loader.BaseImageLoader.MultiPageMode.MINIBATCH;
 //import static org.deeplearning4j.optimize.api.InvocationType.EPOCH_END;
 
+@SuppressWarnings("ALL")
 public class convolution {
 
     //private static Logger log = LoggerFactory.getLogger(convolution.class);
@@ -207,10 +208,10 @@ public class convolution {
                     ObjectInputStream ois3 = new ObjectInputStream(fis3);
                     ObjectInputStream ois4 = new ObjectInputStream(fis4);
 
-                    ArrayList<INDArray> train_in[] = null;
-                    ArrayList<INDArray> train_in_2[] = null;
-                    ArrayList<INDArray> test_in[] = null;
-                    ArrayList<INDArray> test_in_2[] = null;
+                    ArrayList<INDArray>[] train_in = null;
+                    ArrayList<INDArray>[] train_in_2 = null;
+                    ArrayList<INDArray>[] test_in = null;
+                    ArrayList<INDArray>[] test_in_2 = null;
 
                     test_in = (ArrayList<INDArray>[]) ois3.readObject();
                     test_in_2 = (ArrayList<INDArray>[]) ois4.readObject();
@@ -285,8 +286,8 @@ public class convolution {
                 INDArray features_320 = t2.getFeatures();
                 INDArray labels = t.getLabels();
 
-                INDArray features_[] = new INDArray[2];
-                INDArray labels_[] = new INDArray[1];
+                INDArray[] features_ = new INDArray[2];
+                INDArray[] labels_ = new INDArray[1];
 
                 features_[0] = t2.getFeatures();
                 features_[1] = t.getFeatures();
@@ -317,7 +318,7 @@ public class convolution {
 
                 //INDArray predicted = model.output(features,false);
                 //INDArray predicted_320 = model_320.output(features_320,false);
-                INDArray predicted_graph [] = null;
+                INDArray[] predicted_graph = null;
 
                 //                = model_graph.output(false, features_, null, null);
                 if(aR.convolution_option < 4){
@@ -469,10 +470,10 @@ public class convolution {
 
             //String outLinePred = Integer.toString(pred.get(0)) + ",";
             //String outLinePred_320 = Integer.toString(pred.get(0)) + ",";
-            String outLinePred_graph = Integer.toString(pred_graph.get(0)) + ",";
+            String outLinePred_graph = (pred_graph.get(0)) + ",";
             //String outLineObs = Integer.toString(obs.get(0)) + ",";
             //String outLineObs_320 = Integer.toString(obs.get(0)) + ",";
-            String outLineObs_graph = Integer.toString(obs.get(0)) + ",";
+            String outLineObs_graph = (obs.get(0)) + ",";
 
             //System.out.println(Arrays.toString(pred.toArray()));
 /*
@@ -492,8 +493,8 @@ public class convolution {
 */
             for(int i = 1; i < pred_graph.size(); i++){
 
-                outLinePred_graph += Integer.toString(pred_graph.get(i)) + ",";
-                outLineObs_graph += Integer.toString(obs.get(i)) + ",";
+                outLinePred_graph += (pred_graph.get(i)) + ",";
+                outLineObs_graph += (obs.get(i)) + ",";
 
             }
 
@@ -725,23 +726,23 @@ public class convolution {
 
             String fileExtension = ".mix_nnIn" + batchSize;
 
-            ArrayList<INDArray> test_out[] = new ArrayList[2];
+            ArrayList<INDArray>[] test_out = new ArrayList[2];
 
             test_out[0] = testSet;
             test_out[1] = testSet_labels;
 
-            ArrayList<INDArray> test_out2[] = new ArrayList[2];
+            ArrayList<INDArray>[] test_out2 = new ArrayList[2];
 
             test_out2[0] = testSet_2;
             test_out2[1] = testSet_2_labels;
 
 
-            ArrayList<INDArray> train_out[] = new ArrayList[2];
+            ArrayList<INDArray>[] train_out = new ArrayList[2];
 
             train_out[0] = trainingSet;
             train_out[1] = trainingSet_labels;
 
-            ArrayList<INDArray> train_out2[] = new ArrayList[2];
+            ArrayList<INDArray>[] train_out2 = new ArrayList[2];
 
             train_out2[0] = trainingSet_2;
             train_out2[1] = trainingSet_2_labels;
@@ -880,10 +881,10 @@ public class convolution {
                 ObjectInputStream ois3 = new ObjectInputStream(fis3);
                 ObjectInputStream ois4 = new ObjectInputStream(fis4);
 
-                ArrayList<INDArray> train_in[] = null;
-                ArrayList<INDArray> train_in_2[] = null;
-                ArrayList<INDArray> test_in[] = null;
-                ArrayList<INDArray> test_in_2[] = null;
+                ArrayList<INDArray>[] train_in = null;
+                ArrayList<INDArray>[] train_in_2 = null;
+                ArrayList<INDArray>[] test_in = null;
+                ArrayList<INDArray>[] test_in_2 = null;
 
                 train_in = (ArrayList<INDArray>[]) ois1.readObject();
                 train_in_2 = (ArrayList<INDArray>[]) ois2.readObject();
@@ -1614,8 +1615,8 @@ public class convolution {
                 DataSet ds = new DataSet();
                 DataSet ds2 = new DataSet();
 
-                INDArray features[] = new INDArray[2];
-                INDArray labels[] = new INDArray[1];
+                INDArray[] features = new INDArray[2];
+                INDArray[] labels = new INDArray[1];
 
                 ds2.setFeatures(trainingSet_2.get(i_));
                 ds2.setLabels(trainingSet_2_labels.get(i_));
@@ -1647,7 +1648,7 @@ public class convolution {
                     model_graph.fit(ds);
                 }
 
-                INDArray predicted_[] = null;
+                INDArray[] predicted_ = null;
                 INDArray predicted = null;
 
                 if(aR.convolution_option < 4){
@@ -1676,8 +1677,8 @@ public class convolution {
                 INDArray features_graph = testSet_2.get(i_);
                 INDArray labels_graph = testSet_2_labels.get(i_);
 
-                INDArray features_[] = new INDArray[2];
-                INDArray labels_[] = new INDArray[1];
+                INDArray[] features_ = new INDArray[2];
+                INDArray[] labels_ = new INDArray[1];
 
                 features_[0] = features_graph;
                 features_[1] = features;
@@ -1693,7 +1694,7 @@ public class convolution {
                 //System.out.println("i_: " + i_);
                 //System.out.println(" TEST SET SIZE: " + testSet.size());
                 //System.out.println(features_[0].shapeInfoToString() + " " + features_[1].shapeInfoToString());
-                INDArray predicted_[] = null;
+                INDArray[] predicted_ = null;
                 INDArray predicted = null;
 
                 if(aR.convolution_option < 4){
@@ -1814,8 +1815,8 @@ public class convolution {
             INDArray features_graph = testSet_2.get(i_);
             INDArray labels_graph = testSet_2_labels.get(i_);
 
-            INDArray features_[] = new INDArray[2];
-            INDArray labels_[] = new INDArray[1];
+            INDArray[] features_ = new INDArray[2];
+            INDArray[] labels_ = new INDArray[1];
 
             features_[0] = features_graph;
             features_[1] = features;
@@ -1834,7 +1835,7 @@ public class convolution {
             //System.out.println("i_: " + i_);
             //System.out.println(" TEST SET SIZE: " + testSet.size());
             //System.out.println(features_[0].shapeInfoToString() + " " + features_[1].shapeInfoToString());
-            INDArray predicted_[] = null; //bestModel_graph.output(false, features_, null, null);
+            INDArray[] predicted_ = null; //bestModel_graph.output(false, features_, null, null);
 
             if(aR.convolution_option < 4){
                 predicted_ = model_graph.output(false, features_, null, null);

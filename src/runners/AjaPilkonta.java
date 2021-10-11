@@ -11,7 +11,7 @@ public class AjaPilkonta {
 		
 	Pilkonta uusiPilko = new Pilkonta();
 	
-	uusiPilko.Pilko(input,outputlocation);
+	Pilkonta.Pilko(input,outputlocation);
 	
 }
 }

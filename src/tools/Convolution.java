@@ -446,11 +446,11 @@ public class Convolution extends Thread {
     int top = kernelHeight/2;
     int left = kernelWidth/2;
 
-    double small [][] = new double [smallWidth][smallHeight];
+    double[][] small  = new double [smallWidth][smallHeight];
 
     small = convolution2D(input,width,height,kernel,kernelWidth,kernelHeight);
 
-    double large [][] = new double [width][height];
+    double[][] large  = new double [width][height];
 
     for(int j = 0; j < height; ++j){
       for(int i = 0; i < width; ++i){
@@ -494,11 +494,11 @@ public class Convolution extends Thread {
     int top = kernelHeight[kernelWidth.length - 1]/2;
     int left = kernelWidth[kernelWidth.length - 1]/2;
 
-    double small [][] = new double [smallWidth][smallHeight];
+    double[][] small  = new double [smallWidth][smallHeight];
 
     small = convolution2D2(input,width,height,kernel,kernelWidth,kernelHeight, tHolds);
 
-    double large [][] = new double [width][height];
+    double[][] large  = new double [width][height];
 
     for(int j = 0; j < height; ++j){
       for(int i = 0; i < width; ++i){

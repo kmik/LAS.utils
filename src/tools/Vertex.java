@@ -190,7 +190,7 @@ public class Vertex {
    * @return a valid, non-empty string.
    */
   public String getLabel() {
-    return (isSynthetic() ? "S" : "") + Integer.toString(index);
+    return (isSynthetic() ? "S" : "") + index;
   }
 
   @Override

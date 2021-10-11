@@ -1127,7 +1127,7 @@ public class LASwrite {
 			
 			/** Scale x and apply xOffset */
 			int lx = (int)((x - xOffset) / xScaleFactor);
-			/** Scale y and apply yOffset */;
+			/** Scale y and apply yOffset */
 	   		int ly = (int)((y - yOffset) / yScaleFactor);
 	   		/** Scale z and apply zOffset */
 	   		int lz = (int)((z - zOffset) / zScaleFactor);

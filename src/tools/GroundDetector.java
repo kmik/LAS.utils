@@ -669,19 +669,10 @@ public class GroundDetector{
 
         long tStart = System.currentTimeMillis();
 
-       ;
-
         double minDistance = 0.0;
 
         int missclassified = 0;
         int correctclassified = 0;
-
-        //File file = new File("log.txt");
-
-       // if (file.exists())
-         //   file.delete();
-
-        //PrintStream pr = new PrintStream(file);
 
         long n = pointCloud.getNumberOfPointRecords();
 

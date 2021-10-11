@@ -603,8 +603,8 @@ public class lasSort {
     }
 
     long calcZOrder(int xPos, int yPos) {
-        int MASKS[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
-        long SHIFTS[] = {1, 2, 4, 8};
+        int[] MASKS = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
+        long[] SHIFTS = {1, 2, 4, 8};
 
         int x = xPos;  // Interleave lower 16 bits of x and y, so the bits of x
         int y = yPos;  // are in the even positions and bits from y in the odd;

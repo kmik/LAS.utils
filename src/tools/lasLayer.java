@@ -1029,7 +1029,7 @@ public class lasLayer {
         return out;
     }
 
-    double std_dev(double a[], int n) {
+    double std_dev(double[] a, int n) {
         if(n == 0)
             return 0.0;
         double sum = 0;

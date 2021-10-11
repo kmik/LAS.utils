@@ -137,7 +137,7 @@ public class GaussianSmooth extends Thread {
    * @return 2D array representing the smoothed image
    */
   public static double [][] smooth2(double [][] input, int width, int height,
-           int ks[], double[] theta, double[] tHolds){
+                                    int[] ks, double[] theta, double[] tHolds){
     
     Convolution convolution = new Convolution();
 

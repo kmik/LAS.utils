@@ -164,16 +164,16 @@ public class neuralNetworkHyperparameterOptimization {
             }
 
             FileWriter fw = new FileWriter(outFile, true);
-            String outLinePred = Integer.toString(pred.get(0)) + ",";
-            String outLineObs = Integer.toString(obs.get(0)) + ",";
+            String outLinePred = pred.get(0) + ",";
+            String outLineObs = obs.get(0) + ",";
 
             System.out.println(Arrays.toString(pred.toArray()));
 
 
             for (int i = 1; i < pred.size(); i++) {
 
-                outLinePred += Integer.toString(pred.get(i)) + ",";
-                outLineObs += Integer.toString(obs.get(i)) + ",";
+                outLinePred += pred.get(i) + ",";
+                outLineObs += obs.get(i) + ",";
 
 
             }

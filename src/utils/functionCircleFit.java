@@ -847,46 +847,18 @@ public class functionCircleFit implements FunctionNtoM {
                         //if(true){
                         if (Math.abs(fitter_ransac.cost) < 0.10 && fitter_ransac.radius < 0.5) {
 
-                            //residualSum += fitter.J;
-                            //residualSum += Math.abs(fitter_ransac.cost);
-                            //counter++;
-                            //numberOfCircles++;
-                            //slicesToBeOptimized.get(slicesToBeOptimized.size()-1).addAll(tempList);
-                            ;
                             slicesToBeOptimized.add(new ArrayList<>(tempList));
                             slices_trunk_ids.add(c.trunk_id);
                             trunkRegressions[c.trunk_id].addData(c.dz, fitter_ransac.radius);
 
-                            //System.out.println("counterTrunk: " + counterTrunk);
                             goodTrunks.add(counterTrunk);
 
                             slices_z.add(c.dz);
-                            //System.out.println("here3");
-                            //slicesToBeOptimized.add(new ArrayList<>());
-                            //original_fit_for_slice.add(new double[]{fitter.getCenter().x, fitter.getCenter().y, fitter.getRadius(), fitter.J});
+
                             original_fit_for_slice.add(new double[]{fitter_ransac.center_x, fitter_ransac.center_y, fitter_ransac.radius, fitter_ransac.cost});
 
-                            //radiusCount++;
-                            //radiusSum += fitter.rHat;
-                            //radiusSum += fitter_ransac.radius;
-
-
-
-                            /*
-                            System.out.println(fitter.getCenter().x + " " + fitter.getCenter().y + " " + fitter.getRadius());
-                            for(int j = 0; j < tempList.size(); j++) {
-
-                                System.out.println(tempList.get(j).x + " " + tempList.get(j).y);
-
-                            }
-
-
-                            System.out.println("------------------------------");
-
-                             */
                             double[] min_max = minMax(points);
 
-                            //System.out.println((min_max[1] - min_max[0]) + " " + (min_max[3] - min_max[2]) );
 
                             if((min_max[1] - min_max[0]) > maxXdim)
                                 maxXdim = (min_max[1] - min_max[0]);

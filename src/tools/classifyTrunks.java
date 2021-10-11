@@ -48,6 +48,7 @@ public class classifyTrunks {
 
         FileInputStream fis = new FileInputStream("trunks.ser");
         ObjectInputStream ois = new ObjectInputStream(fis);
+        //noinspection unchecked
         this.trunkMatches = (HashMap<Integer, int[]>) ois.readObject();
         ois.close();
 

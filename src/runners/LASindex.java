@@ -407,23 +407,8 @@ class LASindex {
 				double minY = extent[2];
 				double maxY = Math.ceil(extent[3]);
 
-				//System.out.println(minX + " " + maxX + " " + minY + " " + maxY);
-/*
-
-				in = new LASReader(tiedosto);
-
-	      		minX = (long)in.getMinX();
-				maxX = (long)Math.ceil(in.getMaxX());
-				minY = (long)in.getMinY();
-				maxY = (long)Math.ceil(in.getMaxY());
-				System.out.println(minX + " " + maxX + " " + minY + " " + maxY);
-				System.out.println("-----------------------");
-
- */
-	      		//System.out.println(temp.get(4097));
-
 	      		if(minX < output[0])
-					output[0] = in.getMinX();;
+					output[0] = in.getMinX();
 				if(maxY > output[1])
 					output[1] = in.getMaxY();
 
@@ -436,10 +421,6 @@ class LASindex {
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-
-		//System.gc();
-		//System.gc();
-		//System.gc();
 
 		return output;
 	}

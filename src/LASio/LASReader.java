@@ -49,7 +49,7 @@ public class LASReader {
      * The LAS file used Well-Known-Text to identify CRS
      */
     WKT
-  };
+  }
 
   public boolean isIndexed = false;
 
