@@ -43,11 +43,11 @@ public class CircleFitter {
         for (int i = 0; i < (points.length - 2); ++i) {
 
             indexes.add(i);
-            Point2D.Double p1 = (Point2D.Double) points[i];
+            Point2D.Double p1 = points[i];
             for (int j = i + 1; j < (points.length - 1); ++j) {
-                Point2D.Double p2 = (Point2D.Double) points[j];
+                Point2D.Double p2 = points[j];
                 for (int k = j + 1; k < points.length; ++k) {
-                    Point2D.Double p3 = (Point2D.Double) points[k];
+                    Point2D.Double p3 = points[k];
 
                     // compute the triangle circumcenter
                     Point2D.Double cc = circumcenter(p1, p2, p3);
@@ -375,7 +375,7 @@ public class CircleFitter {
 
     /** Circular ring sample points. */
     private Point2D.Double[] points;
-    private ArrayList<Point2D.Double> points_list;
+    private final ArrayList<Point2D.Double> points_list;
     /** Current cost function value. */
     public double J;
 

@@ -275,7 +275,7 @@ class ai2las{
 
 
 				try{
-					double test = (double)tempDataset.GetRasterXSize();
+					double test = tempDataset.GetRasterXSize();
 				}catch (Exception e){
 					System.out.println("WARNING!! " + tokens[0] + " DOES NOT EXIST!!");
 					continue;
@@ -336,7 +336,7 @@ class ai2las{
 			e.printStackTrace(System.out); // handle exception
 		}
 
-		System.out.println("");
+		System.out.println();
 
 	}
 
@@ -1055,8 +1055,8 @@ class ai2las{
 
 		LinkedList<Integer> cachedImg = new LinkedList<>();
 
-		double x_s = (double)datasets.get(0).getRasterXSize();
-		double y_s = (double)datasets.get(0).getRasterYSize();
+		double x_s = datasets.get(0).getRasterXSize();
+		double y_s = datasets.get(0).getRasterYSize();
 
 		int[] cach = new int[datasets.size()];
 

@@ -719,7 +719,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
                         }
 
                         Point2D.Double[] points =
-                                (Point2D.Double[]) slicePoints.toArray(new Point2D.Double[slicePoints.size()]);
+                                slicePoints.toArray(new Point2D.Double[slicePoints.size()]);
 
                         try {
 
@@ -846,7 +846,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
             for(int i = 0; i < slicesToBeOptimized_for_residual.size(); i++){
 
                 cloudPoint[] points =
-                        (cloudPoint[]) slicesToBeOptimized_for_residual.get(i).toArray(new cloudPoint[slicesToBeOptimized_for_residual.get(i).size()]);
+                        slicesToBeOptimized_for_residual.get(i).toArray(new cloudPoint[slicesToBeOptimized_for_residual.get(i).size()]);
 
                 // System.out.println("map size: " + slicesToBeOptimized_for_residual_map.get(i).size());
                 //              System.out.println(slicesToBeOptimized_for_residual.get(i).size());
@@ -866,7 +866,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
                     counter_debug++;
                     if(entry.getValue().size() > 5) {
                         cloudPoint[] points2 =
-                                (cloudPoint[]) entry.getValue().toArray(new cloudPoint[entry.getValue().size()]);
+                                entry.getValue().toArray(new cloudPoint[entry.getValue().size()]);
 
                         try {
 
@@ -1136,7 +1136,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
                     counter_debug++;
                     if(entry.getValue().size() > 0) {
                         cloudPoint[] points2 =
-                                (cloudPoint[]) entry.getValue().toArray(new cloudPoint[entry.getValue().size()]);
+                                entry.getValue().toArray(new cloudPoint[entry.getValue().size()]);
 
                         try {
 
@@ -1219,7 +1219,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
             bw.close();
         }
 
-        thisCosts[0] = residualSum / (double)radiusCount;
+        thisCosts[0] = residualSum / radiusCount;
 
         thisCosts[1] = sum_sd_centers / sd_count;
 
@@ -1286,8 +1286,8 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
 
         }
 
-        mean_x /= (double)points.size();
-        mean_y /= (double)points.size();
+        mean_x /= points.size();
+        mean_y /= points.size();
 
         for(int i = 0; i < points.size(); i++){
 
@@ -1295,7 +1295,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
 
         }
 
-        sd /= (double)points.size();
+        sd /= points.size();
         return sd;
 
     }

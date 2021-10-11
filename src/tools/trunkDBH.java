@@ -1034,7 +1034,7 @@ public class trunkDBH {
         for(int i = 0; i < obs.size(); i++){
             mean += obs.get(i);
         }
-        mean /= (double)obs.size();
+        mean /= obs.size();
 
         double mean2 = 0;
 
@@ -1044,11 +1044,11 @@ public class trunkDBH {
 
         }
 
-        mean2 /= (double)obs.size();
+        mean2 /= obs.size();
 
         mean2 = 100 * Math.sqrt(mean2);
 
-        mean2 /= (double)mean;
+        mean2 /= mean;
 
         return mean2;
     }

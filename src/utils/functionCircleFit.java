@@ -729,11 +729,11 @@ public class functionCircleFit implements FunctionNtoM {
                         }
 
 
-                        x_sum /= (double) slicePoints.size();
-                        y_sum /= (double) slicePoints.size();
+                        x_sum /= slicePoints.size();
+                        y_sum /= slicePoints.size();
 
                         Point2D.Double[] points =
-                                (Point2D.Double[]) slicePoints.toArray(new Point2D.Double[slicePoints.size()]);
+                                slicePoints.toArray(new Point2D.Double[slicePoints.size()]);
 
                         //fitter.initialize2(points, x_sum, y_sum, 0.15);
 
@@ -949,7 +949,7 @@ public class functionCircleFit implements FunctionNtoM {
             for(int i = 0; i < slicesToBeOptimized_for_residual.size(); i++){
 
                 cloudPoint[] points =
-                        (cloudPoint[]) slicesToBeOptimized_for_residual.get(i).toArray(new cloudPoint[slicesToBeOptimized_for_residual.get(i).size()]);
+                        slicesToBeOptimized_for_residual.get(i).toArray(new cloudPoint[slicesToBeOptimized_for_residual.get(i).size()]);
 
                 // System.out.println("map size: " + slicesToBeOptimized_for_residual_map.get(i).size());
                 //              System.out.println(slicesToBeOptimized_for_residual.get(i).size());
@@ -968,7 +968,7 @@ public class functionCircleFit implements FunctionNtoM {
                     counter_debug++;
                     if(entry.getValue().size() > 10) {
                         cloudPoint[] points2 =
-                                (cloudPoint[]) entry.getValue().toArray(new cloudPoint[entry.getValue().size()]);
+                                entry.getValue().toArray(new cloudPoint[entry.getValue().size()]);
 
                         try {
 
@@ -1134,7 +1134,7 @@ public class functionCircleFit implements FunctionNtoM {
                     counter_debug++;
                     if(entry.getValue().size() > 0) {
                         cloudPoint[] points2 =
-                                (cloudPoint[]) entry.getValue().toArray(new cloudPoint[entry.getValue().size()]);
+                                entry.getValue().toArray(new cloudPoint[entry.getValue().size()]);
 
                         try {
 
@@ -1481,7 +1481,7 @@ public class functionCircleFit implements FunctionNtoM {
         }
 
         // Step 4:
-        double meanOfDiffs = (double) temp / (double) (table.size());
+        double meanOfDiffs = temp / (double) (table.size());
 
         // Step 5:
         return Math.sqrt(meanOfDiffs);
@@ -1498,8 +1498,8 @@ public class functionCircleFit implements FunctionNtoM {
 
         }
 
-        mean_x /= (double)points.size();
-        mean_y /= (double)points.size();
+        mean_x /= points.size();
+        mean_y /= points.size();
 
         for(int i = 0; i < points.size(); i++){
 
@@ -1507,7 +1507,7 @@ public class functionCircleFit implements FunctionNtoM {
 
         }
 
-        sd /= (double)points.size();
+        sd /= points.size();
         return sd;
 
     }

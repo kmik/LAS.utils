@@ -6,7 +6,7 @@ public class UInt32 extends Number implements Comparable<UInt32> {
     public static final long MAX_VALUE = 4294967295L;
 
     public static final long MIN_VALUE = 0;
-    private long value;
+    private final long value;
 
     public UInt32(long value) {
         this.value = value;

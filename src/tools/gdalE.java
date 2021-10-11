@@ -170,7 +170,7 @@ class gdalE {
             else{
                 for (int i = 0; i < ysize; i++){
                     for (int j = 0; j < xsize; j++){
-                        floatArray[j] = (float) in[j][i];// in.get(i, j)[0];
+                        floatArray[j] = in[j][i];// in.get(i, j)[0];
                         //System.out.println(in[j][i]);
                     }
                     band.WriteRaster(0, i, xsize, 1, floatArray);
@@ -288,7 +288,7 @@ class gdalE {
                 else{
                     for (int i = 0; i < ysize; i++){
                         for (int j = 0; j < xsize; j++){
-                            floatArray[j] = (float) in.get(k - 1)[j][i];// in.get(i, j)[0];
+                            floatArray[j] = in.get(k - 1)[j][i];// in.get(i, j)[0];
                             //System.out.println(in[j][i]);
                         }
                         band.WriteRaster(0, i, xsize, 1, floatArray);

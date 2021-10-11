@@ -160,7 +160,7 @@ class LASindex {
 				if(county > maxCountY)
 					maxCountY = county;
 
-				save.put(homma.pair(temp[0], temp[1]), new ArrayList<Long>());
+				save.put(Cantor.pair(temp[0], temp[1]), new ArrayList<Long>());
 				tempy -= spacing;
 				county++;
 			}
@@ -191,7 +191,7 @@ class LASindex {
 			temppi[0] = (long)Math.floor((tempPoint.x - (double)minX) / (double)spacing);   //X INDEX
 			temppi[1] = (long)Math.floor(((double)maxY - tempPoint.y) / (double)spacing);
 			//System.out.println(Arrays.toString(temppi) + " maxX: " + maxCountX + " maxY: " + maxCountY);
-			save.get(homma.pair(temppi[0], temppi[1])).add(i);
+			save.get(Cantor.pair(temppi[0], temppi[1])).add(i);
 			//System.out.println(i);
 		}
 
@@ -239,8 +239,8 @@ class LASindex {
 		temppiLista.add(minY);
 		temppiLista.add(maxY);
 		temppiLista.add((long)spacing);
-		System.out.println(homma.pair(asdi[0], asdi[1]));
-		save.put(homma.pair(asdi[0], asdi[1]), temppiLista);
+		System.out.println(Cantor.pair(asdi[0], asdi[1]));
+		save.put(Cantor.pair(asdi[0], asdi[1]), temppiLista);
 
 		try {
 	        FileOutputStream fileOut = new FileOutputStream(outputFileName);

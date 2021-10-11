@@ -440,7 +440,7 @@ public class lasCheck {
                 else {
                     if (pointCloud.numberOfPointRecords != pointCloud.legacyNumberOfPointRecords) {
                         if (pointCloud.numberOfPointRecords <= U32_MAX) {
-                            fails.add(String.format("legacy number of point records: should be %u to be consistent with number of point records instead of %u", (long)(pointCloud.numberOfPointRecords), pointCloud.legacyNumberOfPointRecords));
+                            fails.add(String.format("legacy number of point records: should be %u to be consistent with number of point records instead of %u", pointCloud.numberOfPointRecords, pointCloud.legacyNumberOfPointRecords));
 
                         }
                         else {

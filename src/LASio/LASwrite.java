@@ -447,17 +447,17 @@ public class LASwrite {
 	    to.writeUnsignedByte((byte)3);// = braf.readUnsignedByte();
 	    to.writeUnsignedShort((short)34);// = braf.readUnsignedShort();
 	    
-	    to.writeUnsignedInt((int)0);// = braf.readUnsignedInt();
+	    to.writeUnsignedInt(0);// = braf.readUnsignedInt();
 	    //System.out.println(from.legacyNumberOfPointRecords);
 	    //legacyNumberOfPointsByReturn = new long[5];
-	   	to.writeUnsignedInt((int)0);
+	   	to.writeUnsignedInt(0);
 
 	   	//System.out.println(from.legacyNumberOfPointsByReturn[1]);
 	   	
-	   	to.writeUnsignedInt((int)0);
-	   	to.writeUnsignedInt((int)0);
-	   	to.writeUnsignedInt((int)0);
-	   	to.writeUnsignedInt((int)0);
+	   	to.writeUnsignedInt(0);
+	   	to.writeUnsignedInt(0);
+	   	to.writeUnsignedInt(0);
+	   	to.writeUnsignedInt(0);
 
 		
 	    
@@ -631,7 +631,7 @@ public class LASwrite {
 	    			//   point source ID  2 bytes
 					to.writeUnsignedByte((byte)tempPoint.scanAngleRank);
 					to.writeUnsignedByte((byte)tempPoint.userData);
-					to.writeUnsignedShort((short)tempPoint.pointSourceId);
+					to.writeUnsignedShort(tempPoint.pointSourceId);
 
 
 					//if (from.pointDataRecordFormat == 1 || from.pointDataRecordFormat == 3) {
@@ -748,7 +748,7 @@ public class LASwrite {
 		    //System.out.println((int)from.headerSize);
 		    
 		    //to.writeUnsignedInt((int)from.offsetToPointData);// = braf.readUnsignedInt();
-		    to.writeUnsignedInt((int)227); //227
+		    to.writeUnsignedInt(227); //227
 
 
 		    //to.writeUnsignedInt((int)from.numberVariableLengthRecords);// = braf.readUnsignedInt();
@@ -957,7 +957,7 @@ public class LASwrite {
 	    			//   point source ID  2 bytes
 					to.writeUnsignedByte((byte)tempPoint.scanAngleRank);
 					to.writeUnsignedByte((byte)tempPoint.userData);
-					to.writeUnsignedShort((short)tempPoint.pointSourceId);
+					to.writeUnsignedShort(tempPoint.pointSourceId);
 
 
 					if (from.pointDataRecordFormat == 1 || from.pointDataRecordFormat == 3) {
@@ -1267,7 +1267,7 @@ public class LASwrite {
 			if(pointDataRecordFormat == 4 || pointDataRecordFormat == 5){
 
 				to.writeUnsignedByte((byte)tempPoint.WavePacketDescriptorIndex);
-				to.writeLong((long)tempPoint.ByteOffsetToWaveformData);
+				to.writeLong(tempPoint.ByteOffsetToWaveformData);
 				to.writeUnsignedInt(tempPoint.WaveformPacketSizeInBytes);
 				to.writeFloat(tempPoint.ReturnPointWaveformLocation);
 
@@ -1378,14 +1378,14 @@ public class LASwrite {
 	    to.writeUnsignedShort((short)pointDataRecordLength);// = braf.readUnsignedShort();
 
 		/* Number of point records */
-	    to.writeUnsignedInt((int)0);// = braf.readUnsignedInt();
+	    to.writeUnsignedInt(0);// = braf.readUnsignedInt();
 
 		/* Number of points by return 0,1 ... 4, 5 */
-	   	to.writeUnsignedInt((int)0);
-	   	to.writeUnsignedInt((int)0);
-	   	to.writeUnsignedInt((int)0);
-	   	to.writeUnsignedInt((int)0);
-	   	to.writeUnsignedInt((int)0);
+	   	to.writeUnsignedInt(0);
+	   	to.writeUnsignedInt(0);
+	   	to.writeUnsignedInt(0);
+	   	to.writeUnsignedInt(0);
+	   	to.writeUnsignedInt(0);
 
 		/* X scale factor */
 	    to.writeDouble(xScale);// = braf.readDouble();

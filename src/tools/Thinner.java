@@ -613,7 +613,7 @@ public class Thinner{
 
             output += " " + point.classification;
 
-            output += " " + (double)point.gpsTime;
+            output += " " + point.gpsTime;
 
             output += " " + point.numberOfReturns;
 
@@ -639,7 +639,7 @@ public class Thinner{
                 output += " " + point.classification;
 
             if(array[i] == ('t'))
-                output += " " + (double)point.gpsTime;
+                output += " " + point.gpsTime;
 
             if(array[i] == ('n'))
                 output += " " + point.numberOfReturns;

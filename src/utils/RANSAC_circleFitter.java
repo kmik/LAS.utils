@@ -13,7 +13,7 @@ public class RANSAC_circleFitter {
      * @param args command line arguments
      */
 
-    private double ftol = 1e-12;
+    private final double ftol = 1e-12;
 
     boolean[] inliers = new boolean[1];
 
@@ -124,8 +124,8 @@ public class RANSAC_circleFitter {
             mean_y += points[i].y;
         }
 
-        mean_x /= (double)points.length;
-        mean_y /= (double)points.length;
+        mean_x /= points.length;
+        mean_y /= points.length;
 
         int i,iter,IterMAX=99;
 
@@ -149,12 +149,12 @@ public class RANSAC_circleFitter {
             Mzz += Zi*Zi;
         }
 
-        Mxx /= (double)this.points.size();
-        Myy /= (double)this.points.size();
-        Mxy /= (double)this.points.size();
-        Mxz /= (double)this.points.size();
-        Myz /= (double)this.points.size();
-        Mzz /= (double)this.points.size();
+        Mxx /= this.points.size();
+        Myy /= this.points.size();
+        Mxy /= this.points.size();
+        Mxz /= this.points.size();
+        Myz /= this.points.size();
+        Mzz /= this.points.size();
 
         Mz = Mxx + Myy;
         Cov_xy = Mxx*Myy - Mxy*Mxy;
@@ -215,8 +215,8 @@ public class RANSAC_circleFitter {
             mean_y += points.get(i).y;
         }
 
-        mean_x /= (double)points.size();
-        mean_y /= (double)points.size();
+        mean_x /= points.size();
+        mean_y /= points.size();
 
         int i,iter,IterMAX=99;
 
@@ -240,12 +240,12 @@ public class RANSAC_circleFitter {
             Mzz += Zi*Zi;
         }
 
-        Mxx /= (double)points.size();
-        Myy /= (double)points.size();
-        Mxy /= (double)points.size();
-        Mxz /= (double)points.size();
-        Myz /= (double)points.size();
-        Mzz /= (double)points.size();
+        Mxx /= points.size();
+        Myy /= points.size();
+        Mxy /= points.size();
+        Mxz /= points.size();
+        Myz /= points.size();
+        Mzz /= points.size();
 
         Mz = Mxx + Myy;
         Cov_xy = Mxx*Myy - Mxy*Mxy;
@@ -310,8 +310,8 @@ public class RANSAC_circleFitter {
             mean_y += points.get(i).y_rot;
         }
 
-        mean_x /= (double)points.size();
-        mean_y /= (double)points.size();
+        mean_x /= points.size();
+        mean_y /= points.size();
 
         int i,iter,IterMAX=99;
 
@@ -335,12 +335,12 @@ public class RANSAC_circleFitter {
             Mzz += Zi*Zi;
         }
 
-        Mxx /= (double)points.size();
-        Myy /= (double)points.size();
-        Mxy /= (double)points.size();
-        Mxz /= (double)points.size();
-        Myz /= (double)points.size();
-        Mzz /= (double)points.size();
+        Mxx /= points.size();
+        Myy /= points.size();
+        Mxy /= points.size();
+        Mxz /= points.size();
+        Myz /= points.size();
+        Mzz /= points.size();
 
         Mz = Mxx + Myy;
         Cov_xy = Mxx*Myy - Mxy*Mxy;
@@ -407,8 +407,8 @@ public class RANSAC_circleFitter {
             mean_y += points.get(i)[1];
         }
 
-        mean_x /= (double)points.size();
-        mean_y /= (double)points.size();
+        mean_x /= points.size();
+        mean_y /= points.size();
 
         int i,iter,IterMAX=99;
 
@@ -432,12 +432,12 @@ public class RANSAC_circleFitter {
             Mzz += Zi*Zi;
         }
 
-        Mxx /= (double)points.size();
-        Myy /= (double)points.size();
-        Mxy /= (double)points.size();
-        Mxz /= (double)points.size();
-        Myz /= (double)points.size();
-        Mzz /= (double)points.size();
+        Mxx /= points.size();
+        Myy /= points.size();
+        Mxy /= points.size();
+        Mxz /= points.size();
+        Myz /= points.size();
+        Mzz /= points.size();
 
         Mz = Mxx + Myy;
         Cov_xy = Mxx*Myy - Mxy*Mxy;
@@ -481,7 +481,7 @@ public class RANSAC_circleFitter {
 
         }
 
-        this.cost /= (double)points.size();
+        this.cost /= points.size();
 
         //System.out.println("this.cost: " + this.cost);
     }
@@ -504,8 +504,8 @@ public class RANSAC_circleFitter {
             mean_y += points.get(i)[1];
         }
 
-        mean_x /= (double)points.size();
-        mean_y /= (double)points.size();
+        mean_x /= points.size();
+        mean_y /= points.size();
 
         int i,iter,IterMAX=99;
 
@@ -529,12 +529,12 @@ public class RANSAC_circleFitter {
             Mzz += Zi*Zi;
         }
 
-        Mxx /= (double)points.size();
-        Myy /= (double)points.size();
-        Mxy /= (double)points.size();
-        Mxz /= (double)points.size();
-        Myz /= (double)points.size();
-        Mzz /= (double)points.size();
+        Mxx /= points.size();
+        Myy /= points.size();
+        Mxy /= points.size();
+        Mxz /= points.size();
+        Myz /= points.size();
+        Mzz /= points.size();
 
         Mz = Mxx + Myy;
         Cov_xy = Mxx*Myy - Mxy*Mxy;
@@ -602,8 +602,8 @@ public class RANSAC_circleFitter {
             mean_y += points.get(i).y;
         }
 
-        mean_x /= (double)points.size();
-        mean_y /= (double)points.size();
+        mean_x /= points.size();
+        mean_y /= points.size();
 
         minCost = Double.POSITIVE_INFINITY;
         boolean solution_found = false;
@@ -716,7 +716,7 @@ public class RANSAC_circleFitter {
 
             }
 
-            distanceSum /= (double)points.size();
+            distanceSum /= points.size();
 
             cost_all = distanceSum;
             //System.out.println("cost_all: " + cost_all);
@@ -778,8 +778,8 @@ public class RANSAC_circleFitter {
             mean_y += points.get(i).y_rot;
         }
 
-        mean_x /= (double)points.size();
-        mean_y /= (double)points.size();
+        mean_x /= points.size();
+        mean_y /= points.size();
 
         minCost = Double.POSITIVE_INFINITY;
         boolean solution_found = false;
@@ -895,7 +895,7 @@ public class RANSAC_circleFitter {
 
             }
 
-            distanceSum /= (double)points.size();
+            distanceSum /= points.size();
 
             cost_all = distanceSum;
             //System.out.println("cost_all: " + cost_all);
@@ -960,8 +960,8 @@ public class RANSAC_circleFitter {
         double fraction_of_too_many_inside = 0.2;
 
 
-        mean_x /= (double)points.size();
-        mean_y /= (double)points.size();
+        mean_x /= points.size();
+        mean_y /= points.size();
 
         minCost = Double.POSITIVE_INFINITY;
         boolean solution_found = false;
@@ -1111,7 +1111,7 @@ public class RANSAC_circleFitter {
 
             }
 
-            distanceSum /= (double)ransac_inlier_points_a.size();
+            distanceSum /= ransac_inlier_points_a.size();
 
             cost_all = distanceSum;
             //System.out.println("cost_all: " + cost_all);
@@ -1174,8 +1174,8 @@ public class RANSAC_circleFitter {
             mean_y += points.get(i)[1];
         }
 
-        mean_x /= (double)points.size();
-        mean_y /= (double)points.size();
+        mean_x /= points.size();
+        mean_y /= points.size();
 
         minCost = Double.POSITIVE_INFINITY;
         boolean solution_found = false;
@@ -1306,7 +1306,7 @@ public class RANSAC_circleFitter {
 
             }
 
-            distanceSum /= (double)ransac_inlier_points_a.size();
+            distanceSum /= ransac_inlier_points_a.size();
 
             cost_all = distanceSum;
             //System.out.println("cost_all: " + cost_all);
@@ -1375,8 +1375,8 @@ public class RANSAC_circleFitter {
             mean_y += points.get(i)[1];
         }
 
-        mean_x /= (double)points.size();
-        mean_y /= (double)points.size();
+        mean_x /= points.size();
+        mean_y /= points.size();
 
         minCost = Double.POSITIVE_INFINITY;
         boolean solution_found = false;
@@ -1534,7 +1534,7 @@ public class RANSAC_circleFitter {
 
             }
 
-            distanceSum /= (double)ransac_inlier_points_a.size();
+            distanceSum /= ransac_inlier_points_a.size();
 
             cost_all = distanceSum;
             //System.out.println("cost_all: " + cost_all);
@@ -1604,8 +1604,8 @@ public class RANSAC_circleFitter {
             mean_y += points.get(i)[1];
         }
 
-        mean_x /= (double)points.size();
-        mean_y /= (double)points.size();
+        mean_x /= points.size();
+        mean_y /= points.size();
 
         minCost = Double.POSITIVE_INFINITY;
         boolean solution_found = false;
@@ -1759,7 +1759,7 @@ public class RANSAC_circleFitter {
 
             }
 
-            distanceSum /= (double)ransac_inlier_points_a.size();
+            distanceSum /= ransac_inlier_points_a.size();
 
             cost_all = distanceSum;
             //System.out.println("cost_all: " + cost_all);
@@ -1888,7 +1888,7 @@ public class RANSAC_circleFitter {
 
     /** Circular ring sample points. */
     //private Point2D.Double[] points;
-    private ArrayList<Point2D.Double> points_list;
+    private final ArrayList<Point2D.Double> points_list;
     /** Current cost function value. */
     public double J;
 

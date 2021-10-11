@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 public class neuralNetWorkTest {
 
-    private static Logger log = LoggerFactory.getLogger(neuralNetWorkTest.class);
+    private static final Logger log = LoggerFactory.getLogger(neuralNetWorkTest.class);
     //private final BatchNormalization normalizer_batch;
 
     public neuralNetWorkTest(argumentReader aR) throws  Exception{

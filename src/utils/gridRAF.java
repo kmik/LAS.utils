@@ -187,11 +187,7 @@ public class gridRAF implements Closeable {
     }
 
     public boolean check(){
-        if(raFileLen < 250){
-            return false;
-        }
-
-        return true;
+        return raFileLen >= 250;
     }
 
     public void refresh() throws IOException{
@@ -1392,14 +1388,14 @@ public class gridRAF implements Closeable {
         this.writeUnsignedShort((short)pointDataRecordLength);// = braf.readUnsignedShort();
 
         /* Number of point records */
-        this.writeUnsignedInt((int)0);// = braf.readUnsignedInt();
+        this.writeUnsignedInt(0);// = braf.readUnsignedInt();
 
         /* Number of points by return 0,1 ... 4, 5 */
-        this.writeUnsignedInt((int)0);
-        this.writeUnsignedInt((int)0);
-        this.writeUnsignedInt((int)0);
-        this.writeUnsignedInt((int)0);
-        this.writeUnsignedInt((int)0);
+        this.writeUnsignedInt(0);
+        this.writeUnsignedInt(0);
+        this.writeUnsignedInt(0);
+        this.writeUnsignedInt(0);
+        this.writeUnsignedInt(0);
 
 
         /* X scale factor */

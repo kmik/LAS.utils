@@ -455,10 +455,7 @@ public class PointInclusionRule{
 		*/
 
 		if(keep_classification != -999){
-			if(tempPoint.classification == keep_classification)
-				return true;
-			else
-				return false;
+			return tempPoint.classification == keep_classification;
 		}
 
 		if(io == readOrWrite){
@@ -594,65 +591,35 @@ public class PointInclusionRule{
 
 				
 			if(first_only == true)
-				if(tempPoint.returnNumber == 1)
-					return true;
-				else
-					return false;
+				return tempPoint.returnNumber == 1;
 
 			if(last_only == true)
-				if(tempPoint.returnNumber == tempPoint.numberOfReturns)
-					return true;
-				else
-					return false;
+				return tempPoint.returnNumber == tempPoint.numberOfReturns;
 
 
 			if(keep_first == true)
-				if(tempPoint.returnNumber == 1)
-					return true;
-				else
-					return false;
+				return tempPoint.returnNumber == 1;
 
 			if(keep_last == true)
-				if(tempPoint.returnNumber == tempPoint.numberOfReturns)
-					return true;
-				else
-					return false;
+				return tempPoint.returnNumber == tempPoint.numberOfReturns;
 
 			if(keep_middle == true)
-				if(tempPoint.numberOfReturns != 1 && tempPoint.returnNumber != 1 && tempPoint.returnNumber != tempPoint.numberOfReturns)
-					return true;
-				else
-					return false;
+				return tempPoint.numberOfReturns != 1 && tempPoint.returnNumber != 1 && tempPoint.returnNumber != tempPoint.numberOfReturns;
 
 			if(keep_double == true)
-				if(tempPoint.numberOfReturns == 2)
-					return true;
-				else
-					return false;
+				return tempPoint.numberOfReturns == 2;
 
 			if(keep_triple == true)
-				if(tempPoint.numberOfReturns == 3)
-					return true;
-				else
-					return false;
+				return tempPoint.numberOfReturns == 3;
 
 			if(keep_quadruple == true)
-				if(tempPoint.numberOfReturns == 4)
-					return true;
-				else
-					return false;
+				return tempPoint.numberOfReturns == 4;
 
 			if(keep_quintuple == true)
-				if(tempPoint.numberOfReturns == 5)
-					return true;
-				else
-					return false;
+				return tempPoint.numberOfReturns == 5;
 
 			if(keep_user_data != -999)
-				if(tempPoint.userData == keep_user_data)
-					return true;
-				else
-					return false;
+				return tempPoint.userData == keep_user_data;
 
 
 			if(this.translate_x != -999)

@@ -38,13 +38,13 @@ public class LevenbergMarquardt {
     private double DELTA = 0.1;
 
     // Dampening. Larger values means it's more like gradient descent
-    private double initialLambda;
+    private final double initialLambda;
 
     // the function that is optimized
     private ResidualFunction function;
 
     // the optimized parameters and associated costs
-    private DMatrixRMaj candidateParameters = new DMatrixRMaj(1,1);
+    private final DMatrixRMaj candidateParameters = new DMatrixRMaj(1,1);
 
     public double initialResiduals;
     public double finalResiduals;
@@ -55,20 +55,20 @@ public class LevenbergMarquardt {
     public double diameter = 0.0;
 
     // used by matrix operations
-    private DMatrixRMaj g = new DMatrixRMaj(1,1);            // gradient
-    private DMatrixRMaj g_simple = new DMatrixRMaj(1,1);            // gradient
-    private DMatrixRMaj H = new DMatrixRMaj(1,1);            // Hessian approximation
-    private DMatrixRMaj Hdiag = new DMatrixRMaj(1,1);
-    private DMatrixRMaj negativeStep = new DMatrixRMaj(1,1);
+    private final DMatrixRMaj g = new DMatrixRMaj(1,1);            // gradient
+    private final DMatrixRMaj g_simple = new DMatrixRMaj(1,1);            // gradient
+    private final DMatrixRMaj H = new DMatrixRMaj(1,1);            // Hessian approximation
+    private final DMatrixRMaj Hdiag = new DMatrixRMaj(1,1);
+    private final DMatrixRMaj negativeStep = new DMatrixRMaj(1,1);
 
     // variables used by the numerical jacobian algorithm
-    private DMatrixRMaj temp0 = new DMatrixRMaj(1,1);
-    private DMatrixRMaj temp1 = new DMatrixRMaj(1,1);
+    private final DMatrixRMaj temp0 = new DMatrixRMaj(1,1);
+    private final DMatrixRMaj temp1 = new DMatrixRMaj(1,1);
     // used when computing d and H variables
     public DMatrixRMaj residuals = new DMatrixRMaj(1,1);
 
     // Where the numerical Jacobian is stored.
-    private DMatrixRMaj jacobian = new DMatrixRMaj(1,1);
+    private final DMatrixRMaj jacobian = new DMatrixRMaj(1,1);
 
     public double getInitialCost() {
         return initialCost;

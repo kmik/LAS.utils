@@ -14,7 +14,7 @@ import java.util.List;
 public class QuadTree<T> implements Serializable {
 
 
-    private Node<T> root_;
+    private final Node<T> root_;
     private int count_ = 0;
 
     /**

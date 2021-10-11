@@ -820,7 +820,7 @@ public class createCHM{
             
             for (int i = 0; i < rows; i++){
                 for(int j = 0; j < cols; j++){
-                     temppi2[i][j] = (double)input[i][j];
+                     temppi2[i][j] = input[i][j];
                      original[i][j] = input[i][j];
                 }
             }
@@ -2338,8 +2338,8 @@ public class createCHM{
 
 		public boolean isIsolated(Pixel in){
 
-			int x = (int)in.x;
-			int y = (int)in.y;
+			int x = in.x;
+			int y = in.y;
 
 			int count = 0;
 
@@ -2358,10 +2358,7 @@ public class createCHM{
 					}
 				}
 			}
-			if(count > 4)
-				return true;
-			else
-				return false;
+            return count > 4;
 
 		}
 
@@ -2456,12 +2453,10 @@ public class createCHM{
 			//if(this.cellCount <= 5)
 				//return true;
 
-			if(stat.getVariance() < 1.0)	// (Math.abs((midX2 - minX2) - (midY2 - minY2)) <= 1.0 && 
-				return true;
+            // (Math.abs((midX2 - minX2) - (midY2 - minY2)) <= 1.0 &&
+            return stat.getVariance() < 1.0;
 
-			return false;
-
-		}
+        }
 
 		public double euclideanDistance(double x1, double y1, double x2, double y2){
 
@@ -2568,20 +2563,14 @@ public class createCHM{
 		}
 
 		public boolean pointInCircle(double[] point, double[] plotCenter,double radi){
-         
-         if(Math.sqrt(Math.pow(Math.abs(point[1]-plotCenter[1]),2.0)+Math.pow(Math.abs(point[0]-plotCenter[0]),2.0)) <= radi)
-                 return true;
-                 else{
-                         return false; }
+
+            return Math.sqrt(Math.pow(Math.abs(point[1] - plotCenter[1]), 2.0) + Math.pow(Math.abs(point[0] - plotCenter[0]), 2.0)) <= radi;
          
  		}
 
  		public boolean pointInCircle(int pointX, int pointY, int plotCenterX, int plotCenterY, int radi){
-         
-         if(Math.sqrt(Math.pow(Math.abs(pointY - plotCenterY),2.0) + Math.pow(Math.abs(pointX - plotCenterX),2.0)) <= radi)
-                 return true;
-                 else{
-                         return false; }
+
+            return Math.sqrt(Math.pow(Math.abs(pointY - plotCenterY), 2.0) + Math.pow(Math.abs(pointX - plotCenterX), 2.0)) <= radi;
          
  		}
 
@@ -2692,8 +2681,8 @@ public class createCHM{
 
             Pixel px = null;
 
-            int x = (int)p.x;
-            int y = (int)p.y;
+            int x = p.x;
+            int y = p.y;
 
             px = i.get(x - 1, y - 1);
 
@@ -2732,11 +2721,7 @@ public class createCHM{
             }
             px = i.get(x - 1, y + 0);
 
-            if(px.id == id && px.z < p.z){
-                return false;
-            }
-
-            return true;
+            return px.id != id || !(px.z < p.z);
 
         }
 
@@ -2860,7 +2845,7 @@ public class createCHM{
         				temp.y > 0 && temp.y < (this.image.yDim - 1)){ //  || temp.id == this.id
 
         				///if(true){
-        				if(pointInCircle((int)temp.x, (int)temp.y, (int)xMiddle, (int)yMiddle, 
+        				if(pointInCircle(temp.x, temp.y, (int)xMiddle, (int)yMiddle,
         						(int)(this.minDistance * 4.5))){
 
         					this.first = false;
@@ -2909,7 +2894,7 @@ public class createCHM{
 
                             previous.add(new double[]{temp.x, temp.y, temp.z});
 
-        					image.get((int)temp.x, (int)temp.y).attach(this.id);
+        					image.get(temp.x, temp.y).attach(this.id);
                             
                             sumZLastIteration += temp.z;
 
@@ -3020,7 +3005,7 @@ public class createCHM{
 
                         previous.add(new double[]{temp.x, temp.y, temp.z});
 
-                        image.get((int)temp.x, (int)temp.y).attach(this.id);
+                        image.get(temp.x, temp.y).attach(this.id);
                         
                         sumZLastIteration += temp.z;
 
@@ -3505,7 +3490,7 @@ public class createCHM{
                         //if(key == 4 && t.size() > 1)
                           //  System.out.println(distance);
 
-                        distance = euclideanDistance(treeTopLocations.get((int)key)[0], treeTopLocations.get((int)key)[1],
+                        distance = euclideanDistance(treeTopLocations.get(key)[0], treeTopLocations.get(key)[1],
                                     x, y);
                         //System.out.println(distance + " " + t.size());
                         /*
@@ -3524,11 +3509,11 @@ public class createCHM{
                         }
                     }   
 
-                    if(image.get(x, y).z >= altaat.get((int)output).zMiddle * 0.25 && distance < 12){
+                    if(image.get(x, y).z >= altaat.get(output).zMiddle * 0.25 && distance < 12){
                         image.get(x, y).attach(output);
-                        altaat.get((int)output).add(image.get(x, y));
+                        altaat.get(output).add(image.get(x, y));
 
-                        System.out.println("Area: " + altaat.get((int)output).area());
+                        System.out.println("Area: " + altaat.get(output).area());
                         image.get(x, y).dequeue();
                     }
 
@@ -3641,7 +3626,7 @@ public class createCHM{
                 if(t.size() > 0){
                     for(int key : t.keySet()){
 
-                        distance = euclideanDistance(treeTopLocations.get((int)key)[0], treeTopLocations.get((int)key)[1],
+                        distance = euclideanDistance(treeTopLocations.get(key)[0], treeTopLocations.get(key)[1],
                                 x, y);
 
                         if( distance < minDistance){
@@ -3654,12 +3639,12 @@ public class createCHM{
 
                     image.raster_z_b.ReadRaster(x, y, 1, 1, floatArray);
 
-                    if((floatArray[0] >= altaat.get((int)output).zMiddle * 0.2 || floatArray[0] > 2.0) && distance < 12){
+                    if((floatArray[0] >= altaat.get(output).zMiddle * 0.2 || floatArray[0] > 2.0) && distance < 12){
 
                         //System.out.println("ATTACHED!");
                         image.attach(x, y, output);
                         //image.get(x, y).attach(output);
-                        altaat.get((int)output).add(new cellItem(x, y, 0.0f));
+                        altaat.get(output).add(new cellItem(x, y, 0.0f));
 
                         //System.out.println("Area: " + altaat.get((int)output).area());
                         image.dequeue(x, y);
@@ -4760,10 +4745,7 @@ public class createCHM{
 
             boolean good = false;
 
-            boolean poly = false;
-
-            if(this.polyBank.size() > 0)
-                poly = true;
+            boolean poly = this.polyBank.size() > 0;
 
             double[] haku = new double[2];
 
@@ -4772,8 +4754,8 @@ public class createCHM{
             if(poly) {
                 for (int i = 0; i < altaat.size(); i++) {
 
-                    haku[0] = canopy.minX + altaat.get(i).xMiddle * (double)canopy.resolution + ((double)canopy.resolution/2.0);
-                    haku[1] = canopy.maxY - altaat.get(i).yMiddle * (double)canopy.resolution - ((double)canopy.resolution/2.0);
+                    haku[0] = canopy.minX + altaat.get(i).xMiddle * canopy.resolution + (canopy.resolution /2.0);
+                    haku[1] = canopy.maxY - altaat.get(i).yMiddle * canopy.resolution - (canopy.resolution /2.0);
 
                     if (insidePolygons(haku) && waterbodyAreas.get(altaat.get(i).id) > 1.0f) {
                         rejected.add(altaat.get(i).id);
@@ -4789,8 +4771,8 @@ public class createCHM{
 
                 reader.readRecord(i, tempPoint);
 
-                x = (int)Math.floor((tempPoint.x - canopy.minX) / (double)canopy.resolution);   //X INDEX
-                y = (int)Math.floor((canopy.maxY - tempPoint.y) / (double)canopy.resolution);
+                x = (int)Math.floor((tempPoint.x - canopy.minX) / canopy.resolution);   //X INDEX
+                y = (int)Math.floor((canopy.maxY - tempPoint.y) / canopy.resolution);
 
                 image.raster_id_b.ReadRaster(x, y, 1, 1, floatArray);
 
@@ -5180,8 +5162,8 @@ public class createCHM{
 */
 				//pointCloud.readRecord(i, tempPoint);
 				//System.out.println(tempPoint.z);
-                    temppi[0] = Math.max((long)Math.floor((tempPoint.x - minX) / (double)resolution), 0);   //X INDEX
-                    temppi[1] = Math.max((long)Math.floor((maxY - tempPoint.y) / (double)resolution), 0);
+                    temppi[0] = Math.max((long)Math.floor((tempPoint.x - minX) / resolution), 0);   //X INDEX
+                    temppi[1] = Math.max((long)Math.floor((maxY - tempPoint.y) / resolution), 0);
 
                     band.ReadRaster((int)temppi[0], (int)temppi[1], 1, 1, floatArray);
 
@@ -5615,18 +5597,18 @@ public class createCHM{
 						temp[0] = i;
 						temp[1] = j;
 
-						if(treeTopBank.contains(homma.pair((long)i, (long)j))){
+						if(treeTopBank.contains(Cantor.pair(i, j))){
 							//System.out.println("GOT HERE");
 							return false;
 						}
 
-						if((double)input.get(j, i)[0] > (double)zMiddle)
+						if(input.get(j, i)[0] > zMiddle)
 							return false;
 
-                        if((double)input.get(j,i)[0] < (double)zMiddle * 0.75)
+                        if(input.get(j,i)[0] < zMiddle * 0.75)
                             return false;
 
-						bank.add((double)input.get(j, i)[0]);
+						bank.add(input.get(j, i)[0]);
 
 					}
 
@@ -5723,14 +5705,14 @@ public class createCHM{
                             temp[0] = i;
                             temp[1] = j;
 
-                            if(treeTopBank.contains(homma.pair((long)i, (long)j))){
+                            if(treeTopBank.contains(Cantor.pair(i, j))){
                                 //System.out.println("GOT HERE");
                                 return false;
                             }
 
                             //System.out.println(x +" " + kernelSize);
 
-                            if((double)input[i][j] > (double)zMiddle)
+                            if((double)input[i][j] > zMiddle)
                                 return false;
 
                             //if((double)input[i][j] <= 2)
@@ -5849,7 +5831,7 @@ public class createCHM{
                         temp[0] = i;
                         temp[1] = j;
 
-                        if(treeTopBank.contains(homma.pair((long)i, (long)j))){
+                        if(treeTopBank.contains(Cantor.pair(i, j))){
                             //System.out.println("GOT HERE");
                             return false;
                         }
@@ -6007,12 +5989,12 @@ public class createCHM{
                         //temp[2] = output2[i][j];
 						temp[2] = floatArray[0];
                         long[] temp2 = new long[2];
-						temp2[0] = (long)i;
-						temp2[1] = (long)j;
+						temp2[0] = i;
+						temp2[1] = j;
 						//temp[2] = output.get(j, i)[0];
 						String tempString = temp[0] + " " + temp[1];
 
-						treeTopBank.add(homma.pair((long)i, (long)j));
+						treeTopBank.add(Cantor.pair(i, j));
 						treeTops.add(temp);
 
 						aR.p_update.threadProgress[coreNumber-1]++;
@@ -6037,7 +6019,7 @@ public class createCHM{
 			gdalE out = new gdalE();
 
 			//out.hei(outName, output);
-            out.hei(outName, output2);
+            gdalE.hei(outName, output2);
 		    
 		}
 
@@ -6046,7 +6028,7 @@ public class createCHM{
             gdalE out = new gdalE();
 
             //out.hei(outName, output);
-            out.hei(outName, in, layers);
+            gdalE.hei(outName, in, layers);
             
         }
 
@@ -6054,7 +6036,7 @@ public class createCHM{
 			
 			gdalE out = new gdalE();
 
-			out.hei(outName, in);
+			gdalE.hei(outName, in);
 		    
 		}
 

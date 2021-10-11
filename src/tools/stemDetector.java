@@ -1619,7 +1619,7 @@ public class stemDetector{
                         heighti = heighti < 0 ? (byte) 255 : heighti;
 
                         tempPoint.userData = heighti;
-                        tempPoint.gpsTime = (double) stemDiams[(short) surface[xLocation][yLocation][zLocation].id];
+                        tempPoint.gpsTime = stemDiams[(short) surface[xLocation][yLocation][zLocation].id];
                         tempPoint.intensity = (short) surface[xLocation][yLocation][zLocation].id;
 
                         if (underStoreyIds.containsKey((short) surface[xLocation][yLocation][zLocation].id)) {

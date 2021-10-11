@@ -149,8 +149,7 @@ public class LasRelate{
 
             for(int j = 0; j < referencePolys.size(); j++){
 
-                if(testIntersection(pointCloudPolys.get(i), referencePolys.get(j)) &&
-                        !overlapping.contains(j))
+                if(testIntersection(pointCloudPolys.get(i), referencePolys.get(j)))
                     overlapping.add(j);
 
             }
@@ -439,7 +438,7 @@ public class LasRelate{
                 gdalE out = new gdalE();
 
                 //out.hei(outName, output);
-                out.hei("outName.tif", correctionRaster);
+                gdalE.hei("outName.tif", correctionRaster);
 
                 long n = tempReader.getNumberOfPointRecords();
 

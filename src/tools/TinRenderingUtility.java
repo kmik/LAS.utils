@@ -258,7 +258,7 @@ public class TinRenderingUtility {
     int i = s.lastIndexOf(".");
     String fmt = null;
     if (i > 0) {
-      fmt = s.substring(i + 1, s.length());
+      fmt = s.substring(i + 1);
       if ("png".equalsIgnoreCase(fmt)) {
         fmt = "PNG";
       } else if ("jpg".equalsIgnoreCase(fmt)) {

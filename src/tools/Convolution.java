@@ -611,8 +611,8 @@ public class Convolution extends Thread {
 				      double [][] kernel,
 				      int kernelWidth, int kernelHeight,
 				      int iterations){
-    double [][] newInput = (double [][]) input.clone();
-    double [][] output = (double [][]) input.clone();
+    double [][] newInput = input.clone();
+    double [][] output = input.clone();
     for(int i=0;i<iterations;++i){
       int smallWidth = width-kernelWidth+1;
       int smallHeight = height-kernelHeight+1;
@@ -621,7 +621,7 @@ public class Convolution extends Thread {
 			     kernel,kernelWidth,kernelHeight);
       width = smallWidth;
       height = smallHeight;
-      newInput = (double [][]) output.clone();
+      newInput = output.clone();
     }
     return output;
   }
@@ -642,8 +642,8 @@ public class Convolution extends Thread {
 				      double [][] kernel,
 				      int kernelWidth, int kernelHeight,
 				      int iterations){
-    double [][] newInput = (double [][]) input.clone();
-    double [][] output = (double [][]) input.clone();
+    double [][] newInput = input.clone();
+    double [][] output = input.clone();
 
     for(int i=0;i<iterations;++i){
       output = new double [width][height];
@@ -651,7 +651,7 @@ public class Convolution extends Thread {
       output = convolution2DPadded(newInput,width,height,
 			     kernel,kernelWidth,kernelHeight);
 //System.out.println("conOUT(50,50): "+output[50][50]);
-      newInput = (double [][]) output.clone();
+      newInput = output.clone();
     }
     return output;
   }

@@ -677,10 +677,7 @@ public class Boundary extends tool{
             return false;
         }
         double u = (cx * by - cy * bx) / b_dot_d_perp;
-        if (u < 0 || u > 1) {
-            return false;
-        }
-        return true;
+        return !(u < 0) && !(u > 1);
     }
 
     /**
@@ -776,7 +773,7 @@ public class Boundary extends tool{
 
         }
 
-        hulli = conkaavi.calculateConcaveHull(pisteet, 100);
+        hulli = ConcaveHull.calculateConcaveHull(pisteet, 100);
 
         String oput = "";
 

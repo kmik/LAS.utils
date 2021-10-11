@@ -102,10 +102,7 @@ public class simulatedAnnealing {
         double powi = ((oldCost - newCost) / t);
         double a = Math.pow(e, powi);
 
-        if(random < a)
-            return true;
-        else
-            return false;
+        return random < a;
 
     }
 

@@ -1656,8 +1656,8 @@ public class GroundDetector{
             stdResolution = 4;
         }
 */
-        numberOfPixelsXstd = (int)Math.ceil((maxX - minX) / (double)stdResolution);
-        numberOfPixelsYstd = (int)Math.ceil((maxY - minY) / (double)stdResolution);
+        numberOfPixelsXstd = (int)Math.ceil((maxX - minX) / stdResolution);
+        numberOfPixelsYstd = (int)Math.ceil((maxY - minY) / stdResolution);
 
         /* This will include statistics from stdResolution * stdResolution sized
          area as follows:
@@ -1759,7 +1759,7 @@ public class GroundDetector{
 
                 pointCloud.readFromBuffer(tempPoint);
                 //if(isLastOfManyOrOnly(tempPoint))
-                if(rule.ask(tempPoint, (int)i, true)){
+                if(rule.ask(tempPoint, i, true)){
 
                     temppi[0] = (long)Math.floor((tempPoint.x - minX) / (double)axelssonGridSize);   //X INDEX
                     temppi[1] = (long)Math.floor((maxY - tempPoint.y) / (double)axelssonGridSize);
@@ -1793,8 +1793,8 @@ public class GroundDetector{
 
                     }
 */
-                    smallX = (int)((tempPoint.x - minX) / (double)stdResolution);
-                    smallY = (int)((maxY - tempPoint.y) / (double)stdResolution);
+                    smallX = (int)((tempPoint.x - minX) / stdResolution);
+                    smallY = (int)((maxY - tempPoint.y) / stdResolution);
 
                     statistics[smallX][smallY][0]++;
 
@@ -2076,11 +2076,7 @@ public class GroundDetector{
         if(point.numberOfReturns == 1 || point.numberOfReturns == 0)
             return true;
 
-        if(point.returnNumber == point.numberOfReturns){
-            return true;
-        }
-
-        return false;
+        return point.returnNumber == point.numberOfReturns;
     }
 
     /**
@@ -2118,8 +2114,8 @@ public class GroundDetector{
         int n_x = 0;
         int n_y = 0;
 
-        n_x = (int)Math.ceil((maxX - minX) / (double)aR.step);
-        n_y = (int)Math.ceil((maxY - minY) / (double)aR.step);
+        n_x = (int)Math.ceil((maxX - minX) / aR.step);
+        n_y = (int)Math.ceil((maxY - minY) / aR.step);
 
 
         if(!pointCloud.isIndexed){
@@ -2504,10 +2500,7 @@ public class GroundDetector{
         System.out.println();
 */
 
-        if(pointsRead > 0)
-            return true;
-        else
-            return false;
+        return pointsRead > 0;
 
     }
 
@@ -2531,6 +2524,7 @@ public class GroundDetector{
 
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean getMarkBit(BitSet bitset, final IQuadEdge edge) {
         int index = edge.getIndex();
         return bitset.get(index);
@@ -2552,11 +2546,8 @@ public class GroundDetector{
 
                     CC.compute(e.getA(), f.getA(), r.getA());
 
-                    boolean isInside = false;
-
-                    if(CC.getX() < inside_x + aR.step && CC.getX() >= inside_x &&
-                            CC.getY() >= inside_y - aR.step && CC.getY() < inside_y)
-                        isInside = true;
+                    boolean isInside = CC.getX() < inside_x + aR.step && CC.getX() >= inside_x &&
+                            CC.getY() >= inside_y - aR.step && CC.getY() < inside_y;
 
                     if(isInside) {
 

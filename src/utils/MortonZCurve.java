@@ -18,7 +18,7 @@ public class MortonZCurve {
 
                                 (byte) (Expand2(y.byteValue()).byteValue() << 1) +
 
-                                (byte) (Expand2(x.byteValue()).byteValue()));
+                                Expand2(x.byteValue()).byteValue());
 
     }
 

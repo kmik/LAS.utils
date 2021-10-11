@@ -1991,7 +1991,7 @@ public class argumentReader {
             tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
         }
 
-        String extensionHere = tempFile.getName().substring(tempFile.getName().lastIndexOf("."), tempFile.getName().length());
+        String extensionHere = tempFile.getName().substring(tempFile.getName().lastIndexOf("."));
         //System.out.println("EXIST " + tempFile.getAbsolutePath());
         if(tempFile.exists()){
             //tempPath = pointClouds.get(i).getFile().getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las";

@@ -102,7 +102,7 @@ public class GaussianSmooth extends Thread {
 
     //print(gaussianKernel);
 
-    output = convolution.convolution2DPadded(input,width,height,
+    output = Convolution.convolution2DPadded(input,width,height,
 					   gaussianKernel,ks,ks);
     return output;
 
@@ -117,7 +117,7 @@ public class GaussianSmooth extends Thread {
     gaussianKernel = gaussian2D(theta,ks);
 
 
-    convolution.convolution2DPadded_tif(input, output, width,height,
+    Convolution.convolution2DPadded_tif(input, output, width,height,
             gaussianKernel,ks,ks);
 
   }
@@ -149,7 +149,7 @@ public class GaussianSmooth extends Thread {
 
     //print(gaussianKernel);
 
-    output = convolution.convolution2DPadded2(input,width,height,
+    output = Convolution.convolution2DPadded2(input,width,height,
              kernelList,ks,ks, tHolds);
     return output;
   }

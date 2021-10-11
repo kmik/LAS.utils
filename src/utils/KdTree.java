@@ -28,7 +28,7 @@ import java.util.TreeSet;
  */
 public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
 
-    private int k = 3;
+    private final int k = 3;
     private KdNode root = null;
 
     private static final Comparator<XYZPoint> X_COMPARATOR = new Comparator<XYZPoint>() {
@@ -426,7 +426,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
                 nodePoint = node.id.z;
                 valuePlusDistance = value.z - lastDistance;
             }
-            boolean lineIntersectsCube = ((valuePlusDistance <= nodePoint) ? true : false);
+            boolean lineIntersectsCube = (valuePlusDistance <= nodePoint);
 
             // Continue down lesser branch
             if (lineIntersectsCube)
@@ -447,7 +447,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
                 nodePoint = node.id.z;
                 valuePlusDistance = value.z + lastDistance;
             }
-            boolean lineIntersectsCube = ((valuePlusDistance >= nodePoint) ? true : false);
+            boolean lineIntersectsCube = (valuePlusDistance >= nodePoint);
 
             // Continue down greater branch
             if (lineIntersectsCube)
@@ -578,9 +578,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
                 return false;
 
             KdNode kdNode = (KdNode) obj;
-            if (this.compareTo(kdNode) == 0)
-                return true;
-            return false;
+            return this.compareTo(kdNode) == 0;
         }
 
         /**
@@ -723,9 +721,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
                 return false;
             if (Double.compare(this.y, xyzPoint.y)!=0)
                 return false;
-            if (Double.compare(this.z, xyzPoint.z)!=0)
-                return false;
-            return true;
+            return Double.compare(this.z, xyzPoint.z) == 0;
         }
 
         /**

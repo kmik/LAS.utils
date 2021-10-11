@@ -71,7 +71,7 @@ public class neuralNetworkHyperparameterOptimization_convolution_mix {
     public static DataSetIterator test_iter_2 = null;
 
 
-    private static Logger log = LoggerFactory.getLogger(neuralNetWorkTest_3d_treespecies.class);
+    private static final Logger log = LoggerFactory.getLogger(neuralNetWorkTest_3d_treespecies.class);
     //private final BatchNormalization normalizer_batch;
 
     public neuralNetworkHyperparameterOptimization_convolution_mix(argumentReader aR) throws  Exception {
@@ -603,14 +603,14 @@ public class neuralNetworkHyperparameterOptimization_convolution_mix {
         //MultiDataSetIterator multiDataSetIterator_test = new JointMultiDataSetIterator(test_1_iterator, test_2_iterator);
         MultiDataSetIterator multiDataSetIterator_test = new JointMultiDataSetIterator(1, test_2_iterator, test_1_iterator);
 
-        this.train_iter_multi = multiDataSetIterator_train;
-        this.test_iter_multi = multiDataSetIterator_test;
+        train_iter_multi = multiDataSetIterator_train;
+        test_iter_multi = multiDataSetIterator_test;
 
-        this.train_iter = train_1_iterator;
-        this.train_iter_2 = train_2_iterator;
+        train_iter = train_1_iterator;
+        train_iter_2 = train_2_iterator;
 
-        this.test_iter = test_1_iterator;
-        this.test_iter_2 = test_2_iterator;
+        test_iter = test_1_iterator;
+        test_iter_2 = test_2_iterator;
 
         System.out.println("END READING BIN!");
 

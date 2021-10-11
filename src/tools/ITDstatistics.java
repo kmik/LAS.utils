@@ -356,9 +356,9 @@ public class ITDstatistics{
 
         for(int i = 0; i < dataList.size(); i++){
 
-            R[i] = (double)dataList.get(i).R;
-            G[i] = (double)dataList.get(i).G;
-            B[i] = (double)dataList.get(i).B;
+            R[i] = dataList.get(i).R;
+            G[i] = dataList.get(i).G;
+            B[i] = dataList.get(i).B;
 
         }
 
@@ -380,9 +380,9 @@ public class ITDstatistics{
         for(int i = 0; i < dataList.size(); i++){
 
             //(features2.get(i)[j] - mean) / std;
-            Rn[i] = (double)(dataList.get(i).R - Rmean) / Rstd;
-            Gn[i] = (double)(dataList.get(i).G - Gmean) / Gstd;
-            Bn[i] = (double)(dataList.get(i).B - Bmean) / Bstd;
+            Rn[i] = (dataList.get(i).R - Rmean) / Rstd;
+            Gn[i] = (dataList.get(i).G - Gmean) / Gstd;
+            Bn[i] = (dataList.get(i).B - Bmean) / Bstd;
 
         }
 
@@ -676,9 +676,9 @@ public class ITDstatistics{
                 sumGRVI += GRVI_temp;
 
 
-                R.add((float)tempPointArray[3]);
-                G.add((float)tempPointArray[4]);
-                B.add((float)tempPointArray[5]);
+                R.add(tempPointArray[3]);
+                G.add(tempPointArray[4]);
+                B.add(tempPointArray[5]);
 
 
 					/*
@@ -1749,7 +1749,7 @@ public class ITDstatistics{
 
                     double delta = intens - mu[locatio];
                     mu[locatio] += delta / (double) densities_count[locatio];
-                    sum[locatio] += (double) ((double) densities_count[locatio] - 1) / (double) densities_count[locatio] * delta * delta;
+                    sum[locatio] += ((double) densities_count[locatio] - 1) / (double) densities_count[locatio] * delta * delta;
                 }
                 //sum++;
 
@@ -1845,8 +1845,8 @@ public class ITDstatistics{
             GLCM glcm_temp = new GLCM();
             glcm_temp.setHaralickDist(1);
 
-            glcm_temp.imageArray = new byte[]{};
-            glcm_temp.imageArray = ((DataBufferByte)(textureLayers.get(i).getDataBuffer())).getData();
+            GLCM.imageArray = new byte[]{};
+            GLCM.imageArray = ((DataBufferByte)(textureLayers.get(i).getDataBuffer())).getData();
 
             //System.out.println(Arrays.toString(glcm_temp.imageArray));
 
@@ -1878,7 +1878,7 @@ public class ITDstatistics{
         for(int i = 0; i < densities.length; i++){
 
             if(densities_count[i] > 1)
-                densities[i] /= (double)densities_count[i];
+                densities[i] /= densities_count[i];
                 //densities[i] /= Math.sqrt(sum[i] / ((double)densities_count[i] - 1));
                 //densities[i] = (double)densities_count[i] * ratio;
             else
@@ -2207,7 +2207,7 @@ public class ITDstatistics{
                 int[] pixelValue = new int[]{0};
                 int size = textureResolution_x*textureResolution_y;
 
-                StringBuilder sb = new StringBuilder("");
+                StringBuilder sb = new StringBuilder();
 
                 if(false)
                     for(int i = 0; i < textureLayers.size(); i++) {
@@ -2580,8 +2580,8 @@ public class ITDstatistics{
 
                 /* HERE WE MOVE THE FILE "index".tif to directory (treeBank[index][4]-1) */
 
-                String fileToBeMoved = "/home/koomikko/Documents/research/3d_tree_species/convolution_data/" + (int)indeksi + ".tif";
-                String moveTo = "/home/koomikko/Documents/research/3d_tree_species/convolution_data/" + (int)(treeBank[index][4]-1) + "/" + (int)indeksi + ".tif";
+                String fileToBeMoved = "/home/koomikko/Documents/research/3d_tree_species/convolution_data/" + indeksi + ".tif";
+                String moveTo = "/home/koomikko/Documents/research/3d_tree_species/convolution_data/" + (int)(treeBank[index][4]-1) + "/" + indeksi + ".tif";
 
                 try {
                     Files.move(Paths.get(fileToBeMoved), Paths.get(moveTo), StandardCopyOption.REPLACE_EXISTING);
@@ -3373,7 +3373,7 @@ public class ITDstatistics{
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
-                treeId = (int)tempPoint.pointSourceId;
+                treeId = tempPoint.pointSourceId;
 
                 xCoord= (int) Math.floor((tempPoint.x - pointCloud.getMinX()) / resolution);
                 yCoord = (int) Math.floor((pointCloud.getMaxY() - tempPoint.y) / resolution);
@@ -3485,7 +3485,7 @@ public class ITDstatistics{
 
                 pointCloud.readFromBuffer(tempPoint);
 
-                treeId = (int)tempPoint.pointSourceId;
+                treeId = tempPoint.pointSourceId;
 
                 /* Means this point is part of an understorey stem */
                 if(tempPoint.classification == 8) {
@@ -3784,12 +3784,7 @@ public class ITDstatistics{
 
     public static boolean pointInCircle(double[] point, double[] plotCenter,double radi){
 
-        if(Math.sqrt(Math.pow(Math.abs(point[1] - plotCenter[1]), 2.0) + Math.pow(Math.abs(point[0] - plotCenter[0]),2.0)) <= radi)
-            return true;
-
-        else{
-            return false;
-        }
+        return Math.sqrt(Math.pow(Math.abs(point[1] - plotCenter[1]), 2.0) + Math.pow(Math.abs(point[0] - plotCenter[0]), 2.0)) <= radi;
 
     }
 

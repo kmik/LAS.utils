@@ -317,8 +317,8 @@ class MKid4pointsLAS{
                         temp2[0] = mapx;
                         temp2[1] = mapy;
 
-                        long code1 = homma.pair(temp[0], temp[1]);
-                        long code2 = homma.pair(temp2[0], temp2[1]);
+                        long code1 = Cantor.pair(temp[0], temp[1]);
+                        long code2 = Cantor.pair(temp2[0], temp2[1]);
 
                         String tempString = " " + LASwrite.LASpoint2String(tempPoint, oparse);
                         outt.println(code2 + tempString + " " + code1);
@@ -522,7 +522,7 @@ class MKid4pointsLAS{
             //System.out.println(" ");
             //System.out.println(Integer.toString(aloitus).length());
             //System.out.println(" ");
-            String substringi = indeksit.get(indeksit.size() - 1).substring((Integer.toString(aloitus).length() + 1), (indeksit.get(indeksit.size() - 1).length()));
+            String substringi = indeksit.get(indeksit.size() - 1).substring((Integer.toString(aloitus).length() + 1));
             //System.out.println(substringi);
 
             while(indeksit.size() < 500){
@@ -652,12 +652,12 @@ class MKid4pointsLAS{
 
             for(int j = 0; j < size - 1; j++){
 
-                if(j > size * (double)(quantile/100.0) && quantile != 100){
+                if(j > size * (quantile/100.0) && quantile != 100){
                     peet[peelaskuri] = zets.get(j);
                     peelaskuri++;
                     quantile += 5;
                 }
-                if(j > size * (double)(quantile_int/100.0) && quantile_int != 100){
+                if(j > size * (quantile_int/100.0) && quantile_int != 100){
                     peet[peelaskuri_int] = intensity.get(j);
                     peelaskuri_int++;
                     quantile_int += 5;
@@ -735,10 +735,7 @@ class MKid4pointsLAS{
 
     public static boolean pointInCircle(double[] point, double[] plotCenter,double radi){
 
-        if(Math.sqrt(Math.pow(Math.abs(point[1]-plotCenter[1]),2.0)+Math.pow(Math.abs(point[0]-plotCenter[0]),2.0)) <= radi)
-            return true;
-        else{
-            return false; }
+        return Math.sqrt(Math.pow(Math.abs(point[1] - plotCenter[1]), 2.0) + Math.pow(Math.abs(point[0] - plotCenter[0]), 2.0)) <= radi;
 
     }
 
@@ -832,7 +829,7 @@ class MKid4pointsLAS{
             double max = zets.get(zets.size()-1);
 
             double size = zets.size();
-            peet[6] = (double) puuluku;
+            peet[6] = puuluku;
 
             peet[0] = sum/size;       //mean
             double mean = peet[0];
@@ -1379,11 +1376,11 @@ class MKid4pointsLAS{
                         }
                     } catch( IOException ioException ){
                         System.out.println(ioException.getMessage());
-                        System.out.println("");
+                        System.out.println();
                     }
                     catch( InterruptedException e ){
                         System.out.println(e.getMessage());
-                        System.out.println("");
+                        System.out.println();
                     }
                     //}
                 }
@@ -1738,9 +1735,9 @@ class MKid4pointsLAS{
 
 
                                                         if (!aR.split)
-                                                            pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), (int) p);
+                                                            pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), p);
                                                         else
-                                                            outputBuffers.get(valinta.get(va)).writePoint(tempPoint, aR.getInclusionRule(), (int) p);
+                                                            outputBuffers.get(valinta.get(va)).writePoint(tempPoint, aR.getInclusionRule(), p);
 
                                                         aR.p_update.lasclip_clippedPoints++;
 
@@ -1885,9 +1882,9 @@ class MKid4pointsLAS{
                                                 }
 
                                                 if(!aR.split)
-                                                    pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), (int) p);
+                                                    pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), p);
                                                 else
-                                                    outputBuffers.get(valinta.get(va)).writePoint(tempPoint, aR.getInclusionRule(), (int)p);
+                                                    outputBuffers.get(valinta.get(va)).writePoint(tempPoint, aR.getInclusionRule(), p);
                                                 //LasPoint clonePoint = (LasPoint) tempPoint.clone();
 
 
@@ -2361,7 +2358,7 @@ class MKid4pointsLAS{
                                                         }
 
 
-                                                            pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), (int)p);
+                                                            pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), p);
 
                                                         aR.p_update.lasclip_clippedPoints++;
 
@@ -2497,7 +2494,7 @@ class MKid4pointsLAS{
                                                 }
 
 
-                                                    pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), (int) p);
+                                                    pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), p);
 
                                                 //LasPoint clonePoint = (LasPoint) tempPoint.clone();
 
@@ -2597,7 +2594,7 @@ class MKid4pointsLAS{
 
             output += " " + point.classification;
 
-            output += " " + (double)point.gpsTime;
+            output += " " + point.gpsTime;
 
             output += " " + point.numberOfReturns;
 
@@ -2623,7 +2620,7 @@ class MKid4pointsLAS{
                 output += " " + point.classification;
 
             if(array[i] == ('t'))
-                output += " " + (double)point.gpsTime;
+                output += " " + point.gpsTime;
 
             if(array[i] == ('n'))
                 output += " " + point.numberOfReturns;
@@ -2675,10 +2672,7 @@ class MKid4pointsLAS{
 
     public static boolean isWithin(double[] extent, double x, double y){
 
-        if(x >= extent[0] && x <= extent[1] && y <= extent[3] && y >= extent[2])
-            return true;
-
-        return false;
+        return x >= extent[0] && x <= extent[1] && y <= extent[3] && y >= extent[2];
 
     }
 

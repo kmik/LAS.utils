@@ -154,9 +154,9 @@ public class VoxelNeighborhood {
                 good.set(i, pointIndexes[nearest.get(i).getIndex()]);
             }
 
-            colMeans[0] /= (double)nearest.size();
-            colMeans[1] /= (double)nearest.size();
-            colMeans[2] /= (double)nearest.size();
+            colMeans[0] /= nearest.size();
+            colMeans[1] /= nearest.size();
+            colMeans[2] /= nearest.size();
 
             Data tempData = new Data(neighbor, colMeans);
 
@@ -181,9 +181,9 @@ public class VoxelNeighborhood {
 
     public void calculateNormal(){
 
-        colMeans[0] /= (double)capacity;
-        colMeans[1] /= (double)capacity;
-        colMeans[2] /= (double)capacity;
+        colMeans[0] /= capacity;
+        colMeans[1] /= capacity;
+        colMeans[2] /= capacity;
 
         Data dat = new Data(data, colMeans);
 

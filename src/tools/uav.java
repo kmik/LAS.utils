@@ -270,7 +270,7 @@ public class uav {
                     System.out.println("!!!!!SAMEVALUE!!!!!!!");
                     System.out.println("in: " + in + " current: " + this.cost);
                     System.out.println("Diff x: " + (this.xOffset - x) + "\nDiff y: " + (this.yOffset - y));
-                    System.out.println("");
+                    System.out.println();
                     
                     if(Math.abs(x) <= Math.abs(this.getX()) && Math.abs(y) <= Math.abs(this.getY())){
 
@@ -544,8 +544,8 @@ public class uav {
             sum2 += ys[i];
         }
 
-        double mean1 = (double)sum1 / (double)xs.length;
-        double mean2 = (double)sum2 / (double)ys.length;
+        double mean1 = sum1 / (double)xs.length;
+        double mean2 = sum2 / (double)ys.length;
 
         for(int i = 0; i < n; ++i) {
 
@@ -590,8 +590,8 @@ public class uav {
                 sum2 += in2[i];
             }
         
-        mean1 = (double)sum1 / (double)in1.length;
-        mean2 = (double)sum2 / (double)in1.length;
+        mean1 = sum1 / (double)in1.length;
+        mean2 = sum2 / (double)in1.length;
 
 
         for(int i = 1; i < in1.length; i++){
@@ -777,13 +777,10 @@ public class uav {
 
         public boolean isInside(Chm in){
 
-            if(in.getY()[0] > yOrigin && 
-                in.getY()[1] < yBottom &&
-                in.getX()[0] < xOrigin &&
-                in.getX()[1] > xRight)
-                return true;
-            else
-                return false;
+            return in.getY()[0] > yOrigin &&
+                    in.getY()[1] < yBottom &&
+                    in.getX()[0] < xOrigin &&
+                    in.getX()[1] > xRight;
 
         }
 
@@ -1095,7 +1092,7 @@ public class uav {
         System.out.println("To be moved: " + toBeMoved + " (should be one)");
 
 
-        int maximumDifference = (int)(4);
+        int maximumDifference = 4;
 
         int n_ = (int)((double)maximumDifference/0.25);
 

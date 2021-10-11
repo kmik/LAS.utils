@@ -204,7 +204,7 @@ public class RunId4pointsLAS{
                 MKid4pointsLAS homma = new MKid4pointsLAS();
                 String delimiter = " ";
                 //System.out.println(outname);
-                homma.hilaJako(tiedostot, index_all, topleft, cellsize, outname, partionsize,j, k, buffer_size, oparse, output);
+                MKid4pointsLAS.hilaJako(tiedostot, index_all, topleft, cellsize, outname, partionsize,j, k, buffer_size, oparse, output);
 
             } catch (Exception e) {
                 System.out.println(e);
@@ -221,12 +221,12 @@ public class RunId4pointsLAS{
 
 
         protected BlockingQueue<LasPoint> blockingQueue = null;
-        private File outFile;
+        private final File outFile;
 
         private LASraf raOutput;
-        private PointInclusionRule rule;
+        private final PointInclusionRule rule;
 
-        private LASReader tempReader;
+        private final LASReader tempReader;
         BlockingQueue<byte[]> que;
 
         ArrayList<BlockingQueue<byte[]>> thread_ques;
@@ -341,7 +341,7 @@ public class RunId4pointsLAS{
     public static class WriterThread implements Runnable{
 
         protected BlockingQueue<String> blockingQueue = null;
-        private File outFile;
+        private final File outFile;
 
         public WriterThread(BlockingQueue<String> blockingQueue, File outFile2){
 
@@ -471,7 +471,7 @@ public class RunId4pointsLAS{
         private final BlockingQueue<String> queue;
         private final BlockingQueue<LasPoint> queueLAS;
         private final argumentReader aR;
-        private BlockingQueue<byte[]> que;
+        private final BlockingQueue<byte[]> que;
         LASraf mergeOutput;
 
         ArrayList<pointWriterMultiThread> outputFiles;
@@ -1504,7 +1504,7 @@ public class RunId4pointsLAS{
 
             else{
 
-                homma.hilaJako(tiedostot_sorted, indeksi_pathi_all, origo, Double.parseDouble(cellSize), (aR.output + pathSep + outName), Integer.parseInt(karttaLehtiKoko), 0,0, aR.buffer, aR.oparse, aR.output);
+                MKid4pointsLAS.hilaJako(tiedostot_sorted, indeksi_pathi_all, origo, Double.parseDouble(cellSize), (aR.output + pathSep + outName), Integer.parseInt(karttaLehtiKoko), 0,0, aR.buffer, aR.oparse, aR.output);
             }
 
 

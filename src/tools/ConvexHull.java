@@ -11,7 +11,7 @@ import java.util.Arrays;
 
 public class ConvexHull {
 
-	private int n;
+	private final int n;
 	private Point[] points;
 
 	public ConvexHull(Point[] points) {

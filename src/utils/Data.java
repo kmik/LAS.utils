@@ -266,9 +266,9 @@ public class Data {
             }
         }
 
-        colMeansMatrix[0] /= (double)input[0].length;
-        colMeansMatrix[1] /= (double)input[0].length;
-        colMeansMatrix[2] /= (double)input[0].length;
+        colMeansMatrix[0] /= input[0].length;
+        colMeansMatrix[1] /= input[0].length;
+        colMeansMatrix[2] /= input[0].length;
 
         return out;
     }

@@ -63,7 +63,7 @@ public class Noise{
         this.rule = aR.getInclusionRule();
 
         aR.p_update.lasnoise_stepSize = (int)this.step;
-        aR.p_update.lasnoise_few = (int)this.few;
+        aR.p_update.lasnoise_few = this.few;
 
         outWriteFile = aR.createOutputFile(pointCloud2);
 

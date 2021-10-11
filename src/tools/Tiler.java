@@ -288,17 +288,17 @@ public class Tiler{
 
                             //tempPoint.classification = 5;
 
-                            double xd = ((tempPoint.x - this.minX) / (double) sideLength);
+                            double xd = ((tempPoint.x - this.minX) / sideLength);
                             xd = xd - (double) (int) xd;
-                            double yd = ((this.maxY - tempPoint.y) / (double) sideLength);
+                            double yd = ((this.maxY - tempPoint.y) / sideLength);
                             yd = yd - (double) (int) yd;
 
 
-                            double distanceToRight = (1.0 - xd) * (double) sideLength;
-                            double distanceToLeft = (xd) * (double) sideLength;
+                            double distanceToRight = (1.0 - xd) * sideLength;
+                            double distanceToLeft = (xd) * sideLength;
 
-                            double distanceToBottom = (1.0 - yd) * (double) sideLength;
-                            double distanceToTop = (yd) * (double) sideLength;
+                            double distanceToBottom = (1.0 - yd) * sideLength;
+                            double distanceToTop = (yd) * sideLength;
 
                             if (distanceToRight < buffer)
                                 if (x + 1 < xMax)
@@ -465,17 +465,17 @@ public class Tiler{
 
                             //tempPoint.classification = 5;
 
-                            double xd = ((tempPoint.x - this.minX) / (double) sideLength);
+                            double xd = ((tempPoint.x - this.minX) / sideLength);
                             xd = xd - (double) (int) xd;
-                            double yd = ((this.maxY - tempPoint.y) / (double) sideLength);
+                            double yd = ((this.maxY - tempPoint.y) / sideLength);
                             yd = yd - (double) (int) yd;
 
 
-                            double distanceToRight = (1.0 - xd) * (double) sideLength;
-                            double distanceToLeft = (xd) * (double) sideLength;
+                            double distanceToRight = (1.0 - xd) * sideLength;
+                            double distanceToLeft = (xd) * sideLength;
 
-                            double distanceToBottom = (1.0 - yd) * (double) sideLength;
-                            double distanceToTop = (yd) * (double) sideLength;
+                            double distanceToBottom = (1.0 - yd) * sideLength;
+                            double distanceToTop = (yd) * sideLength;
 
                             if (distanceToRight < buffer)
                                 if (x + 1 < xMax)

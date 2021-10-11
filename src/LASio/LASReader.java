@@ -586,10 +586,10 @@ public class LASReader {
     extentti[2] = (int) Math.floor((this.maxY - minY1) / (double) spacing);
     extentti[3] = (int) Math.floor((this.maxY - maxY1) / (double) spacing);
 
-    n1 = (int) Math.min(extentti[0], extentti[1]);
-    n2 = (int) Math.max(extentti[0], extentti[1]);
-    n3 = (int) Math.min(extentti[2], extentti[3]);
-    n4 = (int) Math.max(extentti[2], extentti[3]);
+    n1 = Math.min(extentti[0], extentti[1]);
+    n2 = Math.max(extentti[0], extentti[1]);
+    n3 = Math.min(extentti[2], extentti[3]);
+    n4 = Math.max(extentti[2], extentti[3]);
 
     this.queriedIndexes2.clear();
 
@@ -643,10 +643,10 @@ public class LASReader {
     extentti[2] = (int)Math.floor( (this.maxY - minY1) / (double)spacing);
     extentti[3] = (int)Math.floor( (this.maxY - maxY1) / (double)spacing);
 
-    n1 = (int)Math.min(extentti[0], extentti[1]);
-    n2 = (int)Math.max(extentti[0], extentti[1]);
-    n3 = (int)Math.min(extentti[2], extentti[3]);
-    n4 = (int)Math.max(extentti[2], extentti[3]);
+    n1 = Math.min(extentti[0], extentti[1]);
+    n2 = Math.max(extentti[0], extentti[1]);
+    n3 = Math.min(extentti[2], extentti[3]);
+    n4 = Math.max(extentti[2], extentti[3]);
 
     this.queriedIndexes2.clear();
 
@@ -1331,21 +1331,21 @@ public class LASReader {
 
     if(pointDataRecordFormat == 2 || pointDataRecordFormat == 3 || pointDataRecordFormat == 5){
 
-      p.R = (int) ((braf.buffer.getChar())&0xffff);
+      p.R = (braf.buffer.getChar())&0xffff;
 
 
       //p.R = (int) ((braf.buffer.getChar())&0xffff);
 
 
-      p.G = (int) ((braf.buffer.getChar())&0xffff);
-      p.B = (int) ((braf.buffer.getChar())&0xffff);
+      p.G = (braf.buffer.getChar())&0xffff;
+      p.B = (braf.buffer.getChar())&0xffff;
 
     }
 
     if(pointDataRecordFormat == 4 || pointDataRecordFormat == 5){
       p.WavePacketDescriptorIndex = braf.buffer.get();
       p.ByteOffsetToWaveformData = braf.buffer.getLong();
-      p.WaveformPacketSizeInBytes = (int)braf.buffer.getInt();
+      p.WaveformPacketSizeInBytes = braf.buffer.getInt();
       p.ReturnPointWaveformLocation = braf.buffer.getFloat();
 
       p.x_t = braf.buffer.getFloat();

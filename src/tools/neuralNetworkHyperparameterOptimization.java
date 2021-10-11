@@ -65,7 +65,7 @@ import java.util.concurrent.TimeUnit;
 
 public class neuralNetworkHyperparameterOptimization {
 
-    private static Logger log = LoggerFactory.getLogger(neuralNetWorkTest_3d_treespecies.class);
+    private static final Logger log = LoggerFactory.getLogger(neuralNetWorkTest_3d_treespecies.class);
 
     public neuralNetworkHyperparameterOptimization(argumentReader aR) throws  Exception {
 

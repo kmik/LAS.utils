@@ -48,11 +48,7 @@ public class ConcaveHull {
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof Point) {
-                if (x.equals(((Point) obj).getX()) && y.equals(((Point) obj).getY())) {
-                    return true;
-                } else {
-                    return false;
-                }
+                return x.equals(((Point) obj).getX()) && y.equals(((Point) obj).getY());
             } else {
                 return false;
             }
@@ -163,12 +159,8 @@ public class ConcaveHull {
         Double pY = (a1 * c2 - a2 * c1) / tmp;
 
         // check if intersection y coordinate lies in line line segment
-        if ((pY > l1p1.getY() && pY > l1p2.getY()) || (pY > l2p1.getY() && pY > l2p2.getY())
-                || (pY < l1p1.getY() && pY < l1p2.getY()) || (pY < l2p1.getY() && pY < l2p2.getY())) {
-            return false;
-        }
-
-        return true;
+        return (pY <= l1p1.getY() || pY <= l1p2.getY()) && (pY <= l2p1.getY() || pY <= l2p2.getY())
+                && (pY >= l1p1.getY() || pY >= l1p2.getY()) && (pY >= l2p1.getY() || pY >= l2p2.getY());
     }
 
     private static boolean pointInPolygon(Point p, ArrayList<Point> pp) {

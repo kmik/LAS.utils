@@ -46,7 +46,7 @@ import static org.deeplearning4j.optimize.api.InvocationType.EPOCH_END;
 
 public class neuralNetWorkTest_3d_treespecies {
 
-    private static Logger log = LoggerFactory.getLogger(neuralNetWorkTest_3d_treespecies.class);
+    private static final Logger log = LoggerFactory.getLogger(neuralNetWorkTest_3d_treespecies.class);
     //private final BatchNormalization normalizer_batch;
 
     public neuralNetWorkTest_3d_treespecies(argumentReader aR) throws  Exception{

@@ -392,7 +392,7 @@ public class Matrix {
             }
             System.out.print("\n");
         }
-        System.out.println("");
+        System.out.println();
     }
 }
 

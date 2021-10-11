@@ -86,14 +86,14 @@ public class pointCloudMetrics {
 
             for(int i = 0 ; i < p_size; i++){
 
-                colnames.add("p_" + (double)(Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
+                colnames.add("p_" + (Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
                 output.add(Double.NaN);
 
             }
             counter22 = 0;
             for(int i = 0 ; i < p_size; i++){
 
-                colnames.add("p_" + (double)(Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_i" + suffix);
+                colnames.add("p_" + (Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_i" + suffix);
                 output.add(Double.NaN);
             }
             for(int i = 0; i < densities.length; i++) {
@@ -236,14 +236,14 @@ public class pointCloudMetrics {
 
                 for(int i = 0 ; i < p_size; i++){
 
-                    colnames.add("p_" + (double)(Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
+                    colnames.add("p_" + (Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
                     output.add(Double.NaN);
 
                 }
                 counter22 = 0;
                 for(int i = 0 ; i < p_size; i++){
 
-                    colnames.add("p_" + (double)(Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_i" + suffix);
+                    colnames.add("p_" + (Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_i" + suffix);
                     output.add(Double.NaN);
                 }
                 for(int i = 0; i < densities.length; i++) {
@@ -280,7 +280,7 @@ public class pointCloudMetrics {
             i_val = i_above_threshold.get(i);
 
             z_sum_run += z_val;
-            i_sum_run += (double)i_val;
+            i_sum_run += i_val;
 
             sd_z += ((z_val - mean_z) * (z_val - mean_z));
             sd_i += ((i_val - mean_i) * (i_val - mean_i));
@@ -324,12 +324,12 @@ public class pointCloudMetrics {
 
         if (z_above_threshold.size() % 2 == 0) {
             //System.out.println(z_above_threshold.size());
-            median_z = ( ((double) z_above_threshold.get(z_above_threshold.size() / 2) + (double) z_above_threshold.get(z_above_threshold.size() / 2 - 1) ) / 2.0);
+            median_z = ( (z_above_threshold.get(z_above_threshold.size() / 2) + z_above_threshold.get(z_above_threshold.size() / 2 - 1)) / 2.0);
 
             median_i = ( ((double) i_above_threshold.get(i_above_threshold.size() / 2) + (double) i_above_threshold.get(i_above_threshold.size() / 2 - 1)) / 2.0);
         }
         else {
-            median_z = (double) z_above_threshold.get(z_above_threshold.size() / 2);
+            median_z = z_above_threshold.get(z_above_threshold.size() / 2);
             median_i = (double) i_above_threshold.get(i_above_threshold.size() / 2);
         }
 
@@ -341,7 +341,7 @@ public class pointCloudMetrics {
 
         for(int j = 0 ; j < densities.length; j++){
 
-            densitiesOutput[j] /= (double)z.size();
+            densitiesOutput[j] /= z.size();
 
         }
 /*
@@ -419,14 +419,14 @@ public class pointCloudMetrics {
         counter = 0;
         for(int i = 0 ; i < percentiles_z.length; i++){
 
-            colnames.add("p_" + (double)(Math.round(percentiles_z_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
+            colnames.add("p_" + (Math.round(percentiles_z_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
             output.add(percentiles_z[counter++]);
 
         }
         counter = 0;
         for(int i = 0 ; i < percentiles_i.length; i++){
 
-            colnames.add("p_" + (double)(Math.round(percentiles_i_names[i] * 100.0d) / 100.0d) + "_i" + suffix);
+            colnames.add("p_" + (Math.round(percentiles_i_names[i] * 100.0d) / 100.0d) + "_i" + suffix);
             output.add(percentiles_i[counter++]);
         }
         for(int i = 0; i < densities.length; i++){
@@ -501,14 +501,14 @@ public class pointCloudMetrics {
 
             for(int i = 0 ; i < p_size; i++){
 
-                colnames.add("p_" + (double)(Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
+                colnames.add("p_" + (Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
                 output.add(Double.NaN);
 
             }
             counter22 = 0;
             for(int i = 0 ; i < p_size; i++){
 
-                colnames.add("p_" + (double)(Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_i" + suffix);
+                colnames.add("p_" + (Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_i" + suffix);
                 output.add(Double.NaN);
             }
             for(int i = 0; i < densities.length; i++) {
@@ -758,14 +758,14 @@ public class pointCloudMetrics {
 
             for(int i = 0 ; i < p_size; i++){
 
-                colnames.add("p_" + (double)(Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
+                colnames.add("p_" + (Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
                 output.add(Double.NaN);
 
             }
             counter22 = 0;
             for(int i = 0 ; i < p_size; i++){
 
-                colnames.add("p_" + (double)(Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_i" + suffix);
+                colnames.add("p_" + (Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_i" + suffix);
                 output.add(Double.NaN);
             }
             for(int i = 0; i < densities.length; i++) {
@@ -875,7 +875,7 @@ public class pointCloudMetrics {
             G_sum_run += G_val;
             B_sum_run += B_val;
 
-            i_sum_run += (double)i_val;
+            i_sum_run += i_val;
 
             sd_z += ((z_val - mean_z) * (z_val - mean_z));
             sd_R += ((R_val - mean_R) * (R_val - mean_R));
@@ -953,18 +953,18 @@ public class pointCloudMetrics {
         Collections.sort(B_above_threshold);
 
         if (z_above_threshold.size() % 2 == 0) {
-            median_z = ( ((double) z_above_threshold.get(z_above_threshold.size() / 2) + (double) z_above_threshold.get(z_above_threshold.size() / 2 - 1) ) / 2.0);
-            median_R = ( ((double) R_above_threshold.get(R_above_threshold.size() / 2) + (double) R_above_threshold.get(R_above_threshold.size() / 2 - 1) ) / 2.0);
-            median_G = ( ((double) G_above_threshold.get(G_above_threshold.size() / 2) + (double) G_above_threshold.get(G_above_threshold.size() / 2 - 1) ) / 2.0);
-            median_B = ( ((double) B_above_threshold.get(B_above_threshold.size() / 2) + (double) B_above_threshold.get(B_above_threshold.size() / 2 - 1) ) / 2.0);
+            median_z = ( (z_above_threshold.get(z_above_threshold.size() / 2) + z_above_threshold.get(z_above_threshold.size() / 2 - 1)) / 2.0);
+            median_R = ( (R_above_threshold.get(R_above_threshold.size() / 2) + R_above_threshold.get(R_above_threshold.size() / 2 - 1)) / 2.0);
+            median_G = ( (G_above_threshold.get(G_above_threshold.size() / 2) + G_above_threshold.get(G_above_threshold.size() / 2 - 1)) / 2.0);
+            median_B = ( (B_above_threshold.get(B_above_threshold.size() / 2) + B_above_threshold.get(B_above_threshold.size() / 2 - 1)) / 2.0);
 
             median_i = ( ((double) i_above_threshold.get(i_above_threshold.size() / 2) + (double) i_above_threshold.get(i_above_threshold.size() / 2 - 1)) / 2.0);
         }
         else {
-            median_z = (double) z_above_threshold.get(z_above_threshold.size() / 2);
-            median_R = (double) R_above_threshold.get(R_above_threshold.size() / 2);
-            median_G = (double) G_above_threshold.get(G_above_threshold.size() / 2);
-            median_B = (double) B_above_threshold.get(B_above_threshold.size() / 2);
+            median_z = z_above_threshold.get(z_above_threshold.size() / 2);
+            median_R = R_above_threshold.get(R_above_threshold.size() / 2);
+            median_G = G_above_threshold.get(G_above_threshold.size() / 2);
+            median_B = B_above_threshold.get(B_above_threshold.size() / 2);
 
             median_i = (double) i_above_threshold.get(i_above_threshold.size() / 2);
         }
@@ -977,7 +977,7 @@ public class pointCloudMetrics {
 
         for(int j = 0 ; j < densities.length; j++){
 
-            densitiesOutput[j] /= (double)z.size();
+            densitiesOutput[j] /= z.size();
 
         }
 /*
@@ -1055,14 +1055,14 @@ public class pointCloudMetrics {
         counter = 0;
         for(int i = 0 ; i < percentiles_z.length; i++){
 
-            colnames.add("p_" + (double)(Math.round(percentiles_z_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
+            colnames.add("p_" + (Math.round(percentiles_z_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
             output.add(percentiles_z[counter++]);
 
         }
         counter = 0;
         for(int i = 0 ; i < percentiles_i.length; i++){
 
-            colnames.add("p_" + (double)(Math.round(percentiles_i_names[i] * 100.0d) / 100.0d) + "_i" + suffix);
+            colnames.add("p_" + (Math.round(percentiles_i_names[i] * 100.0d) / 100.0d) + "_i" + suffix);
             output.add(percentiles_i[counter++]);
         }
         for(int i = 0; i < densities.length; i++){
