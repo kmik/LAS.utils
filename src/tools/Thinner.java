@@ -76,7 +76,7 @@ public class Thinner{
 
         this.thin3d = aR.thin3d;
 
-        this.thin3d = true;
+        //this.thin3d = true;
 
         if(thin3d) {
             aR.p_update.lasthin_mode = "3d";

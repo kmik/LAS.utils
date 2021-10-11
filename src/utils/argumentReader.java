@@ -155,7 +155,7 @@ public class argumentReader {
 
     public String trajectory;
 
-    public boolean thin3d;
+    public boolean thin3d = false;
 
     public boolean output_statistics = false;
 
