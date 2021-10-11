@@ -2,11 +2,11 @@ package runners;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.io.IOException;
+
 
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
-import org.gdal.ogr.DataSource;
+
 import org.gdal.ogr.Layer;
 import org.gdal.ogr.Feature;
 import org.gdal.ogr.Geometry;
@@ -1354,7 +1354,7 @@ public class RunId4pointsLAS{
         aR.p_update.lasclip_clippedPoints = 0;
 
 
-        if(plotsORnot == 1){
+        if(plotsORnot == 0){
 
             long tStart = System.currentTimeMillis();
 
@@ -1437,7 +1437,7 @@ public class RunId4pointsLAS{
 
         ArrayList<String> tiedostot_UNsorted = null;//homma.listFiles(("" + pathi), ".txt");
 
-        if(plotsORnot == 0){
+        if(plotsORnot == 1){
             indeksi_pathi_all = tiedostot_sorted.get(0).split("sorted")[0] + pathSep + "sorted" + pathSep + "all.in_dex";
             if(aR.cores > 1){
 

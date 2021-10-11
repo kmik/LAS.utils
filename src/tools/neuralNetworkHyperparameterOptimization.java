@@ -3,68 +3,30 @@ package tools;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
-import org.bytedeco.javacv.FrameFilter;
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.split.FileSplit;
-//import org.deeplearning4j.api.storage.StatsStorage;
-//import org.deeplearning4j.arbiter.optimize.api.data.DataSource;
-//import org.deeplearning4j.arbiter.optimize.config.OptimizationConfiguration;
+
 import org.deeplearning4j.arbiter.ComputationGraphSpace;
-import org.deeplearning4j.arbiter.DL4JConfiguration;
 import org.deeplearning4j.arbiter.MultiLayerSpace;
 import org.deeplearning4j.arbiter.conf.updater.AdamSpace;
 import org.deeplearning4j.arbiter.layers.ConvolutionLayerSpace;
 import org.deeplearning4j.arbiter.layers.DenseLayerSpace;
 import org.deeplearning4j.arbiter.layers.OutputLayerSpace;
-import org.deeplearning4j.arbiter.optimize.api.data.DataProvider;
 import org.deeplearning4j.arbiter.optimize.api.data.DataSource;
 import org.deeplearning4j.arbiter.optimize.parameter.discrete.DiscreteParameterSpace;
 import org.deeplearning4j.arbiter.scoring.impl.EvaluationScoreFunction;
-import org.deeplearning4j.arbiter.scoring.impl.TestSetAccuracyScoreFunction;
 import org.deeplearning4j.arbiter.task.MultiLayerNetworkTaskCreator;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
-import org.deeplearning4j.datasets.fetchers.MnistDataFetcher;
-import org.deeplearning4j.datasets.iterator.INDArrayDataSetIterator;
-import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
-import org.deeplearning4j.earlystopping.EarlyStoppingResult;
-import org.deeplearning4j.earlystopping.listener.EarlyStoppingListener;
-import org.deeplearning4j.earlystopping.saver.LocalFileModelSaver;
-import org.deeplearning4j.earlystopping.scorecalc.DataSetLossCalculator;
-import org.deeplearning4j.earlystopping.termination.MaxEpochsTerminationCondition;
-import org.deeplearning4j.earlystopping.termination.MaxTimeIterationTerminationCondition;
-import org.deeplearning4j.earlystopping.trainer.EarlyStoppingTrainer;
-import org.deeplearning4j.nn.api.Model;
-import org.deeplearning4j.nn.api.OptimizationAlgorithm;
-import org.deeplearning4j.nn.conf.CacheMode;
+
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
-import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
-import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
-import org.deeplearning4j.nn.conf.layers.DenseLayer;
-import org.deeplearning4j.nn.conf.layers.DropoutLayer;
-import org.deeplearning4j.nn.conf.layers.OutputLayer;
-import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
-import org.deeplearning4j.nn.weights.WeightInit;
-import org.deeplearning4j.optimize.listeners.EvaluativeListener;
-import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
-
-
-//import org.deeplearning4j.api.storage.StatsStorage;
-//import org.deeplearning4j.arbiter.conf.updater.SgdSpace;
-//import org.deeplearning4j.arbiter.MultiLayerSpace;
-//import org.deeplearning4j.arbiter.layers.DenseLayerSpace;
-//import org.deeplearning4j.arbiter.layers.OutputLayerSpace;
 
 import org.deeplearning4j.arbiter.optimize.api.CandidateGenerator;
-import org.deeplearning4j.arbiter.optimize.api.OptimizationResult;
+
 import org.deeplearning4j.arbiter.optimize.api.ParameterSpace;
-import org.deeplearning4j.arbiter.optimize.api.data.DataProvider;
-//import org.deeplearning4j.arbiter.data.MnistDataProvider;
-//import org.deeplearning4j.arbiter.scoring.impl.EvaluationScoreFunction;
-import org.deeplearning4j.arbiter.optimize.api.saving.ResultReference;
+
 import org.deeplearning4j.arbiter.optimize.api.saving.ResultSaver;
 import org.deeplearning4j.arbiter.optimize.api.score.ScoreFunction;
-import org.deeplearning4j.arbiter.optimize.api.termination.MaxCandidatesCondition;
 import org.deeplearning4j.arbiter.optimize.api.termination.MaxTimeCondition;
 import org.deeplearning4j.arbiter.optimize.api.termination.TerminationCondition;
 import org.deeplearning4j.arbiter.optimize.config.OptimizationConfiguration;
@@ -75,39 +37,22 @@ import org.deeplearning4j.arbiter.optimize.runner.IOptimizationRunner;
 import org.deeplearning4j.arbiter.optimize.runner.LocalOptimizationRunner;
 import org.deeplearning4j.arbiter.saver.local.FileModelSaver;
 
-
-//import org.deeplearning4j.arbiter.saver.local.FileModelSaver;
-//import org.deeplearning4j.arbiter.scoring.impl.TestSetAccuracyScoreFunction;
-//import org.deeplearning4j.arbiter.task.MultiLayerNetworkTaskCreator;
-import org.geotools.xml.xsi.XSISimpleTypes;
 import org.nd4j.evaluation.classification.Evaluation.Metric;
-import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
-import org.deeplearning4j.datasets.iterator.impl.MnistDataSetIterator;
+
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
-import org.nd4j.shade.jackson.annotation.JsonProperty;
-import org.nd4j.linalg.factory.Nd4j;
-//import org.nd4j.linalg.cpu.nativecpu.CpuAffinityManager;
 
-
-import org.deeplearning4j.ui.api.*;
-
-//import org.deeplearning4j.ui.stats.StatsListener;
-//import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
-import org.nd4j.evaluation.IEvaluation;
 import org.nd4j.evaluation.classification.Evaluation;
-import org.nd4j.evaluation.classification.ROCMultiClass;
-import org.nd4j.linalg.activations.Activation;
+
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
-import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
-import org.nd4j.linalg.learning.config.*;
-import org.nd4j.linalg.lossfunctions.LossFunctions;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,16 +60,12 @@ import utils.argumentReader;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-
-import static org.deeplearning4j.optimize.api.InvocationType.EPOCH_END;
 
 public class neuralNetworkHyperparameterOptimization {
 
     private static Logger log = LoggerFactory.getLogger(neuralNetWorkTest_3d_treespecies.class);
-    //private final BatchNormalization normalizer_batch;
 
     public neuralNetworkHyperparameterOptimization(argumentReader aR) throws  Exception {
 

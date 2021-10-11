@@ -1,19 +1,15 @@
 package LASio;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
-import org.ejml.data.DMatrix3;
 import org.jblas.DoubleMatrix;
 import org.tinfour.common.IQuadEdge;
 import org.tinfour.standard.IncrementalTin;
-import tools.Vertex;
 import tools.lasStrip;
 import utils.KdTree;
 import utils.ThreadProgressBar;
 import utils.fileOperations;
-
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class LasBlock {

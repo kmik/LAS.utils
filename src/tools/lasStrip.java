@@ -2,7 +2,6 @@ package tools;
 
 
 import LASio.*;
-import io.netty.util.internal.shaded.org.jctools.queues.IndexedQueueSizeUtil;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
@@ -13,11 +12,8 @@ import org.opencv.core.Mat;
 import org.tinfour.common.IQuadEdge;
 import org.tinfour.common.Vertex;
 import utils.*;
-
 import java.io.*;
 import java.util.*;
-
-import static org.opencv.core.CvType.*;
 import static tools.GroundDetector.angleHypo;
 import static tools.GroundDetector.euclideanDistance;
 

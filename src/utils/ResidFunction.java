@@ -5,12 +5,8 @@ import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.ejml.data.DMatrixRMaj;
 import org.jblas.DoubleMatrix;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-
 import java.util.*;
 
-import static org.opencv.core.CvType.CV_64F;
 
 public class ResidFunction implements LevenbergMarquardt.ResidualFunction {
 

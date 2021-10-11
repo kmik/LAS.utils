@@ -18,8 +18,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import LASio.lasReadWriteFactory;
-
 public class argumentReader {
 
     public lasReadWriteFactory pfac;

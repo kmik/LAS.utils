@@ -2,7 +2,6 @@ package utils;
 
 import org.ejml.data.DMatrixRMaj;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class ResidFunctionCircleFit_fixed_center implements LevenbergMarquardt.ResidualFunction{
@@ -17,7 +16,7 @@ public class ResidFunctionCircleFit_fixed_center implements LevenbergMarquardt.R
         for(int i = 0; i < points.size(); i++){
 
             double cost = Math.abs(euclideanDistance(points.get(i)[0], points.get(i)[1], center[0], center[1]) - param.get(0,0));
-            //System.out.println(cost);
+
             residual.set(i,0, cost);
 
         }

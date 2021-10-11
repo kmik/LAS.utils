@@ -1,25 +1,11 @@
 package utils;
 
-import LASio.LasBlock;
-import LASio.LASReader;
-import LASio.LasPoint;
-import org.apache.commons.math3.geometry.Vector;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.ejml.data.DMatrixRMaj;
 import org.jblas.DoubleMatrix;
-import org.jblas.Solve;
-import org.opencv.core.Mat;
-import org.tinfour.common.Vertex;
-import org.tinfour.standard.IncrementalTin;
-
 import java.io.IOException;
 import java.util.*;
-import org.apache.commons.math3.*;
-
-import static org.opencv.core.CvType.CV_64F;
-
 public class ResidFunctionCylinderFit implements LevenbergMarquardt.ResidualFunction  {
 
 

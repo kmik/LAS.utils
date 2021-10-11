@@ -2,14 +2,11 @@ package tools;
 import LASio.*;
 import org.tinfour.common.Vertex;
 import org.tinfour.standard.IncrementalTin;
-import utils.argumentReader;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.util.*;
 import utils.*;
-import LASio.LASReader;
-import utils.pointCloudMetrics;
 
 public class lasGridStats {
 

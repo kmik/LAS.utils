@@ -1,17 +1,12 @@
 package utils;
 
-import tools.Thinner;
-
 public class cloudPoint implements Comparable<cloudPoint> {
 
     final double x,y,z,t, dz;
     double x_rot = 0,y_rot = 0,z_rot = 0;
     public int id, trunk_id;
     public double prev_yaw = -1, prev_pitch = -1, prev_roll = -1, prev_x = -1, prev_y = -1, prev_z = -1;
-/*
-    public double[] x_rot_core, y_rot_core, z_rot_core;
-    public double[] prev_yaw_core, prev_pitch_core, prev_roll_core, prev_x_core, prev_y_core, prev_z_core;
-*/
+
     public cloudPoint(double x, double y, double z, double dz, double t, int id, int trunk_id){
 
         this.x = x;

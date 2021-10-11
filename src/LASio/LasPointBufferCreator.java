@@ -1,12 +1,8 @@
 package LASio;
 
-//import jdk.nashorn.internal.ir.Block;
 import utils.pointWriterMultiThread;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.concurrent.BlockingQueue;
 
 public class LasPointBufferCreator {
 

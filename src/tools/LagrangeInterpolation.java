@@ -1,13 +1,8 @@
 package tools;
 
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
-import org.apache.commons.math3.linear.DecompositionSolver;
-import org.apache.commons.math3.linear.LUDecomposition;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.ejml.data.Matrix;
 import org.jblas.Solve;
 import org.jblas.DoubleMatrix;
-import org.apache.commons.math3.*;
+
 
 /**
  * Given n points (x0,y0)...(xn-1,yn-1), the following methid computes

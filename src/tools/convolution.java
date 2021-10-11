@@ -19,36 +19,20 @@ import org.nd4j.linalg.dataset.MultiDataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
-import org.nd4j.nativeblas.Nd4jCuda;
-import org.nd4j.shade.jackson.annotation.JsonProperty;
 import org.nd4j.linalg.factory.Nd4j;
-//import org.nd4j.linalg.cpu.nativecpu.CpuAffinityManager;
 
-
-import org.deeplearning4j.ui.api.*;
-
-//import org.deeplearning4j.ui.stats.StatsListener;
-//import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
-import org.nd4j.evaluation.IEvaluation;
 import org.nd4j.evaluation.classification.Evaluation;
-import org.nd4j.evaluation.classification.ROCMultiClass;
-import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
-import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 import org.nd4j.linalg.learning.config.*;
-import org.nd4j.linalg.lossfunctions.LossFunctions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 import utils.argumentReader;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static org.deeplearning4j.util.ModelSerializer.*;
 

@@ -4,7 +4,6 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.ejml.data.DMatrixRMaj;
 import tools.Statistics;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 

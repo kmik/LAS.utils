@@ -1,10 +1,6 @@
 package tools;
 
-import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
-import org.gdal.gdal.Driver;
-import org.gdal.gdal.gdal;
-import org.gdal.gdalconst.gdalconst;
 
 import java.util.ArrayList;
 

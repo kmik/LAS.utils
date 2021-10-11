@@ -3,9 +3,6 @@ package utils;
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 import org.ejml.dense.row.NormOps_DDRM;
-import org.ejml.simple.SimpleMatrix;
-
-import javax.swing.text.TableView;
 
 /**
  * <p>

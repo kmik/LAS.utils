@@ -8,15 +8,11 @@ import org.gdal.gdalconst.gdalconst;
 import org.gdal.ogr.ogr;
 import org.opencv.core.Mat;
 
-import javax.xml.crypto.Data;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
-//import org.gdal.ogr.Driver;
-
-//import Tinfour.*; 
 class gdalE {
 
     public static void hei(String filename, Mat in){

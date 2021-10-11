@@ -6,10 +6,7 @@ import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.ejml.data.DMatrixRMaj;
 
-import java.lang.reflect.Array;
-import java.text.CollationElementIterator;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 

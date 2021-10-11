@@ -1,6 +1,5 @@
 package LASio;
 
-//package tinfour.las;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -8,7 +7,7 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
+
 
 /**
  * Accesses a random access file using a ByteBuffer with little-endian

@@ -1,10 +1,8 @@
 package tools;
 
 import LASio.*;
-import com.github.mreutegg.laszip4j.laslib.LASreader;
 import utils.*;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;

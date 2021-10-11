@@ -2,14 +2,9 @@ package runners;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.io.IOException;
 import java.util.HashMap;
-
-//import Tinfour.*;
 import LASio.*;
-import com.github.mreutegg.laszip4j.laslib.LASreader;
 import tools.*;
-import quadtree.*;
 class LASindex {
 
 

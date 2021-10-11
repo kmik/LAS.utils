@@ -4,12 +4,9 @@ import LASio.LASReader;
 import LASio.LasPoint;
 import utils.argumentReader;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 
-import static com.github.mreutegg.laszip4j.laszip.MyDefs.I32_MIN;
 import static com.github.mreutegg.laszip4j.laszip.MyDefs.U32_MAX;
 
 public class lasCheck {

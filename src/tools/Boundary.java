@@ -6,9 +6,7 @@ import LASio.PointInclusionRule;
 import javafx.scene.shape.Path;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
-import org.tinfour.common.Circumcircle;
-import org.tinfour.common.GeometricOperations;
-import org.tinfour.common.IQuadEdge;
+
 import org.tinfour.common.Vertex;
 import utils.argumentReader;
 import utils.fileOperations;

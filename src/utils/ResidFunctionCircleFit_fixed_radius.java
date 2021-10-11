@@ -2,7 +2,6 @@ package utils;
 
 import org.ejml.data.DMatrixRMaj;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class ResidFunctionCircleFit_fixed_radius implements LevenbergMarquardt.ResidualFunction{

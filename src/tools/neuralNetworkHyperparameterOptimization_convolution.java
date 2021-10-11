@@ -1,15 +1,13 @@
 package tools;
 
 import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
+
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.split.FileSplit;
 import org.deeplearning4j.arbiter.ComputationGraphSpace;
 import org.deeplearning4j.arbiter.MultiLayerSpace;
 import org.deeplearning4j.arbiter.conf.updater.AdamSpace;
-import org.deeplearning4j.arbiter.evaluator.multilayer.ClassificationEvaluator;
 import org.deeplearning4j.arbiter.layers.ConvolutionLayerSpace;
 import org.deeplearning4j.arbiter.layers.DenseLayerSpace;
 import org.deeplearning4j.arbiter.layers.OutputLayerSpace;
@@ -30,11 +28,9 @@ import org.deeplearning4j.arbiter.optimize.runner.LocalOptimizationRunner;
 import org.deeplearning4j.arbiter.saver.local.FileModelSaver;
 import org.deeplearning4j.arbiter.scoring.impl.EvaluationScoreFunction;
 import org.deeplearning4j.arbiter.task.ComputationGraphTaskCreator;
-import org.deeplearning4j.arbiter.task.MultiLayerNetworkTaskCreator;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.INDArrayDataSetIterator;
 import org.deeplearning4j.datasets.iterator.JointMultiDataSetIterator;
-import org.deeplearning4j.datasets.iterator.impl.MnistDataSetIterator;
 import org.deeplearning4j.nn.conf.ConvolutionMode;
 import org.deeplearning4j.nn.conf.graph.MergeVertex;
 import org.deeplearning4j.nn.conf.inputs.InputType;
@@ -44,7 +40,7 @@ import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.evaluation.classification.Evaluation.Metric;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.cpu.nativecpu.NDArray;
+
 import org.nd4j.linalg.dataset.DataSet;
 
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -55,7 +51,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.argumentReader;
-import org.nd4j.linalg.cpu.nativecpu.CpuBackend;
+
 import org.nd4j.linalg.cpu.nativecpu.NDArray;
 import java.io.*;
 import java.util.*;

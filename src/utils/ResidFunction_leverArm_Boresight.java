@@ -6,9 +6,7 @@ import LASio.LasPoint;
 import org.ejml.data.DMatrixRMaj;
 import org.jblas.DoubleMatrix;
 import org.jblas.Solve;
-import org.opencv.core.Mat;
 import org.tinfour.common.Vertex;
-import org.tinfour.standard.IncrementalTin;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.opencv.core.CvType.CV_64F;
 
 public class ResidFunction_leverArm_Boresight implements LevenbergMarquardt.ResidualFunction  {
 

@@ -1,12 +1,8 @@
 package runners;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.*;
-import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
@@ -14,11 +10,8 @@ import org.gdal.gdal.Dataset;
 
 import org.gdal.gdal.Band;
 
-
-//import Tinfour.*;
 import LASio.*;
-//import org.nd4j.linalg.primitives.Atomic;
-import org.nd4j.shade.guava.util.concurrent.AtomicDoubleArray;
+
 import utils.*;
 class ai2las{
 	public static listOfFiles tiedostoLista = new listOfFiles();

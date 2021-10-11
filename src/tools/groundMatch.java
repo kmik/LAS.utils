@@ -3,12 +3,10 @@ import LASio.*;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import utils.argumentReader;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class groundMatch {
 

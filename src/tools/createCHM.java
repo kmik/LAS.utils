@@ -6,37 +6,16 @@ import org.apache.commons.io.FileUtils;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.gdal;
-import org.gdal.gdalconst.gdalconst;
 import org.gdal.gdalconst.gdalconstConstants;
 import org.gdal.ogr.*;
 import org.gdal.osr.SpatialReference;
 import org.opencv.core.Mat;
-import org.opencv.core.Size;
-import org.opencv.imgproc.Imgproc;
-
 import java.io.*;
-import java.nio.file.Files;
 import java.util.*;
-
 import org.tinfour.interpolation.TriangularFacetInterpolator;
-import org.tinfour.interpolation.VertexValuatorDefault;
-import org.tinfour.semivirtual.SemiVirtualIncrementalTin;
 import utils.*;
-
-import org.tinfour.common.Circumcircle;
-import org.tinfour.common.GeometricOperations;
-import org.tinfour.common.IQuadEdge;
 import org.tinfour.common.Vertex;
-import org.tinfour.interpolation.IVertexValuator;
 
-
-import org.apache.commons.io.FilenameUtils;
-
-import javax.xml.crypto.Data;
-//import org.gdal.gdal.Driver;
-
-
-//import Tinfour.*;	
 public class createCHM{
 
     public static fileOperations fo = new fileOperations();

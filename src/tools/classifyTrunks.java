@@ -1,10 +1,8 @@
 package tools;
 
 import LASio.LASReader;
-import LASio.LASraf;
 import LASio.LasPoint;
 import LASio.LasPointBufferCreator;
-//import it.unimi.dsi.fastutil.Hash;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
 import utils.argumentReader;

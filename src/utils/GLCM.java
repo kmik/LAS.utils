@@ -2,14 +2,13 @@ package utils;
 
 import Jama.Matrix;
 import de.lmu.ifi.dbs.utilities.Arrays2;
-import de.lmu.ifi.dbs.utilities.Math2;
-import org.datavec.api.io.converters.WritableConverterException;
-
-import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Computes hararick features
+ */
 public class GLCM {
     static int totalPixels=0;
     /**

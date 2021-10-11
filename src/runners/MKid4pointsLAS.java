@@ -2,17 +2,9 @@ package runners;
 
 import java.io.*;
 import java.util.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Collection;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.TreeMap;
-import java.util.Set;
-import java.util.Iterator;
+
 
 import java.awt.Shape;
 import java.awt.geom.Area;
@@ -24,9 +16,7 @@ import LASio.*;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import tools.*;
-import utils.argumentReader;
-import utils.pointCloudMetrics;
-import utils.pointWriterMultiThread;
+
 import utils.*;
 class MKid4pointsLAS{
 

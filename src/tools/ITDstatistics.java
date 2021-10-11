@@ -12,23 +12,18 @@ import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.Driver;
 import org.gdal.gdal.gdal;
-import org.gdal.gdalconst.gdalconst;
 import org.gdal.ogr.*;
-import org.hsqldb.map.BitMap;
 import org.tinfour.common.IQuadEdge;
-import org.tinfour.common.Vertex;
 import org.tinfour.interpolation.NaturalNeighborInterpolator;
 import org.tinfour.interpolation.VertexValuatorDefault;
 import utils.GLCM;
 import utils.KdTree;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
 import java.io.*;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -38,8 +33,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import gnu.trove.*;
 import utils.argumentReader;
 
 import javax.imageio.IIOImage;
