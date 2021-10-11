@@ -22,6 +22,17 @@ public class pointCloudMetrics {
         this.cutoff_n_points = aR.min_points;
     }
 
+    /**
+     * Currently way unoptimized, can do a lot better i'm sure.
+     *
+     * @param z
+     * @param intensity
+     * @param sum_z
+     * @param sum_i
+     * @param suffix
+     * @param colnames
+     * @return
+     */
     public ArrayList<Double> calc(ArrayList<Double> z, ArrayList<Integer> intensity, double sum_z, double sum_i, String suffix, ArrayList<String> colnames){
 
         ArrayList<Double> output = new ArrayList<>();
@@ -176,7 +187,9 @@ public class pointCloudMetrics {
 
         if(z_above_threshold.size() < cutoff_n_points){
             /** Should we have insufficient number of points to calculate metrics,
-             * then we just output NaN for all metrics.
+             * then we just output NaN for all metrics. This check is done here
+             * again because we only just now check for point that are within
+             * the legal boundaries.
              */
             //if(z.size() < cutoff_n_points){
 
