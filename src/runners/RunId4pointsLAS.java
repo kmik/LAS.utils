@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.ArrayList;
 import java.io.IOException;
 
-import com.github.mreutegg.laszip4j.laslib.LASfilter;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
 import org.gdal.ogr.DataSource;
@@ -216,7 +215,7 @@ public class RunId4pointsLAS{
         }
 
     }
-
+    @SuppressWarnings("FieldCanBeLocal")
     public static class WriterThreadLAS extends Thread{
 
 
@@ -444,7 +443,7 @@ public class RunId4pointsLAS{
 
     }
 
-
+    @SuppressWarnings("FieldCanBeLocal")
     static class MoniSaieAjo_clipPlots extends Thread{
 
         private final int j;
@@ -520,7 +519,7 @@ public class RunId4pointsLAS{
                 String delimiter = " ";
                 boolean statCalc = false;
                 //System.out.println(indeksi_pathi_all);
-                homma.clipPlots(koealat, shape , 9.0 , tiedostot_sorted, "outti.txt" , tiedostot_indeksi,delimiter, "plots.shp",j,k,
+                homma.clipPlots(koealat, shape, tiedostot_sorted, "outti.txt" , tiedostot_indeksi,delimiter, "plots.shp",j,k,
                         false,"testi_clipatut.txt",indeksi_pathi_all, buffer_size, plotOutName, oparse, output, split, otype, foutti, queue,
                         queueLAS, aR, que, mergeOutput, qu, threadWrote, pwrite, outputFiles);
 

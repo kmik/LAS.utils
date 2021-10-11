@@ -19,7 +19,7 @@ public class printHelp {
         switch (tool_id){
 
             case 0:
-                this.lasClip();
+                lasClip();
                 break;
 
             case 1:
@@ -70,46 +70,46 @@ public class printHelp {
                 break;
 
             case 13:
-                this.las2las();
+                las2las();
                 break;
 
             case 14:
-                this.lasStrip();
+                lasStrip();
                 break;
 
             case 15:
-                this.lasITD();
+                lasITD();
                 break;
 
             case 16:
-                this.lasIndex();
+                lasIndex();
                 break;
 
             case 17:
-                this.lasSort();
+                lasSort();
                 break;
 
             case 18:
-                this.lasSplit();
+                lasSplit();
                 break;
             case 19:
-                this.lasCheck();
+                lasCheck();
                 break;
 
             case 20:
-                this.lasITDstats();
+                lasITDstats();
                 break;
 
             case 21:
-                this.lasLayer();
+                lasLayer();
                 break;
 
             case 25:
-                this.lasGridStats();
+                lasGridStats();
                 break;
 
             case 26:
-                this.stemDetector();
+                stemDetector();
                 break;
 
 

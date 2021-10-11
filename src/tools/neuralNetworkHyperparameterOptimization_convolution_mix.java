@@ -1382,7 +1382,7 @@ public class neuralNetworkHyperparameterOptimization_convolution_mix {
             return DataSetIterator.class;
         }
     }
-
+    @SuppressWarnings("FieldCanBeLocal")
     public static class ExampleDataSource_convolution_all implements DataSource {
 
         private int minibatchSize;
@@ -1577,6 +1577,7 @@ public class neuralNetworkHyperparameterOptimization_convolution_mix {
         }
     }
 
+    @SuppressWarnings("FieldCanBeLocal")
     public static class ExampleDataSource_convolution_voxel implements DataSource {
 
         private int minibatchSize;
@@ -1930,6 +1931,7 @@ public class neuralNetworkHyperparameterOptimization_convolution_mix {
         }
     }
 
+    @SuppressWarnings("FieldCanBeLocal")
     public static class ExampleDataSource_convolution_texture implements DataSource {
 
         private int minibatchSize;

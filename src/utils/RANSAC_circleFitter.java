@@ -66,6 +66,7 @@ import org.ejml.interfaces.decomposition.*;
  * Finding the circle that best fits a set of points</a></p>
  * @author Luc Maisonobe
  */
+@SuppressWarnings("FieldCanBeLocal")
 public class RANSAC_circleFitter {
 
     /** Test program entry point.
@@ -1939,6 +1940,7 @@ public class RANSAC_circleFitter {
     }
 
     /** Current circle center. */
+
     public Point2D.Double center;
 
     /** Current circle radius. */

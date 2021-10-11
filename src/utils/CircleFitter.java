@@ -56,6 +56,8 @@ import java.awt.geom.Point2D;
  * Finding the circle that best fits a set of points</a></p>
  * @author Luc Maisonobe
  */
+
+@SuppressWarnings("FieldCanBeLocal")
 public class CircleFitter {
 
     /** Test program entry point.
@@ -270,8 +272,6 @@ public class CircleFitter {
      * inner minimization along the search direction is performed using a
      * few Newton steps. It is worthless to spend too much time on this inner
      * minimization, so the convergence threshold can be rather large.</p>
-     * @param maxIter maximal iterations number on the inner loop (cumulated
-     * across outer loop iterations)
      * @param innerThreshold inner loop threshold, as a relative difference on
      * the cost function value between the two last iterations
      * @param outerThreshold outer loop threshold, as a relative difference on
@@ -347,8 +347,6 @@ public class CircleFitter {
      * inner minimization along the search direction is performed using a
      * few Newton steps. It is worthless to spend too much time on this inner
      * minimization, so the convergence threshold can be rather large.</p>
-     * @param maxIter maximal iterations number on the inner loop (cumulated
-     * across outer loop iterations)
      * @param innerThreshold inner loop threshold, as a relative difference on
      * the cost function value between the two last iterations
      * @param outerThreshold outer loop threshold, as a relative difference on

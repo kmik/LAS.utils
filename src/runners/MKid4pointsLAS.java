@@ -978,7 +978,7 @@ class MKid4pointsLAS{
         return output;
     }
 
-    public void clipPlots(String coords, int shapeType, Double dimension, ArrayList<String> pilvi,String outieFile,
+    public void clipPlots(String coords, int shapeType, ArrayList<String> pilvi,String outieFile,
                                  ArrayList<String> indeksitiedosto, String delim, String outShape, int part, int cores, boolean statCalc, String output_txt_points,
                                  String all_index, double buffer, String plotOutName, String oparse, String output, boolean split, String otype,
                                  RunId4pointsLAS.FileOutput foutti, BlockingQueue<String> queue, BlockingQueue<LasPoint> queueLAS, argumentReader aR, BlockingQueue<byte[]> que,
@@ -1198,7 +1198,7 @@ class MKid4pointsLAS{
                 minmaxXY[3] = plotC[1] + plot_radi1.get(j);
 
                 ArrayList<Integer> valinta = new ArrayList<Integer>();
-                dimension = plot_radi1.get(j);
+                double dimension = plot_radi1.get(j);
 
                 for(int th = 0; th < all_filename.size(); th++){
 

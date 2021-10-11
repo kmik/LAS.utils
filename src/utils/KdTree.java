@@ -230,7 +230,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
      *            to search for.
      * @return KdNode or NULL if not found
      */
-    private static final <T extends KdTree.XYZPoint> KdNode getNode(KdTree<T> tree, T value) {
+    private static <T extends KdTree.XYZPoint> KdNode getNode(KdTree<T> tree, T value) {
         if (tree == null || tree.root == null || value == null)
             return null;
 
@@ -311,7 +311,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
      *            of tree to get nodes for.
      * @return points in (sub) tree, not including root.
      */
-    private static final List<XYZPoint> getTree(KdNode root) {
+    private static List<XYZPoint> getTree(KdNode root) {
         List<XYZPoint> list = new ArrayList<XYZPoint>();
         if (root == null)
             return list;
@@ -382,7 +382,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
         return collection;
     }
 
-    private static final <T extends KdTree.XYZPoint> void searchNode(T value, KdNode node, int K, TreeSet<KdNode> results, Set<KdNode> examined) {
+    private static <T extends KdTree.XYZPoint> void searchNode(T value, KdNode node, int K, TreeSet<KdNode> results, Set<KdNode> examined) {
         examined.add(node);
 
         // Search node
@@ -696,7 +696,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
          *            second point.
          * @return euclidean distance.
          */
-        private static final double euclideanDistance(XYZPoint o1, XYZPoint o2) {
+        private static double euclideanDistance(XYZPoint o1, XYZPoint o2) {
             return Math.sqrt(Math.pow((o1.x - o2.x), 2) + Math.pow((o1.y - o2.y), 2) + Math.pow((o1.z - o2.z), 2));
         }
 

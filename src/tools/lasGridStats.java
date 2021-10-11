@@ -6,7 +6,6 @@ import utils.argumentReader;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.lang.reflect.Array;
 import java.util.*;
 import utils.*;
 import LASio.LASReader;

@@ -5784,14 +5784,13 @@ public class createCHM{
 
         /**
          * The pixel is a tree top if it satisfies the condition:
-         *  pixel_z < all_pixel_z_in_kernel
+         *  pixel_z < all_pixel_z_in_kernel.
          * @param input
          * @param x
          * @param y
-         * @param kernelSize
          * @return
          */
-        public boolean isTreeTop(Band input, int x, int y, int kernelSize){
+        public boolean isTreeTop(Band input, int x, int y){
 
             band.ReadRaster(x, y, 1, 1, floatArray);
 
@@ -5800,7 +5799,7 @@ public class createCHM{
             if(zMiddle < 4.0f || Double.isNaN(zMiddle))
                 return false;
             double kernel_size_meters = 1.1 + 0.002 * (zMiddle*zMiddle);
-            kernelSize = (int)Math.round(kernel_size_meters / this.resolution);
+            int kernelSize = (int)Math.round(kernel_size_meters / this.resolution);
 
             if(kernelSize % 2 == 0){
 
@@ -6019,7 +6018,7 @@ public class createCHM{
 
 
                     //if(isTreeTop(output2, i, j, kernelSize)){
-                    if(isTreeTop(band_filterd, i, j, kernelSize)){
+                    if(isTreeTop(band_filterd, i, j)){
 
                         band_filterd.ReadRaster(i, j, 1, 1, floatArray);
 						double[] temp = new double[3];

@@ -790,7 +790,7 @@ public class gridRAF implements Closeable {
         //intArray = null;
         //fileOuputStream.write(array);
     }
-    public static final synchronized byte[] intToByteArray(int value) {
+    public static synchronized byte[] intToByteArray(int value) {
         return new byte[] {
                 (byte)(value),
                 (byte)(value >>> 8),
@@ -1365,8 +1365,9 @@ public class gridRAF implements Closeable {
         this.writeAscii(32, (softwareName + " version 0.1"));// generatingSoftware = braf.readAscii(32);
 
         //System.out.println(from.generatingSoftware);
-        Date now = new Date();     // Gets the current date and time
-        int year = now.getYear();
+        //Date now = new Date();     // Gets the current date and time
+        int year = Calendar.getInstance().get(Calendar.YEAR);
+
         Calendar calendar = Calendar.getInstance();
         int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
 

@@ -173,14 +173,10 @@ class ai2las{
 					}
 
 					tiedostot = new ArrayList<String>(tiedostot.subList(pienin, suurin));
-					//System.out.println(tiedostot);
-					//polyBank = new ArrayList<double[][]>(polyBank1.subList(pienin, suurin));
 
 				}
 				else{
 
-					//tiedostot = new ArrayList<Double>(tiedostot);
-					//polyBank = new ArrayList<double[][]>(polyBank1);
 				}
 
 
@@ -203,12 +199,8 @@ class ai2las{
 					if(!odir.equals("asd"))
 
 						toFile = fo.createNewFileWithNewExtension(tempFile, odir, ".las");
-					// new File(odir + System.getProperty("file.separator") + tempFile.getName().replaceFirst("[.][^.]+$", "") + ".las");
 
-					//System.out.println(toFile);
 					File fromFile = new File(tiedostot.get(i));
-
-					//System.out.println(odir + System.getProperty("file.separator") + tempFile.getName().replaceFirst("[.][^.]+$", "") + ".las");
 
 					if(toFile.exists())
 						toFile.delete();
@@ -301,10 +293,6 @@ class ai2las{
 				double sensorSize = interior[1] * (double)tempDataset.GetRasterXSize();
 				double focalLength_millimeters = interior[0] * 1000.0;
 
-
-
-				//System.out.println(focalLength_millimeters);
-				//System.out.println(tempDataset);
 				images.add(tempDataset);
 				imageNames.add("/" + tokens[0]);
 				double[] eoTemp = new double[6];
@@ -337,12 +325,7 @@ class ai2las{
 				double x_s = tempDataset.getRasterXSize();
 				double y_s = tempDataset.getRasterYSize();
 				double[] temp = collinearStuff(tempPoint, interior, eoTemp, rotationMatrix, x_s, y_s);
-		    	/*
-		    	System.out.println(gsd);
-		    	System.out.println(temp[0] + " " + (double)tempDataset.GetRasterXSize() / 2.0);
-		    	System.out.println(temp[1] + " " + (double)tempDataset.GetRasterYSize() / 2.0);
-		    	System.out.println("-----------------");
-				*/
+
 				Math.max((double)tempDataset.GetRasterXSize() / 2.0, temp[0]);
 
 
@@ -385,8 +368,6 @@ class ai2las{
 				output[1] = Double.parseDouble(tokens[1]); // pixel size
 				output[2] = Double.parseDouble(tokens[2]);	//ppx
 				output[3] = Double.parseDouble(tokens[3]);  //ppy
-				//output[4] = Double.parseDouble(tokens[4]);
-				//output[5] = Double.parseDouble(tokens[5]);
 
 			}
 		}
@@ -539,26 +520,7 @@ class ai2las{
 		double ppx = io[2];
 		double ppy = io[3];
 
-		//Mat rotation = new Mat(3,3, CvType.CV_64FC1);
-/*
-		rotationMatrix[0][0] = Math.cos(phi) * Math.cos(kappa);
 
-		rotationMatrix[0][1] =  Math.cos(omega) * Math.sin(kappa) + Math.sin(omega) * Math.sin(phi) * Math.cos(kappa);
-
-		rotationMatrix[0][2] = Math.sin(omega) * Math.sin(kappa) - Math.cos(omega) * Math.sin(phi) * Math.cos(kappa);
-
-		rotationMatrix[1][0] = -Math.cos(phi) * Math.sin(kappa);
-
-		rotationMatrix[1][1] = Math.cos(omega) * Math.cos(kappa) - Math.sin(omega) * Math.sin(phi) * Math.sin(kappa);
-
-		rotationMatrix[1][2] = Math.sin(omega) * Math.cos(kappa) + Math.cos(omega) * Math.sin(phi) * Math.sin(kappa);
-
-		rotationMatrix[2][0] = Math.sin(phi);
-
-		rotationMatrix[2][1] = -Math.sin(omega) * Math.cos(phi);
-
-		rotationMatrix[2][2] = Math.cos(omega) * Math.cos(phi);
-*/
 		double xx0;
 		double yy0;
 
@@ -633,9 +595,6 @@ class ai2las{
 
 		ArrayList<Integer> imagesVisible = new ArrayList<Integer>();
 
-
-		//ArrayList<ArrayList<Integer>> valuePerChannel = new ArrayList<ArrayList<Integer>>();
-		//ArrayList<double[]> valuePerChannel = new ArrayList<double[]>();
 		double[] channelMeans = new double[5];
 
 		int iteration;
@@ -664,13 +623,11 @@ class ai2las{
 
 		public pointAI(LasPoint point1, int iteration2){
 
-			//this.point = new LasPoint(point1);
 			threadsDone = 0;
 			this.iteration = iteration2;
-			//dataStructure = new TreeMap<Integer, TreeMap<Integer, Integer>>();
+
 			poison = false;
-			//ogr.RegisterAll(); //Registering all the formats..
-			//gdal.AllRegister();
+
 
 		}
 
@@ -697,31 +654,9 @@ class ai2las{
 						1,
 						array1);
 
-
-				//if(iteration % 10000 == 0)
-					//temp.FlushCache();
-
-				//channelValues.add(array1[0]);
-
-				//channelValues[i] = array1[0];
 				channelMeans[i - 1] += array1[0];
-        		/*
-				channelValues.add(1542451);
 
-        		channelMeans[i - 1] += 154872;
-        		*/
-
-				//temp.FlushCache();
 			}
-
-			//array1;
-
-			//valuePerChannel.add(channelValues);
-
-			//if(iteration % 10000 == 0)
-				//image.FlushCache();
-
-			//this.threadsDone++;
 
 		}
 
@@ -742,14 +677,6 @@ class ai2las{
 			for(int i = 0; i < channelMeans.length; i++)
 				channelMeans[i] = channelMeans[i] / (double)imagesVisible.size();
 
-			//this.point = null;
-			//valuePerChannel = null;
-			//imagesVisible = null;
-			//for(int i = 0; i < channelMeans.length; i++)
-			//	channelMeans[i] = 0;
-			//imagesVisible.clear();
-			//channelMeans = null;
-			//System.out.println("size: " + imagesVisible.size());
 		}
 
 		public void prepare(){
@@ -762,37 +689,6 @@ class ai2las{
 
 	}
 
-	/*
-	public static class output{
-
-
-		File outFile;
-
-		BufferedWriter writer;
-
-		public output(File in) throws IOException{
-
-			outFile = in;
-
-			writer = new BufferedWriter(new FileWriter(in), (int)Math.pow(2,18));
-
-		}
-
-		public synchronized void write(String in) throws IOException{
-
-			writer.write(in);
-			writer.newLine();
-
-		}
-
-		public void close() throws IOException{
-
-			writer.close();
-
-		}
-
-	}
-	*/
 
 	public static double findMaxZ(ArrayList<String> pointClouds) throws IOException{
 
@@ -871,23 +767,7 @@ class ai2las{
 
 		@Override
 		public void run() {
-    		/*
-        	this.suurin = -1;
-        	this.pienin = -1;
 
-            int jako = (int)Math.ceil((double)datasets.size() / (double) numberOfThreads);
-
-            if(threadNumber != numberOfThreads){
-
-              pienin = (threadNumber - 1) * jako;
-              suurin = threadNumber * jako;  
-            }
-          
-          	else{
-	            pienin = (threadNumber - 1) * jako; 
-	            suurin = (int)datasets.size();
-          	}
-   			*/
 			try {
 				while(true){
 
@@ -1454,60 +1334,11 @@ class ai2las{
 								}
 							}
 
-							//lEndTime_debug1= System.currentTimeMillis();
-
-							//System.out.println("debug_time1: " + (lEndTime_debug1-lStartTime_debug));
-							//System.out.println(numberOfimages + "|" + datasets.size());
-							//System.out.println("");
 
 							valmiit.clear();
-							//for(int ii = 0; ii < 4; ii++)
-							//	System.out.println(tempP.valuePerChannel.get(0).get(ii));
-
-							//for(int j = 0; j < tempP.imagesVisible.size(); j++)
-							//outWrite += " " + tempP.imagesVisible.get(j);
-
-							//outWrite += ";";
 
 							if (pointFound == false) {
-								//System.out.println("POINT HAS NO RGB VALUE!!");
-								//System.exit(0);
-								/*
-								System.out.println("no value found for: " + tempPoint.x + " " + tempPoint.y + " " + tempPoint.z + " " + visited);
 
-								for (int j_ = 0; j_ < datasets.size(); j_++) {
-
-									thisLocation[0] = exteriors.get(j_)[2];
-									thisLocation[1] = exteriors.get(j_)[3];
-
-									//System.out.println(notClose(thisLocation[0], thisLocation[1], valmiit, 15.0) + " " + valmiit.size());
-
-									//if (tempPoint.x >= extents.get(j_)[0] && tempPoint.x <= extents.get(j_)[1] && tempPoint.y >= extents.get(j_)[2] && tempPoint.y <= extents.get(j_)[3]) {
-										if(true){
-										visited++;
-
-										//temp = collinearStuff(tempPoint, interior, exteriors.get(j_), rotationMatrix, x_s, y_s);
-										temp = collinearStuff2(tempPoint, interior, exteriors.get(j_), rotationMatrices.get(j_), x_s, y_s);
-
-										if(j_ >= 1936)
-											System.out.println(Arrays.toString(temp) + " " + pix_threshold_x + " " + x_s + " " + pix_threshold_y + " " + y_s + " " + datasets.get(j_).GetFileList().get(0));
-
-
-											if (temp[0] > pix_threshold_x && temp[0] < (x_s - pix_threshold_x)
-												&& temp[1] > pix_threshold_y && temp[1] < (y_s - pix_threshold_y)) {
-
-											tempP.addObservation(datasets.get(j_), imageIDs.get(j_), temp[0], temp[1]);
-
-											pointFound = true;
-											//valmiit.add(new double[]{thisLocation[0], thisLocation[1]});
-											numberOfimages++;
-											recent = j_;
-											//outWrite += " " + imageIDs.get(j);
-
-										}
-									}
-								}
-*/
 								outsidePoint++;
 								tempP.done();
 								continue;
@@ -1517,13 +1348,7 @@ class ai2las{
 
 							if (aR.olas) {
 
-								//System.out.println("seq: " + Arrays.toString(aR.sequence));
-								/*
-								System.out.println(tempPoint.R);
-								System.out.println(tempPoint.G);
-								System.out.println(tempPoint.B);
 
-								 */
 								if (aR.sequence.length < 1) {
 
 
@@ -1700,57 +1525,10 @@ class ai2las{
 			outWriter.close();
 		}
 		pointAI POISON_PILL = new pointAI();
-		/*
-		for(int u = 0;  u < lista11.size(); u++){
 
-          	lista12.get(u).add(POISON_PILL);
-
-          }
-          */
-		//System.out.println("Band1: " + array1[0]);
 
 		
-		/*
-		try{
-			FileOutputStream fos = new FileOutputStream(ofile);
-			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
 
-			for(int i = 0; i < output.size(); i++){
-
-				String outWrite = "";
-
-				pointAI tempP = output.get(i);
-
-				outWrite += tempP.point.x + " " + tempP.point.y + " " + tempP.point.z;
-				outWrite += ";";
-
-				for(int j = 0; j < tempP.imagesVisible.size(); j++)
-					outWrite += " " + tempP.imagesVisible.get(j);
-
-				outWrite += ";";
-
-				for(int l = 0; l < 4; l++){
-
-					for(int j = 0; j < tempP.imagesVisible.size(); j++){
-
-						outWrite += " " + tempP.valuePerChannel.get(j).get(l);
-
-					}
-
-					outWrite += ";";
-
-				}
-				
-
-				bw.write(outWrite);
-				bw.newLine();
-
-			}
-
-			bw.close();
-
-		}catch(Exception e){System.out.println(e);}
-		*/
 	}
 
 	public static void addImageToCache(LinkedList<ArrayList<int[]>> cache, Dataset image) {

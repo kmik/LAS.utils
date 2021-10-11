@@ -24,12 +24,19 @@ import tools.*;
 class ITDtest{
 
 
-    public static boolean calibrateToSentinel(String image, ArrayList<LASReader> pointClouds) throws IOException{
+    /**
+     * @deprecated
+     * This method is no longer being used anywhere.
+     * @param pointClouds
+     * @return
+     * @throws IOException
+     */
+    public static boolean calibrateToSentinel(ArrayList<LASReader> pointClouds) throws IOException{
         
         int[] temp_pixel = new int[1];
 
 
-        image = "/media/koomikko/B8C80A93C80A4FD41/UAV_TREE_SPECIES/sentinel_2/mosaic/test_plots/resampled/rgb_test.tif";
+        String image = "/media/koomikko/B8C80A93C80A4FD41/UAV_TREE_SPECIES/sentinel_2/mosaic/test_plots/resampled/rgb_test.tif";
         String image2 = "/media/koomikko/B8C80A93C80A4FD41/UAV_TREE_SPECIES/sentinel_2/mosaic/test_plots/resampled/nir_test.tif";
         
         String outputDirectory = "/media/koomikko/B8C80A93C80A4FD41/id4points/LASutils/lasrelate_xy_test/all_point_clouds_collinear/ground_classified/dz/clipped/noisefree/rgb_normalized/";

@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
-//import tinfour.utils.LinearUnits;
+
 
 /**
  * Reads the content of a LAS file. The file is divided into a
@@ -378,12 +378,10 @@ public class LASReader {
    *	Indexes a .las file to enable faster spatial queries.
    *	Creates a .lasx file with the same filename as the point
    *	cloud.
-   *
-   *	@param in 				Input point cloud file
+
    *	@param spacing 			The square size of the index grid.
    *							Optimal size depends on the point
    *							density of the data.
-   *	@param ii 				WHAT IS THIS?
    */
 
   public void index(int spacing) throws Exception{
@@ -987,7 +985,6 @@ public class LASReader {
    * Reads the header information from the beginning of a
    * LAS file
    *
-   * @param braf a valid instance for an open LAS file
    * @throws IOException in the event of an non recoverable I/O error
    * or LAS format violation
    */

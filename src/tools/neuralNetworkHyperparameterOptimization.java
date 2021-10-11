@@ -674,7 +674,7 @@ public class neuralNetworkHyperparameterOptimization {
 
     }
 
-
+    @SuppressWarnings("FieldCanBeLocal")
     public static class ExampleDataSource implements DataSource {
         private int minibatchSize;
 
