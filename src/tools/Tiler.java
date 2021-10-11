@@ -1,8 +1,6 @@
 package tools;
 
 import LASio.*;
-import com.github.mreutegg.laszip4j.laslib.LASreader;
-import runners.RunLASutils;
 
 import utils.argumentReader;
 import utils.fileOperations;
@@ -244,10 +242,12 @@ public class Tiler{
                 try{
 
                     lista11.get(i).join();
-                }catch(Exception e){}
+                }catch(Exception e) {
+                    e.printStackTrace();
+                }
             }
 
-            this.finalize();
+            this.finalize_();
 
             return;
         }
@@ -384,8 +384,7 @@ public class Tiler{
 
     }
 
-    @Override
-    public void finalize() throws IOException{
+    protected void finalize_() throws IOException{
         int count = 0;
         //System.out.println(pointCounts[0][0]);
         for(int i = 0; i < outputFilesMatrix_buf.length; i++){
@@ -593,8 +592,8 @@ public class Tiler{
 
             try {
                 tiler.make(this.tiedostot, coreNumber);
-            }catch(IOException e){
-
+            }catch(IOException e) {
+                e.printStackTrace();
             }
         }
 

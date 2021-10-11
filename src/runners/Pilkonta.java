@@ -132,6 +132,8 @@ public class Pilkonta {
 		   File newfile =new File(outputfilepath + "cells_" + Math.round(xmin) + "_" + Math.round(ymax) + "_" +  Math.round(xmax) + "_" + Math.round(ymin) +".txt");
            oldfile.renameTo(newfile);
 		   
-		} catch( IOException ioException ){}
+		} catch( IOException ioException ) {
+            ioException.printStackTrace();
+        }
 }
 }

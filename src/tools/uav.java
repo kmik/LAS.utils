@@ -1181,7 +1181,9 @@ public class uav {
                 try{
 
                 lista.get(i).join();
-                }catch(Exception e){}
+                }catch(Exception e) {
+                    e.printStackTrace();
+                }
         }
         //System.out.println(offsetPairs.length);
         //System.out.println("\nMinimum cost: " + output.getCost() + "\nX offset: " + output.getX() + 

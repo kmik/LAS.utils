@@ -31,7 +31,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.List;
 import java.util.regex.Pattern;
 import utils.argumentReader;
 
@@ -190,7 +189,9 @@ public class ITDstatistics{
             out = new PrintWriter(bw);
 
 
-        }catch(IOException e){}
+        }catch(IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -210,7 +211,9 @@ public class ITDstatistics{
             out_stem2  = new PrintWriter(bw_stem2 );
 
 
-        }catch(IOException e){}
+        }catch(IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -230,7 +233,9 @@ public class ITDstatistics{
             out_stem3  = new PrintWriter(bw_stem3 );
 
 
-        }catch(IOException e){}
+        }catch(IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -250,7 +255,9 @@ public class ITDstatistics{
             out_stem  = new PrintWriter(bw_stem );
 
 
-        }catch(IOException e){}
+        }catch(IOException e) {
+            e.printStackTrace();
+        }
 
     }
 

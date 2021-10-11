@@ -17,10 +17,8 @@ class ai2las{
 	public static listOfFiles tiedostoLista = new listOfFiles();
 	public static ThreadProgressBar proge = new ThreadProgressBar();
 
-	public int n_bands = -1;
 
 	public static fileOperations fo = new fileOperations();
-	//public static double[][] rotationMatrix = new double[3][3];
 
 	public static class ThreadProgressBar{
 		int current = 0;
@@ -452,10 +450,6 @@ class ai2las{
 		double cameraY = eo[1];
 		double cameraZ = eo[2];
 
-		double omega = eo[3];
-		double phi = eo[4];
-		double kappa = eo[5];
-
 		double cc = io[0];
 		double ps = io[1] / 1000.0; //12.0 / 1000000.0;
 
@@ -500,10 +494,6 @@ class ai2las{
 		double cameraY = eo[1];
 		double cameraZ = eo[2];
 
-		double omega = eo[3];
-		double phi = eo[4];
-		double kappa = eo[5];
-
 		double cc = io[0];
 		double ps = io[1] / 1000.0; //12.0 / 1000000.0;
 
@@ -542,21 +532,12 @@ class ai2las{
 
 		double[][] rotationMatrix = new double[3][3];
 
-		double cameraX = eo[0];
-		double cameraY = eo[1];
-		double cameraZ = eo[2];
+
 
 		double omega = eo[3];
 		double phi = eo[4];
 		double kappa = eo[5];
 
-		double cc = io[0];
-		double ps = io[1] / 1000.0; //12.0 / 1000000.0;
-
-		double ppx = io[2];
-		double ppy = io[3];
-
-		//Mat rotation = new Mat(3,3, CvType.CV_64FC1);
 
 		rotationMatrix[0][0] = Math.cos(phi) * Math.cos(kappa);
 
@@ -687,8 +668,6 @@ class ai2las{
 
 		double output = Double.POSITIVE_INFINITY;
 
-		LasPoint tempPoint;
-
 		for(int i = 0; i < pointClouds.size(); i++){
 
 			File tempFile = new File(pointClouds.get(i));
@@ -696,8 +675,6 @@ class ai2las{
 
 			if(asd2.minZ < output)
 				output = asd2.minZ;
-
-			//System.out.println(output);
 
 		}
 
@@ -711,8 +688,6 @@ class ai2las{
 		int threadNumber;
 		int numberOfThreads;
 		ArrayList<Dataset> datasets;
-
-		ArrayList<Dataset> datasets_subset;
 
 
 		double[] interior;
@@ -781,18 +756,6 @@ class ai2las{
 
 		}
 
-		public void beforeLoop(){
-
-			this.finished = false;
-			this.out = false;
-
-		}
-
-		public void afterLoop(){
-
-			this.out = true;
-
-		}
 
 		public void stop(){
 
@@ -813,7 +776,6 @@ class ai2las{
 			this.done = false;
 
 			for(int j = 0; j < threadIn.size(); j++){
-				//shuffle.get(j);
 
 				if(tempP.getPoint().x >= extents.get(threadIn.get(j))[0] && tempP.getPoint().x <= extents.get(threadIn.get(j))[1] &&
 						tempP.getPoint().y >= extents.get(threadIn.get(j))[2] && tempP.getPoint().y <= extents.get(threadIn.get(j))[3]){
@@ -891,8 +853,6 @@ class ai2las{
 
 		double[][] rotationMatrix = new double[3][3];
 
-		String pathSep = System.getProperty("file.separator");
-
 		int nCores = 1;
 
 		boolean lasFormat = false;
@@ -905,7 +865,6 @@ class ai2las{
 		String oparse = iparse;
 		String odir = "";
 
-		int warmUp = 0;
 
 		File exteriorFile = null;
 		File interiorFile = null;
@@ -945,8 +904,6 @@ class ai2las{
 		exteriorFile = new File(aR.exterior);
 		interiorFile = new File(aR.interior);
 
-
-		warmUp = 0;
 
 		if(lasFormat){
 
@@ -1007,7 +964,9 @@ class ai2las{
 				try{
 
 					lista11.get(i).join();
-				}catch(Exception e){}
+				}catch(Exception e) {
+					e.printStackTrace();
+				}
 			}
 
 			filesList = tiedostoLista.files;
@@ -1170,18 +1129,10 @@ class ai2las{
 				int count = 0;
 
 				long lStartTime = 0;
-				long lStartTime_debug = 0;
-				long lEndTime = 0;
-				long lEndTime_debug1 = 0;
-				long lEndTime_debug2 = 0;
-				long lEndTime_debug3 = 0;
-				long lEndTime_debug4 = 0;
-				//proge.setEnd((int)n);
 
+				long lEndTime = 0;
 
 				ArrayList<double[]> valmiit = new ArrayList<double[]>();
-
-				double[] thisLocation = new double[2];
 
 				double[] temp;
 
@@ -1194,7 +1145,6 @@ class ai2las{
 					boolean pointFound = false;
 
 					for (int p = 0; p < asd2.getNumberOfPointRecords(); p += 10000) {
-						//for(int i = 0; i < n; i++){
 
 						int maxi = (int) Math.min(10000, Math.abs(asd2.getNumberOfPointRecords() - (p)));
 
@@ -1206,110 +1156,27 @@ class ai2las{
 
 						for (int j = 0; j < maxi; j++) {
 
-							//if((j+p) > 1600000)
 
-							//System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
 							asd2.readFromBuffer(tempPoint);
-							//count++;
+
 							pointFound = false;
 
 							if (j + p % 10000 == 0) {
-								//System.gc();
 								lEndTime = System.nanoTime();
-								//System.out.print("\33[1A\33[2K");
 								System.out.print("\033[2K"); // Erase line content
 								System.out.print((j + p) + "|" + n + " Time remaining: " + timeRemaining((int) n, j + p, (lEndTime - lStartTime)) + " ms/point: " + roundAvoid(((double) lEndTime - (double) lStartTime) / 1000000.0 / (double) (j + p), 2) + " o: " + outsidePoint + " " + gdal.GetCacheUsed() + "\r");  //+ asd2.getFile().getName() + "\r");
 
 							}
 
 							tempP.prepare();
-							//tempP = new pointAI(tempPoint, j+p);
 
-							String outWrite = "";
 							String outWrite2 = "";
 
-							int numberOfimages = 0;
-
-							int visited = 0;
-
-							int recent = -1;
-							//lStartTime_debug = System.currentTimeMillis();
-							double p_x = tempPoint.x;
-							double p_y = tempPoint.y;
-							double p_z = tempPoint.z;
-							/*
-							AtomicDoubleArray channels = new AtomicDoubleArray(datasets.get(0).GetRasterCount());
-							AtomicInteger n_img = new AtomicInteger(0);
-							if(aR.cores > 1){
-
-								IntStream s = IntStream.range(0, datasets.size());
-
-								s.parallel().forEach(j_ -> {
-									int[] array1 = new int[1];
-									//System.out.println(j_);
-									//thisLocation[0] = exteriors.get(j_)[2];
-									//thisLocation[1] = exteriors.get(j_)[3];
-
-
-									//System.out.println(notClose(thisLocation[0], thisLocation[1], valmiit, 15.0) + " " + valmiit.size());
-
-									if (p_x >= extents.get(j_)[0] && p_x <= extents.get(j_)[1] && p_y >= extents.get(j_)[2] && p_y <= extents.get(j_)[3]) {
-										//if(true){
-										//visited++;
-
-										//temp = collinearStuff(tempPoint, interior, exteriors.get(j_), rotationMatrix, x_s, y_s);
-										double[] temp2 = collinearStuff3(p_x, p_y, p_z, interior, exteriors.get(j_), rotationMatrices.get(j_), x_s, y_s);
-
-										if (temp2[0] > pix_threshold_x && temp2[0] < (x_s - pix_threshold_x)
-												&& temp2[1] > pix_threshold_y && temp2[1] < (y_s - pix_threshold_y)) {
-
-											System.out.println("HERE");
-											//channels[0]++;
-											for(int i = 1; i <= datasets.get(j_).GetRasterCount(); i++){
-
-												//System.out.println(i + " " + image.getRasterCount());
-												Band temp_b = datasets.get(j_).GetRasterBand(i);
-
-												int a = temp_b.ReadRaster((int)temp2[0],
-														(int)temp2[1],
-														1,
-														1,
-														array1);
-
-												channels.getAndAdd(i - 1, array1[0]);
-
-											}
-											n_img.incrementAndGet();
-											//.addObservation(datasets.get(j_), imageIDs.get(j_), temp2[0], temp2[1]);
-
-											//pointFound = true;
-											//valmiit.add(new double[]{thisLocation[0], thisLocation[1]});
-											//numberOfimages++;
-											//recent = j_;
-											//outWrite += " " + imageIDs.get(j);
-
-										}
-									}
-
-								});
-
-							}
-
-							else
-								*/
 							for (int j_ = 0; j_ < datasets.size(); j_++) {
 
-								//thisLocation[0] = exteriors.get(j_)[2];
-								//thisLocation[1] = exteriors.get(j_)[3];
-
-
-								//System.out.println(notClose(thisLocation[0], thisLocation[1], valmiit, 15.0) + " " + valmiit.size());
 
 								if (tempPoint.x >= extents.get(j_)[0] && tempPoint.x <= extents.get(j_)[1] && tempPoint.y >= extents.get(j_)[2] && tempPoint.y <= extents.get(j_)[3]) {
-								//if(true){
-									visited++;
 
-									//temp = collinearStuff(tempPoint, interior, exteriors.get(j_), rotationMatrix, x_s, y_s);
 									temp = collinearStuff2(tempPoint, interior, exteriors.get(j_), rotationMatrices.get(j_), x_s, y_s);
 
 									if (temp[0] > pix_threshold_x && temp[0] < (x_s - pix_threshold_x)
@@ -1318,10 +1185,6 @@ class ai2las{
 										tempP.addObservation(datasets.get(j_), imageIDs.get(j_), temp[0], temp[1]);
 
 										pointFound = true;
-										//valmiit.add(new double[]{thisLocation[0], thisLocation[1]});
-										numberOfimages++;
-										recent = j_;
-										//outWrite += " " + imageIDs.get(j);
 
 									}
 								}
@@ -1517,10 +1380,7 @@ class ai2las{
 			sourceReader.close();
 			outWriter.close();
 		}
-		pointAI POISON_PILL = new pointAI();
 
-
-		
 
 	}
 
@@ -1531,14 +1391,8 @@ class ai2las{
 		for (int i = 1; i <= image.GetRasterCount(); i++) {
 
 			int[] array = new int[image.getRasterXSize() * image.getRasterYSize()];
-			//System.out.println(i + " " + image.getRasterCount());
 			Band temp = image.GetRasterBand(i);
 
-			int a = temp.ReadRaster((int) 0,
-					(int) 0,
-					image.GetRasterXSize(),
-					image.GetRasterYSize(),
-					array);
 
 			cache.getLast().set(i-1, array);
 

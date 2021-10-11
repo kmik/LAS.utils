@@ -18,8 +18,6 @@ import utils.pointWriterMultiThread;
 
 import java.io.*;
 import java.util.*;
-import java.util.List;
-
 
 
 /**
@@ -1243,19 +1241,12 @@ public class GroundDetector{
                     }
                 }
 
-                //asd2.writeBuffer2();
-                //asd2.updateHeader2();
-
             }
 
         }catch(Exception e){
             e.printStackTrace(System.out);
-            //break;
-        }finally{
-        }
 
-        //buf.close();
-        //pw.close();
+        }
 
         aR.pfac.closeThread(thread_n);
 
@@ -2756,7 +2747,7 @@ public class GroundDetector{
                 //pointCloud.readRecord_noRAF(i, tempPoint, 10000);
                 aR.pfac.prepareBuffer(thread_n, i, 10000);
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
             //pointCloud.braf.buffer.position(0);
 
@@ -3038,7 +3029,7 @@ public class GroundDetector{
                 try {
                     pointCloud.readRecord_noRAF(i, tempPoint, 10000);
                 } catch (Exception e) {
-
+                    e.printStackTrace();
                 }
                 //pointCloud.braf.buffer.position(0);
 

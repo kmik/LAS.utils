@@ -52,7 +52,9 @@ class MKid4pointsLAS{
                 BufferedWriter bwPlot = new BufferedWriter(fwPlot);
                 PrintWriter outPlot = new PrintWriter(bwPlot);
 
-            }catch(IOException e){}
+            }catch(IOException e) {
+                e.printStackTrace();
+            }
 
 
         }
@@ -68,7 +70,9 @@ class MKid4pointsLAS{
                 BufferedWriter bwPlot = new BufferedWriter(fwPlot);
                 PrintWriter outPlot = new PrintWriter(bwPlot);
 
-            }catch(IOException e){}
+            }catch(IOException e) {
+                e.printStackTrace();
+            }
 
         }
 
@@ -172,7 +176,9 @@ class MKid4pointsLAS{
                 }
 
 
-            }} catch (Exception e) {}
+            }} catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return output;
 
@@ -205,7 +211,7 @@ class MKid4pointsLAS{
     public static void hilaJako(ArrayList<String> pilvi,String all_index, double[] topLeft, double cellSize,
                                 String outtieName, int partionSize, int part, int cores, double buffer, String oparse, String output){
 
-        RunId4pointsLAS.output.resetThreads();
+        //RunId4pointsLAS.output.resetThreads();
 
         String delim = " ";
         ArrayList<String> pilvi1;
@@ -322,7 +328,9 @@ class MKid4pointsLAS{
 
                 sc.close();
                 outt.close();
-            } catch( IOException ioException ){}
+            } catch( IOException ioException ) {
+                ioException.printStackTrace();
+            }
 
         }
     }
@@ -368,7 +376,9 @@ class MKid4pointsLAS{
                 Runtime rt = Runtime.getRuntime();
                 Process proc = rt.exec(asd);
                 proc.waitFor();
-            }catch( Exception ex ) {}
+            }catch( Exception ex ) {
+                ex.printStackTrace();
+            }
 
 
         }
@@ -386,7 +396,9 @@ class MKid4pointsLAS{
                 p.waitFor();
                 //Process proc = rt.exec(conc);
 
-            }catch(Exception ex){}
+            }catch(Exception ex) {
+                ex.printStackTrace();
+            }
 
         }
 
@@ -497,7 +509,9 @@ class MKid4pointsLAS{
             sc.close();
 
 
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         System.out.println(inFile);
         System.out.println(" ");
@@ -540,7 +554,9 @@ class MKid4pointsLAS{
 
             bw.close();
         }
-        catch( IOException ioException ) {}
+        catch( IOException ioException ) {
+            ioException.printStackTrace();
+        }
 
     }
 
@@ -587,13 +603,17 @@ class MKid4pointsLAS{
                     bw.write(all_index_input);
                     bw.newLine();
                     sc.close();
-                } catch( IOException ioException ){}
+                } catch( IOException ioException ) {
+                    ioException.printStackTrace();
+                }
 
 
                 //System.out.println("ADSASDASDASD");
             }
             bw.close();
-        } catch( IOException ioException ){}
+        } catch( IOException ioException ) {
+            ioException.printStackTrace();
+        }
 
 
     }
@@ -955,7 +975,9 @@ class MKid4pointsLAS{
             }
 
 
-        }catch( IOException ioException ) {}
+        }catch( IOException ioException ) {
+            ioException.printStackTrace();
+        }
 
         return output;
     }
@@ -1101,7 +1123,9 @@ class MKid4pointsLAS{
                 }
 
 
-            }catch( IOException ioException ) {}
+            }catch( IOException ioException ) {
+                ioException.printStackTrace();
+            }
             //RunId4pointsLAS.proge.setEnd(plotID1.size());
             int pienin;
             int suurin;
@@ -2706,7 +2730,9 @@ class MKid4pointsLAS{
 
                 two = countLines_no_output(outputti);
 
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             indexing(outputti,(outputti.split("sorted")[0] + pathSep2 + "sorted" + pathSep2 + outputti.split("sorted")[1].split(".txt")[0] + ".index"),two, " ");
 

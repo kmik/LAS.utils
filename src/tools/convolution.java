@@ -1774,8 +1774,8 @@ public class convolution {
                     bestModel_320 = model_320.clone();
                 }
 */
-            }catch (Exception e){
-
+            }catch (Exception e) {
+                e.printStackTrace();
             }
 
             //trainIter.reset();

@@ -154,7 +154,7 @@ public class stemAligner {
             try {
                 pointCloud.readRecord_noRAF(i, tempPoint, 10000);
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
 
             for (int j = 0; j < maxi; j++) {
@@ -463,7 +463,7 @@ public class stemAligner {
             try {
                 pointCloud.readRecord_noRAF(i, tempPoint, 10000);
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
 
             for (int j = 0; j < maxi; j++) {

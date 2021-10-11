@@ -25,7 +25,7 @@ public class RunId4pointsLAS{
     public static fileOperations fo = new fileOperations();
     public static boolean done = false;
 
-    public static MKid4pointsLAS.MKid4pointsOutput output = new MKid4pointsLAS.MKid4pointsOutput();
+    //public static MKid4pointsLAS.MKid4pointsOutput output = new MKid4pointsLAS.MKid4pointsOutput();
     public static ThreadProgressBar proge = new ThreadProgressBar();
 
     public static listOfFiles tiedostoLista = new listOfFiles();
@@ -370,9 +370,9 @@ public class RunId4pointsLAS{
             } catch (FileNotFoundException e) {
 
                 e.printStackTrace();
-            } catch(InterruptedException e){
-
-            }finally{
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+            } finally{
                 writer.close();
             }
 
@@ -413,7 +413,9 @@ public class RunId4pointsLAS{
                 PrintWriter out = new PrintWriter(bw);
 
 
-            }catch(IOException e){}
+            }catch(IOException e) {
+                e.printStackTrace();
+            }
 
         }
 
@@ -557,7 +559,9 @@ public class RunId4pointsLAS{
                     return 1;
 
             }
-        }catch( IOException ioException ) {}
+        }catch( IOException ioException ) {
+            ioException.printStackTrace();
+        }
         return -99;
     }
 
@@ -874,7 +878,9 @@ public class RunId4pointsLAS{
 
             Thread.sleep(0);
 
-        }catch(InterruptedException e){}
+        }catch(InterruptedException e) {
+            e.printStackTrace();
+        }
 
         if(shapeFile.getName().contains(".shp")){
 
@@ -923,8 +929,8 @@ public class RunId4pointsLAS{
                 }
 
                 bw.close();
-            }catch(IOException e){
-
+            }catch(IOException e) {
+                e.printStackTrace();
             }
 
             koealat = "tempWKT.csv";
@@ -1070,7 +1076,9 @@ public class RunId4pointsLAS{
                 try{
 
                     lista11.get(i).join();
-                }catch(Exception e){}
+                }catch(Exception e) {
+                    e.printStackTrace();
+                }
             }
           
 
@@ -1387,7 +1395,9 @@ public class RunId4pointsLAS{
                     try{
 
                         lista.get(i).join();
-                    }catch(Exception e){}
+                    }catch(Exception e) {
+                        e.printStackTrace();
+                    }
 
                 }
 
@@ -1437,6 +1447,7 @@ public class RunId4pointsLAS{
 
         ArrayList<String> tiedostot_UNsorted = null;//homma.listFiles(("" + pathi), ".txt");
 
+
         if(plotsORnot == 1){
             indeksi_pathi_all = tiedostot_sorted.get(0).split("sorted")[0] + pathSep + "sorted" + pathSep + "all.in_dex";
             if(aR.cores > 1){
@@ -1456,7 +1467,9 @@ public class RunId4pointsLAS{
                     try{
 
                         lista.get(i).join();
-                    }catch(Exception e){}
+                    }catch(Exception e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 File dirr = new File(aR.output);
@@ -1473,7 +1486,8 @@ public class RunId4pointsLAS{
                 });
 
 
-                merged = new File((output + pathSep + outName));
+               // merged = new File((output + pathSep + outName));
+                merged = new File(("ASD" + pathSep + outName));
 
 
                 mergeFiles(outFiles, merged);

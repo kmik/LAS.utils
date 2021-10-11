@@ -542,7 +542,7 @@ public class Thinner{
             try {
                 pointCloud.readRecord_noRAF(i, tempPoint, 10000);
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
             //pointCloud.braf.buffer.position(0);
 

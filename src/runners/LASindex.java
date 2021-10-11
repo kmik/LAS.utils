@@ -309,8 +309,8 @@ class LASindex {
 	      		outt.println(tiedosto.getAbsolutePath().split(".lasx")[0] + ".las" + " " + temp.get(4097).get(0) + " " + temp.get(4097).get(1) + " " + temp.get(4097).get(2) + " " + temp.get(4097).get(3));
 			}
 			outt.close();
-		}catch(Exception e){
-
+		}catch(Exception e) {
+			e.printStackTrace();
 		}
 
 	}
@@ -496,7 +496,9 @@ class LASindex {
               try{
 
               lista.get(i).join();
-              }catch(Exception e){}
+              }catch(Exception e) {
+				  e.printStackTrace();
+			  }
             }
         }
         indexAll2(pointClouds.get(0).path.getParent());

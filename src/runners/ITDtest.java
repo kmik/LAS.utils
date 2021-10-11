@@ -448,7 +448,8 @@ class ITDtest{
             }
 
             bw.close();
-          }catch(IOException e){
+          }catch(IOException e) {
+              e.printStackTrace();
           }
 
     
@@ -513,7 +514,9 @@ class ITDtest{
             }
 
               
-          }catch( IOException ioException ) {} 
+          }catch( IOException ioException ) {
+              ioException.printStackTrace();
+          }
 
           System.out.println(polyBank1.size());
 

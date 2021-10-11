@@ -228,7 +228,9 @@ public class LasRelate{
             }
             else
                 System.out.println("Datasets do not overlap!");
-        }catch(IOException e){}
+        }catch(IOException e) {
+            e.printStackTrace();
+        }
 
     }
 

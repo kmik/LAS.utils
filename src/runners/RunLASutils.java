@@ -49,13 +49,12 @@ import java.util.HashSet;
 import static runners.MKid4pointsLAS.clipPlots_singleLASfile;
 import static runners.MKid4pointsLAS.readPolygonsFromWKT;
 
+@SuppressWarnings("unused")
 public class RunLASutils {
 
     public static fileOperations fo = new fileOperations();
     public static listOfFiles tiedostoLista = new listOfFiles();
     public static RunId4pointsLAS.ThreadProgressBar proge = new RunId4pointsLAS.ThreadProgressBar();
-
-    //public static progressUpdater p_updater = new progressUpdater();
 
     /**
      * Method to erase the line and print a progress
@@ -179,15 +178,10 @@ public class RunLASutils {
         aR.setExecDir(System.getProperty("user.dir"));
         aR.parseArguents();
 
-        File curDir = new File(aR.execDir);
-
         String pathSep = System.getProperty("file.separator");
 
         if (!System.getProperty("os.name").equals("Linux"))
             pathSep = "\\" + pathSep;
-
-
-        String regex = "^.*(?:\\*.*){2}$";
 
         boolean lasFormat = false;
         boolean txtFormat = false;
@@ -262,6 +256,7 @@ public class RunLASutils {
 
                     lista11.get(i).join();
                 } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -286,7 +281,6 @@ public class RunLASutils {
 
         aR.p_update.totalFiles = aR.pointClouds.size();
 
-        File testFile = null;
         System.out.println(Arrays.toString(aR.inputFiles.toArray()));
 
         fileDistributor fD = new fileDistributor(aR.inputFiles);
@@ -325,6 +319,7 @@ public class RunLASutils {
                     try {
                         lista11.get(i).join();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -364,6 +359,7 @@ public class RunLASutils {
 
                         lista11.get(i).join();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -406,6 +402,7 @@ public class RunLASutils {
 
                         lista11.get(i).join();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -465,6 +462,7 @@ public class RunLASutils {
 
                         lista11.get(i).join();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -505,6 +503,7 @@ public class RunLASutils {
 
                         lista11.get(i).join();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -562,6 +561,7 @@ public class RunLASutils {
 
                         lista11.get(i).join();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -600,6 +600,7 @@ public class RunLASutils {
 
                         lista11.get(i).join();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -638,6 +639,7 @@ public class RunLASutils {
 
                         lista11.get(i).join();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -680,6 +682,7 @@ public class RunLASutils {
 
                         lista11.get(i).join();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -719,6 +722,7 @@ public class RunLASutils {
 
                         lista11.get(i).join();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -799,7 +803,7 @@ public class RunLASutils {
 
                     bw.close();
                 } catch (IOException e) {
-
+                    e.printStackTrace();
                 }
 
                 aR.poly = "tempWKT.csv";
@@ -840,6 +844,7 @@ public class RunLASutils {
 
                         lista11.get(i).join();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -917,6 +922,7 @@ public class RunLASutils {
 
                         lista11.get(i).join();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -962,6 +968,7 @@ public class RunLASutils {
 
                         lista11.get(i).join();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -1219,6 +1226,7 @@ public class RunLASutils {
                 Thread.sleep(0);
 
             } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
             if (shapeFile.getName().contains(".shp")) {
@@ -1269,7 +1277,7 @@ public class RunLASutils {
 
                     bw.close();
                 } catch (IOException e) {
-
+                    e.printStackTrace();
                 }
 
                 aR.poly = "tempWKT.csv";
