@@ -249,33 +249,33 @@ public class LasPointBufferCreator {
         yOffset = 0.0;
         zOffset = 0.0;
 */
-        /** Written or not */
+        /* Written or not */
         boolean output = false;
 
         //Byte myByte = new Byte("00000000");
         //byte myBitti = myByte.byteValue();
 
 
-        /** Write if rule says so */
+        /* Write if rule says so */
 
         if(rule.ask(tempPoint, i, true)){
 
-            /** We got here, so output true */
+            /* We got here, so output true */
             output = true;
 
             double x = tempPoint.x;
             double y = tempPoint.y;
             double z = tempPoint.z;
 
-            /** Scale x and apply xOffset */
+            /* Scale x and apply xOffset */
             int lx = (int)((x - this.pwrite.tempReader.xOffset) / this.pwrite.tempReader.xScaleFactor);
-            /** Scale y and apply yOffset */
+            /* Scale y and apply yOffset */
             int ly = (int)((y - this.pwrite.tempReader.yOffset) / this.pwrite.tempReader.yScaleFactor);
-            /** Scale z and apply zOffset */
+            /* Scale z and apply zOffset */
             int lz = (int)((z - this.pwrite.tempReader.zOffset) / this.pwrite.tempReader.zScaleFactor);
             //if(ly < 0)
             //System.out.println(lx + " " + ly);
-            /** Write scaled and offset x, y and z */
+            /* Write scaled and offset x, y and z */
             this.writeInt(lx);
             this.writeInt(ly);
             this.writeInt(lz);
@@ -286,7 +286,7 @@ public class LasPointBufferCreator {
               //  System.out.println(tempPoint.x);
             //}
 
-            /** Write intensity */
+            /* Write intensity */
             this.writeUnsignedShort((short)tempPoint.intensity);// braf.readUnsignedShort()
 
 			/*
@@ -343,10 +343,10 @@ public class LasPointBufferCreator {
 			myByte = setBit(myByte, 1, (byte)tempPoint.returnNumber >> 1);
 			myByte = setBit(myByte, 0, (byte)tempPoint.returnNumber >> 0);
 			*/
-            /** Write byte */
+            /* Write byte */
             this.writeUnsignedByte(myBitti);
 
-            /** Reset the byte */
+            /* Reset the byte */
             //myByte = 0;
 
 
@@ -397,23 +397,23 @@ public class LasPointBufferCreator {
             myByte = setBit(myByte, 0, (byte)tempPoint.classification >> 0);
 			*/
 
-            /** Write the byte */
+            /* Write the byte */
             this.writeUnsignedByte(myBitti);
 
-            /** Write scan angle */
+            /* Write scan angle */
             this.writeUnsignedByte((byte)tempPoint.scanAngleRank);
 
-            /** Write user data */
+            /* Write user data */
             this.writeUnsignedByte((byte)tempPoint.userData);
 
-            /** Write point source ID */
+            /* Write point source ID */
             this.writeUnsignedShort(tempPoint.pointSourceId);
 
 
-            /** Previous stuff is pretty much standard for any point data type.
+            /* Previous stuff is pretty much standard for any point data type.
              How to do the extra stuff that is point data type specific? */
 
-            /** RGB is included in both 2 and 3 record types in LAS 1.2 */
+            /* RGB is included in both 2 and 3 record types in LAS 1.2 */
 
             if (this.pwrite.pointDataRecordFormat == 1 ||
                     this.pwrite.pointDataRecordFormat == 3 ||

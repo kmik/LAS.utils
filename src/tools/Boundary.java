@@ -133,9 +133,6 @@ public class Boundary extends tool{
     /**
      * Calculates the perimeter from TIN
      * Saves the TIN in
-     * @param perimTIN
-     * and perimeter vertices in
-     * @param perimVertices
      */
 
     public void updatePerimeter(){
@@ -399,7 +396,7 @@ public class Boundary extends tool{
         aR.p_update.threadEnd[coreNumber-1] = (int)pointCloud.getNumberOfPointRecords();
         aR.p_update.threadProgress[coreNumber-1] = 0;
 
-        /** First find the index of the lowest Y point
+        /* First find the index of the lowest Y point
          */
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000){
 
@@ -433,8 +430,8 @@ public class Boundary extends tool{
         LasPoint tempPoint2 = new LasPoint();
         LasPoint tempPoint3 = new LasPoint();
 
-        /**
-         * tempPoint3 now holds the lowest Y point
+        /*
+          tempPoint3 now holds the lowest Y point
          */
         pointCloud.readRecord(minYindex, tempPoint3);
 
@@ -492,7 +489,7 @@ public class Boundary extends tool{
 
         int counteri = 0;
 
-        /** Seems sketchy, but trust me, it will halt! */
+        /* Seems sketchy, but trust me, it will halt! */
         while(running) {
 
             minidisti =-5.0;
@@ -568,8 +565,8 @@ public class Boundary extends tool{
                     }
             }
 
-            /** prevIndex always points to the previous vertex in the boundary. This guarantees that
-             * we don't trace back our steps in the bounday.
+            /* prevIndex always points to the previous vertex in the boundary. This guarantees that
+              we don't trace back our steps in the bounday.
              */
             prevIndex = (int)angleIndex;
 
@@ -580,29 +577,29 @@ public class Boundary extends tool{
 
             segments.add(prevSegment.clone());
 
-            /** tempPoint now holds the next vertice of the boundary */
+            /* tempPoint now holds the next vertice of the boundary */
             pointCloud.readRecord((int)angleIndex, tempPoint);
 
-            /** Assign temporary points as planned */
+            /* Assign temporary points as planned */
             tempPoint1.x = tempPoint3.x;
             tempPoint1.y = tempPoint3.y;
             tempPoint3.x = tempPoint.x;
             tempPoint3.y = tempPoint.y;
 
-            /** Add the vertice to the boundary */
+            /* Add the vertice to the boundary */
             border.add(new double[]{tempPoint.x, tempPoint.y});
 
             increase = 0.0;
 
-            /** We search for points in the proximity of the new boundary vertex.
+            /* We search for points in the proximity of the new boundary vertex.
              */
             while (pointCloud.queriedIndexes2.size() <= 1) {
                 pointCloud.query2(tempPoint.x - concavity + increase, tempPoint.x + concavity + increase, tempPoint.y - concavity + increase, tempPoint.y + concavity + increase);
                 increase += 5.0;
             }
 
-            /** Here is the termination condition! If the current vertex is the same as the starting vertex,
-             * we stop!
+            /* Here is the termination condition! If the current vertex is the same as the starting vertex,
+              we stop!
              */
             if(angleIndex == startIndex)
                 running = false;
@@ -689,10 +686,6 @@ public class Boundary extends tool{
     /**
      * Calculate angle between two lines with two given points
      *
-     * @param A1 First point first line
-     * @param A2 Second point first line
-     * @param B1 First point second line
-     * @param B2 Second point second line
      * @return Angle between two lines in degrees
      */
 

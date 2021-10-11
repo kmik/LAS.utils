@@ -449,7 +449,7 @@ public class LASReader {
 
         indeksi = yPixel * n_pixels_x + xPixel;
 
-        /** If the current index square is not initialized */
+        /* If the current index square is not initialized */
         if(save2.get(indeksi) == null){
           save2.put(indeksi, new ArrayList<>());
           save2.get(indeksi).add(new int[]{counter, counter+1});

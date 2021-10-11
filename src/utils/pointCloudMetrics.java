@@ -38,8 +38,8 @@ public class pointCloudMetrics {
         ArrayList<Double> output = new ArrayList<>();
         colnames.clear();
 
-        /** Should we have insufficient number of points to calculate metrics,
-         * then we just output NaN for all metrics.
+        /* Should we have insufficient number of points to calculate metrics,
+          then we just output NaN for all metrics.
          */
         if(z.size() < cutoff_n_points){
 
@@ -186,10 +186,10 @@ public class pointCloudMetrics {
         }
 
         if(z_above_threshold.size() < cutoff_n_points){
-            /** Should we have insufficient number of points to calculate metrics,
-             * then we just output NaN for all metrics. This check is done here
-             * again because we only just now check for point that are within
-             * the legal boundaries.
+            /* Should we have insufficient number of points to calculate metrics,
+              then we just output NaN for all metrics. This check is done here
+              again because we only just now check for point that are within
+              the legal boundaries.
              */
             //if(z.size() < cutoff_n_points){
 
@@ -449,8 +449,8 @@ public class pointCloudMetrics {
         ArrayList<Double> output = new ArrayList<>();
         colnames.clear();
 
-        /** Should we have insufficient number of points to calculate metrics,
-         * then we just output NaN for all metrics.
+        /* Should we have insufficient number of points to calculate metrics,
+          then we just output NaN for all metrics.
          */
         if(z.size() < cutoff_n_points){
 
@@ -706,8 +706,8 @@ public class pointCloudMetrics {
 
         }
 
-        /** Should we have insufficient number of points to calculate metrics,
-         * then we just output NaN for all metrics.
+        /* Should we have insufficient number of points to calculate metrics,
+          then we just output NaN for all metrics.
          */
         if(z_above_threshold.size() < cutoff_n_points){
 

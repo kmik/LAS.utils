@@ -576,7 +576,6 @@ public class Convolution extends Thread {
 
   /**
    * Converts a greylevel array into a pixel array.
-   * @param the 1D array of greylevels.
    * @return the 1D array of RGB pixels.
    */
   public static int [] doublesToValidPixels (double [] greys){

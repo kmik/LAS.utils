@@ -59,13 +59,6 @@ public class Tiler{
      * Constructor
      *
      * @param in					Input list of point clouds
-     * @param buf 				Size of the buffer for each tile
-     * @param odir2 				Output directory
-     * @param rule2				Rule to either include or exclude a point
-     *							Also includes a pointModify class that can
-     *							modify the point attributes.
-     * @param step2				The
-     *							ground points.
      */
 
     public Tiler(ArrayList<File> in, argumentReader aR) throws IOException {
@@ -283,12 +276,12 @@ public class Tiler{
                         int x = (int) ((tempPoint.x - this.minX) / sideLength);
                         int y = (int) ((this.maxY - tempPoint.y) / sideLength);
 
-                        /** Here we write the point to the correct tile */
+                        /* Here we write the point to the correct tile */
                         //if(LASwrite.writePoint(outputFilesMatrix[x][y], tempPoint, rule, 0.01, 0.01, 0.01, 0, 0, 0, temp.pointDataRecordFormat, j))
                         if (outputFilesMatrix_buf[x][y].writePoint(tempPoint, rule, j))
                             pointCounts[x][y]++;
 
-                        /** Next we have to check whether the point is in a buffer */
+                        /* Next we have to check whether the point is in a buffer */
                         if (buffer > 0.0) {
 
                             tempPoint.synthetic = true;
@@ -328,25 +321,25 @@ public class Tiler{
                                         pointCounts[x][y + 1]++;
 
 
-                            /** Top right */
+                            /* Top right */
                             if (distanceToTop < buffer && distanceToRight < buffer)
                                 if (y - 1 >= 0 && x + 1 < xMax)
                                     if (outputFilesMatrix_buf[x + 1][y - 1].writePoint(tempPoint, rule, j))
                                         pointCounts[x + 1][y - 1]++;
 
-                            /** Top left */
+                            /* Top left */
                             if (distanceToTop < buffer && distanceToLeft < buffer)
                                 if (y - 1 >= 0 && x - 1 >= 0)
                                     if (outputFilesMatrix_buf[x - 1][y - 1].writePoint(tempPoint, rule, j))
                                         pointCounts[x - 1][y - 1]++;
 
-                            /** Bottom left */
+                            /* Bottom left */
                             if (distanceToBottom < buffer && distanceToLeft < buffer)
                                 if (y + 1 < yMax && x - 1 >= 0)
                                     if (outputFilesMatrix_buf[x - 1][y + 1].writePoint(tempPoint, rule, j))
                                         pointCounts[x - 1][y + 1]++;
 
-                            /** Bottom right */
+                            /* Bottom right */
                             if (distanceToBottom < buffer && distanceToRight < buffer)
                                 if (y + 1 < yMax && x + 1 < xMax)
                                     if (outputFilesMatrix_buf[x + 1][y + 1].writePoint(tempPoint, rule, j))
@@ -460,12 +453,12 @@ public class Tiler{
                         int x = (int) ((tempPoint.x - this.minX) / sideLength);
                         int y = (int) ((this.maxY - tempPoint.y) / sideLength);
 
-                        /** Here we write the point to the correct tile */
+                        /* Here we write the point to the correct tile */
                         //if(LASwrite.writePoint(outputFilesMatrix[x][y], tempPoint, rule, 0.01, 0.01, 0.01, 0, 0, 0, temp.pointDataRecordFormat, j))
                         if (outputFilesMatrix_buf[x][y].writePoint(tempPoint, rule, j+p))
                             pointCounts[x][y]++;
 
-                        /** Next we have to check whether the point is in a buffer */
+                        /* Next we have to check whether the point is in a buffer */
                         if (buffer > 0.0) {
 
                             tempPoint.synthetic = true;
@@ -505,25 +498,25 @@ public class Tiler{
                                         pointCounts[x][y + 1]++;
 
 
-                            /** Top right */
+                            /* Top right */
                             if (distanceToTop < buffer && distanceToRight < buffer)
                                 if (y - 1 >= 0 && x + 1 < xMax)
                                     if (outputFilesMatrix_buf[x + 1][y - 1].writePoint(tempPoint, rule, j+p))
                                         pointCounts[x + 1][y - 1]++;
 
-                            /** Top left */
+                            /* Top left */
                             if (distanceToTop < buffer && distanceToLeft < buffer)
                                 if (y - 1 >= 0 && x - 1 >= 0)
                                     if (outputFilesMatrix_buf[x - 1][y - 1].writePoint(tempPoint, rule, j+p))
                                         pointCounts[x - 1][y - 1]++;
 
-                            /** Bottom left */
+                            /* Bottom left */
                             if (distanceToBottom < buffer && distanceToLeft < buffer)
                                 if (y + 1 < yMax && x - 1 >= 0)
                                     if (outputFilesMatrix_buf[x - 1][y + 1].writePoint(tempPoint, rule, j+p))
                                         pointCounts[x - 1][y + 1]++;
 
-                            /** Bottom right */
+                            /* Bottom right */
                             if (distanceToBottom < buffer && distanceToRight < buffer)
                                 if (y + 1 < yMax && x + 1 < xMax)
                                     if (outputFilesMatrix_buf[x + 1][y + 1].writePoint(tempPoint, rule, j+p))

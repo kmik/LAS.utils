@@ -237,7 +237,7 @@ public class Thinner{
 
     }
 
-    public class Pair implements Comparable<Pair> {
+    public static class Pair implements Comparable<Pair> {
         public final int index;
         public final long value;
 

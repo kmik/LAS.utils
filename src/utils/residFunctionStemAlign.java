@@ -370,7 +370,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
             //counter++;
         }
 
-        /** Calculate residual based on new point locations */
+        /* Calculate residual based on new point locations */
         try {
             resid2 = calculateResidual(null);
             //long estimatedTime = System.currentTimeMillis() - startTime;
@@ -449,7 +449,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
                     this.po_y_sparseArray = po_y_sparseArray;
                     this.po_z_sparseArray = po_z_sparseArray;
 
-            /** Change the coordinates of the trunk points based on params */
+            /* Change the coordinates of the trunk points based on params */
             for (Map.Entry<Short, HashMap<Integer, ArrayList<cloudPoint>>> entry : trunkPoints.entrySet()) {
 
                 counter2 = 0;
@@ -538,7 +538,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
 
 
 
-        /** Calculate residual based on new point locations */
+        /* Calculate residual based on new point locations */
         try {
             resid2 = calculateResidual(rotated_points);
             estimatedTime = System.currentTimeMillis() - startTime;
@@ -875,7 +875,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
 
                             fitter_ransac.initialize3(entry.getValue(), 3, d, 0.015, 10000, 1);
 
-                            /** HERE WE REPLACE THE FLIGHT LINE SLICE WITH ONLY THE RANSAC INLIER POINTS! */
+                            /* HERE WE REPLACE THE FLIGHT LINE SLICE WITH ONLY THE RANSAC INLIER POINTS! */
                             entry.setValue((ArrayList<cloudPoint>)fitter_ransac.ransac_inlier_points_c.clone());
                             //ArrayList<cloudPoint> newList = new ArrayList<>();
 
@@ -1071,7 +1071,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
                 centers.clear();
                 fullSlicePoints.clear();
 
-                /** HERE WE HAVE ONE FLIGHT LINE POINTS FROM ONE SLICE */
+                /* HERE WE HAVE ONE FLIGHT LINE POINTS FROM ONE SLICE */
                 for(int p = 0; p < rotated_points[i].size(); p++){
 
                     if(rotated_points[i].get(p).size() == 0)

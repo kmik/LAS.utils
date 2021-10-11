@@ -357,7 +357,7 @@ public class LasRelate{
                         tempReader.xOffset, tempReader.yOffset, tempReader.zOffset);
 
 
-                /** Here we should refine both TIN networks
+                /* Here we should refine both TIN networks
                  Ideas: Remove isolated points which have a large
                  angle.
                  */
@@ -394,7 +394,7 @@ public class LasRelate{
                 org.tinfour.standard.IncrementalTin correctionTin = makeCorrectionTIN(tempTin, tempTinReference);
                 GroundDetector.removeSpikes(correctionTin, 0.5);
 
-                /** Let's make a correction raster from correctionTin and interpolate it */
+                /* Let's make a correction raster from correctionTin and interpolate it */
 
                 float[][] correctionRaster = new float[sizeX][sizeY];
 
@@ -452,7 +452,7 @@ public class LasRelate{
 
                     tempReader.readRecord(j, tempPoint);
 
-                    /** Threw away a condition */
+                    /* Threw away a condition */
 
                     if(true){ // correctionTin.isPointInsideTin(tempPoint.x, tempPoint.y)
 
@@ -632,7 +632,6 @@ public class LasRelate{
      *
      * @param in1	Input TIN
      * @param in2 	Input TIN
-     * @param dist 	Maximum distance between vertices
      *
      *
      */
@@ -661,7 +660,7 @@ public class LasRelate{
         double interpolatedvalue = 0.0;
         for(int i = 0; i < vL.size(); i++){
 
-            /** Always false in the beginning */
+            /* Always false in the beginning */
             keepA = false;
 
             tempVertexA = vL.get(i);
@@ -679,7 +678,7 @@ public class LasRelate{
 
                     if(distance < distanceThreshold && keepA == false){
 
-                        /** We keep the vertex because it has a close neighbour
+                        /* We keep the vertex because it has a close neighbour
                          in the other TIN */
                         keepA = true;
 

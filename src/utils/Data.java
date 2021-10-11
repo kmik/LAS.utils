@@ -114,8 +114,8 @@ public class Data {
         return out;
     }
 
-    /**
-     * Previous algorithms for performing PCA
+    /*
+      Previous algorithms for performing PCA
      */
 
     /**

@@ -3,22 +3,16 @@ package tools;
 import LASio.LASReader;
 import LASio.LasPoint;
 import LASio.LasPointBufferCreator;
-//import it.unimi.dsi.fastutil.chars.Char2ShortArrayMap;
-import org.apache.commons.math3.Field;
-import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.ejml.data.DMatrixRMaj;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
-import org.hsqldb.lib.ArrayUtil;
 import utils.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 class MedianOfIntegerStream {
 
@@ -292,7 +286,7 @@ public class trunkDBH {
 
                         //System.out.println("ALL POINT READ FOR TRUNK: " + tempPoint.pointSourceId);
 
-                        /** Now we have all point for trunk "tempPoint.pointSourceId" recorded */
+                        /* Now we have all point for trunk "tempPoint.pointSourceId" recorded */
                         ArrayList<double[]> slicePoints = new ArrayList<>();
                         ArrayList<double[]> slicePoints_temp = new ArrayList<>();
                         ArrayList<double[]> slicePoints_temp_for_ransac = new ArrayList<>();
@@ -471,7 +465,7 @@ public class trunkDBH {
                                             double orig_center_counter = 0;
 
                                             all_points.clear();
-                                            /** JIGGLE THE FLIGHT LINE POINT CLOUDS */
+                                            /* JIGGLE THE FLIGHT LINE POINT CLOUDS */
                                             for (short id : slice_flightlines.keySet()) {
 
 
@@ -570,7 +564,7 @@ public class trunkDBH {
                                         }
 
                                         //double radius;
-                                        /** FIDDLING WITH THIS PERCENTAGE INCREASES THE NUMBER OF DETECTED STEMS */
+                                        /* FIDDLING WITH THIS PERCENTAGE INCREASES THE NUMBER OF DETECTED STEMS */
                                         int d = (int) Math.max(1, ((slicePoints_temp.size() -3 )    *  0.4));
                                         //if(all_points.size() == slicePoints_temp.size()){
 
@@ -756,7 +750,7 @@ public class trunkDBH {
                             //System.out.println("zet " + zet);
                             RansacLinearRegression RLR = new RansacLinearRegression(dataForRansacInverse, 0.33, 0.33, 0.045  , aR.set_seed);
 
-                            /** LISÄÄ PAINOT TUONNE REGRESSIOON!!! */
+                            /* LISÄÄ PAINOT TUONNE REGRESSIOON!!! */
 
                             RLR.set_n(2);
 
@@ -863,9 +857,9 @@ public class trunkDBH {
 
                                 //System.out.println("scan angle: " + scan_angle[0]);
 
-                                /** IF there are inlier diameter estimates from BELOW and ABOVE 1.3m,
-                                 *  we use the direct estimates from the point cloud.
-                                 *  Otherwise, we use the predicted diameter from regression line.
+                                /* IF there are inlier diameter estimates from BELOW and ABOVE 1.3m,
+                                   we use the direct estimates from the point cloud.
+                                   Otherwise, we use the predicted diameter from regression line.
                                  */
                                 if(newDbh_maybe != -1.0 && false) {
 
@@ -1064,7 +1058,7 @@ public class trunkDBH {
         List<KdTree.XYZPoint> nearest_measured;
         List<KdTree.XYZPoint> nearest_estimated;
 
-        /** We take 5 neighbors to account for incorrect match in the closest one */
+        /* We take 5 neighbors to account for incorrect match in the closest one */
         nearest_measured = (List<KdTree.XYZPoint>)tree_measured.nearestNeighbourSearch(5, p);
 
         //ArrayList<Double> dbh_differences = new ArrayList<>(5);

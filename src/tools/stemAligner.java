@@ -1,38 +1,10 @@
 package tools;
 import LASio.*;
-import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
-import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
-import org.apache.commons.math3.fitting.leastsquares.LeastSquaresFactory;
-import org.apache.commons.math3.fitting.leastsquares.LevenbergMarquardtOptimizer;
-import org.apache.commons.math3.fitting.leastsquares.MultivariateJacobianFunction;
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.util.Pair;
-import org.ddogleg.optimization.FactoryOptimization;
-import org.ddogleg.optimization.UnconstrainedLeastSquares;
-import org.ddogleg.optimization.UnconstrainedLeastSquaresSchur;
-import org.ddogleg.optimization.UtilOptimize;
-import org.ddogleg.optimization.functions.FunctionNtoM;
-import org.ddogleg.optimization.lm.ConfigLevenbergMarquardt;
 import org.ejml.data.DMatrixRMaj;
-import org.jblas.DoubleMatrix;
-import org.jblas.Solve;
-import org.opencv.core.Mat;
 import utils.*;
 
-import java.awt.*;
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.*;
-import org.ddogleg.*;
-
-import javax.swing.*;
-
-import static org.opencv.core.CvType.*;
-import static tools.GroundDetector.angleHypo;
-import static tools.GroundDetector.euclideanDistance;
-
 
 public class stemAligner {
 

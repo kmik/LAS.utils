@@ -138,7 +138,6 @@ public class GroundDetector{
      *
      * @param pointCloud2 		Input point cloud
      * @param print2 			Print TIN or nor
-     * @param outputFile2 		Output point cloud
      * @param odir2 				Output directory
      * @param rule2				Rule to either include or exclude a point
      *							Also includes a pointModify class that can
@@ -355,7 +354,6 @@ public class GroundDetector{
     /**
      * Returns the number of points
      * classified as ground from
-     * @param pointCloud
      */
 
     public long getN() throws IOException{
@@ -609,10 +607,6 @@ public class GroundDetector{
      *
      * Control parameters:
      *
-     * @param rateOfChange		Interations terminated if fewer additional ground
-     *							points are found.
-     * @param angleThreshold 	Maximum angle between the point and a TIM point
-     * @param distanceThreshold  Maximum distance between the point and TIN facet.
      */
 
     public int[] detect() throws IOException {
@@ -1170,7 +1164,7 @@ public class GroundDetector{
 
         //System.out.println("Prev: " + doneIndexes.size());
 
-        /** LETS NOT DO THIS FOR NOW, UNCOMMENT IF YOU WANT */
+        /* LETS NOT DO THIS FOR NOW, UNCOMMENT IF YOU WANT */
         //doneIndexes = removeBorder(tin, doneIndexes);
 
         //System.out.println("After: " + doneIndexes.size());
@@ -1328,7 +1322,7 @@ public class GroundDetector{
 
         org.tinfour.common.IQuadEdge tempEdge = null;
 
-        /** Idea:
+        /* Idea:
 
 
          */
@@ -1368,7 +1362,7 @@ public class GroundDetector{
 
         int removed = 0;
 
-        /** Reset the TIN */
+        /* Reset the TIN */
         for(int i = 0; i < vL.size(); i++){
 
             if(vL.get(i).getIndex() == (vL.get(i).getStatus()) || -vL.get(i).getIndex() == (vL.get(i).getStatus()) ||
@@ -1435,7 +1429,6 @@ public class GroundDetector{
      * Calculates the cosine angle
      *
      * @param hypotenuse
-     * @param adjacentSideLength
      * @return the angle based on trigonometric function
      */
 
@@ -1666,7 +1659,7 @@ public class GroundDetector{
         numberOfPixelsXstd = (int)Math.ceil((maxX - minX) / (double)stdResolution);
         numberOfPixelsYstd = (int)Math.ceil((maxY - minY) / (double)stdResolution);
 
-        /** This will include statistics from stdResolution * stdResolution sized
+        /* This will include statistics from stdResolution * stdResolution sized
          area as follows:
          [0] = number of observations
          [1] = sum of z values
@@ -1781,7 +1774,7 @@ public class GroundDetector{
                     if(temppi[1] >= numberOfPixelsY)
                         temppi[1] = numberOfPixelsY - 1;
 
-                    /** This will include statistics from stdResolution * stdResolution sized
+                    /* This will include statistics from stdResolution * stdResolution sized
                      area as follows:
                      [0] = number of observations
                      [1] = sum of z values
@@ -1950,10 +1943,10 @@ public class GroundDetector{
 
                     int number2 = 0;
 
-                    /** Two sanity checks to remove outliers:
-                     *
-                     * (1) Must have neighboring cell with a ground point.
-                     * (2) The neighboring cell must not be too different with regard to z
+                    /* Two sanity checks to remove outliers:
+
+                      (1) Must have neighboring cell with a ground point.
+                      (2) The neighboring cell must not be too different with regard to z
                      */
                     number2 += statistics[j-1][i][6] < threshold_std && statistics[j-1][i][0] > 5
                             &&  Math.abs(mean - (statistics[j-1][i][1] / statistics[j-1][i][0])) < neigh_max_mean_difference
@@ -1987,7 +1980,7 @@ public class GroundDetector{
 
                         if (statistics[j][i][6] < threshold_std && (long) statistics[j][i][7] < pointCloud.getNumberOfPointRecords()
                                 && statistics[j][i][3] - statistics[j][i][2] < threshold_std*2) {
-                            /** This is the lowest point in the smaller rectangle **/
+                            /* This is the lowest point in the smaller rectangle **/
 
                             pointCloud.readRecord((long) statistics[j][i][7], tempPoint);
 
@@ -2010,7 +2003,7 @@ public class GroundDetector{
                             meani = statisticsBig[bigX][bigY][1] / statisticsBig[bigX][bigY][0];
                             std = statisticsBig[bigX][bigY][6];
 
-                            /** This will include statistics from stdResolution * stdResolution sized
+                            /* This will include statistics from stdResolution * stdResolution sized
                              area as follows:
                              [0] = number of observations
                              [1] = sum of z values
@@ -2026,7 +2019,7 @@ public class GroundDetector{
 
                             //System.out.println(statisticsBig[bigX][bigY][2] + " " + std + " " + tempPoint.z);
 
-                            /** Let's see if the point is at the lower end in the larger rectangle */
+                            /* Let's see if the point is at the lower end in the larger rectangle */
                             if (tempPoint.z < z_threshold && !seedPointIndexes.contains((int) statistics[j][i][7])) {
 
                                 //System.out.println(tempPoint.z);
@@ -2209,7 +2202,7 @@ public class GroundDetector{
                     tin.clear();
 
                     if(false)
-                    /** Second iteration of the points to normalize and output */
+                        /* Second iteration of the points to normalize and output */
                     for (int u = 0; u < pointCloud.queriedIndexes2.size(); u++) {
 
                         long n1 = pointCloud.queriedIndexes2.get(u)[1] - pointCloud.queriedIndexes2.get(u)[0];
@@ -2244,8 +2237,8 @@ public class GroundDetector{
 
                                 pointCloud.readFromBuffer(tempPoint);
 
-                                /** We must find new ground points to the tin, but with what
-                                 * criterion?
+                                /* We must find new ground points to the tin, but with what
+                                  criterion?
                                  */
                                 //if(!tin.isPointInsideTin(tempPoint.x, tempPoint.y)){
 
@@ -2275,10 +2268,10 @@ public class GroundDetector{
 
         tin2.clear();
 
-        /** Termination condition :
-         * (1) Tin is outside the square && no circle is
-         * (2) The problematic side is outside the boundary of the LAS
-         *
+        /* Termination condition :
+          (1) Tin is outside the square && no circle is
+          (2) The problematic side is outside the boundary of the LAS
+
          */
 
         boolean loop = true;
@@ -2289,8 +2282,8 @@ public class GroundDetector{
 
         System.out.println("ORIG: " + tin.getVertices().size());
 
-        /** FIRST WE FIND GOOD TRIANGLES WITHIN THE SQUARE, OTHER
-         * TRIANGLES ARE OUTPUT TO TIN2 */
+        /* FIRST WE FIND GOOD TRIANGLES WITHIN THE SQUARE, OTHER
+          TRIANGLES ARE OUTPUT TO TIN2 */
 
         if (tin.isBootstrapped()) {
 
@@ -2397,7 +2390,7 @@ public class GroundDetector{
 
         double minx = 0, maxx = 0, miny = 0, maxy = 0;
 
-        /** TOP */
+        /* TOP */
         if(side == 1){
             minx = outside_x;
             maxx = outside_x + aR.step + 2.0 * expansion;
@@ -2406,7 +2399,7 @@ public class GroundDetector{
             maxy =  outside_y;
         }
 
-        /** RIGHT */
+        /* RIGHT */
         if(side == 2){
             minx = outside_x + aR.step + 2.0 * expansion - expansion_orig;
             maxx = outside_x + aR.step + 2.0 * expansion;
@@ -2416,7 +2409,7 @@ public class GroundDetector{
 
         }
 
-        /** BOTTOM */
+        /* BOTTOM */
         if(side == 3){
             minx = outside_x;
             maxx = outside_x + aR.step + 2.0 * expansion;
@@ -2426,7 +2419,7 @@ public class GroundDetector{
 
         }
 
-        /** LEFT */
+        /* LEFT */
         if(side == 4){
             minx = outside_x;
             maxx = outside_x + expansion_orig;
@@ -2578,7 +2571,7 @@ public class GroundDetector{
                         double disti_outer = Math.min(dist_x_outer, dist_y_outer);
 
 
-                        /** These are the ones we want to ELIMINATE, but how to do it efficiently? */
+                        /* These are the ones we want to ELIMINATE, but how to do it efficiently? */
                         if(disti_outer < CC.getRadius()) {
                             //System.out.println("Inside, but circle touches outside!! " + disti + " " + CC.getRadius());
                             tin2.add(e.getA());
@@ -2639,7 +2632,7 @@ public class GroundDetector{
 
                         if(disti < CC.getRadius()){
 
-                            /** These MIGHT also be bad, just to be sure we eliminate these also */
+                            /* These MIGHT also be bad, just to be sure we eliminate these also */
                             if(CC.getRadius() > (this.expansion - disti)){
 
                                 condition2++;

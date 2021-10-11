@@ -128,7 +128,7 @@ public class ResidFunctionTrunkDBH  implements LevenbergMarquardt.ResidualFuncti
             int d = (int)(points.get(i).size() * d_bound);
             RcF.initialize4(this.points.get(i), n, d, threshold_bound, 5000, 1, -1);
 
-            /** What to do in case ransac fails? Add a penalty? */
+            /* What to do in case ransac fails? Add a penalty? */
             if(RcF.ransacFailed){
                 RcF.initialize_arraylist_a(this.points.get(i), n, d, threshold, 5000);
             }
@@ -256,7 +256,7 @@ public class ResidFunctionTrunkDBH  implements LevenbergMarquardt.ResidualFuncti
             int d = (int)(points.get(i).size() * d_bound);
             RcF.initialize4(this.points.get(i), n, d, threshold_bound, 5000, 1, -1);
 
-            /** What to do in case ransac fails? Add a penalty? */
+            /* What to do in case ransac fails? Add a penalty? */
             if(RcF.ransacFailed){
                 RcF.initialize_arraylist_a(this.points.get(i), n, d, threshold, 5000);
             }

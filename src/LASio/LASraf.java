@@ -131,7 +131,7 @@ public class LASraf implements Closeable {
     //writeBuffer = ByteBuffer.allocateDirect(bufferSize);
     //writeBuffer.order(ByteOrder.LITTLE_ENDIAN);
 
-    /**             */
+    /*             */
 
     /*
     writeBuffer_boolean = ByteBuffer.allocateDirect(1);
@@ -1426,30 +1426,30 @@ public class LASraf implements Closeable {
 
     this.writeAscii(4, "LASF");
 
-    /** File source ID */
+    /* File source ID */
     this.writeUnsignedShort((short)2); // = braf.readUnsignedShort();
 
 
-    /** Global encoding */
+    /* Global encoding */
     this.writeUnsignedShort((short)1); // = braf.readUnsignedShort();
 
-    /** ID */
+    /* ID */
     this.writeLong(0);
 
-    /** GUID */
+    /* GUID */
     this.writeAscii(8, "");
 
 
-    /** Version major */
+    /* Version major */
     this.writeUnsignedByte((byte)1);// = braf.readUnsignedByte();
 
-    /** Version minor */
+    /* Version minor */
     this.writeUnsignedByte((byte)2);// = braf.readUnsignedByte();
 
-    /** System identified */
+    /* System identified */
     this.writeAscii(32, "LASutils (c) by Mikko Kukkonen");// systemIdentifier = braf.readAscii(32);
 
-    /** Generating software */
+    /* Generating software */
     this.writeAscii(32, (softwareName + " version 0.1"));// generatingSoftware = braf.readAscii(32);
 
     //System.out.println(from.generatingSoftware);
@@ -1458,31 +1458,31 @@ public class LASraf implements Closeable {
     Calendar calendar = Calendar.getInstance();
     int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
 
-    /** File creation date */
+    /* File creation date */
     this.writeUnsignedShort((short)dayOfYear);// = braf.readUnsignedShort();
 
-    /** File creation year */
+    /* File creation year */
     this.writeUnsignedShort((short)(1900 + year));// = braf.readUnsignedShort();
 
-    /** Header size */
+    /* Header size */
     this.writeUnsignedShort((short)227);// = braf.readUnsignedShort();
 
-    /** Offset to point data */
+    /* Offset to point data */
     this.writeUnsignedInt(227);
 
-    /** #Variable length records*/
+    /* #Variable length records*/
     this.writeUnsignedInt(0);// = braf.readUnsignedInt();
 
-    /** Point data format */
+    /* Point data format */
     this.writeUnsignedByte((byte)pointDataType);// = braf.readUnsignedByte();
 
-    /** Point data record length */
+    /* Point data record length */
     this.writeUnsignedShort((short)pointDataRecordLength);// = braf.readUnsignedShort();
 
-    /** Number of point records */
+    /* Number of point records */
     this.writeUnsignedInt((int)0);// = braf.readUnsignedInt();
 
-    /** Number of points by return 0,1 ... 4, 5 */
+    /* Number of points by return 0,1 ... 4, 5 */
     this.writeUnsignedInt((int)0);
     this.writeUnsignedInt((int)0);
     this.writeUnsignedInt((int)0);
@@ -1490,37 +1490,37 @@ public class LASraf implements Closeable {
     this.writeUnsignedInt((int)0);
 
 
-    /** X scale factor */
+    /* X scale factor */
     this.writeDouble(0.01);// = braf.readDouble();
 
-    /** Y scale factor */
+    /* Y scale factor */
     this.writeDouble(0.01);// = braf.readDouble();
 
-    /** Z scale factor */
+    /* Z scale factor */
     this.writeDouble(0.01);// = braf.readDouble();
 
-    /** X offset */
+    /* X offset */
     this.writeDouble(0);// = braf.readDouble();
 
-    /** Y offset */
+    /* Y offset */
     this.writeDouble(0);// = braf.readDouble();
 
-    /** Z offset */
+    /* Z offset */
     this.writeDouble(0);// = braf.readDouble();
 
-    /** Max X */
+    /* Max X */
     this.writeDouble(0);// = braf.readDouble();
-    /** Min X */
-    this.writeDouble(0);// = braf.readDouble();
-
-    /** Max Y */
-    this.writeDouble(0);// = braf.readDouble();
-    /** Min Y */
+    /* Min X */
     this.writeDouble(0);// = braf.readDouble();
 
-    /** Max Z */
+    /* Max Y */
     this.writeDouble(0);// = braf.readDouble();
-    /** Min Z */
+    /* Min Y */
+    this.writeDouble(0);// = braf.readDouble();
+
+    /* Max Z */
+    this.writeDouble(0);// = braf.readDouble();
+    /* Min Z */
     this.writeDouble(0);// = braf.readDouble();
 
     if(minor == 3){
@@ -1698,35 +1698,35 @@ public class LASraf implements Closeable {
     //yScaleFactor = 0.001;
     //zScaleFactor = 0.001;
 
-    /** Written or not */
+    /* Written or not */
     boolean output = false;
 
     //Byte myByte = new Byte("00000000");
     //byte myBitti = myByte.byteValue();
 
-    /** Write if rule says so */
+    /* Write if rule says so */
     if(rule.ask(tempPoint, i, true)){
 
-      /** We got here, so output true */
+      /* We got here, so output true */
       output = true;
 
       double x = tempPoint.x;
       double y = tempPoint.y;
       double z = tempPoint.z;
 
-      /** Scale x and apply xOffset */
+      /* Scale x and apply xOffset */
       int lx = (int)((x - this.xOffset) / this.xScaleFactor);
-      /** Scale y and apply yOffset */
+      /* Scale y and apply yOffset */
       int ly = (int)((y - this.yOffset) / this.yScaleFactor);
-      /** Scale z and apply zOffset */
+      /* Scale z and apply zOffset */
       int lz = (int)((z - this.zOffset) / this.zScaleFactor);
 
-      /** Write scaled and offset x, y and z */
+      /* Write scaled and offset x, y and z */
       this.writeInt(lx);
       this.writeInt(ly);
       this.writeInt(lz);
 
-      /** Write intensity */
+      /* Write intensity */
       this.writeUnsignedShort((short)tempPoint.intensity);// braf.readUnsignedShort()
 
 			/*
@@ -1767,10 +1767,10 @@ public class LASraf implements Closeable {
 			myByte = setBit(myByte, 1, (byte)tempPoint.returnNumber >> 1);
 			myByte = setBit(myByte, 0, (byte)tempPoint.returnNumber >> 0);
 			*/
-      /** Write byte */
+      /* Write byte */
       this.writeUnsignedByte(myBitti);
 
-      /** Reset the byte */
+      /* Reset the byte */
       //myByte = 0;
 
 
@@ -1821,23 +1821,23 @@ public class LASraf implements Closeable {
             myByte = setBit(myByte, 0, (byte)tempPoint.classification >> 0);
 			*/
 
-      /** Write the byte */
+      /* Write the byte */
       this.writeUnsignedByte(myBitti);
 
-      /** Write scan angle */
+      /* Write scan angle */
       this.writeUnsignedByte((byte)tempPoint.scanAngleRank);
 
-      /** Write user data */
+      /* Write user data */
       this.writeUnsignedByte((byte)tempPoint.userData);
 
-      /** Write point source ID */
+      /* Write point source ID */
       this.writeUnsignedShort(tempPoint.pointSourceId);
 
 
-      /** Previous stuff is pretty much standard for any point data type.
+      /* Previous stuff is pretty much standard for any point data type.
        How to do the extra stuff that is point data type specific? */
 
-      /** RGB is included in both 2 and 3 record types in LAS 1.2 */
+      /* RGB is included in both 2 and 3 record types in LAS 1.2 */
 
       if (this.pointDataRecordFormat == 1 || this.pointDataRecordFormat == 3 || this.pointDataRecordFormat == 4 || this.pointDataRecordFormat == 5) {
 

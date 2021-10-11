@@ -1,7 +1,5 @@
 package tools;
 
-import org.apache.commons.math3.util.FastMath;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

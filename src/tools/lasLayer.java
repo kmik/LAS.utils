@@ -611,7 +611,7 @@ public class lasLayer {
                         continue;
                     }
 
-                    /**POSITIVE to NEGATIVE */
+                    /*POSITIVE to NEGATIVE */
                     if( !switchi && yDerivatives[i] > 0 + cutoff && yDerivatives[i+1] < 0 - cutoff) {
 
                         canopyLengths[canopies] = currentCount;
@@ -625,7 +625,7 @@ public class lasLayer {
                         continue;
                     }
 
-                    /**POSITIVE*/
+                    /*POSITIVE*/
                     if(switchi && yDerivatives[i+1] > 0 + cutoff) {
 
                         canopyOrNot[i] = canopies;

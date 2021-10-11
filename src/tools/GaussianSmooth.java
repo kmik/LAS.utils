@@ -88,9 +88,6 @@ public class GaussianSmooth extends Thread {
    * Takes an image and a gaussian distribution, calculates an
    * appropriate kernel and applies a convolution to smooth the image.
    *
-   * @param 2D array representing the input image
-   * @param w width of the image
-   * @param h height of the image
    * @param ks the required size of the kernel
    * @param theta the gaussian distribution
    * @return 2D array representing the smoothed image
@@ -129,9 +126,6 @@ public class GaussianSmooth extends Thread {
    * Takes an image and a gaussian distribution, calculates an
    * appropriate kernel and applies a convolution to smooth the image.
    *
-   * @param 2D array representing the input image
-   * @param w width of the image
-   * @param h height of the image
    * @param ks the required size of the kernel
    * @param theta the gaussian distribution
    * @return 2D array representing the smoothed image

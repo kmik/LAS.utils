@@ -30,9 +30,8 @@ package runners;/* -------------------------------------------------------------
 import LASio.*;
 import java.io.*;
 import java.util.ArrayList;
-import java.io.IOException;
 
-//import Tinfour.*;
+
 import tools.*;
 
 class RunLASrelate{

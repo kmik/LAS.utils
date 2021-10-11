@@ -370,7 +370,7 @@ public class functionCircleFit implements FunctionNtoM {
         cloudPoint c2;
 
         if(!initialized) {
-            /** Change the coordinates of the trunk points based on params */
+            /* Change the coordinates of the trunk points based on params */
             for (Map.Entry<Short, HashMap<Integer, ArrayList<cloudPoint>>> entry : trunkPoints.entrySet()) {
 
                 counter2 = 0;
@@ -553,7 +553,7 @@ public class functionCircleFit implements FunctionNtoM {
 
 
 
-        /** Calculate residual based on new point locations */
+        /* Calculate residual based on new point locations */
         try {
             resid2 = calculateResidual();
             long estimatedTime = System.currentTimeMillis() - startTime;
@@ -985,7 +985,7 @@ public class functionCircleFit implements FunctionNtoM {
                             System.out.println("non ransac: " + fitter_ransac.radius);
 
  */
-                            /** HERE WE REPLACE THE FLIGHT LINE SLICE WITH ONLY THE RANSAC INLIER POINTS! */
+                            /* HERE WE REPLACE THE FLIGHT LINE SLICE WITH ONLY THE RANSAC INLIER POINTS! */
                             entry.setValue((ArrayList<cloudPoint>)fitter_ransac.ransac_inlier_points_c.clone());
                             //ArrayList<cloudPoint> newList = new ArrayList<>();
 

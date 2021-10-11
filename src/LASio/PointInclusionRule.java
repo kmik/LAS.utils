@@ -434,7 +434,7 @@ public class PointInclusionRule{
 
 
 
-		/** Here we do removes that are done regardless of read or write */
+		/* Here we do removes that are done regardless of read or write */
 
 		if(io == false && remove_buffer) {
 			if (tempPoint.synthetic) {
@@ -442,7 +442,7 @@ public class PointInclusionRule{
 			}
 		}
 
-		/** We also modify the point */
+		/* We also modify the point */
 
 		if(set_point_source_id != -999){
 			tempPoint.pointSourceId = (short)this.set_point_source_id;
@@ -473,12 +473,12 @@ public class PointInclusionRule{
 
 			boolean output = true;
 
-			/**
-			 *
-			 *	First we need to check if there is any reason to drop the
-			 *	point. If a flag wants to drop it, no other reason to keep
-			 *	it matters!
-			 *
+			/*
+
+			 	First we need to check if there is any reason to drop the
+			 	point. If a flag wants to drop it, no other reason to keep
+			 	it matters!
+
 			 */
 
 
@@ -553,12 +553,12 @@ public class PointInclusionRule{
 
 
 
-			/**
-			 *
-			 *	Next we have to see if the point in index i
-			 *	has to be modified somehow. It could also be
-			 *	kept or discarded.
-			 *
+			/*
+
+			 	Next we have to see if the point in index i
+			 	has to be modified somehow. It could also be
+			 	kept or discarded.
+
 			 */
 
 			if(keepIndex.size() > 0)
@@ -585,10 +585,10 @@ public class PointInclusionRule{
 					//return false;
 
 
-			/**
-			 *
-			 *	This is a little confusing.
-			 *
+			/*
+
+			 	This is a little confusing.
+
 			 */
 
 

@@ -173,10 +173,10 @@ public class classifyTrunks {
 
                 pointCloud.readFromBuffer(tempPoint);
 
-                /** Means we have a crown segment */
+                /* Means we have a crown segment */
                 if(tempPoint.pointSourceId > 0){
 
-                    /** Means this is a trunk point */
+                    /* Means this is a trunk point */
                     if(tempPoint.classification == 4){
 
                         if(trunkMatches.containsKey(tempPoint.intensity)) {

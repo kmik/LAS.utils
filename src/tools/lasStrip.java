@@ -460,9 +460,9 @@ public class lasStrip {
 
             int count = 0;
 
-            /** This part means that we start from the tin1 file of the first pair!!,
-             * if p == 0, they both are not aligned, so we make the first one aligned,
-             * i.e. reference.
+            /* This part means that we start from the tin1 file of the first pair!!,
+              if p == 0, they both are not aligned, so we make the first one aligned,
+              i.e. reference.
              */
             if(p == 0)
                 blokki.aligned[currentFiles[0]] = !blokki.aligned[currentFiles[0]];

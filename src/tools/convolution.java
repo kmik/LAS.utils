@@ -928,7 +928,7 @@ public class convolution {
 
         //FeedForwardToCnn3DPreProcessor prepros = new FeedForwardToCnn3DPreProcessor(1, 10, 4, 4, true);
 
-        /** THIS SEEMS OK FOR 4x4x10 VOXELS!!  */
+        /* THIS SEEMS OK FOR 4x4x10 VOXELS!!  */
 /*
         MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
                 .updater(new Adam())
@@ -996,7 +996,7 @@ public class convolution {
 
                 .build();
 */
-/** 32x32x10 */
+        /* 32x32x10 */
 /*
         MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
                 .updater(new Adam(0.001))
@@ -1029,7 +1029,7 @@ public class convolution {
 
                 .build();
 */
-/** 16x16x10 */
+        /* 16x16x10 */
 /*
         MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
                 .updater(new Adam(0.0001))
@@ -1119,7 +1119,7 @@ public class convolution {
                 .setOutputs("out")
                 .build();
 */
-        /** 32x32x10 voxels!! */
+        /* 32x32x10 voxels!! */
 
 /*
         ComputationGraphConfiguration conf123 = new NeuralNetConfiguration.Builder()
@@ -1156,7 +1156,7 @@ public class convolution {
 
         //n_epoch = 25;
 
-        /** Arbiter merged convolution! */
+        /* Arbiter merged convolution! */
 
         if(aR.convolution_option == 1 || debuggi) {
 
@@ -1202,7 +1202,7 @@ public class convolution {
              */
 
 
-            /** OPTIMAL MERGED 2D CONVOLUTION */
+            /* OPTIMAL MERGED 2D CONVOLUTION */
 
 
             conf_merge = new NeuralNetConfiguration.Builder()
@@ -1231,7 +1231,7 @@ public class convolution {
 
         }
 
-        /** MIXED NETWORK, optimized with arbiter */
+        /* MIXED NETWORK, optimized with arbiter */
         if(aR.convolution_option == 2 || debuggi) {
 
             conf_merge = new NeuralNetConfiguration.Builder()
@@ -1259,7 +1259,7 @@ public class convolution {
                     .build();
         }
 
-        /** texture optimized with arbiter */
+        /* texture optimized with arbiter */
         if(aR.convolution_option == 3 || debuggi) {
 
             conf_merge = new NeuralNetConfiguration.Builder()
@@ -1281,7 +1281,7 @@ public class convolution {
 
         }
 
-        /** texture optimized with arbiter */
+        /* texture optimized with arbiter */
 
         if(aR.convolution_option == 4 || debuggi) {
 /*
@@ -1485,7 +1485,7 @@ public class convolution {
         }
 
 
-/** 16x16x10 */
+        /* 16x16x10 */
 /*
         ComputationGraphConfiguration conf = new NeuralNetConfiguration.Builder()
                 .updater(new Adam(0.0001))

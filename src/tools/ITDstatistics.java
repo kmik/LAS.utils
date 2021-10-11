@@ -578,7 +578,7 @@ public class ITDstatistics{
             tempPointArray[6] = p2.getQuick(i+6);
             tempPointArray[7] = p2.getQuick(i+7);
 
-            /** This means that the point is part of understorey stem */
+            /* This means that the point is part of understorey stem */
 
             //System.out.println(tempPointArray[6]);
             /*
@@ -621,7 +621,7 @@ public class ITDstatistics{
                     hullMaxZ = tempPointArray[2];
 
                 hullPointCounter++;
-                /** TODO: 	Make sure that the point is valid, i.e make sure the point
+                /* TODO: 	Make sure that the point is valid, i.e make sure the point
                  is the furthest from the mid point in that height.
                  */
 
@@ -1152,13 +1152,13 @@ public class ITDstatistics{
 					printti += kurtosis(green)+ "\t";
 					printti += kurtosis(blue) + "\t";
 					*/
-                /** VARI */
+                /* VARI */
                 //printti += ((meanG - meanR) / (meanG + meanR - meanB)) + "\t";
 
-                /** TGI */
+                /* TGI */
                 //printti += (meanG - 0.39 * meanR - 0.61 * meanB) + "\t";
 
-                /** GRVI */
+                /* GRVI */
 
                 //printti += ((meanG - meanR) / (meanG + meanR));
 
@@ -1171,7 +1171,7 @@ public class ITDstatistics{
 
                 //printti += treeTop[0] + "\t" + treeTop[1] + "\t";
 
-                /** Minus one because neural net requires labels to start from 0! */
+                /* Minus one because neural net requires labels to start from 0! */
                 //if(treeTopIndex != -1)
                 //  printti += (label - 1) + "\t";
                 //else
@@ -1200,20 +1200,20 @@ public class ITDstatistics{
 
 
                 //if(treeTopIndex != -1){
-                /** Plot ID */
+                /* Plot ID */
 
                 //  printti += this.plotId + "\t";
 
-                /** Species */
+                /* Species */
                 //printti += (treeBank[treeTopIndex][4] - 1) + "\t";
                 //}
                 //else{
-                /** Plot ID */
+                /* Plot ID */
 
                 //  printti += this.plotId + "\t";
                 //System.out.println(this.plotId);
 
-                /** Species */
+                /* Species */
                 //printti += "" + (-1) + "\t";
                 //}
                 //int myInt = isIsolated ? 1 : 0;
@@ -1221,7 +1221,7 @@ public class ITDstatistics{
                 //System.out.println(myInt);
 
                 //if(treeTopIndex != -1){
-                /** Flag (1) train, (0) validation */
+                /* Flag (1) train, (0) validation */
                 //  printti += "" + 1; //myInt
                 //}
                 //else{
@@ -1330,8 +1330,8 @@ public class ITDstatistics{
         inSideAPolygon = pointInPolygons(new double[]{treeTop[0], treeTop[1]});
 
 
-        /** We do not process trees outside the boundaries of the polygon.
-         * What if no polygon is input? We should continue anyway.
+        /* We do not process trees outside the boundaries of the polygon.
+          What if no polygon is input? We should continue anyway.
          */
         if(!inSideAPolygon && polygons.size() > 0)
             return;
@@ -1348,12 +1348,12 @@ public class ITDstatistics{
         int y_ = 8;
         int z_ = 10;
 
-        /** FOR CONVOLUTION */
+        /* FOR CONVOLUTION */
         int textureResolution_x = 40;
         int textureResolution_y = 40;
         int textureResolution_z = 40;
 
-        /** FOR TEXTURE */
+        /* FOR TEXTURE */
 /*
         int textureResolution_x = 100;
         int textureResolution_y = 100;
@@ -1462,7 +1462,7 @@ public class ITDstatistics{
 
             //System.out.println(tempPointArray[0] + " " +  tempPointArray[1]);
 
-            /** This means that the point is part of understorey stem */
+            /* This means that the point is part of understorey stem */
 
            //System.out.println(tempPointArray[6]);
             /*
@@ -1525,7 +1525,7 @@ public class ITDstatistics{
                     hullMaxZ = tempPointArray[2];
 
                 hullPointCounter++;
-                /** TODO: 	Make sure that the point is valid, i.e make sure the point
+                /* TODO: 	Make sure that the point is valid, i.e make sure the point
                  is the furthest from the mid point in that height.
                  */
 
@@ -1706,7 +1706,7 @@ public class ITDstatistics{
             //System.out.println(zetas.size() + " == " + zetas.size());
             z[i] = zetas.poll();
 
-            /** IMPORTANT, THIS IS NOT THE X Y VALUE OF THE Z ABOVE, THE Z IS SORTED; THIS IS NOT!!!! */
+            /* IMPORTANT, THIS IS NOT THE X Y VALUE OF THE Z ABOVE, THE Z IS SORTED; THIS IS NOT!!!! */
 
             if(xy_counter < x.size()) {
 
@@ -2017,20 +2017,20 @@ public class ITDstatistics{
 
             HashSet<Integer> obsoleteFeatures = new HashSet<>();
 
-            /** Correlation of 1 */
+            /* Correlation of 1 */
             obsoleteFeatures.add(7);
             obsoleteFeatures.add(8);
             obsoleteFeatures.add(4);
             obsoleteFeatures.add(9);
 
-            /** correlation of 0.99 */
+            /* correlation of 0.99 */
             obsoleteFeatures.add(5);
             obsoleteFeatures.add(10);
 
-            /** Useless based on LDA */
+            /* Useless based on LDA */
             obsoleteFeatures.add(3);
 
-            /** Write image */
+            /* Write image */
 
             ogr.RegisterAll(); //Registering all the formats..
             gdal.AllRegister();
@@ -2375,13 +2375,13 @@ public class ITDstatistics{
 					printti += kurtosis(green)+ "\t";
 					printti += kurtosis(blue) + "\t";
 					*/
-                /** VARI */
+                /* VARI */
                 //printti += ((meanG - meanR) / (meanG + meanR - meanB)) + "\t";
 
-                /** TGI */
+                /* TGI */
                 //printti += (meanG - 0.39 * meanR - 0.61 * meanB) + "\t";
 
-                /** GRVI */
+                /* GRVI */
 
                 //printti += ((meanG - meanR) / (meanG + meanR));
 
@@ -2394,7 +2394,7 @@ public class ITDstatistics{
 
                 //printti += treeTop[0] + "\t" + treeTop[1] + "\t";
 
-                /** Minus one because neural net requires labels to start from 0! */
+                /* Minus one because neural net requires labels to start from 0! */
                 //if(treeTopIndex != -1)
                   //  printti += (label - 1) + "\t";
                 //else
@@ -2423,20 +2423,20 @@ public class ITDstatistics{
 
 
                 //if(treeTopIndex != -1){
-                    /** Plot ID */
+                /* Plot ID */
 
                   //  printti += this.plotId + "\t";
 
-                    /** Species */
+                /* Species */
                     //printti += (treeBank[treeTopIndex][4] - 1) + "\t";
                 //}
                 //else{
-                    /** Plot ID */
+                /* Plot ID */
 
                   //  printti += this.plotId + "\t";
                     //System.out.println(this.plotId);
 
-                    /** Species */
+                /* Species */
                     //printti += "" + (-1) + "\t";
                 //}
                 //int myInt = isIsolated ? 1 : 0;
@@ -2444,7 +2444,7 @@ public class ITDstatistics{
                 //System.out.println(myInt);
 
                 //if(treeTopIndex != -1){
-                    /** Flag (1) train, (0) validation */
+                /* Flag (1) train, (0) validation */
                   //  printti += "" + 1; //myInt
                 //}
                 //else{
@@ -2515,31 +2515,31 @@ public class ITDstatistics{
 
         int index;
 
-        /** Tree x*/
+        /* Tree x*/
         //trees[treeCount][0] = Double.parseDouble(line.split(",")[3]);
 
-        /** Tree y*/
+        /* Tree y*/
         //trees[treeCount][1] = Double.parseDouble(line.split(",")[4]);
 
-        /** Tree height*/
+        /* Tree height*/
         //trees[treeCount][2] = Double.parseDouble(line.split(",")[11]);
 
-        /** Tree diameter*/
+        /* Tree diameter*/
         //trees[treeCount][3] = Double.parseDouble(line.split(",")[9]);
 
-        /** Tree species*/
+        /* Tree species*/
         //trees[treeCount][4] = Math.min(Double.parseDouble(line.split(",")[7]), 3.0);
 
-        /** Tree WHAT?*/
+        /* Tree WHAT?*/
         //trees[treeCount][5] = 0.0;
 
-        /** Tree volume*/
+        /* Tree volume*/
         //trees[treeCount][6] = Double.parseDouble(line.split(",")[42]);
 
-        /** Tree plot-id*/
+        /* Tree plot-id*/
         //trees[treeCount][7] = Double.parseDouble(line.split(",")[2])
 
-        /** Tree id*/
+        /* Tree id*/
         //trees[treeCount][8] = Double.parseDouble(line.split(",")[1]);
 
         while(it.hasNext()){
@@ -2561,7 +2561,7 @@ public class ITDstatistics{
             distance = tem.euclideanDistance(nearest.get(0));
             boolean isInside = false;
 
-            /** This is just so that we can label trees without having a polygon input */
+            /* This is just so that we can label trees without having a polygon input */
             if(polygons.size() > 0)
                 isInside = Integer.parseInt(output.get(tem.getIndex()).split("\t")[output.get(tem.getIndex()).split("\t").length-2]) == 1;
 
@@ -2578,7 +2578,7 @@ public class ITDstatistics{
                 temp += (treeBank[index][4]-1) + "\t";
 
 
-                /** HERE WE MOVE THE FILE "index".tif to directory (treeBank[index][4]-1) */
+                /* HERE WE MOVE THE FILE "index".tif to directory (treeBank[index][4]-1) */
 
                 String fileToBeMoved = "/home/koomikko/Documents/research/3d_tree_species/convolution_data/" + (int)indeksi + ".tif";
                 String moveTo = "/home/koomikko/Documents/research/3d_tree_species/convolution_data/" + (int)(treeBank[index][4]-1) + "/" + (int)indeksi + ".tif";
@@ -2660,13 +2660,13 @@ public class ITDstatistics{
                     matches.put(nearest.get(0).getIndex(), new float[]{i, (float)distance});
 
                 }
-                /** This ITD tree has already been labeled! */
+                /* This ITD tree has already been labeled! */
                 else{
 
                     asdi = matches.get(nearest.get(0).getIndex());
 
-                    /** But this measured tree is closer! What to do?! */
-                    /** Continue searching closest neighbors of the ALREADY labeled measured tree */
+                    /* But this measured tree is closer! What to do?! */
+                    /* Continue searching closest neighbors of the ALREADY labeled measured tree */
                     if(asdi[1] < distance){
 
                         searchPoint.setX(treeBank[(int)asdi[0]][0]);
@@ -2697,8 +2697,8 @@ public class ITDstatistics{
 
                         }
                     }
-                    /** But this measured tree is not closer! What to do?! */
-                    /** Continue searching closest neighbors of THIS measured tree */
+                    /* But this measured tree is not closer! What to do?! */
+                    /* Continue searching closest neighbors of THIS measured tree */
                     else{
 
                         terminate = true;
@@ -2743,28 +2743,28 @@ public class ITDstatistics{
         }
 
 
-        /** Tree x*/
+        /* Tree x*/
         //trees[treeCount][0] = Double.parseDouble(line.split(",")[3]);
 
-        /** Tree y*/
+        /* Tree y*/
         //trees[treeCount][1] = Double.parseDouble(line.split(",")[4]);
 
-        /** Tree height*/
+        /* Tree height*/
         //trees[treeCount][2] = Double.parseDouble(line.split(",")[11]);
 
-        /** Tree diameter*/
+        /* Tree diameter*/
         //trees[treeCount][3] = Double.parseDouble(line.split(",")[9]);
 
-        /** Tree species*/
+        /* Tree species*/
         //trees[treeCount][4] = Math.min(Double.parseDouble(line.split(",")[7]), 3.0);
 
-        /** Tree WHAT?*/
+        /* Tree WHAT?*/
         //trees[treeCount][5] = 0.0;
 
-        /** Tree volume*/
+        /* Tree volume*/
         //trees[treeCount][6] = Double.parseDouble(line.split(",")[42]);
 
-        /** Tree plot-id*/
+        /* Tree plot-id*/
         //trees[treeCount][7] = Double.parseDouble(line.split(",")[2])
         double maxHeight = Double.NEGATIVE_INFINITY;
 
@@ -3076,31 +3076,31 @@ public class ITDstatistics{
                 if(lineCount != 0){
                     //if(Double.parseDouble(line.split(",")[5]) == -1.0){
 
-                    /** Tree x*/
+                    /* Tree x*/
                     trees[treeCount][0] = Double.parseDouble(line.split(",")[3]);
 
-                    /** Tree y*/
+                    /* Tree y*/
                     trees[treeCount][1] = Double.parseDouble(line.split(",")[4]);
 
-                    /** Tree height*/
+                    /* Tree height*/
                     trees[treeCount][2] = Double.parseDouble(line.split(",")[11]);
 
-                    /** Tree diameter*/
+                    /* Tree diameter*/
                     trees[treeCount][3] = Double.parseDouble(line.split(",")[9]);
 
-                    /** Tree species*/
+                    /* Tree species*/
                     trees[treeCount][4] = Math.min(Double.parseDouble(line.split(",")[7]), 3.0);
 
-                    /** Tree WHAT?*/
+                    /* Tree WHAT?*/
                     trees[treeCount][5] = 0.0;
 
-                    /** Tree volume*/
+                    /* Tree volume*/
                     trees[treeCount][6] = Double.parseDouble(line.split(",")[42]);
 
-                    /** Tree plot-id*/
+                    /* Tree plot-id*/
                     trees[treeCount][7] = Double.parseDouble(line.split(",")[2]);
 
-                    /** Tree id*/
+                    /* Tree id*/
                     trees[treeCount][8] = Double.parseDouble(line.split(",")[1]);
 
                     KdTree.XYZPoint tempTreePoint = new KdTree.XYZPoint(0,0,0);
@@ -3161,31 +3161,31 @@ public class ITDstatistics{
                     //if(Double.parseDouble(line.split(",")[5]) == -1.0){
                     //System.out.println(line);
                     //System.exit(1);
-                    /** Tree x*/
+                    /* Tree x*/
                     trees[treeCount][0] = Double.parseDouble(line.split(",")[3]);
 
-                    /** Tree y*/
+                    /* Tree y*/
                     trees[treeCount][1] = Double.parseDouble(line.split(",")[4]);
 
-                    /** Tree height*/
+                    /* Tree height*/
                     trees[treeCount][2] = Double.parseDouble(line.split(",")[11]);
 
-                    /** Tree diameter*/
+                    /* Tree diameter*/
                     trees[treeCount][3] = Double.parseDouble(line.split(",")[9]);
 
-                    /** Tree species*/
+                    /* Tree species*/
                     trees[treeCount][4] = Math.min(Double.parseDouble(line.split(",")[7]), 3.0);
 
-                    /** Tree WHAT?*/
+                    /* Tree WHAT?*/
                     trees[treeCount][5] = 0.0;
 
-                    /** Tree volume*/
+                    /* Tree volume*/
                     trees[treeCount][6] = Double.parseDouble(line.split(",")[42]);
 
-                    /** Tree plot-id*/
+                    /* Tree plot-id*/
                     trees[treeCount][7] = Double.parseDouble(line.split(",")[2]);
 
-                    /** Tree id*/
+                    /* Tree id*/
                     trees[treeCount][8] = Double.parseDouble(line.split(",")[1]);
 
                     KdTree.XYZPoint tempTreePoint = new KdTree.XYZPoint(0,0,0);
@@ -3381,7 +3381,7 @@ public class ITDstatistics{
                 if(tempPoint.z > raster[xCoord][yCoord])
                     raster[xCoord][yCoord] = (float)tempPoint.z;
 
-                /** Means this point is part of a stem */
+                /* Means this point is part of a stem */
                 if(tempPoint.classification == 5 || tempPoint.classification == 1){
 
                     if(mappi_allStemStats.containsKey(tempPoint.intensity)){
@@ -3396,7 +3396,7 @@ public class ITDstatistics{
                     }
                 }
 
-                /** Means this point is part of an ITD stem */
+                /* Means this point is part of an ITD stem */
                 if(tempPoint.classification == 1){
 
                     if(mappi_onlyOver.containsKey(tempPoint.intensity)){
@@ -3411,7 +3411,7 @@ public class ITDstatistics{
                     }
                 }
 
-                /** Means this point is part of an understorey stem */
+                /* Means this point is part of an understorey stem */
                 if(tempPoint.classification == 5){
 
                     if(mappi_smallerTreesStats.containsKey(tempPoint.intensity)){
@@ -3445,7 +3445,7 @@ public class ITDstatistics{
                     mappi2.put(treeId, 0);
                 }
 
-                /** Means the point is part of the treeTop x and y location */
+                /* Means the point is part of the treeTop x and y location */
                 if(tempPoint.synthetic){
 
                     if(mappi3.containsKey(treeId) && tempPoint.z > mappi3.get(treeId)[2]){
@@ -3487,7 +3487,7 @@ public class ITDstatistics{
 
                 treeId = (int)tempPoint.pointSourceId;
 
-                /** Means this point is part of an understorey stem */
+                /* Means this point is part of an understorey stem */
                 if(tempPoint.classification == 8) {
 
                     if(mappi_smallerTrees.containsKey(treeId)){
@@ -3702,7 +3702,7 @@ public class ITDstatistics{
 
         double[][] poly;
 
-        /** If no polygons are input with -poly, then just return false? Is this ok? */
+        /* If no polygons are input with -poly, then just return false? Is this ok? */
         if(polygons.size() == 0){
             return false;
         }
@@ -4015,7 +4015,7 @@ public class ITDstatistics{
             //System.out.println(treeBank[i][0] + " " + treeBank[i][1]);
             //System.out.println(treeBank[1000][0] + " " + treeBank[1000][1]);
 
-            /** This means that a closer ITD tree was found in the vicinity of ground tree */
+            /* This means that a closer ITD tree was found in the vicinity of ground tree */
             if(dist < labelTree.get(i)[0] && treeBank[i][5] == 1.0){
 
                 correctLabel(labelTree.get(i)[2], labelTree.get(i)[3], (int)labelTree.get(i)[1]);
@@ -4087,28 +4087,28 @@ public class ITDstatistics{
         int closerOne = -1;
 
 
-        /** Tree x*/
+        /* Tree x*/
         //trees[treeCount][0] = Double.parseDouble(line.split(",")[3]);
 
-        /** Tree y*/
+        /* Tree y*/
         //trees[treeCount][1] = Double.parseDouble(line.split(",")[4]);
 
-        /** Tree height*/
+        /* Tree height*/
         //trees[treeCount][2] = Double.parseDouble(line.split(",")[11]);
 
-        /** Tree diameter*/
+        /* Tree diameter*/
         //trees[treeCount][3] = Double.parseDouble(line.split(",")[9]);
 
-        /** Tree species*/
+        /* Tree species*/
         //trees[treeCount][4] = Math.min(Double.parseDouble(line.split(",")[7]), 3.0);
 
-        /** Tree WHAT?*/
+        /* Tree WHAT?*/
         //trees[treeCount][5] = 0.0;
 
-        /** Tree volume*/
+        /* Tree volume*/
         //trees[treeCount][6] = Double.parseDouble(line.split(",")[42]);
 
-        /** Tree plot-id*/
+        /* Tree plot-id*/
         //trees[treeCount][7] = Double.parseDouble(line.split(",")[2])
 
         for(int i = 0; i < treeBank.length; i++){
@@ -4117,7 +4117,7 @@ public class ITDstatistics{
             //System.out.println(treeBank[i][0] + " " + treeBank[i][1]);
             //System.out.println(treeBank[1000][0] + " " + treeBank[1000][1]);
 
-            /** This means that a closer ITD tree was found in the vicinity of ground tree */
+            /* This means that a closer ITD tree was found in the vicinity of ground tree */
 
             if(dist < labelTree.get(i)[0] && treeBank[i][5] == 1.0){
 

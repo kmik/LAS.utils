@@ -1109,35 +1109,35 @@ public class LASwrite {
 												  double xScaleFactor, double yScaleFactor, double zScaleFactor,
 												  double xOffset, double yOffset, double zOffset, int pointDataRecordFormat, int i) throws IOException{
 
-		/** Written or not */
+		/* Written or not */
 		boolean output = false;
 
 		//Byte myByte = new Byte("00000000");
 		byte myBitti = myByte.byteValue();
 
-		/** Write if rule says so */
+		/* Write if rule says so */
 		if(rule.ask(tempPoint, i, true)){
-				
-			/** We got here, so output true */	
+
+			/* We got here, so output true */
 			output = true;
 
 			double x = tempPoint.x;
 			double y = tempPoint.y;
 			double z = tempPoint.z;
-			
-			/** Scale x and apply xOffset */
+
+			/* Scale x and apply xOffset */
 			int lx = (int)((x - xOffset) / xScaleFactor);
-			/** Scale y and apply yOffset */
+			/* Scale y and apply yOffset */
 	   		int ly = (int)((y - yOffset) / yScaleFactor);
-	   		/** Scale z and apply zOffset */
+			/* Scale z and apply zOffset */
 	   		int lz = (int)((z - zOffset) / zScaleFactor);
-				
-			/** Write scaled and offset x, y and z */
+
+			/* Write scaled and offset x, y and z */
 			to.writeInt(lx);
 			to.writeInt(ly);
 			to.writeInt(lz);
 
-			/** Write intensity */				
+			/* Write intensity */
 			to.writeUnsignedShort((short)tempPoint.intensity);// braf.readUnsignedShort()
 
 			/*
@@ -1178,10 +1178,10 @@ public class LASwrite {
 			myByte = setBit(myByte, 1, (byte)tempPoint.returnNumber >> 1);
 			myByte = setBit(myByte, 0, (byte)tempPoint.returnNumber >> 0);
 			*/
-			/** Write byte */
+			/* Write byte */
 			to.writeUnsignedByte(myBitti);
 
-			/** Reset the byte */
+			/* Reset the byte */
 			//myByte = 0;
 
 
@@ -1232,23 +1232,23 @@ public class LASwrite {
             myByte = setBit(myByte, 0, (byte)tempPoint.classification >> 0);
 			*/
 
-			/** Write the byte */
+			/* Write the byte */
 			to.writeUnsignedByte(myBitti);
 
-			/** Write scan angle */
+			/* Write scan angle */
 			to.writeUnsignedByte((byte)tempPoint.scanAngleRank);
-			
-			/** Write user data */
+
+			/* Write user data */
 			to.writeUnsignedByte((byte)tempPoint.userData);
-			
-			/** Write point source ID */
+
+			/* Write point source ID */
 			to.writeUnsignedShort(tempPoint.pointSourceId);
 
 
-			/** Previous stuff is pretty much standard for any point data type.
+			/* Previous stuff is pretty much standard for any point data type.
 				How to do the extra stuff that is point data type specific? */
 
-				/** RGB is included in both 2 and 3 record types in LAS 1.2 */
+			/* RGB is included in both 2 and 3 record types in LAS 1.2 */
 
 			if (pointDataRecordFormat == 1 || pointDataRecordFormat == 3 || pointDataRecordFormat == 4 || pointDataRecordFormat == 5) {
 
@@ -1322,102 +1322,102 @@ public class LASwrite {
 
 		to.writeAscii(4, "LASF");
 
-		/** File source ID */
+		/* File source ID */
 		if(fileSourceId == 0)
 	        to.writeUnsignedShort((short)42); // = braf.readUnsignedShort();
         else
             to.writeUnsignedShort((short)fileSourceId); // = braf.readUnsignedShort();
 
-	    /** Global encoding */
+		/* Global encoding */
 	    to.writeUnsignedShort((short)globalEncoding); // = braf.readUnsignedShort();
 
-	    /** ID */
+		/* ID */
 	    to.writeLong(0);
 
-	    /** GUID */
+		/* GUID */
 	    to.writeAscii(8, "");
 
-	    /** Version major */
+		/* Version major */
 	    to.writeUnsignedByte((byte)major);// = braf.readUnsignedByte();
-	    
-	    /** Version minor */
+
+		/* Version minor */
 	    to.writeUnsignedByte((byte)minor);// = braf.readUnsignedByte();
-	    
-	    /** System identified */
+
+		/* System identified */
 	    to.writeAscii(32, "LASutils (c) by Mikko Kukkonen");// systemIdentifier = braf.readAscii(32);
-	    
-	    /** Generating software */
+
+		/* Generating software */
 	    to.writeAscii(32, (softwareName + " version 0.1"));// generatingSoftware = braf.readAscii(32);
 	    
 	    //System.out.println(from.generatingSoftware);
 	    //Date now = new Date();     // Gets the current date and time
 		int year = Calendar.getInstance().get(Calendar.YEAR); //now.getYear();
 		Calendar calendar = Calendar.getInstance();
-		int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);  
+		int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
 
-		/** File creation date */
+		/* File creation date */
 	    to.writeUnsignedShort((short)dayOfYear);// = braf.readUnsignedShort();
-	    
-	    /** File creation year */
+
+		/* File creation year */
 	    to.writeUnsignedShort((short)(1900 + year));// = braf.readUnsignedShort();
 
-	    /** Header size */
+		/* Header size */
 	    to.writeUnsignedShort((short)headerSize);// = braf.readUnsignedShort();
 
 		//System.out.println((short)headerSize);
-	    /** Offset to point data */
+		/* Offset to point data */
 	    to.writeUnsignedInt((short)headerSize);
 
-	    /** #Variable length records*/
+		/* #Variable length records*/
 	    to.writeUnsignedInt(0);// = braf.readUnsignedInt();
 
-	    /** Point data format */
+		/* Point data format */
 	    to.writeUnsignedByte((byte)pointDataType);// = braf.readUnsignedByte();
-	    
-	    /** Point data record length */
+
+		/* Point data record length */
 	    to.writeUnsignedShort((short)pointDataRecordLength);// = braf.readUnsignedShort();
-	    
-	    /** Number of point records */
+
+		/* Number of point records */
 	    to.writeUnsignedInt((int)0);// = braf.readUnsignedInt();
-	    
-	    /** Number of points by return 0,1 ... 4, 5 */
+
+		/* Number of points by return 0,1 ... 4, 5 */
 	   	to.writeUnsignedInt((int)0);
 	   	to.writeUnsignedInt((int)0);
 	   	to.writeUnsignedInt((int)0);
 	   	to.writeUnsignedInt((int)0);
 	   	to.writeUnsignedInt((int)0);
 
-	    /** X scale factor */
+		/* X scale factor */
 	    to.writeDouble(xScale);// = braf.readDouble();
-	    
-	    /** Y scale factor */
+
+		/* Y scale factor */
 	    to.writeDouble(yScale);// = braf.readDouble();
 
-	    /** Z scale factor */
+		/* Z scale factor */
 	    to.writeDouble(zScale);// = braf.readDouble();
-	    
-	    /** X offset */
+
+		/* X offset */
 	    to.writeDouble(xOff);// = braf.readDouble();
 
-	    /** Y offset */
+		/* Y offset */
 	    to.writeDouble(yOff);// = braf.readDouble();
 
-	    /** Z offset */
+		/* Z offset */
 	    to.writeDouble(zOff);// = braf.readDouble();
 
-	    /** Max X */
+		/* Max X */
 	    to.writeDouble(0);// = braf.readDouble();
-	    /** Min X */
+		/* Min X */
 	    to.writeDouble(0);// = braf.readDouble();
 
-	    /** Max Y */
+		/* Max Y */
 	    to.writeDouble(0);// = braf.readDouble();
-	    /** Min Y */
+		/* Min Y */
 	    to.writeDouble(0);// = braf.readDouble();
-	    
-	    /** Max Z */
+
+		/* Max Z */
 	    to.writeDouble(0);// = braf.readDouble();
-	    /** Min Z */
+		/* Min Z */
 	    to.writeDouble(0);// = braf.readDouble();
 
 		if(minor == 3){

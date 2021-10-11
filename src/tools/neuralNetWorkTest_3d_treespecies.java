@@ -239,7 +239,7 @@ public class neuralNetWorkTest_3d_treespecies {
         //normalizer2.transform(testIter);         //Apply normalization to the test data. This is using statistics calculated from the *training* set
 */
 
-/** THIS IS GOOD MODEL FOR 40 slices 50% cutoff (ALL FEATURES) */
+        /* THIS IS GOOD MODEL FOR 40 slices 50% cutoff (ALL FEATURES) */
 
 
 /*
@@ -267,7 +267,7 @@ public class neuralNetWorkTest_3d_treespecies {
         */
 
 
-        /** "OPTIMAL (OR AT LEAST VERY NICE!!!) FOR 320 FEATURES */
+        /* "OPTIMAL (OR AT LEAST VERY NICE!!!) FOR 320 FEATURES */
 
         MultiLayerConfiguration conf22 = new NeuralNetConfiguration.Builder()
                 .activation(Activation.RELU)
@@ -293,7 +293,7 @@ public class neuralNetWorkTest_3d_treespecies {
 
         MultiLayerConfiguration conf = null;
 
-        /** Arbiter optimized 320 features, 64 batch size */
+        /* Arbiter optimized 320 features, 64 batch size */
         MultiLayerConfiguration conf_merged_arbiter = new NeuralNetConfiguration.Builder()
                 .activation(Activation.RELU)
                 .weightInit(WeightInit.RELU)
@@ -316,7 +316,7 @@ public class neuralNetWorkTest_3d_treespecies {
                 //    .nIn(4).nOut(3).build())
                 .build();
 
-        /** Arbiter optimized 320 features, 128 batch size */
+        /* Arbiter optimized 320 features, 128 batch size */
         MultiLayerConfiguration conf123456 = new NeuralNetConfiguration.Builder()
                 .activation(Activation.TANH)
                 .weightInit(WeightInit.RELU)
@@ -339,7 +339,7 @@ public class neuralNetWorkTest_3d_treespecies {
                 //    .nIn(4).nOut(3).build())
                 .build();
 
-        /** GOOD FOR 160 VOXELS */
+        /* GOOD FOR 160 VOXELS */
 
         MultiLayerConfiguration conf111 = new NeuralNetConfiguration.Builder()
                 .activation(Activation.RELU)
@@ -409,7 +409,7 @@ public class neuralNetWorkTest_3d_treespecies {
 
         conf = conf_voxel_arbiter;
 
-        /** GOOD FOR 160 texture */
+        /* GOOD FOR 160 texture */
 
         MultiLayerConfiguration conf123 = new NeuralNetConfiguration.Builder()
                 .activation(Activation.RELU)
@@ -545,7 +545,7 @@ public class neuralNetWorkTest_3d_treespecies {
                 //    .nIn(4).nOut(3).build())
                 .build();
 */
-        /** THE BOTTOM ONE WORKS WELL WITH ITC!!! */
+        /* THE BOTTOM ONE WORKS WELL WITH ITC!!! */
 /*
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
                 .activation(Activation.SIGMOID)

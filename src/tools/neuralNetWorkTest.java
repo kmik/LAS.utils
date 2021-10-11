@@ -248,7 +248,7 @@ public class neuralNetWorkTest {
                 .build();
 
 
-        /** THE BOTTOM ONE WORKS WELL WITH ITC!!! */
+        /* THE BOTTOM ONE WORKS WELL WITH ITC!!! */
 /*
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
                 .activation(Activation.SIGMOID)

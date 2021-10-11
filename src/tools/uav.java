@@ -4,11 +4,9 @@ import utils.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
+
 
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
@@ -18,28 +16,7 @@ import org.gdal.gdal.Band;
 
 import JavaMI.MutualInformation;
 
-import org.tinfour.common.Circumcircle;
-import org.tinfour.common.GeometricOperations;
-import org.tinfour.common.IQuadEdge;
-import org.tinfour.common.Vertex;
-import org.tinfour.interpolation.IVertexValuator;
-
-//import org.opencv.core.Mat;s
-
 import LASio.*;
-
-/*
-import org.geotools.*;
-import org.geotools.image.io.*;
-import org.geotools.imageio.*;
-*/
-/*
-import org.geotools.coverage.grid.GridCoordinates2D;
-import org.geotools.coverage.grid.GridCoverage2D;
-import org.geotools.coverage.grid.GridGeometry2D;
-import org.geotools.gce.geotiff.GeoTiffReader;
-import org.geotools.geometry.DirectPosition2D;
-*/
 
 
 public class uav {
@@ -811,7 +788,6 @@ public class uav {
         }
 
         /**
-         *  @param Chm in           Outside CHM.
          *  
          *
          *

@@ -1097,7 +1097,7 @@ class MKid4pointsLAS{
 
 
         /* Circular plot */
-        /** THIS IS NOT USED ANYWHERE!!! */
+        /* THIS IS NOT USED ANYWHERE!!! */
         if(shapeType == 1){
 
             ArrayList<Integer> plotID;
@@ -1927,7 +1927,7 @@ class MKid4pointsLAS{
                 }
 
 
-                /** if we want to output metrics per polyon */
+                /* if we want to output metrics per polyon */
                 if(aR.omet){
 
                     ArrayList<Double> metrics_a = pCM.calc(gridPoints_z_a, gridPoints_i_a, sum_z_a, sum_i_a, "_a", colnames_a);
@@ -2529,7 +2529,7 @@ class MKid4pointsLAS{
                 //}
 
 
-                /** if we want to output metrics per polyon */
+                /* if we want to output metrics per polyon */
                 if(aR.omet){
 
                     ArrayList<Double> metrics_a = pCM.calc(gridPoints_z_a, gridPoints_i_a, sum_z_a, sum_i_a, "_a", colnames_a);

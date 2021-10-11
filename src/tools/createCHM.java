@@ -1699,7 +1699,7 @@ public class createCHM{
 
             for(int i = 0; i < leftOvers2.size(); i++){
 
-                /** THIS TAKES A LONG TIME */
+                /* THIS TAKES A LONG TIME */
                 temppi = arrayCopy(input.get(leftOvers2.get(i)[2]));
 
                 int minX = leftOvers2.get(i)[0] - n;
@@ -3352,7 +3352,7 @@ public class createCHM{
 
 		public void start(){
 
-            /** TODO: Order altaat in the order of water level! */
+            /* TODO: Order altaat in the order of water level! */
 
 			//System.out.println(totPixels + " " + filledPixels);
 			double prevProgress = -99;
@@ -3393,7 +3393,7 @@ public class createCHM{
 
         public void start2(){
 
-            /** TODO: Order altaat in the order of water level! */
+            /* TODO: Order altaat in the order of water level! */
 
             //System.out.println(totPixels + " " + filledPixels);
             double prevProgress = -99;
@@ -3407,7 +3407,7 @@ public class createCHM{
                 //Pixel tempPixel = jono2.poll();
 
                 cellItem ci = jono2_tif.poll();
-                /** We label the pixel with the SEED closest to it (euc distance) */
+                /* We label the pixel with the SEED closest to it (euc distance) */
 
                 //this.updateNeighbourhood((int)tempPixel.x, (int)tempPixel.y, 10000, false);
                 this.updateNeighbourhood_tif(ci.x, ci.y, 10000, false);
@@ -3998,7 +3998,7 @@ public class createCHM{
                                 image.dequeue(xIndex, yIndex);
                             }
                             else{
-                                /** ALWAYS GO HERE!! */
+                                /* ALWAYS GO HERE!! */
                                 jono2_tif.offer(new cellItem(xIndex, yIndex, -floatArray3x3_3[i]));
                                 //jono2.offer(image.get(x - 1, y));
                                 image.queue(xIndex, yIndex);
@@ -5210,7 +5210,7 @@ public class createCHM{
                     //bank[(int)temppi[0] + (numberOfPixelsX) * (int)temppi[1]][0] += (float)tempPoint.z;
                     //bank[(int)temppi[0] + (numberOfPixelsX) * (int)temppi[1]][1]++;
 
-                    /** If this z is greater than the max observed in this cell */
+                    /* If this z is greater than the max observed in this cell */
 
                     //if(tempPoint.z > bank[(int)temppi[0] + (numberOfPixelsX) * (int)temppi[1]][2])
                         //bank[(int)temppi[0] + (numberOfPixelsX) * (int)temppi[1]][2] = (float)tempPoint.z;

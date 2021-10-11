@@ -297,8 +297,8 @@ public class lasGridStats {
 
                                     }
 
-                                    /** In order to save memory we only add point to tin if it is outside of it. After all,
-                                     * we only need the bounday of the tin.
+                                    /* In order to save memory we only add point to tin if it is outside of it. After all,
+                                      we only need the bounday of the tin.
                                      */
                                     if(!tins.get(order.get(tempPoint.pointSourceId)).isPointInsideTin(tempPoint.x, tempPoint.y)){
 
@@ -372,7 +372,7 @@ public class lasGridStats {
                     //}
                 }
 
-                /** No points in this rectangle */
+                /* No points in this rectangle */
                 if(ids.size() == 0)
                     continue;
 
@@ -411,10 +411,10 @@ public class lasGridStats {
 
                 boolean addedBecauseTooSmall = false;
 
-                /** Iterate over all the plot ids within this grid cell */
+                /* Iterate over all the plot ids within this grid cell */
                 for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
 
-                    /** If this plot id within this grid cell has more than 10 points */
+                    /* If this plot id within this grid cell has more than 10 points */
                     if(gridPoints_z_a.get(ii).size() > aR.min_points) {
 
                         metrics = pCM.calc(gridPoints_z_a.get(ii), gridPoints_i_a.get(ii), sum_z_a.get(ii), sum_i_a.get(ii), "_a", colnames);
@@ -620,7 +620,7 @@ public class lasGridStats {
 
                 currentNeghborhood.clear();
 
-                /** This means that this split cell is already used in a neighborhood */
+                /* This means that this split cell is already used in a neighborhood */
                 if(neighborhoods.containsKey(pos)){
 
                     area = neighborhood_areas.get(pos);
@@ -702,7 +702,7 @@ public class lasGridStats {
 
                 if(pair != -1){
 
-                    /** IF NEITHER ARE IN NEIGHBORHOODS! */
+                    /* IF NEITHER ARE IN NEIGHBORHOODS! */
                     if(!neighborhoods.containsKey(pair) && !neighborhoods.containsKey(pos)) {
 
                         neighborhoods.put(pair, new HashSet<>());
@@ -724,7 +724,7 @@ public class lasGridStats {
                         System.out.println(optimalAreaAddition + " " + areaOrig);
 
                     }
-                    /** IF BOTH ARE IN NEIGHBORHOODS! */
+                    /* IF BOTH ARE IN NEIGHBORHOODS! */
                     else if(neighborhoods.containsKey(pair) && neighborhoods.containsKey(pos)){
 
 
@@ -852,12 +852,12 @@ public class lasGridStats {
         }catch (Exception e){
             e.printStackTrace();
         }
-        /**
-         *                          bin_i.writeDouble(grid_cell_id);
-         *                          bin_i.writeDouble(ids.get(ii));
-         *                          bin_i.writeDouble(divided);
-         *                          bin_i.writeDouble(0.0);
-         *                          bin_i.writeDouble(areas.get(ii));
+        /*
+                                   bin_i.writeDouble(grid_cell_id);
+                                   bin_i.writeDouble(ids.get(ii));
+                                   bin_i.writeDouble(divided);
+                                   bin_i.writeDouble(0.0);
+                                   bin_i.writeDouble(areas.get(ii));
          */
         writer_a.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
         writer_f.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
@@ -880,7 +880,7 @@ public class lasGridStats {
         for(int x = 0; x < grid_x_size; x++) {
             for (int y = 0; y < grid_y_size; y++) {
 
-                /** this means no points in that grid cell */
+                /* this means no points in that grid cell */
                 if(gridLocationInRaf_a.get(x).get(y).size() == 0)
                     continue;
 
@@ -889,7 +889,7 @@ public class lasGridStats {
                 int siz_l = gridLocationInRaf_l.get(x).get(y).size();
                 int siz_i = gridLocationInRaf_i.get(x).get(y).size();
 
-                /** This means that we want to merge */
+                /* This means that we want to merge */
                 if (grid_ids_merged.contains(x * grid_y_size + y)) {
 
                     for (int i = 0; i < siz_a; i++) {

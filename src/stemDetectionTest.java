@@ -1,5 +1,4 @@
 import java.io.File;
-import java.io.IOException;
 import LASio.*;
 import tools.*;
 import utils.argumentReader;
@@ -17,7 +16,7 @@ public class stemDetectionTest {
 
         argumentReader aR = new argumentReader();
 
-        /** THIS WAS USE IN KUNNONEN ET AL. 2020) */
+        /* THIS WAS USE IN KUNNONEN ET AL. 2020) */
         //stemDetector sd = new stemDetector(las, 0.10, 0.2, 1, aR);
 
         stemDetector sd = new stemDetector(las, 0.10, 0.2, 1, aR);

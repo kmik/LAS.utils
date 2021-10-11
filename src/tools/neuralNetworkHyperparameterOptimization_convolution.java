@@ -1072,17 +1072,17 @@ public class neuralNetworkHyperparameterOptimization_convolution {
         System.out.println("SUCCESS!");
         System.exit(1);
 
-        /** Learning rate */
+        /* Learning rate */
         double[] learningRates = new double[]{0.1, 0.01, 0.001};
-        /** Neurons per layer */
+        /* Neurons per layer */
         int[] neurons = new int[]{5, 10, 15, 25, 30, 35, 40, 75, 125, 200};
-        /** Batch size */
+        /* Batch size */
         int[] batchSizes = new int[]{(int) Math.pow(2, 4), (int) Math.pow(2, 5), (int) Math.pow(2, 6), (int) Math.pow(2, 7), (int) Math.pow(2, 8), (int) Math.pow(2, 9)};
-        /** Epoch count */
+        /* Epoch count */
         int[] n_epochs = new int[]{25, 50, 100};
-        /** Activation function */
+        /* Activation function */
         Activation[] activations = new Activation[]{Activation.SIGMOID, Activation.TANH, Activation.RELU};
-        /** Weight initialization */
+        /* Weight initialization */
         WeightInit[] initializations = new WeightInit[]{WeightInit.XAVIER, WeightInit.RELU, WeightInit.NORMAL};
 
 /*

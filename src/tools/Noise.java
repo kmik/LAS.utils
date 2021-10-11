@@ -75,13 +75,6 @@ public class Noise{
     /**
      * Classfies solitary points as noise according to
      *
-     * @param step and
-     * @param few
-     *
-     * Point is classified as noise when it is inside a
-     * voxel of size @step with fewer than @few points.
-     * All points inside this kind of voxel are classified
-     * as noise and (at this moment) removed.
      */
 
     public void removeNoise() throws Exception{

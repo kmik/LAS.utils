@@ -1310,8 +1310,7 @@ class ai2las{
 			}
 		}else{
 
-			/** DEBUG CODE */
-
+			/* DEBUG CODE */
 			System.out.println(aR.debug_file);
 			System.out.println("DEBUGG!!!!!");
 

@@ -3,30 +3,13 @@ package tools;
 import LASio.*;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
-//import org.apache.solr.common.util.Hash;
 import org.ejml.data.DMatrixRMaj;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
-
-/*
-import org.opencv.core.*;
-import org.opencv.core.Point;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
-
- */
 import utils.*;
 
-import javax.imageio.ImageIO;
-import javax.imageio.stream.FileImageOutputStream;
-import javax.imageio.stream.ImageOutputStream;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 
-import static org.opencv.core.CvType.CV_32SC3;
-import static org.opencv.core.CvType.CV_8U;
-
-import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 /**
  *
@@ -118,8 +101,8 @@ public class stemDetector{
     public stemDetector(LASReader pointCloud, double y_interval, double z_cutoff, int coreNumber, argumentReader aR) throws IOException{
 
 
-        /** PARAMS:
-         *
+        /* PARAMS:
+
          */
         this.min_n_voxels = 10;
 
@@ -498,7 +481,7 @@ public class stemDetector{
                 if (tempPoint.pointSourceId > maxITDid)
                     maxITDid = tempPoint.pointSourceId;
 
-                /** && tempPoint.pointSourceId > 0 means that we work only with ITD segments */
+                /* && tempPoint.pointSourceId > 0 means that we work only with ITD segments */
                 if (tempPoint.z >= z_cutoff && tempPoint.z < z_cutoff_max){// && tempPoint.pointSourceId > 0) {
 
                     int xLocation = (int) Math.floor((tempPoint.x - cloudMinX) / y_interval);
@@ -553,7 +536,7 @@ public class stemDetector{
 
                 }
 
-                /** && tempPoint.pointSourceId > 0 means that we work only with ITD segments */
+                /* && tempPoint.pointSourceId > 0 means that we work only with ITD segments */
                 if (tempPoint.z >= z_cutoff && tempPoint.z < z_cutoff_max){// tempPoint.pointSourceId > 0) {
 
                     int xLocation = (int) Math.floor((tempPoint.x - cloudMinX) / y_interval);
@@ -638,7 +621,7 @@ public class stemDetector{
 
                 }
 
-                /** && tempPoint.pointSourceId > 0 means that we work only with ITD segments */
+                /* && tempPoint.pointSourceId > 0 means that we work only with ITD segments */
                 if (tempPoint.z >= z_cutoff && tempPoint.z < z_cutoff_max){// tempPoint.pointSourceId > 0) {
 
                     int xLocation = (int) Math.floor((tempPoint.x - cloudMinX) / y_interval);
@@ -805,7 +788,7 @@ public class stemDetector{
         int unders = 0;
         n = pointCloud.getNumberOfPointRecords();
 
-        /** HERE WE ARE WRITING STEMS TO A FILE */
+        /* HERE WE ARE WRITING STEMS TO A FILE */
         //for(int i = 0; i < n; i++){
 
             //pointCloud.readRecord(i, tempPoint);
@@ -842,7 +825,7 @@ public class stemDetector{
 
                         if (surface[xLocation][yLocation][zLocation].isSurface && surface[xLocation][yLocation][zLocation].id >= 0) {
 
-                            /** IF THE ITD TREE HAS NOT YET BEEN OBSERVED IN THE POINTS */
+                            /* IF THE ITD TREE HAS NOT YET BEEN OBSERVED IN THE POINTS */
                             if (!treesBank.containsKey(tempPoint.pointSourceId)) { //   && !idsAlreadyDone.contains((short)surface[xLocation][yLocation][zLocation].id )
                                 //if(!trees.containsKey(tempPoint.pointSourceId)){
 
