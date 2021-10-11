@@ -104,7 +104,6 @@ public class voxelRandomAccess implements Closeable {
         bufferContainsData = false;
 
         this.n = this.xDim * this.yDim * this.zDim;
-        int writeInt = -999;
 
         for(int i = 0; i < n; i++){
             this.write(i, -999);
@@ -118,7 +117,6 @@ public class voxelRandomAccess implements Closeable {
 
         for(int i = 0; i < n; i++){
 
-            //System.out.println(this.read(i) + " " + i + "/" + n);
         }
 
 
@@ -127,7 +125,6 @@ public class voxelRandomAccess implements Closeable {
 
     public void write(int index, int value) throws IOException{
 
-        //this.filePosition = index;
         this.raFilePos = index * 4;
         this.seek(raFilePos);
 
@@ -137,7 +134,6 @@ public class voxelRandomAccess implements Closeable {
 
     public void writeDirect(int index, int value) throws IOException{
 
-        //this.filePosition = index;
         this.raFilePos = index * 4;
         raFile.seek(raFilePos);
 
@@ -148,7 +144,6 @@ public class voxelRandomAccess implements Closeable {
     public int read(int index) throws IOException{
 
         this.raFilePos = index * 4;
-        //this.filePosition = index;
         raFile.seek(raFilePos);
         return this.readInt();
 
@@ -237,16 +232,10 @@ public class voxelRandomAccess implements Closeable {
         for(int i = 0; i < allArray2Index; i++)
             temp[i] = allArray2[i];
 
-        //fileChannel.write(buffer);
-        //buffer.wrap(allArray);
-        //System.out.println(temp.length);
         raFile.seek(raFile.length());
         raFile.write(temp);
-        //fileChannel.write(ByteBuffer.wrap(temp));
 
         allArray2 = new byte[bufferSize];
-
-        //allArray = new byte[0];
         allArray2Index = 0;
 
     }
@@ -257,24 +246,7 @@ public class voxelRandomAccess implements Closeable {
     }
 
     public synchronized void writeInt(int in) throws IOException {
-        //buffer.clear();
         byte[] array = intToByteArray(in);
-        // byte[] array = buffer.allocate(4).putInt(in).array();
-        //buffer.allocate(4);
-        // buffer.wrap(array);
-        //buffer.flip();
-    /*
-    buffer.wrap(array);
-    buffer.flip();
-    fileChannel.write(buffer);
-    */
-        //fileChannel.position(fileChannel.size());
-        //fileChannel.write(buffer);
-        //System.out.println(Arrays.toString(array));
-        //System.out.println(fileOuputStream)
-        //fileChannel.write(ByteBuffer.wrap(array));
-
-        //allArray = concatenateByteArrays(allArray, array);
 
         if (allArray2Index + array.length >= allArray2.length)
             writeBuffer2();

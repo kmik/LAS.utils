@@ -91,7 +91,7 @@ class ai2las{
 		if(proge >= 0.85*paatos && proge < 0.90*paatos)System.out.print(nimi + "   |#################   |  " + Math.round(((double)proge/(double)paatos)*100) + "%\r");
 		if(proge >= 0.90*paatos && proge < 0.95*paatos)System.out.print(nimi + "   |##################  |  " + Math.round(((double)proge/(double)paatos)*100) + "%\r");
 		if(proge >= 0.95*paatos && proge < 0.97*paatos)System.out.print(nimi + "   |################### |  " + Math.round(((double)proge/(double)paatos)*100) + "%\r");
-		if(proge >= 0.97*paatos && proge <= 1*paatos)System.out.print(nimi + "   |####################|  " + Math.round(((double)proge/(double)paatos)*100) + "%\r");
+		if(proge >= 0.97*paatos && proge <= paatos)System.out.print(nimi + "   |####################|  " + Math.round(((double)proge/(double)paatos)*100) + "%\r");
 
 
 	}
@@ -320,11 +320,11 @@ class ai2las{
 				Math.max((double)tempDataset.GetRasterXSize() / 2.0, temp[0]);
 
 
-				extentsThis[0] = eoTemp[0] - ((double)tempDataset.GetRasterXSize() / 1.0 * gsd);
-				extentsThis[1] = eoTemp[0] + ((double)tempDataset.GetRasterXSize() / 1.0 * gsd);
+				extentsThis[0] = eoTemp[0] - ((double) tempDataset.GetRasterXSize() * gsd);
+				extentsThis[1] = eoTemp[0] + ((double) tempDataset.GetRasterXSize() * gsd);
 
-				extentsThis[2] = eoTemp[1] - ((double)tempDataset.GetRasterYSize() / 1.0 * gsd);
-				extentsThis[3] = eoTemp[1] + ((double)tempDataset.GetRasterYSize() / 1.0 * gsd);
+				extentsThis[2] = eoTemp[1] - ((double) tempDataset.GetRasterYSize() * gsd);
+				extentsThis[3] = eoTemp[1] + ((double) tempDataset.GetRasterYSize() * gsd);
 
 
 				extents.add(extentsThis.clone());

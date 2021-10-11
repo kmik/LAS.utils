@@ -11,6 +11,7 @@ import org.gdal.ogr.Layer;
 import org.gdal.ogr.Feature;
 import org.gdal.ogr.Geometry;
 
+import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -1048,8 +1049,7 @@ public class RunId4pointsLAS{
             }
             *
              */
-            for(String f : aR.files)
-                tempList.add(f);
+            tempList.addAll(Arrays.asList(aR.files));
 
             //tempList.add(pathi);
 

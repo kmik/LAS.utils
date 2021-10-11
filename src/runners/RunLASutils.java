@@ -204,8 +204,7 @@ public class RunLASutils {
             }
             */
 
-            for (String f : aR.files)
-                filesList.add(f);
+            filesList.addAll(Arrays.asList(aR.files));
 
 
             for (int i = 0; i < filesList.size(); i++) {
@@ -230,8 +229,7 @@ public class RunLASutils {
             }
 */
 
-            for (String f : aR.files)
-                tempList.add(f);
+            tempList.addAll(Arrays.asList(aR.files));
 
             proge.setEnd(tempList.size());
 

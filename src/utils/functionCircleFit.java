@@ -735,17 +735,6 @@ public class functionCircleFit implements FunctionNtoM {
                         Point2D.Double[] points =
                                 slicePoints.toArray(new Point2D.Double[slicePoints.size()]);
 
-                        //fitter.initialize2(points, x_sum, y_sum, 0.15);
-
-/*
-                    System.out.println("n_points: " + slicePoints.size());
-                    System.out.println("x_dim " + (maxx-minx) + " y_dim " + (maxy - miny));
-                    System.out.println("initial circle: "
-                            + format.format(fitter.getCenter().x)
-                            + " "     + format.format(fitter.getCenter().y)
-                            + " "     + format.format(fitter.getRadius()));
-
- */
                         // minimize the residuals
 
                         try {
@@ -1728,7 +1717,6 @@ public class functionCircleFit implements FunctionNtoM {
                 y_y_list.get(i)[counti] = param.get(h + 4, 0);
                 y_z_list.get(i)[counti] = param.get(h + 5, 0);
                 y_scale_list.get(i)[counti] = param.get(h + 6, 0);
-                //System.out.println("Should be one: " + (param.get(h + 6, 0)) );
 
                 counti++;
 
