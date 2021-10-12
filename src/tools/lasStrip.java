@@ -203,6 +203,14 @@ public class lasStrip {
 
     }
 
+    /**
+     * Reads an ASCII trajectory file. The column order should be:
+     *
+     *  Time[s] Northing[m] Easting[m] Height[m] Roll[deg] Pitch[deg] Yaw[deg]
+     *
+     *
+     * @param fileName
+     */
     public void readTrajectoryFile(String fileName){
 
         File trajFile = new File(fileName);
@@ -289,38 +297,14 @@ public class lasStrip {
     public void align() throws IOException {
 
         LASraf asd1;
-        //System.loadLibrary("opencv_java320");
-
-        //this.boreDisabled = true;
-
-        //tempRotation = new Mat(3, 3, CV_64F);
-        //boreRotation = new Mat(3, 3, CV_64F);
-        //leverTranslation = new Mat(1, 3, CV_64F);
-        //dummyMat = new Mat();
 
         int id = 1;
         int id2 = 255;
-
-        //rotationMatrix1 = new Mat(3, 3, CV_64F);
-        //rotationMatrix2 = new Mat(3, 3, CV_64F);
-        //emptyMat = new Mat();
-
-        //point = new Mat(1,3, CV_64F);
-        //rotatedpoint = new Mat(1,3, CV_64F);
-
-        //ArrayList<LASReader> fileList = readLasFiles(new File("/media/koomikko/B8C80A93C80A4FD41/Linux_downloads/UAV_LIDAR/150/gc"));
-
-
-
-        //this.fileList = aR.pointClouds;
 
         for(int i = 0; i < aR.inputFiles.size(); i++){
             this.fileList.add(new LASReader(aR.inputFiles.get(i)));
         }
 
-        //System.out.println(this.fileList.size());
-        //System.exit(1);
-        //fileList = readLasFiles(new File("/media/koomikko/B8C80A93C80A4FD41/id4points/LASutils/project/attaya/las/gc/"));
         File outputDirectory = new File("/media/koomikko/B8C80A93C80A4FD41/Linux_downloads/UAV_LIDAR/150/gc/output/");
 
         String outputDir = "/media/koomikko/B8C80A93C80A4FD41/Linux_downloads/UAV_LIDAR/150/gc/output/";
@@ -343,8 +327,6 @@ public class lasStrip {
         }
 
         readTrajectoryFile(aR.trajectory);
-
-        //System.out.println("Trajectory file read successful! Number of timestamps: " + trajectory.size());
 
         blokki.setStrip(this);
 
@@ -400,9 +382,6 @@ public class lasStrip {
 
         this.boreDone = true;
 
-        //if(true)
-          //  return;
-
         rs2.release();
 
         lm2 = null;
@@ -453,8 +432,6 @@ public class lasStrip {
             tin2.clear();
 
             LasPoint tempPoint = new LasPoint();
-
-            //Mat point = new Mat(1,3, CV_64F);
 
             int pointCount = 0;
 
@@ -600,22 +577,6 @@ public class lasStrip {
 
                 numberOfSegments = (int)Math.ceil((blokki.pointCloudTimeExtent.get(currentFiles[1])[1] - blokki.pointCloudTimeExtent.get(currentFiles[1])[0]) / deltaT);
 
-                /*
-                for (org.tinfour.common.Vertex v : tin2.getVertices()) {
-
-                    if (tin1.isPointInsideTin(v.x, v.y)) {
-
-                        disti = Math.abs(v.getZ() - polator1.interpolate(v.x, v.y, valuator));
-
-                        if (!Double.isNaN(disti)) {
-                            count++;
-                            distance += disti;
-                        }
-                    }
-
-                }
-
-                 */
 
                 difBefore = blokki.differenceBefore_2_to_1.get(p);
                 difBefore_std = blokki.stdBefore_2_to_1.get(p);
@@ -624,28 +585,9 @@ public class lasStrip {
             else if(!blokki.aligned[currentFiles[0]]){
 
                 numberOfSegments = (int)Math.ceil((blokki.pointCloudTimeExtent.get(currentFiles[0])[1] - blokki.pointCloudTimeExtent.get(currentFiles[0])[0]) / deltaT);
-
-                /*
-                for (org.tinfour.common.Vertex v : tin1.getVertices()) {
-
-                    if(tin2.isPointInsideTin(v.x, v.y)) {
-
-                        disti = Math.abs(v.getZ() - polator2.interpolate(v.x, v.y, valuator));
-
-                        if(!Double.isNaN(disti)) {
-                            count++;
-                            distance += disti;
-                        }
-                    }
-
-                }
-
-                 */
                 difBefore = blokki.differenceBefore_1_to_2.get(p);
                 difBefore_std = blokki.stdBefore_1_to_2.get(p);
             }
-
-            //difBefore = (distance / (double)count);
 
             ResidFunction rs = new ResidFunction(this.deltaT);
 
@@ -659,15 +601,12 @@ public class lasStrip {
 
             rs.setPivotPoints(file1_pivotPoint, file2_pivotPoint);
 
-            //System.out.println(blokki.pointCloudTimeExtent.size() + " " + currentFiles[1] + Arrays.toString(blokki.pointCloudTimeExtent.get(currentFiles[1])));
-
             rs.setTins(tin1,!blokki.aligned[currentFiles[0]], blokki.pointCloudTimeExtent.get(currentFiles[0]), tin2, !blokki.aligned[currentFiles[1]], blokki.pointCloudTimeExtent.get(currentFiles[1]));
 
             rs.setTrajectory(trajectory);
 
             LevenbergMarquardt lm = new LevenbergMarquardt(aR.lambda);
 
-            //simulatedAnnealing sa = new simulatedAnnealing();
             DMatrixRMaj param = null;
 
             if(!blokki.aligned[currentFiles[0]] && !blokki.aligned[currentFiles[1]]) {
@@ -678,7 +617,6 @@ public class lasStrip {
                     param.set(g,0,0);
             }
 
-            //System.out.println("LM optimization!");
             rs.setBlock(this.blokki);
             lm.optimize(rs, param);
 
@@ -714,7 +652,6 @@ public class lasStrip {
             }
 
             counti = 1;
-
 
             y_x_rot[0] = param.get(0 + 0,0);
             y_y_rot[0] = param.get(0 + 1,0);
@@ -778,16 +715,11 @@ public class lasStrip {
 
                 for (org.tinfour.common.Vertex v : tin1.getVertices()) {
 
-                    index = (int)(((double)v.getIndex()/1000.0d - blokki.pointCloudTimeExtent.get(currentFiles[0])[0]) / deltaT);
-
                     pointMatrix.put(0, 0, v.x);
                     pointMatrix.put(0, 1, v.y);
                     pointMatrix.put(0, 2, v.getZ());
 
-                    //rotatePoint(pointMatrix,  matrices_rot.get(index), v.getIndex(), 1);
                     rotatePoint2(pointMatrix, (double)v.getIndex()/1000.0d);
-
-                    //translatePoint(pointMatrix, matrices_trans.get(index));
 
                     new_x = pointMatrix.get(0, 0) + tempTrans[0];
                     new_y = pointMatrix.get(0, 1) + tempTrans[1];
@@ -799,7 +731,7 @@ public class lasStrip {
 
 
                     if (tin2.isPointInsideTin(pointMatrix.get(0, 0), pointMatrix.get(0, 1))) {
-                    //if (!Double.isNaN(interpolatedvalue)) {
+
                         interpolatedvalue = polator2.interpolate(pointMatrix.get(0, 0), pointMatrix.get(0, 1), valuator);
 
                         distiSigned = pointMatrix.get(0, 2) - interpolatedvalue;
@@ -827,20 +759,15 @@ public class lasStrip {
 
             else if(!blokki.aligned[currentFiles[1]]) {
 
-                //numberOfSegments = (int)Math.ceil((blokki.pointCloudTimeExtent.get(currentFiles[1])[1] - blokki.pointCloudTimeExtent.get(currentFiles[1])[0]) / 5.0);
 
                 for (org.tinfour.common.Vertex v : tin2.getVertices()) {
-
-                    index = (int)(((double)v.getIndex()/1000.0d - blokki.pointCloudTimeExtent.get(currentFiles[1])[0]) / deltaT);
 
                     pointMatrix.put(0, 0, v.x);
                     pointMatrix.put(0, 1, v.y);
                     pointMatrix.put(0, 2, v.getZ());
 
                     rotatePoint2(pointMatrix, (double)v.getIndex()/1000.0d);
-                    //rotatePoint(pointMatrix, matrices_rot.get(index), v.getIndex(), 2);
 
-                    //translatePoint(pointMatrix, matrices_trans.get(index));
                     new_x = pointMatrix.get(0, 0) + tempTrans[0];
                     new_y = pointMatrix.get(0, 1) + tempTrans[1];
                     new_z = pointMatrix.get(0, 2) + tempTrans[2];
@@ -851,7 +778,6 @@ public class lasStrip {
 
 
                     if (tin1.isPointInsideTin(pointMatrix.get(0, 0), pointMatrix.get(0, 1))) {
-                    //if (!Double.isNaN(interpolatedvalue)) {
                         interpolatedvalue = polator1.interpolate(pointMatrix.get(0, 0), pointMatrix.get(0, 1), valuator);
 
                         distiSigned = pointMatrix.get(0, 2) - interpolatedvalue;
@@ -909,19 +835,6 @@ public class lasStrip {
 
             aR.p_update.updateProgressLasStrip();
 
-            //System.out.println("\nDifference (before): " + difBefore_std + " (after): " + stdDev);
-
-
-            //for(org.tinfour.common.Vertex v : tin1_2.getVertices())
-              //  v = null;
-
-           // for(org.tinfour.common.Vertex v : vertices)
-             //   v = null;
-
-            //tin1_2.clear();
-
-            //System.out.println("Difference after: " + (distanceSum / (double)count));
-
             id += 25;
             id2 -= 25;
 
@@ -970,19 +883,12 @@ public class lasStrip {
 
                     file1.readRecord(i, tempPoint);
 
-                    index = (int)((tempPoint.gpsTime - blokki.pointCloudTimeExtent.get(currentFiles[0])[0]) / deltaT);
-
                     pointMatrix.put(0, 0, tempPoint.x);
                     pointMatrix.put(0, 1, tempPoint.y);
                     pointMatrix.put(0, 2, tempPoint.z);
 
-                    //rotatePoint(pointMatrix, matrices_rot.get(index), (int) (tempPoint.gpsTime * 1000), 1);
                     rotatePoint2(pointMatrix, tempPoint.gpsTime);
-                    /*
-                    tempPoint.x = pointMatrix.get(0, 0) + matrices_trans.get(index)[0];
-                    tempPoint.y = pointMatrix.get(0, 1) + matrices_trans.get(index)[1];
-                    tempPoint.z = pointMatrix.get(0, 2) + matrices_trans.get(index)[2];
-                    */
+
                     tempPoint.x = pointMatrix.get(0, 0) + tempTrans[0];
                     tempPoint.y = pointMatrix.get(0, 1) + tempTrans[1];
                     tempPoint.z = pointMatrix.get(0, 2) + tempTrans[2];
@@ -1021,25 +927,16 @@ public class lasStrip {
 
                     file2.readRecord(i, tempPoint);
 
-                    index = (int)((tempPoint.gpsTime - blokki.pointCloudTimeExtent.get(currentFiles[1])[0]) / deltaT);
-
                     pointMatrix.put(0, 0, tempPoint.x);
                     pointMatrix.put(0, 1, tempPoint.y);
                     pointMatrix.put(0, 2, tempPoint.z);
-                    //System.out.println(tempPoint.x);
-                    //rotatePoint(pointMatrix, matrices_rot.get(index), (int) (tempPoint.gpsTime * 1000), 2);
+
                     rotatePoint2(pointMatrix, tempPoint.gpsTime);
-                    /*
-                    tempPoint.x = pointMatrix.get(0, 0) + matrices_trans.get(index)[0];
-                    tempPoint.y = pointMatrix.get(0, 1) + matrices_trans.get(index)[1];
-                    tempPoint.z = pointMatrix.get(0, 2) + matrices_trans.get(index)[2];
-                    */
-                    //System.out.println(pointMatrix.toString());
+
                     tempPoint.x = pointMatrix.get(0, 0) + tempTrans[0];
                     tempPoint.y = pointMatrix.get(0, 1) + tempTrans[1];
                     tempPoint.z = pointMatrix.get(0, 2) + tempTrans[2];
-                    //System.out.println(tempPoint.x);
-                    //System.out.println("-------");
+
                     tempPoint.pointSourceId = (short)(id2);
                     tempPoint.userData = id2;
 
@@ -1088,9 +985,6 @@ public class lasStrip {
 
             tin1.dispose();
             tin2.dispose();
-
-            //tin1 = new org.tinfour.standard.IncrementalTin();
-            //tin2 = new org.tinfour.standard.IncrementalTin();
 
             file1.close();
             file2.close();

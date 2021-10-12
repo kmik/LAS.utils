@@ -12,6 +12,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+/* A container class for a collection of overlapping
+.las files.
+ */
 public class LasBlock {
 
     fileOperations fo = new fileOperations();
@@ -30,14 +33,7 @@ public class LasBlock {
     String odir;
 
     int filesRead = 0;
-/*
-    org.tinfour.standard.IncrementalTin tempTin = new org.tinfour.standard.IncrementalTin();
-    org.tinfour.standard.IncrementalTin tempTin2 = new org.tinfour.standard.IncrementalTin();
-    org.tinfour.standard.IncrementalTin tempTin3 = new org.tinfour.standard.IncrementalTin();
-    org.tinfour.interpolation.TriangularFacetInterpolator polator1;
-    org.tinfour.interpolation.TriangularFacetInterpolator polator2;
-    org.tinfour.interpolation.TriangularFacetInterpolator polator3;
-*/
+
     org.tinfour.interpolation.VertexValuatorDefault valuator = new org.tinfour.interpolation.VertexValuatorDefault();
 
     public List<LASReader> pointClouds = new ArrayList<>();
@@ -67,11 +63,15 @@ public class LasBlock {
     public ArrayList<Double> stdBefore_1_to_2 = new ArrayList<>();
     public ArrayList<Double> stdBefore_2_to_1 = new ArrayList<>();
 
-    public LasBlock(){}
-
     lasStrip strippi;
 
     public int[] currentFiles;
+
+
+    public LasBlock(){
+
+    }
+
 
     public LasBlock(String outputDirectory, double resolution){
 
@@ -83,6 +83,12 @@ public class LasBlock {
         this.strippi = in;
     }
 
+    /**
+     * Adds a .las file to this block. Also updates the extent of the
+     * block.
+     * @param pointCloud
+     * @throws IOException
+     */
     public void addLasFile(LASReader pointCloud) throws IOException {
 
         pointClouds.add(pointCloud);
@@ -101,6 +107,11 @@ public class LasBlock {
 
     }
 
+    /**
+     * Prepares the output .las files (writes dummy header information).
+     * Also initializes the "aligned" tags.
+     * @throws IOException
+     */
     public void prepare() throws IOException{
 
         aligned = new boolean[pointClouds.size()];
@@ -108,11 +119,9 @@ public class LasBlock {
         for(int i = 0; i < pointClouds.size(); i++){
 
             File oFile = fo.createNewFileWithNewExtension(pointClouds.get(i).getFile(), odir, "_SA.las");
-            //new File(odir + pointClouds.get(i).getFile().getName().replaceFirst("[.][^.]+$", "") + "_SA.las");
 
             if(oFile.exists())
                 oFile.delete();
-
 
             oFile.createNewFile();
 
@@ -126,8 +135,6 @@ public class LasBlock {
             outputPointClouds.add(tempWriter);
 
             pointCloudTimeExtent.add(new double[2]);
-
-            //System.out.println(i);
 
             filesRead++;
             strippi.filesRead++;
@@ -663,11 +670,6 @@ public class LasBlock {
         ArrayList<Integer>[][] indexes;
         ArrayList<Integer>[][] indexes2;
 
-
-
-        //indexes = new ArrayList[(int)Math.ceil(((this.maxX - this.minX) / resolution))][(int)Math.ceil(((this.maxY - this.minY) / resolution))];
-        //indexes2 = new ArrayList[(int)Math.ceil(((this.maxX - this.minX) / resolution))][(int)Math.ceil(((this.maxY - this.minY) / resolution))];
-
         KdTree.XYZPoint searchPoint = new KdTree.XYZPoint(0,0,0);
 
         org.tinfour.common.Vertex temp_v = new org.tinfour.common.Vertex(0,0,0);
@@ -678,14 +680,6 @@ public class LasBlock {
         KdTree.XYZPoint po;
 
         ArrayList<KdTree.XYZPoint> nearestPoints = new ArrayList<>();
-/*
-        int[][][] indexes_int_1;
-        int[][][] indexes_int_2;
-
-        indexes_int_1 = new int[(int)Math.ceil(((this.maxX - this.minX) / resolution))][(int)Math.ceil(((this.maxY - this.minY) / resolution))][1];
-        indexes_int_2 = new int[(int)Math.ceil(((this.maxX - this.minX) / resolution))][(int)Math.ceil(((this.maxY - this.minY) / resolution))][1];
-*/
-
 
         DoubleMatrix normal_doublematrix1 = new DoubleMatrix(3,1);
         DoubleMatrix normal_doublematrix2 = new DoubleMatrix(3,1);
@@ -711,20 +705,6 @@ public class LasBlock {
 
             HashMap<Integer, org.tinfour.common.Vertex> vertices_1 = new HashMap<>();
             HashMap<Integer, org.tinfour.common.Vertex> vertices_2 = new HashMap<>();
-/*
-            double this.minX = Math.min(file1.minX, file2.minX);
-            double this.maxX = Math.max(file1.maxX, file2.maxX);
-
-            double this.minY = Math.min(file1.minY, file2.minY);
-            double this.maxY = Math.max(file1.maxY, file2.maxY);
-*/
-            //tree1 = new KdTree();
-            //tree2 = new KdTree();
-
-            //vertices_1.clear();
-            //vertices_2.clear();
-
-            //thinner = new boolean[(int)Math.ceil(((this.maxX - this.minX) / resolution))][(int)Math.ceil(((this.maxY - this.minY) / resolution))];
 
             for(int x = 0; x < thinner.length; x++) {
                 for (int y = 0; y < thinner[0].length; y++) {
@@ -740,17 +720,7 @@ public class LasBlock {
 
             double minTime = Double.POSITIVE_INFINITY;
             double maxTime = Double.NEGATIVE_INFINITY;
-/*
-            for(int x = 0; x < indexes_int_1.length; x++) {
-                for (int y = 0; y < indexes_int_1[0].length; y++) {
 
-                    indexes_int_1[x][y][0] = 1;
-                    indexes_int_2[x][y][0] = 1;
-
-                }
-            }
-
-*/
             for(int i = 0; i < n1; i++) {
 
                 file1.readRecord(i, tempPoint);
@@ -764,14 +734,6 @@ public class LasBlock {
                     thinner[(int)((tempPoint.x - this.minX)/resolution)][(int)((this.maxY - tempPoint.y)/resolution)] = true;
 
                 if(tempPoint.classification == 2 && thinner[(int)((tempPoint.x - this.minX)/resolution)][(int)((this.maxY - tempPoint.y)/resolution)]) {
-/*
-                    indexes_int_1
-                            [(int) ((tempPoint.x - this.minX) / resolution)]
-                            [(int) ((this.maxY - tempPoint.y) / resolution)]
-                            [indexes_int_1[(int) ((tempPoint.x - this.minX) / resolution)][(int) ((this.maxY - tempPoint.y) / resolution)][0]] = i;
-
-                    indexes_int_1[(int) ((tempPoint.x - this.minX) / resolution)][(int) ((this.maxY - tempPoint.y) / resolution)][0]++;
-*/
 
                     if(indexes[(int) ((tempPoint.x - this.minX) / resolution)][(int) ((this.maxY - tempPoint.y) / resolution)] == null){
                         indexes[(int) ((tempPoint.x - this.minX) / resolution)][(int) ((this.maxY - tempPoint.y) / resolution)] = new ArrayList<>(1000);
@@ -801,17 +763,6 @@ public class LasBlock {
                   thinner[(int)((tempPoint.x - this.minX)/resolution)][(int)((this.maxY - tempPoint.y)/resolution)] = true;
 
                 if(tempPoint.classification == 2 && thinner[(int)((tempPoint.x - this.minX)/resolution)][(int)((this.maxY - tempPoint.y)/resolution)]) {
-/*
-                    indexes_int_2
-                            [(int) ((tempPoint.x - this.minX) / resolution)]
-                            [(int) ((this.maxY - tempPoint.y) / resolution)]
-                            [indexes_int_2
-                            [(int) ((tempPoint.x - this.minX) / resolution)]
-                            [(int) ((this.maxY - tempPoint.y) / resolution)][0]] = i;
-
-                    indexes_int_2[(int) ((tempPoint.x - this.minX) / resolution)][(int) ((this.maxY - tempPoint.y) / resolution)][0]++;
-
- */
 
                     if(indexes2[(int) ((tempPoint.x - this.minX) / resolution)][(int) ((this.maxY - tempPoint.y) / resolution)] == null){
                         indexes2[(int) ((tempPoint.x - this.minX) / resolution)][(int) ((this.maxY - tempPoint.y) / resolution)] = new ArrayList<>(1000);
@@ -836,14 +787,6 @@ public class LasBlock {
 
                     if (indexes[x][y] != null && indexes2[x][y] != null &&
                             indexes[x][y].size() >= 4 && indexes2[x][y].size() >=4) {
-                    //if(indexes_int_1[x][y][0] > 3 && indexes_int_2[x][y][0] > 3) {
-
-                        //tree1 = new KdTree();
-
-                        //System.out.println( indexes_int_1[x][y][0]);
-
-
-                        //System.out.println(indexes[x][y].size() + " i " + indexes2[x][y].size());
 
                         for(int i = 0; i < indexes2[x][y].size(); i++){
 
@@ -860,32 +803,7 @@ public class LasBlock {
                             tree1.add(tempTreePoint);
                             tempTin_2.add(tempVertex);
 
-                            //System.out.println("temptin size: " + tempTin_1.getVertices().size() + " " + tempVertex.toString());
                         }
-
-/*
-                        for(int i = 1; i < indexes_int_2[x][y][0]; i++){
-
-                            file2.readRecord(indexes_int_2[x][y][i], tempPoint);
-
-                            KdTree.XYZPoint tempTreePoint = new KdTree.XYZPoint(tempPoint.x, tempPoint.y, tempPoint.z);
-                            tempTreePoint.setIndex(indexes_int_2[x][y][i]);
-
-                            org.tinfour.common.Vertex tempVertex = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z);
-
-                            tempVertex.setIndex(indexes_int_2[x][y][i]);
-                            vertices_2.put(indexes_int_2[x][y][i], tempVertex);
-
-                            tree1.add(tempTreePoint);
-
-                            tempTin_2.add(tempVertex);
-
-                            //System.out.println("temptin size: " + tempTin_1.getVertices().size() + " " + tempVertex.toString());
-                        }
-
- */
-                        //polator_1 = new org.tinfour.interpolation.TriangularFacetInterpolator(tempTin_1);
-
 
                         for(int i = 0; i < indexes[x][y].size(); i++){
 
@@ -895,34 +813,8 @@ public class LasBlock {
                             tempVertex.setIndex(indexes[x][y].get(i).intValue());
                             tempTin_1.add(tempVertex);
 
-                            //searchPoint.setX(tempPoint.x);
-                            //searchPoint.setY(tempPoint.y);
-                            //searchPoint.setZ(tempPoint.z);
-                            //nearestPoints = (ArrayList< KdTree.XYZPoint>) tree1.nearestNeighbourSearch(1, searchPoint);
-
-                            //System.out.println(nearestPoints.get(0).getIndex());
-
                         }
 
-/*
-                        for(int i = 1; i < indexes_int_1[x][y][0]; i++){
-
-                            file1.readRecord(indexes_int_1[x][y][i], tempPoint);
-
-                            org.tinfour.common.Vertex tempVertex = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z);
-                            tempVertex.setIndex(indexes_int_1[x][y][i]);
-                            tempTin_1.add(tempVertex);
-
-                            //searchPoint.setX(tempPoint.x);
-                            //searchPoint.setY(tempPoint.y);
-                            //searchPoint.setZ(tempPoint.z);
-                            //nearestPoints = (ArrayList< KdTree.XYZPoint>) tree1.nearestNeighbourSearch(1, searchPoint);
-
-                            //System.out.println(nearestPoints.get(0).getIndex());
-
-                        }
-*/
-                        //System.out.println(tempTin_1.getVertices().size() + " " + tempTin_2.getVertices().size());
                         if(!tempTin_1.isBootstrapped() || !tempTin_2.isBootstrapped() || false) {
                             continue;
                         }
@@ -931,10 +823,6 @@ public class LasBlock {
 
                         markPerimeter(tempTin_1, -99);
                         markPerimeter(tempTin_2, -99);
-
-                        //polator_2 = new org.tinfour.interpolation.TriangularFacetInterpolator(tempTin_2);
-                        //polator_2.resetForChangeToTin();
-                        //polator_1.resetForChangeToTin();
 
                         org.tinfour.interpolation.TriangularFacetInterpolator polator_1 = new org.tinfour.interpolation.TriangularFacetInterpolator(tempTin_1);
                         org.tinfour.interpolation.TriangularFacetInterpolator polator_2 = new org.tinfour.interpolation.TriangularFacetInterpolator(tempTin_2);
@@ -951,20 +839,12 @@ public class LasBlock {
                                 searchPoint.setZ(v.getZ());
                                 nearestPoints = (ArrayList<KdTree.XYZPoint>) tree1.nearestNeighbourSearch(1, searchPoint);
 
-                                //System.out.println("tin size: " + tempTin_1.getVertices().size() + " " + indexes2[x][y].size());
-                                //System.out.println(nearestPoints.get(0).getIndex());
                                 temp_v = vertices_2.get(nearestPoints.get(0).getIndex());
 
-                                //System.out.println(temp_v.toString());
-                                //System.out.println(tempTin_2.isPointInsideTin(temp_v.x, temp_v.y));
                                 if (temp_v.getIndex() != -99) {
 
                                     polator_2.interpolate(temp_v.x, temp_v.y, valuator);
-                                    //polator1.interpolate(v_closest.x, v_closest.y, valuator);
-                                    //beta = polator1.getCoefficients();
                                     normal2 = polator_2.getSurfaceNormal();
-                                   // System.out.println(Arrays.toString(normal2));
-                                    //normalVector2 = new Vector3D(normal2[0], normal2[1], normal2[2]);
 
                                     normal_doublematrix2.put(0,0, normal2[0]);
                                     normal_doublematrix2.put(1,0, normal2[1]);
@@ -974,30 +854,18 @@ public class LasBlock {
 
                                     tempDistance = polator_1.interpolate(v.x, v.y, valuator);
 
-
-                                    //polator1.interpolate(v_closest.x, v_closest.y, valuator);
-                                    //beta = polator1.getCoefficients();
                                     normal1 = polator_1.getSurfaceNormal();
-
-
-                                    //System.out.println(Arrays.toString(normal));
-                                    //normalVector1 = new Vector3D(normal1[0], normal1[1], normal1[2]);
 
                                     normal_doublematrix1.put(0,0, normal1[0]);
                                     normal_doublematrix1.put(1,0, normal1[1]);
                                     normal_doublematrix1.put(2,0, normal1[2]);
 
-                                    //angle = Math.toDegrees(AngleBetween(normalVector1, normalVector2));
-                                    //System.out.println("angle1: " + angle);
                                     angle = Math.toDegrees(AngleBetween(normal_doublematrix1, normal_doublematrix2));
-                                    //System.out.println("angle2: " + angle);
-                                    //System.out.println("angle: " + angle);
-                                    if (angle < this.angleThreshold) {
 
+                                    if (angle < this.angleThreshold) {
 
                                         includedPointsFile1.get(p).add(v.getIndex());
                                         includedPointsFile2.get(p).add(temp_v.getIndex());
-                                        //System.out.println(includedPointsFile1.get(p).size() + " " + includedPointsFile2.get(p).size());
                                         temp_v.setIndex(-99);
 
                                     }
@@ -1033,7 +901,6 @@ public class LasBlock {
                     tempTin_2.clear();
 
                 }
-                //System.out.println(x);
             }
 
             vertices_1.clear();
@@ -1098,12 +965,8 @@ public class LasBlock {
                 }
             }
 
-            //indexes_int_1 = null;
-            //indexes_int_2 = null;
-
             org.tinfour.interpolation.TriangularFacetInterpolator polator_1 = new org.tinfour.interpolation.TriangularFacetInterpolator(tempTin_1);
             org.tinfour.interpolation.TriangularFacetInterpolator polator_2 = new org.tinfour.interpolation.TriangularFacetInterpolator(tempTin_2);
-
 
             double distance = 0.0;
 
@@ -1125,8 +988,7 @@ public class LasBlock {
 
 
                 if (tempTin_1.isPointInsideTin(v.x, v.y)) {
-                //if (!Double.isNaN(interpolatedValue)) {
-                    //polator_1.interpolate()
+
                     double interpolatedValue = polator_1.interpolate(v.x, v.y, valuator);
                     distiSigned = v.getZ() - interpolatedValue;
 
@@ -1149,11 +1011,8 @@ public class LasBlock {
                 }
             }
 
-            //System.out.println(stdDev);
             stdBefore_2_to_1.add(stdDev);
             differenceBefore_2_to_1.add((distance / (double)count));
-
-            //System.out.println("dif 2 to 1: " + (distance / (double)count));
 
             distance = 0.0;
             disti = 0.0;
@@ -1182,7 +1041,6 @@ public class LasBlock {
                     disti = Math.abs(distiSigned);
 
                     if(!Double.isNaN(disti)) {
-                        //System.out.println("here!");
                         count++;
                         distance += disti;
 
@@ -1194,21 +1052,10 @@ public class LasBlock {
 
             }
 
-
-            //System.out.println(stdDev);
             stdBefore_1_to_2.add(stdDev);
             differenceBefore_1_to_2.add((distance / (double)count));
 
-            //System.out.println("dif 1 to 2: " + (distance / (double)count));
-
-
-            //indexes = null;
-            //indexes2 = null;
-
             this.totalPoints += (includedPointsFile1.get(p).size() + includedPointsFile2.get(p).size())/2;
-
-
-            //System.out.println(includedPointsFile1.get(p).size() + " / " + includedPointsFile2.get(p).size());
 
             for(org.tinfour.common.Vertex v : tempTin_1.getVertices())
                 v = null;
@@ -1231,14 +1078,9 @@ public class LasBlock {
             tempTin_1.dispose();
             tempTin_2.dispose();
 
-            //System.out.println("size"  + includedPointsFile2.get(p).s ize());
-            //System.out.println("-------");
-            //progeBar.updateCurrent(1);
-            //progeBar.print();
             strippi.tinProgress++;
             strippi.updateProgress();
-            //images.set(this.order.get(p)[0], makeImage(tempTin, polator1, minX1, maxX1, minY1, maxY1, this.order.get(p)[0]));
-            //images.set(this.order.get(p)[1], makeImage(tempTin2, polator2, minX2, maxX2, minY2, maxY2, this.order.get(p)[1]));
+
             System.gc();
         }
 
@@ -1646,23 +1488,27 @@ public class LasBlock {
 
     }
 
+    /**
+     * Iterates all the .las files in pairs, computes the overlap percentage
+     * and adds the > 0.0 overlap pairs to TreeMap<Double, int[]> pairs,
+     * where the key is the negative overlap percentage. So when iterating
+     * the treemap, the pairs with the highest overlap are seen first.
+     */
     public void makePairs(){
 
         for(int i = 0; i < pointClouds.size()-1; i++){
             for(int j = i+1; j < pointClouds.size(); j++){
 
                 overlap(pointClouds.get(i), pointClouds.get(j), i, j);
+
             }
         }
-
-        //System.out.println("Pairs: " + pairs.size());
-
-        for(Double d : pairs.keySet()){
-          //  System.out.println("Overlap: " + ((double)Math.round(d * 100000d) / 100000d) + " pair: " + pairs.get(d)[0] + " & " + pairs.get(d)[1]);
-        }
-
     }
 
+
+    /**
+     *
+     */
     public void makeAlignOrder(){
 
         boolean done = false;
@@ -1704,19 +1550,23 @@ public class LasBlock {
                 done = true;
         }
 
-        //System.out.println("ORDERING DONE!");
-
-        for(int i = 0; i < order.size(); i++){
-          //  System.out.println(Arrays.toString(order.get(i)));
-        }
     }
 
+    /**
+     * Return the overlap fraction of the extents of two input .las files.
+     * Also, if the overlap fraction is greater than 0.0, the pair is added
+     * to TreeMap<Double, int[]> pairs.
+     * @param file1
+     * @param file2
+     * @param index1
+     * @param index2
+     * @return
+     */
     public double overlap(LASReader file1, LASReader file2, int index1, int index2){
 
         double[] extentFile1 = new double[]{file1.getMinX(), file1.getMinY(), file1.getMaxX(), file1.getMaxY()};
         double[] extentFile2 = new double[]{file2.getMinX(), file2.getMinY(), file2.getMaxX(), file2.getMaxY()};
 
-        //std::cout << extent1[0] << std::endl;
         double x_overlap = Math.max(0.0, Math.min(extentFile1[2], extentFile2[2]) - Math.max(extentFile1[0], extentFile2[0]));
         double y_overlap = Math.max(0.0, Math.min(extentFile1[3], extentFile2[3]) - Math.max(extentFile1[1], extentFile2[1]));
 
@@ -1724,9 +1574,11 @@ public class LasBlock {
 
         double output = (area / ( (extentFile1[2] - extentFile1[0]) * (extentFile1[3] - extentFile1[1]) ));
 
+        /*If the .las file extents overlap */
         if(output > 0.0) {
-            //System.out.println(output);
+
             pairs.put(-output, new int[]{index1, index2, 0});
+
         }
 
         return output;

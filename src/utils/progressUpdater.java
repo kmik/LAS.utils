@@ -117,7 +117,7 @@ public class progressUpdater {
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "LASutils - LasStrip, version (0.1), (c) Mikko Kukkonen");
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "-------------------------------------------------------");
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "");
-        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "\t%-35s" + "%d / %d", "* Total number of LAS files", lasstrip_filesRead, aR.pointClouds.size() );
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "\t%-35s" + "%d / %d", "* Total number of LAS files", lasstrip_filesRead, aR.inputFiles.size() );
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "\t%-35s" + "%d / %d", "* LAS pairs processed", lasstrip_tinProgress, aR.blokki.order.size());
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "\t%-35s" + "%d / %d", "* LAS files written", lasstrip_filesWritten,aR. blokki.pointClouds.size() );
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "\t%-35s" + "%.2f", "* Average improvement (cm) ", this.lasstrip_averageImprovement);

@@ -396,13 +396,9 @@ class jacobianParallel extends Thread{
     @Override
     public void run(){
 
-        //System.out.println(this.getName() + " " + min + " " + max + " " + param.numRows);
-
         for( int i = min; i < this.max; i++ ) {
 
-            //System.out.println("pre: " + param.data[i]);
             param.data[i] += DELTA;
-            //System.out.println("after: " + param.data[i]);
             function.compute(param, temp1);
             // compute the difference between the two parameters and divide by the delta
             // temp1 = (temp1 - temp0)/delta

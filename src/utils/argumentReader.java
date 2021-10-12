@@ -1093,8 +1093,6 @@ public class argumentReader {
 
         this.pathSep = System.getProperty("file.separator");
 
-        //System.out.println(Arrays.toString(args));
-
         this.tool = Integer.parseInt(args[0]);
 
         if(args.length <= 1){
