@@ -136,11 +136,6 @@ class ai2las{
 			odir = odir2;
 		}
 
-		public ArrayList<String> getList(){
-
-			return returnList;
-
-		}
 
 		public void run() {
 
@@ -694,18 +689,10 @@ class ai2las{
 		ArrayList<double[]> exteriors;
 		ArrayList<double[]> extents;
 		ArrayList<Integer> imageIDs;
-		int pienin;
-		int suurin;
 
 		BlockingQueue<pointAI> queue;
 
-		boolean stop = true;
-
 		boolean done = false;
-
-		boolean out = false;
-
-		boolean finished;
 
 		ArrayList<Integer> shuffle;
 		ArrayList<Integer> threadIn;
@@ -756,21 +743,6 @@ class ai2las{
 
 		}
 
-
-		public void stop(){
-
-			stop = false;
-
-		}
-
-		public boolean finished(){
-
-			return finished;
-
-		}
-
-
-
 		public void ask(pointAI tempP){
 
 			this.done = false;
@@ -797,11 +769,6 @@ class ai2las{
 
 		}
 
-		public boolean getDone(){
-
-			return this.done;
-
-		}
 	}
 
 	public static double roundAvoid(double value, int places) {
@@ -1000,9 +967,6 @@ class ai2las{
 
 		double minZ = findMaxZ(tempList);
 
-
-		ArrayList<pointAI> output = new ArrayList<pointAI>();
-
 		ArrayList<double[]> extents = new ArrayList<double[]>();
 		ArrayList<Dataset> datasets = new ArrayList<Dataset>();
 		ArrayList<String> imageNames = new ArrayList<>();
@@ -1010,8 +974,6 @@ class ai2las{
 		readImages(exteriorFile, datasets, threadImages, imageIDs, exteriors, "\t", interior, extents, minZ, rotationMatrix, imageNames, aR);
 
 		int n_bands = datasets.get(0).GetRasterCount();
-
-		ArrayList<Integer> shuffle = new ArrayList<Integer>();
 
 		ArrayList<ArrayList<Integer>> threadIn = new ArrayList<ArrayList<Integer>>();
 		ArrayList<Integer> coreNumbers = new ArrayList<Integer>();
@@ -1049,16 +1011,8 @@ class ai2las{
 
 		pointAI tempP = new pointAI(n_bands);
 
-		//LinkedList<ArrayList<int[]>> cachedImages = new LinkedList<>();
-
-		HashMap<Integer, Dataset> cachedImages = new HashMap<>();
-
-		LinkedList<Integer> cachedImg = new LinkedList<>();
-
 		double x_s = datasets.get(0).getRasterXSize();
 		double y_s = datasets.get(0).getRasterYSize();
-
-		int[] cach = new int[datasets.size()];
 
 		ArrayList<double[][]> rotationMatrices = new ArrayList<>();
 
@@ -1079,22 +1033,8 @@ class ai2las{
 				int outsidePoint = 0;
 
 				File tempFile = new File(tempList.get(t));
-				//proge.reset();
-				//proge.setName(t + " | " + tempList.size());
-
-
-				//File ofile = new File("testi.txt");
-				String oname = odir + (tempFile.getName().split(".las")[0] + ".txt");
 
 				File ofile2 = aR.createOutputFileWithExtension(tempFile, "_ai.txt");
-
-				//File ofile2 = new File(oname);
-
-
-				//if(ofile.exists())
-				//ofile.delete();
-
-				//ofile.createNewFile();
 
 				if (ofile2.exists())
 					ofile2.delete();
@@ -1278,7 +1218,7 @@ class ai2las{
 					ofile2 = null;
 
 					tempPoint = null;
-					oname = null;
+
 					fw.close();
 
 				} catch (Exception e) {
@@ -1390,7 +1330,6 @@ class ai2las{
 		for (int i = 1; i <= image.GetRasterCount(); i++) {
 
 			int[] array = new int[image.getRasterXSize() * image.getRasterYSize()];
-			Band temp = image.GetRasterBand(i);
 
 
 			cache.getLast().set(i-1, array);
