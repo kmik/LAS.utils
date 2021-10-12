@@ -1,12 +1,5 @@
 package utils;
 
-
-/**
- * Holds the information of a data set. Each row contains a single data point. Primary computations
- * of PCA are performed by the Data object.
- * @author	Kushal Ranjan
- * @version	051313
- */
 public class Data {
 
     public double[][] matrix; //matrix[i] is the ith row; matrix[i][j] is the ith row, jth column

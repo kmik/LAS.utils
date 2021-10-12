@@ -88,9 +88,7 @@ public class createCHM{
 
                 int count = 0;
                 int count2 = 0;
-                //System.out.println("minX: " + minX + " maxX: " + maxX);
-                //System.out.println("minY: " + minY + " maxY: " + maxY);
-                //System.out.println("Submat height: " + submat.height());
+
                 for(int h = 0; h < submat.width(); h++)
                     for(int u = 0; u < submat.height(); u++){
 
@@ -105,109 +103,18 @@ public class createCHM{
                     
                     }
                 double mean = (double)sum / (double)((n * 2 + 1) * (n * 2 + 1));
-                //int indeksi = findMedian(array,mean);
-                //int[] indeksi = findMedianMat(submat,mean);
+
                 input.put(i,j,(sum / count2));
-                //input.put(i,j,array[indeksi[0]]);
-                //input.put(i,j,submat.get(indeksi[0], indeksi[1])[0]);
-                
+
 
                 counter++;
             }
-            //progebar(paatos, counter, nimi);
+
         } 
 
     }
 
-    /*
- 	public static void localSmoothing(Mat input, int n, boolean fill){  // MEDIAN
 
- 		Statistics stat = new Statistics();
-
-        Mat temppi = input.clone();
-
-        int height = input.height();
-        int width = input.width();
-        int counter = 0;
-        int paatos = (height - n) * (width - n);
-
-        for(int i = n; i < (height - n); i++){
-
-            for(int j = n; j < (width - n); j++){
-
-                int minX = j - n;
-                int maxX = j + n;
-                int minY = i - n;
-                int maxY = i + n;
-
-                if(minX < 0)
-                    minX = 0;
-
-                if(minY < 0)
-                    minY = 0;
-
-                if(maxX > (width - 1))
-                    maxX = width - 1;
-
-                if(maxY > (height - 1))
-                    maxY = height - 1;
-
-                Mat submat = input.submat(minY, maxY + 1, minX, maxX + 1);
-
-                int sum = 0;
-
-                double[] array = new double[(n * 2 + 1) * (n * 2 + 1)];
-                ArrayList<Double> list = new ArrayList<Double>();
-                int count = 0;
-                int count2 = 0;
-                /*
-                System.out.println(submat.dump());
-                System.out.println("minX: " + minX + " maxX: " + maxX);
-                System.out.println("minY: " + minY + " maxY: " + maxY);
-                System.out.println("Submat height: " + submat.height());
-                
-                for(int h = 0; h < submat.width(); h++)
-                    for(int u = 0; u < submat.height(); u++){
-
-                    	if(submat.get(u,h)[0] != 9999)
-                    		list.add(submat.get(u,h)[0]);
-                        array[count] = submat.get(u,h)[0];
-                        count++;
-                       
-                    }
-                //double mean = (double)sum / (double)((n * 2 + 1) * (n * 2 + 1));
-                //int indeksi = findMedian(array,mean);
-                //int[] indeksi = findMedianMat(submat,mean);
-                stat.setData(list);
-                double median = 9999;
-                double mean = 9999;
-
-                if(list.size() > 0){
-                	median = stat.medianFromList();
-                	mean = stat.getMeanFromList();
-                }
-
-                //System.out.println(median);
-
-                
-                if(fill)
-                    if(input.get(i,j)[0] == 9999){
-                    	input.put(i,j,median);
-                    }
-                if(!fill)
-                    input.put(i,j,median);
-
-                //input.put(i,j,array[indeksi[0]]);
-                //input.put(i,j,submat.get(indeksi[0], indeksi[1])[0]);
-                
-
-                counter++;
-            }
-            //progebar(paatos, counter, nimi);
-        } 
-
-    }
-    */
     public static double[][] twoDimensionalArrayClone(double[][] a) {
 
         double[][] b = new double[a.length][];
@@ -244,232 +151,13 @@ public class createCHM{
 
 
     }
-    /*
-    public static void localSmoothing(double[][] input, int n, boolean fill){  // MEDIAN
 
-        Statistics stat = new Statistics();
-
-        //Mat temppi = input.clone();
-
-        double[][] temppi = arrayCopy(input);
-
-        //double[][] output = twoDimensionalArrayClone(input);
-
-        int height = input[0].length;
-        int width = input.length;
-        int counter = 0;
-        int paatos = (height - n) * (width - n);
-
-        int count3 = 0;
-
-        for(int i = n; i < (height - n); i++){
-
-            for(int j = n; j < (width - n); j++){
-
-
-                if(count3++ % 10000 == 0){
-
-                    System.out.print("\033[2K"); // Erase line content
-                    System.out.print(count3 + "\r");
-                }
-
-                int minX = j - n;
-                int maxX = j + n;
-                int minY = i - n;
-                int maxY = i + n;
-
-                if(minX < 0)
-                    minX = 0;
-
-                if(minY < 0)
-                    minY = 0;
-
-                if(maxX > (width - 1))
-                    maxX = width - 1;
-
-                if(maxY > (height - 1))
-                    maxY = height - 1;
-
-                //Mat submat = input.submat(minY, maxY + 1, minX, maxX + 1);
-
-                int sum = 0;
-
-                double[] array = new double[(n * 2 + 1) * (n * 2 + 1)];
-                ArrayList<Double> list = new ArrayList<Double>();
-                int count = 0;
-                int count2 = 0;
-
-                for(int h = minX; h <= maxX; h++){
-                    for(int u = minY; u <= maxY; u++){
-
-                        if(!Double.isNaN(temppi[h][u]))
-                            list.add(temppi[h][u]);
-
-                        array[count] = temppi[h][u];  
-                        count++;
-                    }
-
-                /*
-                System.out.println(submat.dump());
-                System.out.println("minX: " + minX + " maxX: " + maxX);
-                System.out.println("minY: " + minY + " maxY: " + maxY);
-                System.out.println("Submat height: " + submat.height());
-                */
-                /*
-                for(int h = 0; h < submat.width(); h++)
-                    for(int u = 0; u < submat.height(); u++){
-
-                        if(submat.get(u,h)[0] != 9999)
-                            list.add(submat.get(u,h)[0]);
-                        array[count] = submat.get(u,h)[0];
-                        count++;
-                       
-                    }
-                    
-                //double mean = (double)sum / (double)((n * 2 + 1) * (n * 2 + 1));
-                //int indeksi = findMedian(array,mean);
-                //int[] indeksi = findMedianMat(submat,mean);
-                stat.setData(list);
-                double median = 9999;
-                double mean = 9999;
-
-                if(list.size() > 0){
-                    median = stat.medianFromList();
-                    //mean = stat.getMeanFromList();
-                }
-
-                //System.out.println(median);
-
-                
-                if(fill)
-                    if(temppi[j][i] > 9999){
-                        input[j][i] = median;
-                    }
-                if(!fill)
-                    input[j][i] = median;
-
-                //input.put(i,j,array[indeksi[0]]);
-                //input.put(i,j,submat.get(indeksi[0], indeksi[1])[0]);
-                
-                //input[j][i] = 0.0;
-                counter++;
-            }
-            //progebar(paatos, counter, nimi);
-            } 
-
-        }
-    }
-    */
-                /*
-    public static Mat gaussian(Mat input, int kernelSize, double sigma){
-
-        Size ksize = new Size(kernelSize, kernelSize);
-
-        //Mat output = new Mat();
-
-        Imgproc.GaussianBlur(input, output, ksize, sigma);
-
-        return output;
-
-    }
-*/
-    /*
-    public static void removeOutliers(Mat input){
-
-    	Statistics stat = new Statistics();
-
-    	int n = 1;
-
-        int height = input.height();
-        int width = input.width();
-        int counter = 0;
-        int paatos = (height - n) * (width - n);
-
-
-        for(int i = n; i < (height - n); i++){
-
-            for(int j = n; j < (width - n); j++){
-
-                int minX = j - n;
-                int maxX = j + n;
-                int minY = i - n;
-                int maxY = i + n;
-
-                if(minX < 0)
-                    minX = 0;
-
-                if(minY < 0)
-                    minY = 0;
-
-                if(maxX > (width - 1))
-                    maxX = width - 1;
-
-                if(maxY > (height - 1))
-                    maxY = height - 1;
-
-                Mat submat = input.submat(minY, maxY + 1, minX, maxX + 1);
-
-                int sum = 0;
-
-                double[] array = new double[(n * 2 + 1) * (n * 2 + 1)];
-                ArrayList<Double> list = new ArrayList<Double>();
-                int count = 0;
-                int count2 = 0;
-                /*
-                System.out.println(submat.dump());
-                System.out.println("minX: " + minX + " maxX: " + maxX);
-                System.out.println("minY: " + minY + " maxY: " + maxY);
-                System.out.println("Submat height: " + submat.height());
-                
-                for(int h = 0; h < submat.width(); h++)
-                    for(int u = 0; u < submat.height(); u++){
-
-                    	//if(submat.get(u,h)[0] != 9999)
-                    	
-                    	if(h != 1 || u != 1)
-                    		list.add(submat.get(u,h)[0]);
-                        array[count] = submat.get(u,h)[0];
-                        count++;
-                       
-                    }
-                //double mean = (double)sum / (double)((n * 2 + 1) * (n * 2 + 1));
-                //int indeksi = findMedian(array,mean);
-                //int[] indeksi = findMedianMat(submat,mean);
-                stat.setData(list);
-                double median = 9999;
-
-                if(list.size() > 0)
-                	median = stat.medianFromList();
-
-                //System.out.println(median);
-
-                
-                //if(input.get(i,j)[0] == 9999){
-                		//System.out.println("GOT HERE");
-                if(median > (input.get(i,j)[0] * 2) || (median * 2) < input.get(i,j)[0] )
-                	input.put(i,j,median);
-                //}
-
-                //input.put(i,j,array[indeksi[0]]);
-                //input.put(i,j,submat.get(indeksi[0], indeksi[1])[0]);
-                if(input.get(i,j)[0] > 9000)
-                    input.put(i,j,0);
-
-                counter++;
-            }
-            //progebar(paatos, counter, nimi);
-        } 
-
-    }
-    */
 
     public static float gradientAt(float[][] i, int x, int y){
 
             float Gx = (-i[x - 1][y + 1] +  2 * -i[x][y + 1] + -i[x + 1][y + 1]) - (-i[x - 1][y - 1] + 2 * -i[x][y - 1] + -i[x + 1][y - 1]);
 
             float Gy = (-i[x + 1][y - 1] +  2 * -i[x + 1][y] + -i[x + 1][y + 1]) - (-i[x - 1][y - 1] + 2 * -i[x - 1][y] + -i[x - 1][y + 1]);
-        
-            //System.out.println(Gx);
 
             return (float)Math.sqrt(Math.pow(Gx,2) + Math.pow(Gy,2));// - image.get(x,y).z;
 
@@ -508,38 +196,15 @@ public class createCHM{
                 if(input[j][i] > 2.0)
                     zets.add(input[j][i]);
 
-                if(count3++ % 10000 == 0){
-
-                    //System.out.print("\033[2K"); // Erase line content
-                    //System.out.print(count3 + "|" + (height * width) + " " + " NaNs found: " + leftOvers.size() + "\r");
-                }
-
                 int minX = j - n;
                 int maxX = j + n;
                 int minY = i - n;
                 int maxY = i + n;
 
-                /*
-                if(minX < 0)
-                    minX = 0;
 
-                if(minY < 0)
-                    minY = 0;
 
-                if(maxX > (width - 1))
-                    maxX = width - 1;
-
-                if(maxY > (height - 1))
-                    maxY = height - 1;
-                */
-                //Mat submat = input.submat(minY, maxY + 1, minX, maxX + 1);
-
-                int sum = 0;
-
-                //double[] array = new double[(n * 2 + 1) * (n * 2 + 1)];
                 ArrayList<Float> list = new ArrayList<Float>();
-                int count = 0;
-                int count2 = 0;
+
 
 
                 tempF = new float[2];
@@ -567,111 +232,33 @@ public class createCHM{
 
                         }
 
-                        //else if(Double.isNaN(input[h][u]))
-                            //array[count] = temppi[h][u];  
-                            //count++;
-                    }
-                    /*
-                    minX--;
-                    maxX++;
-                    minY--;
-                    maxX++;
-
-                    int countti = 0;
-
-                    if(minX < 0){
-                        minX = 0;
-
                     }
 
-                    if(minY < 0){
-                        minY = 0;
+
+                    float median = Float.NaN;
+
+                    if(tempF[1] > 0)
+                        median = tempF[0] / tempF[1];
+
+                    if(Double.isNaN(temppi[j][i]))
+                        input[j][i] = median;
+
+                    if(Double.isNaN(input[j][i])){
+
+                        int[] leftOver = new int[2];
+
+                        leftOver[0] = j;
+                        leftOver[1] = i;
+
+                        leftOvers.add(leftOver);
+
                     }
 
-                    if(maxX > (width - 1)){
-                        maxX = width - 1;
-                    }
-
-                    if(maxY > (height - 1)){
-                        maxY = height - 1;
-                    }
-
+                    counter++;
                 }
-                */
-                
-
-                /*
-                for(int h = 0; h < submat.width(); h++)
-                    for(int u = 0; u < submat.height(); u++){
-
-                        //if(submat.get(u,h)[0] != 9999)
-                        
-                        if(h != 1 || u != 1)
-                            list.add(submat.get(u,h)[0]);
-                        array[count] = submat.get(u,h)[0];
-                        count++;
-                       
-                    }
-                    */
-                //double mean = (double)sum / (double)((n * 2 + 1) * (n * 2 + 1));
-                //int indeksi = findMedian(array,mean);
-                //int[] indeksi = findMedianMat(submat,mean);
-                //System.out.println(Arrays.toString(list.toArray()));
-                
-                //stat.setDataF(list);
-
-                float median = Float.NaN;
-
-                if(tempF[1] > 0)
-                    median = tempF[0] / tempF[1];
-
-                //if(list.size() > 0)
-                  //  median = (float)stat.getMeanFromList();
-
-                //if(input.get(i,j)[0] == 9999){
-                        //System.out.println("GOT HERE");
-                //if(input[j][i] > 9000)
-                  //  input[j][i] = 0;
-
-                if(Double.isNaN(temppi[j][i]))
-                    input[j][i] = median;
-
-
-                //else if((temppi[j][i]) > (median * 1.2) || temppi[j][i] < (median * 0.8)){
-                  //  input[j][i] = median;
-                //}
-
-
-                //input[j][i] = median;
-
-                if(Double.isNaN(input[j][i])){
-                    
-                    int[] leftOver = new int[2];
-
-                    leftOver[0] = j;
-                    leftOver[1] = i;
-
-                    leftOvers.add(leftOver);
-
-                }
-
-                //if(median )
-                //}
-
-                //input.put(i,j,array[indeksi[0]]);
-                //input.put(i,j,submat.get(indeksi[0], indeksi[1])[0]);
-                
-
-                counter++;
             }
-            //progebar(paatos, counter, nimi);
-            } 
-
-        
-
         }
 
-        //System.out.println("");
         int leftOverCount = 0;
 
         ArrayList<int[]> leftOvers2;
@@ -692,19 +279,6 @@ public class createCHM{
                 int minY = leftOvers2.get(i)[1] - n;
                 int maxY = leftOvers2.get(i)[1] + n;
 
-                /*
-                if(minX < 0)
-                    minX = 0;
-
-                if(minY < 0)
-                    minY = 0;
-
-                if(maxX > (width - 1))
-                    maxX = width - 1;
-
-                if(maxY > (height - 1))
-                    maxY = height - 1;
-                */
 
                 ArrayList<Float> list = new ArrayList<Float>();
 
@@ -729,28 +303,19 @@ public class createCHM{
 
                             tempF[0] += temppi[x][y];
                             tempF[1]++;
-                            //list.add(temppi[h][u]);
+
 
                         }
-                            
 
-                        //else if(Double.isNaN(input[h][u]))
-                            //array[count] = temppi[h][u];  
-                            //count++;
                     }
                 
                 }
 
-                //stat.setDataF(list);
 
                 float median = Float.NaN;
 
                 if(tempF[1] > 0)
                     median = tempF[0] / tempF[1];
-
-                //if(list.size() > 0)
-                  //  median = (float)stat.getMeanFromList();
-
 
                 if(Double.isNaN(temppi[leftOvers2.get(i)[0]][leftOvers2.get(i)[1]]))
                     input[leftOvers2.get(i)[0]][leftOvers2.get(i)[1]] = median;
@@ -771,18 +336,11 @@ public class createCHM{
                     leftOvers.add(leftOver);
 
                 }
-
             }
-
-            //System.out.print("\033[2K"); // Erase line content
-            //System.out.print("Iteration: " + leftOverCount + " NaNs left: " + leftOvers.size() + "\r");
-
         }
 
         count3 = 0;
 
-        //System.loadLibrary("opencv_java320");
-        
         float[][] original = null;
 
         n = blur;
@@ -801,9 +359,6 @@ public class createCHM{
 
         }
 
-        //System.out.println("p80: " + p80);
-
-
         if(n > 0){
 
 
@@ -811,8 +366,6 @@ public class createCHM{
 
             int rows = input.length;
             int cols = input[0].length;
-
-            //Mat tempMat = new Mat(rows, cols, CvType.CV_32FC1);//HxW 4x2
 
             double[][] temppi2 = new double[rows][cols];
 

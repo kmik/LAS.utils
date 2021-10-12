@@ -142,12 +142,8 @@ public class GaussianSmooth extends Thread {
       kernelList.add(gaussian2D(theta[i], ks[i]));
     }
 
-    //double [][] gaussianKernel = new double [ks][ks];
     double [][] output = new double [width][height];
 
-    //gaussianKernel = gaussian2D(theta,ks);
-
-    //print(gaussianKernel);
 
     output = Convolution.convolution2DPadded2(input,width,height,
              kernelList,ks,ks, tHolds);
@@ -190,7 +186,6 @@ public class GaussianSmooth extends Thread {
       int grey = (int) Math.round(output1D[i]);
       if (grey > 255) { grey = 255;}
       if (grey < 0) { grey = 0;}
-      //System.out.println(grey);
       output[i] = grey; //(new Color(grey,grey,grey)).getRGB();
     }
 
