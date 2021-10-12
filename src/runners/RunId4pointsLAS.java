@@ -7,10 +7,6 @@ import java.util.ArrayList;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
 
-import org.gdal.ogr.Layer;
-import org.gdal.ogr.Feature;
-import org.gdal.ogr.Geometry;
-
 import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;

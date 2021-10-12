@@ -437,8 +437,8 @@ public class lasGridStats {
                             do_overs.add( x * grid_y_size + y );
                         }
 
-                        for (int i = 0; i < metrics.size(); i++) {
-                            bin_a.writeDouble(metrics.get(i));
+                        for (Double metric : metrics) {
+                            bin_a.writeDouble(metric);
                         }
                         raf_location_a++;
 
@@ -465,8 +465,8 @@ public class lasGridStats {
                         bin_f.writeDouble(x_coord);
                         bin_f.writeDouble(y_coord);
 
-                        for (int i = 0; i < metrics.size(); i++) {
-                            bin_f.writeDouble(metrics.get(i));
+                        for (Double metric : metrics) {
+                            bin_f.writeDouble(metric);
                         }
 
                         gridLocationInRaf_f.get(x).get(y).add(raf_location_f);
@@ -491,8 +491,8 @@ public class lasGridStats {
                         bin_l.writeDouble(x_coord);
                         bin_l.writeDouble(y_coord);
 
-                        for (int i = 0; i < metrics.size(); i++) {
-                            bin_l.writeDouble(metrics.get(i));
+                        for (Double metric : metrics) {
+                            bin_l.writeDouble(metric);
                         }
 
                         gridLocationInRaf_l.get(x).get(y).add(raf_location_l);
@@ -523,8 +523,8 @@ public class lasGridStats {
                         bin_i.writeDouble(x_coord);
                         bin_i.writeDouble(y_coord);
 
-                        for (int i = 0; i < metrics.size(); i++) {
-                            bin_i.writeDouble(metrics.get(i));
+                        for (Double metric : metrics) {
+                            bin_i.writeDouble(metric);
                         }
 
                         gridLocationInRaf_i.get(x).get(y).add(raf_location_i);
@@ -1230,10 +1230,10 @@ public class lasGridStats {
 
     public boolean accept(LasPoint tempPoint, double[][] grids){
 
-        for(int i = 0; i < grids.length; i++){
+        for (double[] grid : grids) {
 
-            if( (tempPoint.x >= grids[i][0] && tempPoint.x < grids[i][1] &&
-                    tempPoint.y >= grids[i][2] && tempPoint.y < grids[i][3])  )
+            if ((tempPoint.x >= grid[0] && tempPoint.x < grid[1] &&
+                    tempPoint.y >= grid[2] && tempPoint.y < grid[3]))
                 return true;
 
         }

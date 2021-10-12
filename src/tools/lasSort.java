@@ -105,13 +105,13 @@ public class lasSort {
             Arrays.sort(parit);
             tempFiles.get(i-1).seek(0);
 
-            for(int g = 0; g < parit.length; g++){
+            for (Pair_float pair_float : parit) {
 
-                tempFiles.get(i-1).writeInt(parit[g].index);
+                tempFiles.get(i - 1).writeInt(pair_float.index);
                 //System.out.println(parit[g].value);
-                tempFiles.get(i-1).writeDouble(parit[g].value);
+                tempFiles.get(i - 1).writeDouble(pair_float.value);
 
-                pointCountsPerFile[i-1]++;
+                pointCountsPerFile[i - 1]++;
                 //System.out.println(tempFiles.get(i-1).raFile.getFilePointer());
 
             }
@@ -347,14 +347,14 @@ public class lasSort {
             Arrays.sort(parit);
             tempFiles.get(i-1).seek(0);
 
-            for(int g = 0; g < parit.length; g++){
+            for (Pair_z pair_z : parit) {
 
                 //System.out.println(parit[g].z_order);
 
-                tempFiles.get(i-1).writeInt(parit[g].index);
-                tempFiles.get(i-1).writeInt((int)parit[g].z_order);
+                tempFiles.get(i - 1).writeInt(pair_z.index);
+                tempFiles.get(i - 1).writeInt((int) pair_z.z_order);
 
-                pointCountsPerFile[i-1]++;
+                pointCountsPerFile[i - 1]++;
 
             }
 

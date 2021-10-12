@@ -198,17 +198,6 @@ public class neuralNetWorkTest {
         trainIter.setPreProcessor(normalizer);
         testIter.setPreProcessor(normalizer);
 
-        if(false){
-
-            while(trainIter.hasNext()){
-
-                //normalizer.transform(trainIter.next());
-            }
-            while(testIter.hasNext()){
-
-                //normalizer.transform(testIter.next());
-            }
-        }
 /*
         DataSet allData = iterator.next();
         System.out.println("got here");

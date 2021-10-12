@@ -144,10 +144,10 @@ public class Boundary extends tool{
         concaveEdges = tin.getPerimeter();
         //tinfour.semivirtual.SemiVirtualIncrementalTin tempTin = new tinfour.semivirtual.SemiVirtualIncrementalTin();
 
-        for(int i = 0; i < edges.size(); i++){
+        for (org.tinfour.common.IQuadEdge edge : edges) {
 
-            perimeterVertices.add(edges.get(i).getA());
-            perimeterVertices.add(edges.get(i).getB());
+            perimeterVertices.add(edge.getA());
+            perimeterVertices.add(edge.getB());
 
         }
 
