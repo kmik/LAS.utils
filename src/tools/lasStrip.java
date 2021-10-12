@@ -1,6 +1,5 @@
 package tools;
 
-
 import LASio.*;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
@@ -1422,7 +1421,6 @@ public class lasStrip {
 
         if(closest.size() > 0){
 
-            //v_closest = closest.get(0);
             org.tinfour.common.Vertex key = null;
 
             for(int v1 = 0; v1 < 3; v1++){
@@ -1431,7 +1429,6 @@ public class lasStrip {
                 vs[v1][0] = key.getX();
                 vs[v1][1] = key.getY();
                 vs[v1][2] = key.getZ();
-                //System.out.println(key.getZ());
 
             }
 
@@ -1470,15 +1467,9 @@ public class lasStrip {
 
                 double kateetti2 = normal[2];
 
-                //angleHypo(double hypotenuse, double adjacentSideLength)
-
                 angle = angleHypo(1.0, kateetti2);
 
-                //System.out.println("snormal: " + angle);
-
                 if(!Double.isNaN(angle) && angle < 30){
-
-                    //System.out.println("angle: " + angle);
 
                 }
             }
@@ -1504,20 +1495,6 @@ public class lasStrip {
 
     public void rotatePoint2(DoubleMatrix point, double time){
 
-        /*
-        makeRotationMatrix(tempMatrix,
-                interpolate(polynomial_pitch, time),
-                interpolate(polynomial_roll, time),
-                interpolate(polynomial_yaw, time));
-
-        rotatePoint(point, tempMatrix, (int)(time*1000), 0);
-
-        tempTrans[0] = interpolate(polynomial_x, time);
-        tempTrans[1] = interpolate(polynomial_y, time);
-        tempTrans[2] = interpolate(polynomial_z, time);
-
-         */
-        //System.out.println(time);
         makeRotationMatrix(tempMatrix,
                 po_x_rot.value(time),
                 po_y_rot.value(time),
@@ -1545,8 +1522,6 @@ public class lasStrip {
             locationOfAircraft = file2_pivotPoint;
         }
 
-        //locationOfAircraft = hehe.getValue();
-
         new_x = locationOfAircraft[0] - point.get(0, 0);
         new_y = locationOfAircraft[1] - point.get(0, 1);
         new_z = locationOfAircraft[2] - point.get(0, 2);
@@ -1557,8 +1532,6 @@ public class lasStrip {
 
 
         rotatedPointMatrix = point.mmul(rotationMatrix);
-
-        //Core.gemm(point, rotationMatrix, 1, dummyMat, 0, rotatedpoint);
 
         point.put(0, 0, locationOfAircraft[0] - rotatedPointMatrix.get(0, 0));
         point.put(0, 1, locationOfAircraft[1] - rotatedPointMatrix.get(0, 1));

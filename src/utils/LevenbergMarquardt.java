@@ -265,7 +265,8 @@ public class LevenbergMarquardt {
     }
 
     /**
-     * Computes a simple numerical Jacobian.
+     * Computes a simple numerical Jacobian in parallel using all available logical
+     * processors.
      *
      * @param param (input) The set of parameters that the Jacobian is to be computed at.
      * @param jacobian (output) Where the jacobian will be stored
@@ -278,13 +279,11 @@ public class LevenbergMarquardt {
         function.compute(param, temp0);
 
         int n_threads = Runtime.getRuntime().availableProcessors();
-        //n_threads = 1;
 
         int n_funk_per_thread = (int)Math.ceil((double)param.numRows / (double)n_threads);
 
         Thread[] threads = new Thread[n_threads];
 
-        //DMatrixRMaj jacobian_multithread = jacobian.copy();
         long startTime = System.currentTimeMillis();
         if(true)
         if(param.getNumElements() >= n_threads * 10) {
@@ -311,15 +310,12 @@ public class LevenbergMarquardt {
         }
         long estimatedTime = System.currentTimeMillis() - startTime;
 
-        //System.out.println("Jacobian time: " + estimatedTime + " ms");
         // compute the jacobian by perturbing the parameters slightly
         // then seeing how it effects the results.
         if(false)
         for( int i = 0; i < param.getNumElements(); i++ ) {
 
-            //System.out.println("pre: " + param.data[i]);
             param.data[i] += DELTA;
-            //System.out.println("after: " + param.data[i]);
             function.compute(param, temp1);
             // compute the difference between the two parameters and divide by the delta
             // temp1 = (temp1 - temp0)/delta
@@ -330,16 +326,8 @@ public class LevenbergMarquardt {
             CommonOps_DDRM.insert(temp1,jacobian,0,i);
 
             param.data[i] -= DELTA;
-            //System.out.println(i + " / " + param.getNumElements());
-        }
-/*
-        for(int i = 0; i < jacobian.numRows; i++){
-            for(int j = 0; j < jacobian.numCols; j++){
-                System.out.println(jacobian.get(i,j) + " ?==? " + jacobian_multithread.get(i,j));
-            }
         }
 
- */
     }
 
     /**
@@ -409,7 +397,6 @@ class jacobianParallel extends Thread{
             CommonOps_DDRM.insert(temp1,jacobian,0,i);
 
             param.data[i] -= DELTA;
-            //System.out.println(i + " / " + param.getNumElements());
         }
 
     }
