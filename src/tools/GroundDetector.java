@@ -333,8 +333,6 @@ public class GroundDetector{
         surfaceNormalPoints.clear();
         valuator = new org.tinfour.interpolation.VertexValuatorDefault();
 
-        //this.axelssonGridSize = 50;
-
         this.distanceThreshold = this.distanceThreshold;
         this.angleThreshold = this.angleThreshold;
 
@@ -603,7 +601,7 @@ public class GroundDetector{
 
     /**
      * Classifies points as ground. Requires seed points to have
-     * been calculated with detectSeedPoints().
+     * been calculated with detectSeedPoints(). Based on the algorithm Axelsson (2000).
      *
      * Control parameters:
      *
@@ -613,11 +611,6 @@ public class GroundDetector{
 
         aR.p_update.updateProgressGroundDetector();
 
-        //System.gc();
-        //System.gc();
-        //System.gc();
-        //System.gc();
-
         this.fixedAngle = true;
 
         double anglesum = 0.0;
@@ -625,7 +618,6 @@ public class GroundDetector{
 
         TIntArrayList indexes = new TIntArrayList();
         int[] error = null;
-        //LASraf asd2 = null;
 
         File outputFile = outWriteFile;// new File(outputFileName);
 
@@ -634,16 +626,7 @@ public class GroundDetector{
                 outputFile.delete();
 
             outputFile.createNewFile();
-            //asd2 = new LASraf(outputFile);
-            /*
-            LASwrite.writeHeader(asd2, "lasground", pointCloud.versionMajor, pointCloud.versionMinor,
-                    pointCloud.pointDataRecordFormat, pointCloud.pointDataRecordLength,
-                    pointCloud.headerSize, pointCloud.offsetToPointData, pointCloud.numberVariableLengthRecords,
-                    pointCloud.fileSourceID, pointCloud.globalEncoding,
-                    pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
-                    pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset);
 
-             */
         }
 
 
@@ -677,42 +660,6 @@ public class GroundDetector{
 
         ArrayList<Double> angles = new ArrayList<>();
         ArrayList<Double> distances = new ArrayList<>();
-
-        //org.tinfour.common.INeighborhoodPointsCollector neighs;
-        //System.out.println("Number of points: " + n);
-
-
-        //ImageIcon icon = createImageIcon("tin.png","a pretty but meaningless splat");
-        //Desktop dt = Desktop.getDesktop();
-        //JFrame frame = new JFrame("FrameDemo");
-
-        //JFrame f = new JFrame("Fixed size content");
-        //frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        //Container c = frame.getContentPane();
-        //c.setBackground(Color.WHITE);
-        // adjust to need.
-        //Dimension d = new Dimension(1200, 1000);
-       // JLabel image = new JLabel(new ImageIcon("tin.png"));
-        /*
-        if (print) {
-            c.setPreferredSize(d);
-            frame.pack();
-            frame.setResizable(false);
-            frame.setVisible(true);
-
-
-            frame.add(image);
-            frame.setVisible(true);
-            frame.add(image);
-        }
-        File f = new File("tin.png");
-*/
-        //NaturalNeighborInterpolator
-
-        //int[] iter = new int[n]; NaturalNeighborInterpolator
-
-        //for(int i = 0; i < n; i++)
-        //	iter[i] = i;
 
         boolean outside = false;
 
@@ -751,13 +698,12 @@ public class GroundDetector{
 
         double distanceSigned = 0.0;
 
-        //boolean[] doneInd = new boolean[(int)pointCloud.getNumberOfPointRecords()];
 
         ArrayList< Vertex> tempVertices = new ArrayList<>();
         int thread_n = aR.pfac.addReadThread(pointCloud);
 
         int counter2 = 0;
-        //if (true) {
+
         NaturalNeighborInterpolator polator = new NaturalNeighborInterpolator(tin);
 
         for(int loo = 0; loo < 3; loo++) {
@@ -766,8 +712,6 @@ public class GroundDetector{
             angles.clear();
 
             aR.p_update.updateProgressGroundDetector();
-
-            //ArrayList<org.tinfour.common.Vertex> verticeBank_iteration = new ArrayList<org.tinfour.common.Vertex>();
 
             int maxi = 0;
 
@@ -779,12 +723,10 @@ public class GroundDetector{
 
             counter2 = 0;
             for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 10000) {
-                //for(int i = 0; i < n; i++){
 
                 maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - (p)));
 
                 try {
-                    //pointCloud.readRecord_noRAF(p, tempPoint, maxi);
                 aR.pfac.prepareBuffer(thread_n, p, 10000);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -795,33 +737,14 @@ public class GroundDetector{
 
                 for (int j = 0; j < maxi; j++) {
 
-                    //if((j+p) > 1600000)
-
-                    //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                     pointCloud.readFromBuffer(tempPoint);
                     outside = false;
 
                     fullfilledCriteria = 0;
 
-                    if ((p+j) % 10000 == 0) {
-
-                        //System.out.print("\033[2K"); // Erase line content
-                        //System.out.print((p+j) + "|" + n + " ; " + foundGroundPoints + " " + countT + " " + this.angleThreshold + " " + this.distanceThreshold + " " + (int)(timeAverage / Math.max(timeAverageCount, 1)) + "\r");
-
-                    }
 
                     addFlag = 0;
 
-
-
-
-
-                    //pointCloud.braf.buffer.position(0);
-
-                    //Sstem.out.println(j);
-
-
-                    //if (!doneIndexes.contains((p+j))) {
                     if (!doneInd[p+j]) {
 
                         double distance2 = Double.POSITIVE_INFINITY;
@@ -869,16 +792,12 @@ public class GroundDetector{
 
                                             }
 
-                                            //System.out.println("here");
                                             interpolatedZ /= 3.0;
-
 
                                         }else{
 
-                                            //System.out.println(interpolatedZ);
                                             interpolatedZ = tempPoint.z + distanceSigned;
-                                            //System.out.println(interpolatedZ);
-                                            //System.out.println("------------------");
+
                                         }
 
                                         double maxAngle = Double.NEGATIVE_INFINITY;
@@ -886,7 +805,6 @@ public class GroundDetector{
                                         for (int u = 0; u < 3; u++) {
 
                                             key = closest.get(u);
-                                            //System.out.println(key.getZ());
                                             distance2 = key.getDistance(tempPoint.x, tempPoint.y);
 
                                             double distance3d = euclideanDistance_3d(tempPoint.x, tempPoint.y, tempPoint.z,
@@ -896,7 +814,6 @@ public class GroundDetector{
                                             //double angle = angle(Math.abs(key.getZ() - tempPoint.z), distance2) + etumerkki * (angle(Math.abs(key.getZ() - interpolatedZ), distance2));
                                             //double angle = (angle(Math.abs(key.getZ() - tempPoint.z), distance2) + etumerkki * (angle(Math.abs(key.getZ() - interpolatedZ), distance2)));
                                             double angle = Math.abs(angleHypo_sine(distance3d, distance));
-                                            //System.out.println(angle + " " + distance + " " + tempPoint.z + " " + " " + key.getZ() + " " + interpolatedZ);
                                             meanAngle += angle;
 
                                             if ((angle < angleThreshold))
@@ -910,10 +827,6 @@ public class GroundDetector{
 
                                         }
 
-
-                                       // System.out.println(fullfilledCriteria);
-                                        //System.out.println("------------------");
-
                                         if(meanAngle / 3.0 < angleThreshold){
                                         //if(maxAngle < angleThreshold){
                                         //if (fullfilledCriteria > 0) {
@@ -925,10 +838,6 @@ public class GroundDetector{
                                             //if(!fixedAngle)
                                             angles.add(maxAngle);
                                             distances.add(distance);
-
-
-
-
 
                                             rateOfChange++;
                                             foundGroundPoints++;

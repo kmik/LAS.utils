@@ -21,7 +21,7 @@ public class CircleFitter {
         center = new Point2D.Double(0.0, 0.0);
         rHat   = 1.0;
         points = null;
-        points_list = null;
+        ArrayList<Point2D.Double> points_list = null;
     }
 
 
@@ -375,7 +375,6 @@ public class CircleFitter {
 
     /** Circular ring sample points. */
     private Point2D.Double[] points;
-    private final ArrayList<Point2D.Double> points_list;
     /** Current cost function value. */
     public double J;
 

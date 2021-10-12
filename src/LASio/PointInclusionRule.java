@@ -436,7 +436,7 @@ public class PointInclusionRule{
 
 		/* Here we do removes that are done regardless of read or write */
 
-		if(io == false && remove_buffer) {
+		if(!io && remove_buffer) {
 			if (tempPoint.synthetic) {
 				return false;
 			}
@@ -479,7 +479,7 @@ public class PointInclusionRule{
 			 */
 
 
-			if(drop_first == true)
+			if(drop_first)
 				if(tempPoint.returnNumber == 1)
 					return false;
 
@@ -507,43 +507,43 @@ public class PointInclusionRule{
 
 
 
-			if(drop_synthetic == true)
-				if(tempPoint.synthetic == true)
+			if(drop_synthetic)
+				if(tempPoint.synthetic)
 					return false;
 
-			if(drop_noise == true)
+			if(drop_noise)
 				if(tempPoint.classification == 7)
 					return false;
 			
-			if(drop_last == true)
+			if(drop_last)
 				if(tempPoint.returnNumber == tempPoint.numberOfReturns)
 					return false;
 
-			if(drop_first_of_many == true)
+			if(drop_first_of_many)
 				if(tempPoint.returnNumber == 1 && tempPoint.numberOfReturns != 1)
 					return false;
 
-			if(drop_last_of_many == true)
+			if(drop_last_of_many)
 				if(tempPoint.numberOfReturns != 1 && tempPoint.returnNumber == tempPoint.numberOfReturns)
 					return false;
 
-			if(drop_single == true)
+			if(drop_single)
 				if(tempPoint.numberOfReturns == 1)
 					return false;
 
-			if(drop_double == true)
+			if(drop_double)
 				if(tempPoint.numberOfReturns == 2)
 					return false;	
 
-			if(drop_triple == true)
+			if(drop_triple)
 				if(tempPoint.numberOfReturns == 3)
 					return false;
 
-			if(drop_quadruple == true)
+			if(drop_quadruple)
 				if(tempPoint.numberOfReturns == 4)
 					return false;
 
-			if(drop_quintuple == true)
+			if(drop_quintuple)
 				if(tempPoint.numberOfReturns == 5)
 					return false;
 
@@ -590,32 +590,32 @@ public class PointInclusionRule{
 
 
 				
-			if(first_only == true)
+			if(first_only)
 				return tempPoint.returnNumber == 1;
 
-			if(last_only == true)
+			if(last_only)
 				return tempPoint.returnNumber == tempPoint.numberOfReturns;
 
 
-			if(keep_first == true)
+			if(keep_first)
 				return tempPoint.returnNumber == 1;
 
-			if(keep_last == true)
+			if(keep_last)
 				return tempPoint.returnNumber == tempPoint.numberOfReturns;
 
-			if(keep_middle == true)
+			if(keep_middle)
 				return tempPoint.numberOfReturns != 1 && tempPoint.returnNumber != 1 && tempPoint.returnNumber != tempPoint.numberOfReturns;
 
-			if(keep_double == true)
+			if(keep_double)
 				return tempPoint.numberOfReturns == 2;
 
-			if(keep_triple == true)
+			if(keep_triple)
 				return tempPoint.numberOfReturns == 3;
 
-			if(keep_quadruple == true)
+			if(keep_quadruple)
 				return tempPoint.numberOfReturns == 4;
 
-			if(keep_quintuple == true)
+			if(keep_quintuple)
 				return tempPoint.numberOfReturns == 5;
 
 			if(keep_user_data != -999)

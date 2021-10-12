@@ -2906,11 +2906,11 @@ public class createCHM{
                 WaterBody tempBody = jono.poll();
 
                 //System.out.println(tempBody.id);
-                if(tempBody.done == false)
+                if(!tempBody.done)
                     if(tempBody.iteration2())
                         filledPixels++;
 
-                if(tempBody.done == false)
+                if(!tempBody.done)
                     jono.offer(tempBody);
                 /*
 				if(altaat.get(i).done == false)

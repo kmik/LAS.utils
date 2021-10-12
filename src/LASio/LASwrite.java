@@ -280,7 +280,7 @@ public class LASwrite {
 				charFound = true;
 			}
 
-			if(i != (charArray.length - 1)& charFound == true)
+			if(i != (charArray.length - 1)& charFound)
 				output += sep;
 
 			charFound = false;
@@ -588,7 +588,7 @@ public class LASwrite {
 					//String returnNumber = Integer.toBinaryString(tempPoint.returnNumber);
 					String bitti = "";
 
-					if(tempPoint.edgeOfFlightLine == true)
+					if(tempPoint.edgeOfFlightLine)
 						bitti += "1";
 					else
 						bitti += "0";
@@ -606,15 +606,15 @@ public class LASwrite {
 					to.writeUnsignedByte(myByte);
 
 				 	bitti = "";
-				 	if(tempPoint.withheld == true)
+				 	if(tempPoint.withheld)
 				 		bitti += 1;
 				 	else
 				 		bitti += 0;
-				 	if(tempPoint.keypoint == true)
+				 	if(tempPoint.keypoint)
 				 		bitti += 1;
 				 	else
 				 		bitti += 0;
-				 	if(tempPoint.synthetic == true)
+				 	if(tempPoint.synthetic)
 				 		bitti += 1;
 				 	else
 				 		bitti += 0;

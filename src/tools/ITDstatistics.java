@@ -990,7 +990,7 @@ public class ITDstatistics{
             boolean isIsolated = true;
             String printti = "";
 
-            if((true && isIsolated)){ // && label < 3){ //  && plotId_major == plotId_major2 && plotId_minor == plotId_minor2)
+            if((isIsolated)){ // && label < 3){ //  && plotId_major == plotId_major2 && plotId_minor == plotId_minor2)
 
                 printti = printti.concat(std_z + "\t");
                 printti = printti.concat(mean_z + "\t");
@@ -2145,7 +2145,7 @@ public class ITDstatistics{
             boolean isIsolated = true;
             String printti = "";
 
-            if((true && isIsolated)){ // && label < 3){ //  && plotId_major == plotId_major2 && plotId_minor == plotId_minor2)
+            if((isIsolated)){ // && label < 3){ //  && plotId_major == plotId_major2 && plotId_minor == plotId_minor2)
 
                 printti = printti.concat(std_z + "\t");
                 printti = printti.concat(mean_z + "\t");

@@ -1133,7 +1133,7 @@ class ai2las{
 
 							valmiit.clear();
 
-							if (pointFound == false) {
+							if (!pointFound) {
 
 								outsidePoint++;
 								tempP.done();

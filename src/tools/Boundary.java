@@ -265,11 +265,7 @@ public class Boundary extends tool{
 
         org.tinfour.common.Vertex tempV;
 
-        int count = 0;
-
         for(int i = 0; i < n; i++){
-
-            count = 0;
 
             pointCloud.readRecord(i, tempPoint);
 
@@ -385,11 +381,7 @@ public class Boundary extends tool{
         int counter = 0;
         int minYindex = 0;
 
-        //pointCloud.readRecord(0, tempPoint);
-
         int maxi = 0;
-
-        counter = 0;
 
         pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
 
@@ -402,7 +394,6 @@ public class Boundary extends tool{
 
             maxi = (int)Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            count = 0;
             pointCloud.readRecord_noRAF(i, tempPoint, maxi);
 
             for (int j = 0; j < maxi; j++) {

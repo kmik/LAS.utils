@@ -80,7 +80,9 @@ public class RANSAC_circleFitter {
         center = new Point2D.Double(0.0, 0.0);
         rHat   = 1.0;
         points = null;
-        points_list = null;
+        /** Circular ring sample points. */
+        //private Point2D.Double[] points;
+        ArrayList<Point2D.Double> points_list = null;
 
         maybeInliers = new ArrayList<>();
         alsoInliers = new ArrayList<>();
@@ -1886,9 +1888,6 @@ public class RANSAC_circleFitter {
     /** Current circle radius. */
     public double rHat;
 
-    /** Circular ring sample points. */
-    //private Point2D.Double[] points;
-    private final ArrayList<Point2D.Double> points_list;
     /** Current cost function value. */
     public double J;
 
