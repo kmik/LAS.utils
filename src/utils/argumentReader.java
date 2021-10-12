@@ -1983,27 +1983,19 @@ public class argumentReader {
 
         if(!odir.equals("asd")) {
 
-            //System.out.println("odir: " + odir);
-
             File diri = new File(odir);
 
-            //System.out.println("ODIR: " + diri.getAbsolutePath());
             tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
         }
 
         String extensionHere = tempFile.getName().substring(tempFile.getName().lastIndexOf("."));
-        //System.out.println("EXIST " + tempFile.getAbsolutePath());
         if(tempFile.exists()){
-            //tempPath = pointClouds.get(i).getFile().getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las";
-
             tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
-            //new File(tempFile.getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las");
         }
 
         if(tempFile.exists())
             tempFile.delete();
 
-        //System.out.println(tempFile.getAbsolutePath());
 
         tempFile.createNewFile();
 
@@ -2012,34 +2004,6 @@ public class argumentReader {
     }
 
     public File createOutputFileWithExtension(LASReader in, String extension) throws IOException {
-/*
-        File tempFile;
-        String tempPath = this.output;
-
-        if(this.output.equals("asd"))
-            tempPath = in.getFile().getName();
-
-        if(!odir.equals("asd"))
-            tempPath = pathSep + odir + pathSep + tempPath;
-
-        tempFile = new File(tempPath);
-
-        tempFile = fo.createNewFileWithNewExtension(tempFile, extension);
-
-        String extensionHere = tempFile.getName().substring(tempFile.getName().lastIndexOf("."), tempFile.getName().length());
-
-        if(tempFile.exists()){
-            tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
-        }
-
-
-        if(tempFile.exists())
-            tempFile.delete();
-
-        tempFile.createNewFile();
-
-        return tempFile;
-*/
 
         File tempFile = null;
         String tempPath = this.output;
@@ -2051,27 +2015,20 @@ public class argumentReader {
 
         if(!odir.equals("asd")) {
 
-            //System.out.println("odir: " + odir);
-
             File diri = new File(odir);
-
-            //System.out.println("ODIR: " + diri.getAbsolutePath());
             tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
+
         }
 
         String extensionHere = extension;
-        //System.out.println("EXIST " + tempFile.getAbsolutePath());
         if(tempFile.exists()){
-            //tempPath = pointClouds.get(i).getFile().getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las";
 
             tempFile = fo.createNewFileWithNewExtension(tempFile, extensionHere);
-            //new File(tempFile.getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las");
         }
 
         if(tempFile.exists())
             tempFile.delete();
 
-        //System.out.println(tempFile.getAbsolutePath());
 
         tempFile.createNewFile();
 
@@ -2079,36 +2036,7 @@ public class argumentReader {
     }
 
     public File createOutputFileWithExtension(File in, String extension) throws IOException {
-/*
-        File tempFile;
-        String tempPath = in.getAbsolutePath();
 
-        if(this.output.equals("asd"))
-            tempPath = in.getName();
-
-        if(!odir.equals("asd"))
-            tempPath = pathSep + odir + pathSep + tempPath;
-
-        tempFile = new File(tempPath);
-
-        System.out.println("ABS PATH: " + tempFile.getAbsolutePath());
-
-        tempFile = fo.createNewFileWithNewExtension(tempFile, extension);
-
-        String extensionHere = tempFile.getName().substring(tempFile.getName().lastIndexOf("."), tempFile.getName().length());
-
-        if(tempFile.exists()){
-            tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
-        }
-
-
-        if(tempFile.exists())
-            tempFile.delete();
-
-        tempFile.createNewFile();
-
-        return tempFile;
-        */
 
         File tempFile = null;
         String tempPath = this.output;
@@ -2120,27 +2048,19 @@ public class argumentReader {
 
         if(!odir.equals("asd")) {
 
-            //System.out.println("odir: " + odir);
-
             File diri = new File(odir);
 
-            //System.out.println("ODIR: " + diri.getAbsolutePath());
             tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
         }
 
         String extensionHere = extension;
-        //System.out.println("EXIST " + tempFile.getAbsolutePath());
         if(tempFile.exists()){
-            //tempPath = pointClouds.get(i).getFile().getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las";
 
             tempFile = fo.createNewFileWithNewExtension(tempFile, extensionHere);
-            //new File(tempFile.getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las");
         }
 
         if(tempFile.exists())
             tempFile.delete();
-
-        //System.out.println(tempFile.getAbsolutePath());
 
         tempFile.createNewFile();
 
