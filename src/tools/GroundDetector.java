@@ -1978,7 +1978,6 @@ public class GroundDetector{
 
     public boolean isLastOfManyOrOnly(LasPoint point){
 
-        //System.out.println(point.returnNumber + " / " + point.numberOfReturns);
         if(true)
             return true;
 
@@ -2173,7 +2172,11 @@ public class GroundDetector{
 
         tin2.clear();
 
-        /* Termination condition :
+
+        /* We need to guarantee that adding more points WILL NOT
+            influence the TIN inside the current square.
+
+        Termination condition :
           (1) Tin is outside the square && no circle is
           (2) The problematic side is outside the boundary of the LAS
 
@@ -2201,11 +2204,15 @@ public class GroundDetector{
 
             while (iEdge.hasNext()) {
                 IQuadEdge e = iEdge.next();
+
+                /* If one vertex is null, we ignore this edge */
                 if (e.getA() == null || e.getB() == null) {
                     setMarkBit(bitset, e);
                     setMarkBit(bitset, e.getDual());
                     continue;
                 }
+
+                /* Why do both e and e.getDual()? Don't remember... */
                 this.countTriangleEdge(bitset, e);
                 this.countTriangleEdge(bitset, e.getDual());
             }
@@ -2453,25 +2460,36 @@ public class GroundDetector{
                     setMarkBit(bitset, f);
                     setMarkBit(bitset, r);
 
+                    /* Find the circumcircle of this triangle */
                     CC.compute(e.getA(), f.getA(), r.getA());
+
 
                     boolean isInside = CC.getX() < inside_x + aR.step && CC.getX() >= inside_x &&
                             CC.getY() >= inside_y - aR.step && CC.getY() < inside_y;
 
+                    /* IF the circle is inside the current square */
                     if(isInside) {
 
+                        /* Distance to the smaller square (i.e. the original one) */
                         double dist_x = Math.min(CC.getX() - inside_x, inside_x + aR.step - CC.getX());
                         double dist_y = Math.min(CC.getY() - (inside_y-aR.step), inside_y - CC.getY());
 
                         double disti = Math.min(dist_x, dist_y);
 
+
                         double dist_x_outer = Math.min(CC.getX() - outside_x, outside_x + aR.step - CC.getX());
                         double dist_y_outer = Math.min(CC.getY() - (outside_y-aR.step), outside_y - CC.getY());
 
+                        /* Distance to the buffered square */
                         double disti_outer = Math.min(dist_x_outer, dist_y_outer);
 
-
                         /* These are the ones we want to ELIMINATE, but how to do it efficiently? */
+
+                        /* The termination condition is that NO CIRCLE HAS A CIRCUMCIRCLE BOTH INSIDE THE SMALLER RECTANGLE AND
+                        OUTSIDE THE LARGER RECTANGLE!!
+
+                                    CONFUSING AS FUCK, I KNOW!!!
+                         */
                         if(disti_outer < CC.getRadius()) {
                             //System.out.println("Inside, but circle touches outside!! " + disti + " " + CC.getRadius());
                             tin2.add(e.getA());
