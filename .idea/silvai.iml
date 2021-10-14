@@ -16,5 +16,6 @@
     <orderEntry type="library" name="arbiter" level="project" />
     <orderEntry type="library" name="dl_cuda" level="project" />
     <orderEntry type="library" name="jblas" level="project" />
+    <orderEntry type="library" name="tinfour.TinfourAnalysis" level="project" />
   </component>
 </module>

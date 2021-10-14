@@ -5,6 +5,7 @@ import org.opencv.core.Mat;
 import org.tinfour.common.IQuadEdge;
 import org.tinfour.common.Vertex;
 import org.tinfour.interpolation.TriangularFacetInterpolator;
+import org.tinfour.utils.Polyside;
 import utils.fileOperations;
 
 import java.awt.*;
@@ -15,6 +16,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+
+import static org.tinfour.utils.Polyside.isPointInPolygon;
 
 /**
  *	Relates all the input point clouds onto
@@ -403,6 +406,8 @@ public class LasRelate{
                 polatorPointCloud = new org.tinfour.interpolation.TriangularFacetInterpolator(tempTin);
                 polatorReference = new org.tinfour.interpolation.TriangularFacetInterpolator(correctionTin);
 
+                List<IQuadEdge> correctionTin_perimeter = correctionTin.getPerimeter();
+
                 polatorPointCloud.resetForChangeToTin();
                 polatorReference.resetForChangeToTin();
                 double interpolatedvalue = 0.0;
@@ -414,7 +419,8 @@ public class LasRelate{
                         locationY = maxY - resolution * p - resolution / 2.0f;
 
 
-                        if(correctionTin.isPointInsideTin(locationX, locationY)){
+                        //if(correctionTin.isPointInsideTin(locationX, locationY)){
+                        if(isPointInPolygon(correctionTin_perimeter, locationX, locationY) == Polyside.Result.Inside){
                         //if(!Double.isNaN(interpolatedvalue)){
                             interpolatedvalue = polatorReference.interpolate(locationX, locationY, valuator);
 
@@ -601,11 +607,15 @@ public class LasRelate{
         double correctionValue = 0.0;
         double interpolatedvalue = 0;
 
+        List<IQuadEdge> in2_perimeter = in2.getPerimeter();
+
+
         for(int i = 0; i < vL.size(); i++){
 
             tempVertex = vL.get(i);
 
-            if(in2.isPointInsideTin(tempVertex.x, tempVertex.y)){
+            //if(in2.isPointInsideTin(tempVertex.x, tempVertex.y)){
+            if(isPointInPolygon(in2_perimeter, tempVertex.x, tempVertex.y) == Polyside.Result.Inside){
             //if(!Double.isNaN(interpolatedvalue)){
                 interpolatedvalue = polator.interpolate(tempVertex.x, tempVertex.y, valuator);
 
@@ -655,6 +665,8 @@ public class LasRelate{
 
         boolean keepA = false;
 
+        List<IQuadEdge> in2_perimeter = in2.getPerimeter();
+
         //boolean keepB = false;
         double interpolatedvalue = 0.0;
         for(int i = 0; i < vL.size(); i++){
@@ -665,7 +677,8 @@ public class LasRelate{
             tempVertexA = vL.get(i);
 
 
-            if(in2.isPointInsideTin(tempVertexA.x, tempVertexA.y)){
+            //if(in2.isPointInsideTin(tempVertexA.x, tempVertexA.y)){
+            if(isPointInPolygon(in2_perimeter, tempVertexA.x, tempVertexA.y) == Polyside.Result.Inside){
             //if(!Double.isNaN(interpolatedvalue)){
                 interpolatedvalue = temp.interpolate(tempVertexA.x, tempVertexA.y, valuator);
                 closest = in2.getNeighborhoodPointsCollector().collectNeighboringVertices(tempVertexA.x, tempVertexA.y, 0, 0);

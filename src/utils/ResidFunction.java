@@ -5,7 +5,12 @@ import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.ejml.data.DMatrixRMaj;
 import org.jblas.DoubleMatrix;
+import org.tinfour.common.IQuadEdge;
+import org.tinfour.utils.Polyside;
+
 import java.util.*;
+
+import static org.tinfour.utils.Polyside.isPointInPolygon;
 
 
 public class ResidFunction implements LevenbergMarquardt.ResidualFunction {
@@ -212,6 +217,7 @@ public class ResidFunction implements LevenbergMarquardt.ResidualFunction {
 
         if(optimize[0] && !optimize[1]){
 
+            List<IQuadEdge> tin2_perimeter = tin2.getPerimeter();
             //makeRotationMatrix(rotationMatrix1_2, param.get(0, 0), param.get(1, 0), param.get(2, 0));
 
             //translation_1[0] = (float) param.get(3, 0);
@@ -242,7 +248,8 @@ public class ResidFunction implements LevenbergMarquardt.ResidualFunction {
                 pointMatrix.put(0,2, new_z);
 
 
-                if (tin2.isPointInsideTin(pointMatrix.get(0, 0), pointMatrix.get(0, 1))) {
+                //if (tin2.isPointInsideTin(pointMatrix.get(0, 0), pointMatrix.get(0, 1))) {
+                if (isPointInPolygon(tin2_perimeter, pointMatrix.get(0,0), pointMatrix.get(0,1)) == Polyside.Result.Inside) {
                 //if (!Double.isNaN(interpolatedvalue)) {
                     interpolatedvalue = polator2.interpolate(pointMatrix.get(0, 0), pointMatrix.get(0, 1), valuator);
                     distiSigned = (pointMatrix.get(0, 2) - interpolatedvalue);
@@ -281,6 +288,8 @@ public class ResidFunction implements LevenbergMarquardt.ResidualFunction {
         }
         else if(!optimize[0] && optimize[1]){
 
+            List<IQuadEdge> tin1_perimeter = tin1.getPerimeter();
+
             double distanceSum = 0.0;
             int count = 0;
 
@@ -305,7 +314,8 @@ public class ResidFunction implements LevenbergMarquardt.ResidualFunction {
                 pointMatrix.put(0,2, new_z);
 
 
-                if (tin1.isPointInsideTin(pointMatrix.get(0, 0), pointMatrix.get(0, 1))) {
+                //if (tin1.isPointInsideTin(pointMatrix.get(0, 0), pointMatrix.get(0, 1))) {
+                if (isPointInPolygon(tin1_perimeter, pointMatrix.get(0,0), pointMatrix.get(0,1)) == Polyside.Result.Inside) {
                 //if (!Double.isNaN(interpolatedvalue)) {
                     interpolatedvalue = polator1.interpolate(pointMatrix.get(0, 0), pointMatrix.get(0, 1), valuator);
 

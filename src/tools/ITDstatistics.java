@@ -16,6 +16,7 @@ import org.gdal.ogr.*;
 import org.tinfour.common.IQuadEdge;
 import org.tinfour.interpolation.NaturalNeighborInterpolator;
 import org.tinfour.interpolation.VertexValuatorDefault;
+import org.tinfour.utils.Polyside;
 import utils.GLCM;
 import utils.KdTree;
 
@@ -39,6 +40,8 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
+
+import static org.tinfour.utils.Polyside.isPointInPolygon;
 
 
 public class ITDstatistics{
@@ -626,10 +629,6 @@ public class ITDstatistics{
                  */
 
 
-                if(!tin.isPointInsideTin(tempPointArray[0], tempPointArray[1])){
-
-
-                }
                 tin.add(new org.tinfour.common.Vertex(tempPointArray[0], tempPointArray[1], 0.0));
 
                 double perse = tempPointArray[2] / treeTop[2];
@@ -1530,10 +1529,13 @@ public class ITDstatistics{
                  */
 
 
+                /*
                 if(!tin.isPointInsideTin(tempPointArray[0], tempPointArray[1])){
 
 
                 }
+
+                 */
                     tin.add(new org.tinfour.common.Vertex(tempPointArray[0], tempPointArray[1], 0.0));
 
                 double perse = tempPointArray[2] / treeTop[2];

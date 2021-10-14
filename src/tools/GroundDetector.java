@@ -11,6 +11,7 @@ import org.tinfour.common.Vertex;
 import org.tinfour.interpolation.NaturalNeighborInterpolator;
 import org.tinfour.interpolation.VertexValuatorDefault;
 import org.tinfour.standard.IncrementalTin;
+import org.tinfour.utils.Polyside;
 import utils.KdTree;
 import utils.argumentReader;
 import utils.fileOperations;
@@ -18,6 +19,8 @@ import utils.pointWriterMultiThread;
 
 import java.io.*;
 import java.util.*;
+
+import static org.tinfour.utils.Polyside.isPointInPolygon;
 
 
 /**
@@ -435,7 +438,8 @@ public class GroundDetector{
                 x = this.miniX + spacing * i;
                 y = this.maxiY - spacing * j;
 
-                if(tin.isPointInsideTin(x,y)){
+                //if(tin.isPointInsideTin(x,y)){
+                if(isPointInPolygon(tin.getPerimeter(), x, y) == Polyside.Result.Inside){
                 //if(!Double.isNaN(interpolatedValue)){
                     interpolatedValue = polator2.interpolate(x, y, valuator);
                     closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(x, y, 0, 0);
@@ -704,6 +708,8 @@ public class GroundDetector{
 
         int counter2 = 0;
 
+        List<IQuadEdge> perimeter = tin.getPerimeter();
+
         NaturalNeighborInterpolator polator = new NaturalNeighborInterpolator(tin);
 
         for(int loo = 0; loo < 3; loo++) {
@@ -751,7 +757,8 @@ public class GroundDetector{
                         double distance = Double.POSITIVE_INFINITY;
 
 
-                        if(!tin.isPointInsideTin(tempPoint.x, tempPoint.y))
+                        //if(!tin.isPointInsideTin(tempPoint.x, tempPoint.y))
+                        if(isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Outside)
                             //continue;
                         //if(Double.isNaN(interpolatedZ))
                             continue;
@@ -1381,11 +1388,6 @@ public class GroundDetector{
 
         TIntArrayList indexes = new TIntArrayList();
 
-        //HashMap<Long, ArrayList<double[]>> data = new HashMap<Long, ArrayList<double[]>>();
-        //HashMap<Long, double[]> data2 = new HashMap<Long, double[]>();
-        //HashMap<Long, Double> data2MINS = new HashMap<Long, Double>();
-        //HashMap<Long, Integer> minIndexi = new HashMap<Long, Integer>();
-
         LasPoint tempPoint = new LasPoint();
 
         double tHold = 5.0;
@@ -1795,10 +1797,10 @@ public class GroundDetector{
 
         if(!aR.photogrammetry)
         if(tin.getVertices().size() < 6)
-            for(int x = 1; x < numberOfPixelsX - 1; x++)
-                for(int y = 1; y < numberOfPixelsY - 1; y++){
+            for(int x = 0; x < numberOfPixelsX; x++)
+                for(int y = 0; y < numberOfPixelsY; y++){
 
-                    if(statisticsBig[x][y][0] > 30 ) {
+                    if(statisticsBig[x][y][0] > 10 ) {
                         pointCloud.readRecord((long) statisticsBig[x][y][7], tempPoint);
 
                         if((float)tempPoint.z != statisticsBig[x][y][2])
@@ -1809,37 +1811,28 @@ public class GroundDetector{
 
                         seedPointIndexes.add((int) statisticsBig[x][y][7]);
 
-
-
                         org.tinfour.common.Vertex tempV = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z);
                         tin.add(tempV);
                         seedPointVertices.put((int) statisticsBig[x][y][7], tempV);
 
-                        //System.out.println(tempPoint.z + " == " + statisticsBig[x][y][2]);
-                        //System.out.println(tempPoint.z);
 
                     }
                 }
-        //System.out.println("DONE READING: " + tin.getVertices().size());
-        //System.exit(1);
+
         double z_threshold = -1;
 
         double neigh_max_mean_difference = 1.0;
-
-        //if(tin.getVertices().size() < 6)
 
 
         if(aR.photogrammetry)
         while(tin.getVertices().size() < 6) {
 
-            //System.out.println("thres: " + threshold);
-
-
-            for (int i = 1; i < numberOfPixelsYstd-1; i++) {
-                for (int j = 1; j < numberOfPixelsXstd-1; j++) {
+            for (int i = 0; i < numberOfPixelsYstd; i++) {
+                for (int j = 0; j < numberOfPixelsXstd; j++) {
 
                     double mean = statistics[j][i][1] / statistics[j][i][0];
 
+                    /*
                     int number = 0;
                     number += statistics[j-1][i][0] > 5 ? 1 : 0;
                     number += statistics[j-1][i-1][0] > 5 ? 1 : 0;
@@ -1849,7 +1842,7 @@ public class GroundDetector{
                     number += statistics[j+1][i+1][0] > 5 ? 1 : 0;
                     number += statistics[j][i+1][0] > 5 ? 1 : 0;
                     number += statistics[j-1][i+1][0] > 5 ? 1 : 0;
-
+                    */
                     int number2 = 0;
 
                     /* Two sanity checks to remove outliers:
@@ -1857,6 +1850,60 @@ public class GroundDetector{
                       (1) Must have neighboring cell with a ground point.
                       (2) The neighboring cell must not be too different with regard to z
                      */
+
+                    int minus_j = Math.max(0,j-1);
+                    int plus_j = Math.min(numberOfPixelsXstd-1,j+1);
+
+                    int minus_i = Math.max(0,i-1);
+                    int plus_i = Math.min(numberOfPixelsYstd-1,i+1);
+
+                    boolean ignoreMinus_j = minus_j == j;
+                    boolean ignorePlus_j = plus_j == j;
+                    boolean ignoreMinus_i = minus_i == i;
+                    boolean ignorePlus_i = plus_i == i;
+
+                    if(!ignoreMinus_j)
+                        number2 += statistics[minus_j][i][6] < threshold_std && statistics[minus_j][i][0] > 5
+                                &&  Math.abs(mean - (statistics[minus_j][i][1] / statistics[minus_j][i][0])) < neigh_max_mean_difference
+                                && statistics[minus_j][i][3] - statistics[minus_j][i][2] < threshold_std*2 ? 1 : 0;
+
+                    if(!ignoreMinus_j || !ignoreMinus_i)
+                        number2 += statistics[minus_j][minus_i][6] < threshold_std && statistics[minus_j][minus_i][0] > 5
+                                &&  Math.abs(mean - (statistics[minus_j][minus_i][1] / statistics[minus_j][minus_i][0])) < neigh_max_mean_difference
+                                && statistics[minus_j][minus_i][3] - statistics[minus_j][minus_i][2] < threshold_std*2 ? 1 : 0;
+
+                    if(!ignoreMinus_i)
+                        number2 += statistics[j][minus_i][6] < threshold_std && statistics[j][minus_i][0] > 5
+                                &&  Math.abs(mean - (statistics[j][minus_i][1] / statistics[j][minus_i][0])) < neigh_max_mean_difference
+                                && statistics[j][minus_i][3] - statistics[j][minus_i][2] < threshold_std*2 ? 1 : 0;
+
+                    if(!ignoreMinus_i || !ignorePlus_j)
+                        number2 += statistics[plus_j][minus_i][6] < threshold_std && statistics[plus_j][minus_i][0] > 5
+                                &&  Math.abs(mean - (statistics[plus_j][minus_i][1] / statistics[plus_j][minus_i][0])) < neigh_max_mean_difference
+                                && statistics[plus_j][minus_i][3] - statistics[plus_j][minus_i][2] < threshold_std*2 ? 1 : 0;
+
+                    if(!ignorePlus_j)
+                        number2 += statistics[plus_j][i][6] < threshold_std && statistics[plus_j][i][0] > 5
+                                &&  Math.abs(mean - (statistics[plus_j][i][1] / statistics[plus_j][i][0])) < neigh_max_mean_difference
+                                && statistics[plus_j][i][3] - statistics[plus_j][i][2] < threshold_std*2 ? 1 : 0;
+
+                    if(!ignorePlus_j || !ignorePlus_i)
+                        number2 += statistics[plus_j][plus_i][6] < threshold_std && statistics[plus_j][plus_i][0] > 5
+                                &&  Math.abs(mean - (statistics[plus_j][plus_i][1] / statistics[plus_j][plus_i][0])) < neigh_max_mean_difference
+                                && statistics[plus_j][plus_i][3] - statistics[plus_j][plus_i][2] < threshold_std*2 ? 1 : 0;
+
+                    if(!ignorePlus_i)
+                        number2 += statistics[j][plus_i][6] < threshold_std && statistics[j][plus_i][0] > 5
+                                &&  Math.abs(mean - (statistics[j][plus_i][1] / statistics[j][plus_i][0])) < neigh_max_mean_difference
+                                && statistics[j][plus_i][3] - statistics[j][plus_i][2] < threshold_std*2 ? 1 : 0;
+
+                    if(!ignorePlus_i || !ignoreMinus_j)
+                        number2 += statistics[minus_j][plus_i][6] < threshold_std && statistics[minus_j][plus_i][0] > 5
+                                &&  Math.abs(mean - (statistics[minus_j][plus_i][1] / statistics[minus_j][plus_i][0])) < neigh_max_mean_difference
+                                && statistics[minus_j][plus_i][3] - statistics[minus_j][plus_i][2] < threshold_std*2? 1 : 0;
+
+                    /*
+
                     number2 += statistics[j-1][i][6] < threshold_std && statistics[j-1][i][0] > 5
                             &&  Math.abs(mean - (statistics[j-1][i][1] / statistics[j-1][i][0])) < neigh_max_mean_difference
                             && statistics[j-1][i][3] - statistics[j-1][i][2] < threshold_std*2 ? 1 : 0;
@@ -1882,6 +1929,7 @@ public class GroundDetector{
                             &&  Math.abs(mean - (statistics[j-1][i+1][1] / statistics[j-1][i+1][0])) < neigh_max_mean_difference
                             && statistics[j-1][i+1][3] - statistics[j-1][i+1][2] < threshold_std*2? 1 : 0;
 
+                     */
 
                     if (statistics[j][i][0] > 10 && number2 >= 1
 
@@ -2038,7 +2086,13 @@ public class GroundDetector{
 
         tin.clear();
 
+        System.gc();
+        System.gc();
+        System.gc();
 
+        /* Iterate through the rectangles.
+        * For each rectangle, we create a new TIN
+        *  */
         for(int x = 0; x < n_x; x++) {
             for (int y = 0; y < n_y; y++) {
 
@@ -2101,6 +2155,9 @@ public class GroundDetector{
                         }
                     }
 
+                    /* Expanding means that we have guaranteed that no additional point may alter
+                    the TIN in the area of the rectangle.
+                     */
                     expandTin();
 
                     tin.clear();
@@ -2172,13 +2229,11 @@ public class GroundDetector{
 
         tin2.clear();
 
-
         /* We need to guarantee that adding more points WILL NOT
             influence the TIN inside the current square.
 
         Termination condition :
-          (1) Tin is outside the square && no circle is
-          (2) The problematic side is outside the boundary of the LAS
+
 
          */
 
@@ -2192,7 +2247,6 @@ public class GroundDetector{
 
         /* FIRST WE FIND GOOD TRIANGLES WITHIN THE SQUARE, OTHER
           TRIANGLES ARE OUTPUT TO TIN2 */
-
         if (tin.isBootstrapped()) {
 
             int maxIndex = tin.getMaximumEdgeAllocationIndex();
@@ -2490,7 +2544,8 @@ public class GroundDetector{
 
                                     CONFUSING AS FUCK, I KNOW!!!
                          */
-                        if(disti_outer < CC.getRadius()) {
+                        /* WE DON'T DO THIS; RIGHT? */
+                        if(disti_outer < CC.getRadius() && false) {
                             //System.out.println("Inside, but circle touches outside!! " + disti + " " + CC.getRadius());
                             tin2.add(e.getA());
                             tin2.add(f.getA());
@@ -2650,6 +2705,8 @@ public class GroundDetector{
 
         aR.pfac.addWriteThread(thread_n, pw, buf);
 
+        List<IQuadEdge> perimeter = tin.getPerimeter();
+
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
             maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
@@ -2669,7 +2726,8 @@ public class GroundDetector{
                 this.progress_current++;
                 aR.p_update.threadProgress[coreNumber-1] = this.progress_current;
 
-                if(tin.isPointInsideTin(tempPoint.x, tempPoint.y)) {
+                //if(tin.isPointInsideTin(tempPoint.x, tempPoint.y)) {
+                if(isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Inside) {
                     distance = (tempPoint.z - polator.interpolate(tempPoint.x, tempPoint.y, valuator));
                     //distance = 0.0;
 
@@ -2788,6 +2846,8 @@ public class GroundDetector{
             //LASwrite.writeHeader(asd2, "lasheight", pointCloud.versionMajor, pointCloud.versionMinor, pointCloud.pointDataRecordFormat, pointCloud.pointDataRecordLength);
             int pointCount = 0;
 
+            List<IQuadEdge> perimeter = tin.getPerimeter();
+
             for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
                 maxi = (int) Math.min(10000, pointCloud.getNumberOfPointRecords() - i);
@@ -2807,7 +2867,8 @@ public class GroundDetector{
 
                     aR.p_update.threadProgress[coreNumber-1] = this.progress_current;
 
-                    if(tin.isPointInsideTin(tempPoint.x, tempPoint.y)) {
+                    //if(tin.isPointInsideTin(tempPoint.x, tempPoint.y)) {
+                    if(isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Inside) {
                         interpolatedvalue = polator.interpolate(tempPoint.x, tempPoint.y, valuator);
 
                         //if(!Double.isNaN(interpolatedvalue)) {
@@ -2933,6 +2994,7 @@ public class GroundDetector{
             //LASwrite.writeHeader(asd2, "lasheight", pointCloud.versionMajor, pointCloud.versionMinor, pointCloud.pointDataRecordFormat, pointCloud.pointDataRecordLength);
             int pointCount = 0;
 
+            List<IQuadEdge> perimeter = tin.getPerimeter();
             for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
                 maxi = (int) Math.min(10000, pointCloud.getNumberOfPointRecords() - i);
@@ -2952,7 +3014,8 @@ public class GroundDetector{
                     aR.p_update.threadProgress[coreNumber-1] = this.progress_current;
 
 
-                    if(tin.isPointInsideTin(tempPoint.x, tempPoint.y)) {
+                    //if(tin.isPointInsideTin(tempPoint.x, tempPoint.y)) {
+                    if(isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Inside) {
                     //if(!Double.isNaN(interpolatedvalue)) {
                         interpolatedvalue = polator.interpolate(tempPoint.x, tempPoint.y, valuator);
 

@@ -4,6 +4,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.jblas.DoubleMatrix;
 import org.tinfour.common.IQuadEdge;
 import org.tinfour.standard.IncrementalTin;
+import org.tinfour.utils.Polyside;
 import tools.lasStrip;
 import utils.KdTree;
 import utils.ThreadProgressBar;
@@ -11,6 +12,8 @@ import utils.fileOperations;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+
+import static org.tinfour.utils.Polyside.isPointInPolygon;
 
 /* A container class for a collection of overlapping
 .las files.
@@ -983,11 +986,12 @@ public class LasBlock {
 
             double tempDistance2 = 0.0;
 
+            List<IQuadEdge> perimeter = tempTin_1.getPerimeter();
+
             for (org.tinfour.common.Vertex v : tempTin_2.getVertices()) {
 
-
-
-                if (tempTin_1.isPointInsideTin(v.x, v.y)) {
+                //if (tempTin_1.isPointInsideTin(v.x, v.y)) {
+                if (isPointInPolygon(perimeter, v.x, v.y) == Polyside.Result.Inside) {
 
                     double interpolatedValue = polator_1.interpolate(v.x, v.y, valuator);
                     distiSigned = v.getZ() - interpolatedValue;
@@ -1023,6 +1027,7 @@ public class LasBlock {
             pwrSumAvg = 0.0;
 
             distiSigned = 0.0;
+
 
             for (org.tinfour.common.Vertex v : tempTin_1.getVertices()) {
 

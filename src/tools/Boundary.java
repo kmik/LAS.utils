@@ -7,7 +7,9 @@ import javafx.scene.shape.Path;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
 
+import org.tinfour.common.IQuadEdge;
 import org.tinfour.common.Vertex;
+import org.tinfour.utils.Polyside;
 import utils.argumentReader;
 import utils.fileOperations;
 
@@ -15,6 +17,8 @@ import java.awt.geom.Path2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+
+import static org.tinfour.utils.Polyside.isPointInPolygon;
 
 
 /**
@@ -265,17 +269,34 @@ public class Boundary extends tool{
 
         org.tinfour.common.Vertex tempV;
 
+        List<IQuadEdge> currentBorder = null;
+
         for(int i = 0; i < n; i++){
 
             pointCloud.readRecord(i, tempPoint);
 
-            if(!tin.isPointInsideTin(tempPoint.x, tempPoint.y)){
+            //System.out.println(tin.getPerimeter().size());
+            if(tin.isBootstrapped()) {
 
+                if(currentBorder == null){
+                    currentBorder = tin.getPerimeter();
+                }
+
+                if (isPointInPolygon(currentBorder, tempPoint.x, tempPoint.y) == Polyside.Result.Outside) {
+
+                    tempV = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, 0.0);
+                    //perim.add(i);
+                    tempV.setIndex(i);
+                    tin.add(tempV);
+                    currentBorder = tin.getPerimeter();
+
+
+                }
+            }else{
                 tempV = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, 0.0);
                 //perim.add(i);
                 tempV.setIndex(i);
                 tin.add(tempV);
-
             }
 
             if(i % 10000 == 0){

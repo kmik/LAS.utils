@@ -10,9 +10,12 @@ import org.jblas.Solve;
 import org.opencv.core.Mat;
 import org.tinfour.common.IQuadEdge;
 import org.tinfour.common.Vertex;
+import org.tinfour.utils.Polyside;
 import utils.*;
 import java.io.*;
 import java.util.*;
+
+import static org.tinfour.utils.Polyside.isPointInPolygon;
 import static tools.GroundDetector.angleHypo;
 import static tools.GroundDetector.euclideanDistance;
 
@@ -493,7 +496,8 @@ public class lasStrip {
                         org.tinfour.common.Vertex tempV = new org.tinfour.common.Vertex(pointMatrix.get(0, 0), pointMatrix.get(0, 1), pointMatrix.get(0, 2));
                         tempV.setIndex((int) (tempPoint.gpsTime * 1000));
 
-                        if (pointDistanceToPerimeter(tin2_perimeter, tempV) > 3.5 && tin2.isPointInsideTin(tempV.x, tempV.y))
+                        //if (pointDistanceToPerimeter(tin2_perimeter, tempV) > 3.5 && tin2.isPointInsideTin(tempV.x, tempV.y))
+                        if (pointDistanceToPerimeter(tin2_perimeter, tempV) > 3.5 && isPointInPolygon(tin2_perimeter, tempV.x, tempV.y) == Polyside.Result.Inside)
                             tin1.add(tempV);
                     }
                 }
@@ -547,7 +551,8 @@ public class lasStrip {
                         org.tinfour.common.Vertex tempV = new org.tinfour.common.Vertex(pointMatrix.get(0, 0), pointMatrix.get(0, 1), pointMatrix.get(0, 2));
                         tempV.setIndex((int) (tempPoint.gpsTime * 1000));
 
-                        if (pointDistanceToPerimeter(tin1_perimeter, tempV) > 3.5 && tin1.isPointInsideTin(tempV.x, tempV.y))
+                        //if (pointDistanceToPerimeter(tin1_perimeter, tempV) > 3.5 && tin1.isPointInsideTin(tempV.x, tempV.y))
+                        if (pointDistanceToPerimeter(tin1_perimeter, tempV) > 3.5 && isPointInPolygon(tin1_perimeter, tempV.x, tempV.y) == Polyside.Result.Inside)
                             tin2.add(tempV);
                     }
 
@@ -710,6 +715,9 @@ public class lasStrip {
             double[] normal = null;
             double interpolatedvalue = 0;
 
+            List<IQuadEdge> tin2_perimeter = tin2.getPerimeter();
+            List<IQuadEdge> tin1_perimeter = tin1.getPerimeter();
+
             if(!blokki.aligned[currentFiles[0]]) {
 
                 for (org.tinfour.common.Vertex v : tin1.getVertices()) {
@@ -729,7 +737,8 @@ public class lasStrip {
                     pointMatrix.put(0,2, new_z);
 
 
-                    if (tin2.isPointInsideTin(pointMatrix.get(0, 0), pointMatrix.get(0, 1))) {
+                    //if (tin2.isPointInsideTin(pointMatrix.get(0, 0), pointMatrix.get(0, 1))) {
+                    if (isPointInPolygon(tin2_perimeter, pointMatrix.get(0, 0), pointMatrix.get(0, 1)) == Polyside.Result.Inside) {
 
                         interpolatedvalue = polator2.interpolate(pointMatrix.get(0, 0), pointMatrix.get(0, 1), valuator);
 
@@ -776,7 +785,8 @@ public class lasStrip {
                     pointMatrix.put(0,2, new_z);
 
 
-                    if (tin1.isPointInsideTin(pointMatrix.get(0, 0), pointMatrix.get(0, 1))) {
+                    //if (tin1.isPointInsideTin(pointMatrix.get(0, 0), pointMatrix.get(0, 1))) {
+                    if (isPointInPolygon(tin1_perimeter, pointMatrix.get(0, 0), pointMatrix.get(0, 1)) == Polyside.Result.Inside) {
                         interpolatedvalue = polator1.interpolate(pointMatrix.get(0, 0), pointMatrix.get(0, 1), valuator);
 
                         distiSigned = pointMatrix.get(0, 2) - interpolatedvalue;

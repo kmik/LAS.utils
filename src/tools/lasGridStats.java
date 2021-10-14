@@ -1,12 +1,17 @@
 package tools;
 import LASio.*;
+import org.tinfour.common.IQuadEdge;
 import org.tinfour.common.Vertex;
 import org.tinfour.standard.IncrementalTin;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.util.*;
+
+import org.tinfour.utils.Polyside;
 import utils.*;
+
+import static org.tinfour.utils.Polyside.isPointInPolygon;
 
 public class lasGridStats {
 
@@ -142,6 +147,8 @@ public class lasGridStats {
         ArrayList<Short> ids = new ArrayList<>();
 
         ArrayList<IncrementalTin> tins = new ArrayList<>();
+        ArrayList<List<IQuadEdge>> tin_perimeters = new ArrayList<>();
+
 
         int doubles_per_cell = 0;
 
@@ -251,6 +258,8 @@ public class lasGridStats {
 */
                     int p = 0;
 
+                    long startTime = System.currentTimeMillis();
+
                     while(!pointCloud.index_read_terminated){
 
                         p = pointCloud.fastReadFromQuery(tempPoint);
@@ -259,12 +268,14 @@ public class lasGridStats {
                                 if (tempPoint.z <= z_cutoff)
                                     continue;
 */
+                        if(false)
                                 if (tempPoint.x >= (orig_x + resolution * x) && tempPoint.x < (orig_x + resolution * x + resolution) &&
                                         tempPoint.y <= (orig_y - resolution * y) && tempPoint.y > (orig_y - resolution * y - resolution)) {
 
                                     if(!foundStands.contains(tempPoint.pointSourceId)) {
 
                                         tins.add(new IncrementalTin());
+                                        tin_perimeters.add(null);
 
                                         ids.add(tempPoint.pointSourceId);
 
@@ -300,8 +311,23 @@ public class lasGridStats {
                                     /* In order to save memory we only add point to tin if it is outside of it. After all,
                                       we only need the bounday of the tin.
                                      */
-                                    if(!tins.get(order.get(tempPoint.pointSourceId)).isPointInsideTin(tempPoint.x, tempPoint.y)){
+                                    //if(!tins.get(order.get(tempPoint.pointSourceId)).isPointInsideTin(tempPoint.x, tempPoint.y)){
+                                    if(tins.get(order.get(tempPoint.pointSourceId)).isBootstrapped()) {
 
+                                        if(tin_perimeters.get(order.get(tempPoint.pointSourceId)) == null){
+                                            tin_perimeters.set(order.get(tempPoint.pointSourceId), tins.get(order.get(tempPoint.pointSourceId)).getPerimeter());
+                                        }
+
+                                        if (isPointInPolygon(tin_perimeters.get(order.get(tempPoint.pointSourceId)), tempPoint.x, tempPoint.y) == Polyside.Result.Outside) {
+                                            //System.out.println(tin_perimeters.get(order.get(tempPoint.pointSourceId)).size());
+                                            tempV = new Vertex(tempPoint.x, tempPoint.y, 0.0);
+                                            //perim.add(i);
+                                            tempV.setIndex(p);
+                                            tins.get(order.get(tempPoint.pointSourceId)).add(tempV);
+                                            tin_perimeters.set(order.get(tempPoint.pointSourceId), tins.get(order.get(tempPoint.pointSourceId)).getPerimeter());
+
+                                        }
+                                    }else{
                                         tempV = new Vertex(tempPoint.x, tempPoint.y, 0.0);
                                         //perim.add(i);
                                         tempV.setIndex(p);
@@ -370,7 +396,12 @@ public class lasGridStats {
                             }
                       // }
                     //}
+                    long stopTime = System.currentTimeMillis();
+                    System.out.println(stopTime - startTime);
                 }
+
+
+
 
                 /* No points in this rectangle */
                 if(ids.size() == 0)
@@ -402,6 +433,7 @@ public class lasGridStats {
                     tins.get(ii).clear();
                     tins.get(ii).dispose();
                     tins.set(ii, new IncrementalTin());
+                    tin_perimeters.set(ii, null);
 
                 }
                 System.gc();
@@ -505,12 +537,10 @@ public class lasGridStats {
 
                     if(gridPoints_z_i.get(ii).size() > aR.min_points) {
 
-                        long startTime = System.currentTimeMillis();
+
 
                         metrics = pCM.calc(gridPoints_z_i.get(ii), gridPoints_i_i.get(ii), sum_z_i.get(ii), sum_i_i.get(ii), "_i", colnames);
 
-                        long stopTime = System.currentTimeMillis();
-                        System.out.println(stopTime - startTime);
 
                         if(colnames_metrics_i.size() == 0)
                             colnames_metrics_i = (ArrayList<String>)colnames.clone();
