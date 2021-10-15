@@ -3,11 +3,9 @@ package tools;
 import LASio.*;
 //import jdk.jfr.events.ExceptionThrownEvent;
 import gnu.trove.list.array.TIntArrayList;
-import org.tinfour.common.Circumcircle;
-import org.tinfour.common.GeometricOperations;
-import org.tinfour.common.IQuadEdge;
-import org.tinfour.common.Vertex;
+import org.tinfour.common.*;
 
+import org.tinfour.common.Vertex;
 import org.tinfour.interpolation.NaturalNeighborInterpolator;
 import org.tinfour.interpolation.VertexValuatorDefault;
 import org.tinfour.standard.IncrementalTin;
@@ -2253,6 +2251,25 @@ public class GroundDetector{
             int maxMapIndex = maxIndex + 2;
 
             BitSet bitset = new BitSet(maxMapIndex);
+
+            for(SimpleTriangle triangle : tin.triangles()){
+
+                 Circumcircle cc = triangle.getCircumcircle();
+
+                double dist_x = Math.min(cc.getX() - inside_x, inside_x + aR.step - cc.getX());
+                double dist_y = Math.min(cc.getY() - (inside_y-aR.step), inside_y - cc.getY());
+
+                boolean inside__x = cc.getX() < (inside_x + aR.step) && cc.getX() > inside_x;
+                boolean inside__y = cc.getY() < (inside_y) && cc.getY() > (inside_y - aR.step);
+
+                /* This means the circle is completely within the square, and can be output to the FINAL tin */
+                if(dist_x < cc.getRadius() && dist_y < cc.getRadius() && inside__x && inside__y){
+
+
+
+                }
+
+            }
 
             Iterator<IQuadEdge> iEdge = tin.getEdgeIterator();
 
