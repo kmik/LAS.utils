@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="tinfour.TinfourAnalysis" type="repository">
+    <properties maven-id="org.tinfour:TinfourAnalysis:2.1.6" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/TinfourAnalysis-2.1.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/commons-math3-3.6.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/TinfourCore-2.1.6.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
