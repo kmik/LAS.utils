@@ -1285,82 +1285,159 @@ public class LASReader {
 
     //long preloc = braf.getFilePosition();
 
-    int lx = braf.buffer.getInt();
-    int ly = braf.buffer.getInt();
-    int lz = braf.buffer.getInt();
+    if(pointDataRecordFormat <= 5) {
 
-    p.x = lx * xScaleFactor + xOffset;
-    p.y = ly * yScaleFactor + yOffset;
-    p.z = lz * zScaleFactor + zOffset;
-    p.intensity = Short.toUnsignedInt(braf.buffer.getShort());
-    int mask = braf.buffer.get();
+      int lx = braf.buffer.getInt();
+      int ly = braf.buffer.getInt();
+      int lz = braf.buffer.getInt();
 
-    //System.out.println((byte)mask);
-    p.returnNumber = mask & 0x07;
-    p.numberOfReturns = (mask >> 3) & 0x7;
-    p.scanDirectionFlag = (mask >> 5) & 0x01;
-    p.edgeOfFlightLine = (mask & 0x80) != 0;
+      p.x = lx * xScaleFactor + xOffset;
+      p.y = ly * yScaleFactor + yOffset;
+      p.z = lz * zScaleFactor + zOffset;
+      p.intensity = Short.toUnsignedInt(braf.buffer.getShort());
 
-    // for record types 0 to 5, the classification
-    // is packed in with some other bit-values, see Table 8
-    mask = braf.buffer.get();
-    p.classification = mask & 0x1f; // bits 0:4, values 0 to 32
-    p.synthetic = (mask & 0x20) != 0;
-    p.keypoint = (mask & 0x40) != 0;
-    p.withheld = (mask & 0x80) != 0;
+      int mask = braf.buffer.get();
 
-    p.scanAngleRank = braf.buffer.get();
-    p.userData =braf.buffer.get();
-    p.pointSourceId = braf.buffer.getShort();
-    // we currently skip
-    //   scan angle rank  1 byte
-    //   user data        1 byte
-    //   point source ID  2 bytes
-    //braf.skipBytes(4); // scan angle rank
+      //System.out.println((byte)mask);
+      p.returnNumber = mask & 0x07;
+      p.numberOfReturns = (mask >> 3) & 0x7;
+      p.scanDirectionFlag = (mask >> 5) & 0x01;
+      p.edgeOfFlightLine = (mask & 0x80) != 0;
+/*
+      System.out.println(mask);
+      System.out.println(p.returnNumber);
+      System.out.println(p.numberOfReturns);
+      System.out.println("---------------------");
+*/
 
-    if (pointDataRecordFormat == 1 || pointDataRecordFormat == 3 || pointDataRecordFormat == 4 || pointDataRecordFormat == 5) {
+      System.out.println(10);
+
+
+      // for record types 0 to 5, the classification
+      // is packed in with some other bit-values, see Table 8
+      mask = braf.buffer.get();
+      p.classification = mask & 0x1f; // bits 0:4, values 0 to 32
+      p.synthetic = (mask & 0x20) != 0;
+      p.keypoint = (mask & 0x40) != 0;
+      p.withheld = (mask & 0x80) != 0;
+
+      p.scanAngleRank = braf.buffer.get();
+      p.userData = braf.buffer.get();
+      p.pointSourceId = braf.buffer.getShort();
+      // we currently skip
+      //   scan angle rank  1 byte
+      //   user data        1 byte
+      //   point source ID  2 bytes
+      //braf.skipBytes(4); // scan angle rank
+
+      if (pointDataRecordFormat == 1 || pointDataRecordFormat == 3 || pointDataRecordFormat == 4 || pointDataRecordFormat == 5) {
+        p.gpsTime = braf.buffer.getDouble();
+        //System.out.println(p.gpsTime);
+        // Depending on the gpsTimeType element, the GPS time can be
+        // in one of two formats:
+        //    GPS Week Time  seconds since 12:00 a.m. Sunday
+        //    GPS Satellite Time   seconds since 12 a.m. Jan 6, 1980
+        //                         minus an offset 1.0e+9
+        //    The mapping to a Java time requires information about
+        //    the GPS time type
+
+      }
+
+      if (pointDataRecordFormat == 2 || pointDataRecordFormat == 3 || pointDataRecordFormat == 5) {
+
+        p.R = (braf.buffer.getChar()) & 0xffff;
+
+
+        //p.R = (int) ((braf.buffer.getChar())&0xffff);
+
+
+        p.G = (braf.buffer.getChar()) & 0xffff;
+        p.B = (braf.buffer.getChar()) & 0xffff;
+
+      }
+
+      if (pointDataRecordFormat == 4 || pointDataRecordFormat == 5) {
+        p.WavePacketDescriptorIndex = braf.buffer.get();
+        p.ByteOffsetToWaveformData = braf.buffer.getLong();
+        p.WaveformPacketSizeInBytes = braf.buffer.getInt();
+        p.ReturnPointWaveformLocation = braf.buffer.getFloat();
+
+        p.x_t = braf.buffer.getFloat();
+        p.y_t = braf.buffer.getFloat();
+        p.z_t = braf.buffer.getFloat();
+
+
+
+      }
+
+      //If someone has decided they want to have their OWN point data format... this is just dumb.
+      if (this.extraBytesInPoint > 0) {
+        braf.buffer.get(readExtra);
+      }
+    }else{
+
+      int lx = braf.buffer.getInt();
+      int ly = braf.buffer.getInt();
+      int lz = braf.buffer.getInt();
+
+      p.x = lx * xScaleFactor + xOffset;
+      p.y = ly * yScaleFactor + yOffset;
+      p.z = lz * zScaleFactor + zOffset;
+      p.intensity = Short.toUnsignedInt(braf.buffer.getShort());
+
+      int mask = braf.buffer.get();
+
+      p.returnNumber = mask>>4;
+
+      p.numberOfReturns = mask&15;
+
+      mask = braf.buffer.get();
+
+      int classificationFlag = mask>>4;
+
+      p.synthetic =   ((classificationFlag >> 0) & 1) != 0;
+      p.keypoint  =   ((classificationFlag >> 1) & 1) != 0;
+      p.withheld  =   ((classificationFlag >> 2) & 1) != 0;
+      p.overlap   =   ((classificationFlag >> 3) & 1) != 0;
+
+      int lastPart = mask&15;
+
+      p.scannerCannel = lastPart&0b11;
+
+      p.scanDirectionFlag = ((lastPart >> 2) & 1);
+      p.edgeOfFlightLine = ((lastPart >> 3) & 1) != 0;
+
+      p.classification = braf.buffer.get();
+      p.userData = braf.buffer.get();
+      p.scanAngleRank = braf.buffer.getShort();
+      p.pointSourceId = braf.buffer.getShort();
       p.gpsTime = braf.buffer.getDouble();
-      //System.out.println(p.gpsTime);
-      // Depending on the gpsTimeType element, the GPS time can be
-      // in one of two formats:
-      //    GPS Week Time  seconds since 12:00 a.m. Sunday
-      //    GPS Satellite Time   seconds since 12 a.m. Jan 6, 1980
-      //                         minus an offset 1.0e+9
-      //    The mapping to a Java time requires information about
-      //    the GPS time type
 
+      if(pointDataRecordFormat >= 7 && pointDataRecordFormat != 9){
+
+        p.R = (braf.buffer.getChar()) & 0xffff;
+        p.G = (braf.buffer.getChar()) & 0xffff;
+        p.B = (braf.buffer.getChar()) & 0xffff;
+
+        if(pointDataRecordFormat >= 8){
+          p.N = (braf.buffer.getChar()) & 0xffff;
+        }
+      }
+      if(pointDataRecordFormat == 10 || pointDataRecordFormat == 9){
+
+        p.WavePacketDescriptorIndex = braf.buffer.get();
+        p.ByteOffsetToWaveformData = braf.buffer.getLong();
+        p.WaveformPacketSizeInBytes = braf.buffer.getInt();
+        p.ReturnPointWaveformLocation = braf.buffer.getFloat();
+
+        p.x_t = braf.buffer.getFloat();
+        p.y_t = braf.buffer.getFloat();
+        p.z_t = braf.buffer.getFloat();
+
+
+      }
     }
 
-    if(pointDataRecordFormat == 2 || pointDataRecordFormat == 3 || pointDataRecordFormat == 5){
-
-      p.R = (braf.buffer.getChar())&0xffff;
-
-
-      //p.R = (int) ((braf.buffer.getChar())&0xffff);
-
-
-      p.G = (braf.buffer.getChar())&0xffff;
-      p.B = (braf.buffer.getChar())&0xffff;
-
-    }
-
-    if(pointDataRecordFormat == 4 || pointDataRecordFormat == 5){
-      p.WavePacketDescriptorIndex = braf.buffer.get();
-      p.ByteOffsetToWaveformData = braf.buffer.getLong();
-      p.WaveformPacketSizeInBytes = braf.buffer.getInt();
-      p.ReturnPointWaveformLocation = braf.buffer.getFloat();
-
-      p.x_t = braf.buffer.getFloat();
-      p.y_t = braf.buffer.getFloat();
-      p.z_t = braf.buffer.getFloat();
-    }
-
-    //If someone has decided they want to have their OWN point data format... this is just dumb.
-    if(this.extraBytesInPoint > 0){
-      braf.buffer.get(readExtra);
-    }
-
-    //System.out.println("point size: " + (braf.getFilePosition()-preloc) + " == " + pointDataRecordLength);
   }
 
   public synchronized void readRecord_noRAF(long recordIndex, LasPoint p, int n) throws Exception {

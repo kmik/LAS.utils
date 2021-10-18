@@ -31,8 +31,15 @@ public class LasPoint implements Cloneable {
     public boolean keypoint;
     /** Indicates that point should not be included in processing */
     public boolean withheld;
+    /** If set, this point is within the overlap region of
+     two or more swaths or takes. */
+    public boolean overlap;
     /** The GPS time (interpreted according to header GPS flag */
     public double gpsTime;
+
+    /** Scanner Channel is used to indicate the channel (scanner head) of a multichannel system. Channel 0 is used for single scanner systems. Up to four channels are
+     supported (0-3). */
+    public int scannerCannel;
 
     public int userData;
 
