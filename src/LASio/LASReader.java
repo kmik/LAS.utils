@@ -1280,11 +1280,6 @@ public class LASReader {
 
   public void readFromBuffer(LasPoint p){
 
-   // System.out.println("format: " + pointDataRecordFormat);
-   // System.out.println("len: " + this.pointDataRecordLength);
-
-    //long preloc = braf.getFilePosition();
-
     if(pointDataRecordFormat <= 5) {
 
       int lx = braf.buffer.getInt();
@@ -1436,6 +1431,11 @@ public class LASReader {
 
 
       }
+
+      if (this.extraBytesInPoint > 0) {
+        braf.buffer.get(readExtra);
+      }
+
     }
 
   }
