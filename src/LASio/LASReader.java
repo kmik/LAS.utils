@@ -169,10 +169,10 @@ public class LASReader {
     sanityCheckPointRecordLength.put(4, 57);
     sanityCheckPointRecordLength.put(5, 63);
     sanityCheckPointRecordLength.put(6, 30);
-    sanityCheckPointRecordLength.put(7, 20);
-    sanityCheckPointRecordLength.put(8, 20);
-    sanityCheckPointRecordLength.put(9, 20);
-    sanityCheckPointRecordLength.put(10, 20);
+    sanityCheckPointRecordLength.put(7, 36);
+    sanityCheckPointRecordLength.put(8, 38);
+    sanityCheckPointRecordLength.put(9, 59);
+    sanityCheckPointRecordLength.put(10, 67);
 
     this.path = path;
     braf = new LASraf(path);
@@ -1064,7 +1064,7 @@ public class LASReader {
         */
     } else if(versionMinor == 3) {
       startOfWaveformDataPacketRec = braf.readLong();
-    }else{
+    }else if(versionMinor == 4){
       startOfWaveformDataPacketRec = braf.readLong();
 
       startOfExtendedVarLenRec = braf.readLong();
@@ -1305,9 +1305,6 @@ public class LASReader {
       System.out.println("---------------------");
 */
 
-      System.out.println(10);
-
-
       // for record types 0 to 5, the classification
       // is packed in with some other bit-values, see Table 8
       mask = braf.buffer.get();
@@ -1341,11 +1338,6 @@ public class LASReader {
       if (pointDataRecordFormat == 2 || pointDataRecordFormat == 3 || pointDataRecordFormat == 5) {
 
         p.R = (braf.buffer.getChar()) & 0xffff;
-
-
-        //p.R = (int) ((braf.buffer.getChar())&0xffff);
-
-
         p.G = (braf.buffer.getChar()) & 0xffff;
         p.B = (braf.buffer.getChar()) & 0xffff;
 
