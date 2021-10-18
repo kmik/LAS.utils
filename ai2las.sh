@@ -27,6 +27,11 @@ fc	ps	ppx	ppy
 		ppx = principal point x offset (m)
 		ppy = principal point y offset (m)
 
+NOTE: 	The coordinate origo for each image is TOP LEFT. 
+	ppx and ppy are simply added to the projected image
+	coordinate. Please see how the ppx and ppy have been
+	derived in your bundle software.
+	
 External orientation (tab delimited):
 	
 file_1	id_1	x_1	y_1	z_1	o_1	p_1	k_1

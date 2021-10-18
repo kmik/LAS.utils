@@ -1929,7 +1929,7 @@ public class GroundDetector{
 
                      */
 
-                    if (statistics[j][i][0] > 10 && number2 >= 1
+                    if (statistics[j][i][0] > 5 && number2 >= 1
 
                     ) {
 
@@ -1970,7 +1970,7 @@ public class GroundDetector{
                              [7] = lowest z index
                              */
 
-                            z_threshold = statisticsBig[bigX][bigY][2] + 1.0;
+                            z_threshold = statisticsBig[bigX][bigY][2] + 2.0;
 
                             //System.out.println(statisticsBig[bigX][bigY][2] + " " + std + " " + tempPoint.z);
 

@@ -177,7 +177,9 @@ public class LASReader {
     this.path = path;
     braf = new LASraf(path);
     vlrList = new ArrayList<>();
+
     readHeader(); //NOPMD
+
     try {
       getIndexMap();
     }catch (Exception e){
