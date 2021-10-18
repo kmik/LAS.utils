@@ -112,11 +112,93 @@ public class printHelp {
                 stemDetector();
                 break;
 
+            case 12345:
+                ai2las();
+                break;
+
 
             default:
                 break;
         }
     }
+
+    public static void ai2las(){
+        System.out.println("----------------------------------------------\n" +
+                " runners.ai2las (LASutils version 0.1)\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Assigns a DN value for each point in .las (or .txt) point\n" +
+                "cloud file. Output column order is defined with -oparse flag.\n" +
+                "\n" +
+                "Requires external and internal orientation files. Algorithm\n" +
+                "calculates the mean value for each band from each image that \n" +
+                "has observed the point. Last columns of the output file are thus\n" +
+                "band_1, band_2, ... , band_n.\n" +
+                "\n" +
+                "Internal orientation (tab delimited):\n" +
+                "\n" +
+                "fc\tps\tppx\tppy\n" +
+                "\n" +
+                "\twhere\tfc = focal length (m)\n" +
+                "\t\tps = pixel size (mm)\n" +
+                "\t\tppx = principal point x offset (m)\n" +
+                "\t\tppy = principal point y offset (m)\n" +
+                "\n" +
+                "NOTE: \tThe coordinate origo for each image is TOP LEFT. \n" +
+                "\tppx and ppy are simply added to the projected image\n" +
+                "\tcoordinate. Please see how the ppx and ppy have been\n" +
+                "\tderived in your bundle software.\n" +
+                "\t\n" +
+                "External orientation (tab delimited):\n" +
+                "\t\n" +
+                "file_1\tid_1\tx_1\ty_1\tz_1\to_1\tp_1\tk_1\n" +
+                "file_2\tid_2\tx_2\ty_2\tz_2\to_2\tp_2\tk_2\n" +
+                "\t\t\t.\n" +
+                "\t\t\t.\n" +
+                "\t\t\t.\n" +
+                "file_n\tid_n\tx_n\ty_n\tz_n\to_n\tp_n\tk_n\n" +
+                "\n" +
+                "where\tn = number of images\t\n" +
+                "\tfile = filepath\n" +
+                "\tid = image id (can be arbitary, but unique)\n" +
+                "\tx = x coordinate\n" +
+                "\ty = y coordinate\n" +
+                "\tz = altitude\n" +
+                "\to = omega (Rotation about the X axis) \n" +
+                "\tp = phi (Rotation about the Y axis)\n" +
+                "\tk = kappa (Rotation about the Z axis)\n" +
+                "\n" +
+                "Flying direction towards the x-axis:\n" +
+                "\n" +
+                "        |     y    ___\n" +
+                "      z\t|   /\t --_-- |\\______.\n" +
+                "\t|  /\t --_-- '-====---\"\n" +
+                "\t| /     x   ----  **\n" +
+                "\t|/______\t *  *\n" +
+                "\t\t\t*    *\n" +
+                "      \t\t       *      *\n" +
+                "        \t      *\t+ /|\\  *\t\n" +
+                "________________________+__|______________\t\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-exterior\t\tInput orientation file\n" +
+                "\t-interior\t\tInput interior orientation file\n" +
+                "\t-oparse\n" +
+                "\t-iparse\n" +
+                "\t-edges\t\t\tPercentage of \"no-go-zone\" from\n" +
+                "\t\t\t\tthe edges of the images. Floating\n" +
+                "\t\t\t\tpoint 0.0 - 1.0. Example 0.2 means\n" +
+                "\t\t\t\twe don't consider the pixel if\n" +
+                "\t\t\t\tit is 0.2 x width from either the \n" +
+                "\t\t\t\tleft or right side of the image.\n" +
+                "\t\t\t\tSame goes for top and bottom.\n" +
+                "\t\n" +
+                "\n" +
+                "Optional arguments:\n" +
+                "\n" +
+                "\tRefer to manual");
+    }
+
 
     public static void lasGridStats(){
         System.out.println("----------------------------------------------\n" +
