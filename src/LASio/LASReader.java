@@ -1208,74 +1208,137 @@ public class LASReader {
     long filePos = this.offsetToPointData
             + recordIndex * this.pointDataRecordLength;
     braf.seek(filePos);
-    int lx = braf.readInt();
-    int ly = braf.readInt();
-    int lz = braf.readInt();
 
-    p.x = lx * xScaleFactor + xOffset;
-    p.y = ly * yScaleFactor + yOffset;
-    p.z = lz * zScaleFactor + zOffset;
-    p.intensity = braf.readUnsignedShort();
-    int mask = braf.readUnsignedByte();
-    //System.out.println((byte)mask);
-    p.returnNumber = mask & 0x07;
-    p.numberOfReturns = (mask >> 3) & 0x7;
-    p.scanDirectionFlag = (mask >> 5) & 0x01;
-    p.edgeOfFlightLine = (mask & 0x80) != 0;
+    if(pointDataRecordFormat <= 5) {
 
-    // for record types 0 to 5, the classification
-    // is packed in with some other bit-values, see Table 8
-    mask = braf.readUnsignedByte();
-    p.classification = mask & 0x1f; // bits 0:4, values 0 to 32
-    p.synthetic = (mask & 0x20) != 0;
-    p.keypoint = (mask & 0x40) != 0;
-    p.withheld = (mask & 0x80) != 0;
+      int lx = braf.readInt();
+      int ly = braf.readInt();
+      int lz = braf.readInt();
 
-    p.scanAngleRank = braf.readByte();
-    p.userData = braf.readByte();
-    p.pointSourceId = braf.readShort();
-    // we currently skip
-    //   scan angle rank  1 byte
-    //   user data        1 byte
-    //   point source ID  2 bytes
-    //braf.skipBytes(4); // scan angle rank
+      p.x = lx * xScaleFactor + xOffset;
+      p.y = ly * yScaleFactor + yOffset;
+      p.z = lz * zScaleFactor + zOffset;
+      p.intensity = braf.readUnsignedShort();
+      int mask = braf.readUnsignedByte();
+      //System.out.println((byte)mask);
+      p.returnNumber = mask & 0x07;
+      p.numberOfReturns = (mask >> 3) & 0x7;
+      p.scanDirectionFlag = (mask >> 5) & 0x01;
+      p.edgeOfFlightLine = (mask & 0x80) != 0;
 
-    if (pointDataRecordFormat == 1 || pointDataRecordFormat == 3 || pointDataRecordFormat == 4 || pointDataRecordFormat == 5) {
+      // for record types 0 to 5, the classification
+      // is packed in with some other bit-values, see Table 8
+      mask = braf.readUnsignedByte();
+      p.classification = mask & 0x1f; // bits 0:4, values 0 to 32
+      p.synthetic = (mask & 0x20) != 0;
+      p.keypoint = (mask & 0x40) != 0;
+      p.withheld = (mask & 0x80) != 0;
+
+      p.scanAngleRank = braf.readByte();
+      p.userData = braf.readByte();
+      p.pointSourceId = braf.readShort();
+      // we currently skip
+      //   scan angle rank  1 byte
+      //   user data        1 byte
+      //   point source ID  2 bytes
+      //braf.skipBytes(4); // scan angle rank
+
+      if (pointDataRecordFormat == 1 || pointDataRecordFormat == 3 || pointDataRecordFormat == 4 || pointDataRecordFormat == 5) {
+        p.gpsTime = braf.readDouble();
+        //System.out.println(p.gpsTime);
+        // Depending on the gpsTimeType element, the GPS time can be
+        // in one of two formats:
+        //    GPS Week Time  seconds since 12:00 a.m. Sunday
+        //    GPS Satellite Time   seconds since 12 a.m. Jan 6, 1980
+        //                         minus an offset 1.0e+9
+        //    The mapping to a Java time requires information about
+        //    the GPS time type
+
+      }
+
+      if (pointDataRecordFormat == 2 || pointDataRecordFormat == 3 || pointDataRecordFormat == 5) {
+
+        p.R = braf.readUnsignedShort();
+        p.G = braf.readShort();
+        p.B = braf.readShort();
+
+      }
+
+      if (pointDataRecordFormat == 4 || pointDataRecordFormat == 5) {
+        p.WavePacketDescriptorIndex = braf.readUnsignedByte();
+        p.ByteOffsetToWaveformData = braf.readLong();
+        p.WaveformPacketSizeInBytes = (int) braf.readUnsignedInt();
+        p.ReturnPointWaveformLocation = braf.readFloat();
+
+        p.x_t = braf.readFloat();
+        p.y_t = braf.readFloat();
+        p.z_t = braf.readFloat();
+      }
+    }else{
+
+      int lx = braf.readInt();
+      int ly = braf.readInt();
+      int lz = braf.readInt();
+
+      p.x = lx * xScaleFactor + xOffset;
+      p.y = ly * yScaleFactor + yOffset;
+      p.z = lz * zScaleFactor + zOffset;
+      p.intensity = braf.readUnsignedShort();
+
+      int mask = braf.readUnsignedByte();
+
+      p.returnNumber = mask>>4;
+
+      p.numberOfReturns = mask&15;
+
+      mask = braf.readUnsignedByte();
+
+      int classificationFlag = mask>>4;
+
+      p.synthetic =   ((classificationFlag >> 0) & 1) != 0;
+      p.keypoint  =   ((classificationFlag >> 1) & 1) != 0;
+      p.withheld  =   ((classificationFlag >> 2) & 1) != 0;
+      p.overlap   =   ((classificationFlag >> 3) & 1) != 0;
+
+      int lastPart = mask&15;
+
+      p.scannerCannel = lastPart&0b11;
+
+      p.scanDirectionFlag = ((lastPart >> 2) & 1);
+      p.edgeOfFlightLine = ((lastPart >> 3) & 1) != 0;
+
+      p.classification = braf.readUnsignedByte();
+      p.userData = braf.readUnsignedByte();
+      p.scanAngleRank = braf.readUnsignedShort();
+      p.pointSourceId = braf.readShort();
       p.gpsTime = braf.readDouble();
-      //System.out.println(p.gpsTime);
-      // Depending on the gpsTimeType element, the GPS time can be
-      // in one of two formats:
-      //    GPS Week Time  seconds since 12:00 a.m. Sunday
-      //    GPS Satellite Time   seconds since 12 a.m. Jan 6, 1980
-      //                         minus an offset 1.0e+9
-      //    The mapping to a Java time requires information about
-      //    the GPS time type
+
+      if(pointDataRecordFormat >= 7 && pointDataRecordFormat != 9){
+
+        p.R = (braf.readShort()) & 0xffff;
+        p.G = (braf.readShort()) & 0xffff;
+        p.B = (braf.readShort()) & 0xffff;
+
+        if(pointDataRecordFormat >= 8){
+          p.N = (braf.readShort()) & 0xffff;
+        }
+      }
+      if(pointDataRecordFormat == 10 || pointDataRecordFormat == 9){
+
+        p.WavePacketDescriptorIndex = braf.readUnsignedByte();
+        p.ByteOffsetToWaveformData = braf.readLong();
+        p.WaveformPacketSizeInBytes = (int)braf.readUnsignedInt();
+        p.ReturnPointWaveformLocation = braf.readFloat();
+
+        p.x_t = braf.readFloat();
+        p.y_t = braf.readFloat();
+        p.z_t = braf.readFloat();
+
+
+      }
 
     }
 
-    if(pointDataRecordFormat == 2 || pointDataRecordFormat == 3 || pointDataRecordFormat == 5){
-
-      p.R = braf.readUnsignedShort();
-      p.G = braf.readShort();
-      p.B = braf.readShort();
-
-    }
-
-    if(pointDataRecordFormat == 4 || pointDataRecordFormat == 5){
-      p.WavePacketDescriptorIndex = braf.readUnsignedByte();
-      p.ByteOffsetToWaveformData = braf.readLong();
-      p.WaveformPacketSizeInBytes = (int)braf.readUnsignedInt();
-      p.ReturnPointWaveformLocation = braf.readFloat();
-
-      p.x_t = braf.readFloat();
-      p.y_t = braf.readFloat();
-      p.z_t = braf.readFloat();
-    }
-
-  }
-
-  public void skipPointInBuffer() throws IOException{
-    braf.buffer.position( braf.buffer.position() + this.pointDataRecordLength); //   skipBytes(this.pointDataRecordLength);
   }
 
   public void readFromBuffer(LasPoint p){
@@ -1431,6 +1494,12 @@ public class LASReader {
     }
 
   }
+
+  public void skipPointInBuffer() throws IOException{
+    braf.buffer.position( braf.buffer.position() + this.pointDataRecordLength); //   skipBytes(this.pointDataRecordLength);
+  }
+
+
 
   public synchronized void readRecord_noRAF(long recordIndex, LasPoint p, int n) throws Exception {
 
