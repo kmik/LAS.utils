@@ -1121,6 +1121,9 @@ public class GroundDetector{
                         //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                         pointCloud.readFromBuffer(tempPoint);
 
+                        /*      If the las point is already classified as ground, we clear the classification
+                                because we do not trust the prior classification.
+                         */
                         if(tempPoint.classification == 2)
                             tempPoint.classification = 0;
 
