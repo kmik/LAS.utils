@@ -240,21 +240,9 @@ public class LasPointBufferCreator {
     }
 
     public synchronized boolean writePoint(LasPoint tempPoint, PointInclusionRule rule, int i)throws IOException {
-/*
-        xScaleFactor = 0.01;
-        yScaleFactor = 0.01;
-        zScaleFactor = 0.01;
 
-        xOffset = 0.0;
-        yOffset = 0.0;
-        zOffset = 0.0;
-*/
         /* Written or not */
         boolean output = false;
-
-        //Byte myByte = new Byte("00000000");
-        //byte myBitti = myByte.byteValue();
-
 
         /* Write if rule says so */
 
@@ -273,18 +261,13 @@ public class LasPointBufferCreator {
             int ly = (int)((y - this.pwrite.tempReader.yOffset) / this.pwrite.tempReader.yScaleFactor);
             /* Scale z and apply zOffset */
             int lz = (int)((z - this.pwrite.tempReader.zOffset) / this.pwrite.tempReader.zScaleFactor);
-            //if(ly < 0)
-            //System.out.println(lx + " " + ly);
+
             /* Write scaled and offset x, y and z */
             this.writeInt(lx);
             this.writeInt(ly);
             this.writeInt(lz);
 
-            //System.out.println(x + " == " + (lx * xScaleFactor + xOffset));
 
-            //if((lx * xScaleFactor + xOffset) < 606300){
-              //  System.out.println(tempPoint.x);
-            //}
 
             /* Write intensity */
             this.writeUnsignedShort((short)tempPoint.intensity);// braf.readUnsignedShort()
@@ -295,35 +278,7 @@ public class LasPointBufferCreator {
 				Scan Direction Flag 1 bit 				(bit 6) 1 bit *
 				Edge of Flight Line 1 bit 				(bit 7)
 			 */
-/*
-			myByte = setBit(myByte, 7, (tempPoint.edgeOfFlightLine) ? 1 : 0);
-			myByte = setBit(myByte, 6, tempPoint.scanDirectionFlag);
-			myByte = setBit(myByte, 5, getBit((byte)tempPoint.numberOfReturns, 2));
-			myByte = setBit(myByte, 4, getBit((byte)tempPoint.numberOfReturns, 1));
-			myByte = setBit(myByte, 3, getBit((byte)tempPoint.numberOfReturns, 0));
-			myByte = setBit(myByte, 2, getBit((byte)tempPoint.returnNumber, 2));
-			myByte = setBit(myByte, 1, getBit((byte)tempPoint.returnNumber, 1));
-			myByte = setBit(myByte, 0, getBit((byte)tempPoint.returnNumber, 0));
 
- */
-/*
-            System.out.println(tempPoint.numberOfReturns);
-            System.out.println((byte)tempPoint.numberOfReturns >> 0);
-            System.out.println((byte)tempPoint.numberOfReturns >> 1);
-            System.out.println((byte)tempPoint.numberOfReturns >> 2);
-            System.out.println("---------------------");
-
- */
-/*
-            myBitti = setUnsetBit(myBitti, 7, tempPoint.edgeOfFlightLine ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 6, tempPoint.scanDirectionFlag);
-            myBitti = setUnsetBit(myBitti, 5, (byte)tempPoint.numberOfReturns >> 2);
-            myBitti = setUnsetBit(myBitti, 4, (byte)tempPoint.numberOfReturns >> 1);
-            myBitti = setUnsetBit(myBitti, 3, (byte)tempPoint.numberOfReturns >> 0);
-            myBitti = setUnsetBit(myBitti, 2, (byte)tempPoint.returnNumber >> 2);
-            myBitti = setUnsetBit(myBitti, 1, (byte)tempPoint.returnNumber >> 1);
-            myBitti = setUnsetBit(myBitti, 0, (byte)tempPoint.returnNumber >> 0);
-*/
             myBitti = setUnsetBit(myBitti, 7, tempPoint.edgeOfFlightLine ? 1 : 0);
             myBitti = setUnsetBit(myBitti, 6, tempPoint.scanDirectionFlag);
             myBitti = setUnsetBit(myBitti, 5, ((byte)tempPoint.numberOfReturns & (1 << (2))) > 0 ? 1 : 0);
@@ -333,16 +288,6 @@ public class LasPointBufferCreator {
             myBitti = setUnsetBit(myBitti, 1, ((byte)tempPoint.returnNumber & (1 << (1))) > 0 ? 1 : 0);
             myBitti = setUnsetBit(myBitti, 0, ((byte)tempPoint.returnNumber & (1 << (0))) > 0 ? 1 : 0);
 
-			/*
-			myByte = setBit(myByte, 7, (tempPoint.edgeOfFlightLine) ? 1 : 0);
-			myByte = setBit(myByte, 6, tempPoint.scanDirectionFlag);
-			myByte = setBit(myByte, 5, (byte)tempPoint.numberOfReturns >> 2);
-			myByte = setBit(myByte, 4, (byte)tempPoint.numberOfReturns >> 1);
-			myByte = setBit(myByte, 3, (byte)tempPoint.numberOfReturns >> 0);
-			myByte = setBit(myByte, 2, (byte)tempPoint.returnNumber >> 2);
-			myByte = setBit(myByte, 1, (byte)tempPoint.returnNumber >> 1);
-			myByte = setBit(myByte, 0, (byte)tempPoint.returnNumber >> 0);
-			*/
             /* Write byte */
             this.writeUnsignedByte(myBitti);
 
@@ -365,17 +310,7 @@ public class LasPointBufferCreator {
 			7 		Withheld If set, this point should not be included in
 
 			*/
-			/*
-			myByte = setBit(myByte, 7, (tempPoint.withheld) ? 1 : 0);
-			myByte = setBit(myByte, 6, (tempPoint.keypoint) ? 1 : 0);
-			myByte = setBit(myByte, 5, (tempPoint.synthetic) ? 1 : 0);
-			myByte = setBit(myByte, 4, getBit((byte)tempPoint.classification,4));
-			myByte = setBit(myByte, 3, getBit((byte)tempPoint.classification,3));
-			myByte = setBit(myByte, 2, getBit((byte)tempPoint.classification,2));
-			myByte = setBit(myByte, 1, getBit((byte)tempPoint.classification,1));
-			myByte = setBit(myByte, 0, getBit((byte)tempPoint.classification,0));
 
-			 */
 
             myBitti = setUnsetBit(myBitti, 7, (tempPoint.withheld) ? 1 : 0);
             myBitti = setUnsetBit(myBitti, 6, (tempPoint.keypoint) ? 1 : 0);
@@ -386,16 +321,6 @@ public class LasPointBufferCreator {
             myBitti = setUnsetBit(myBitti, 1, ((byte)tempPoint.classification & (1 << (1))) > 0 ? 1 : 0);
             myBitti = setUnsetBit(myBitti, 0, ((byte)tempPoint.classification & (1 << (0))) > 0 ? 1 : 0);
 
-			/*
-            myByte = setBit(myByte, 7, (tempPoint.withheld) ? 1 : 0);
-            myByte = setBit(myByte, 6, (tempPoint.keypoint) ? 1 : 0);
-            myByte = setBit(myByte, 5, (tempPoint.synthetic) ? 1 : 0);
-            myByte = setBit(myByte, 4, (byte)tempPoint.classification >> 4);
-            myByte = setBit(myByte, 3, (byte)tempPoint.classification >> 3);
-            myByte = setBit(myByte, 2, (byte)tempPoint.classification >> 2);
-            myByte = setBit(myByte, 1, (byte)tempPoint.classification >> 1);
-            myByte = setBit(myByte, 0, (byte)tempPoint.classification >> 0);
-			*/
 
             /* Write the byte */
             this.writeUnsignedByte(myBitti);
@@ -452,7 +377,6 @@ public class LasPointBufferCreator {
             if(tempPoint.z < this.minZ)
                 this.minZ = tempPoint.z;
             if(tempPoint.x < this.minX) {
-                //System.out.println(tempPoint.x);
                 this.minX = tempPoint.x;
             }
             if(tempPoint.y < this.minY)
