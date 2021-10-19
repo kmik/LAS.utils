@@ -463,7 +463,7 @@ public class argumentReader {
 
         options.addOption(Option.builder()
                 .longOpt("change_point_type")
-                .hasArg(false)
+                .hasArg(true)
                 .desc("Change point type")
                 .required(false)
                 .build());
@@ -1179,6 +1179,13 @@ public class argumentReader {
             if (cmd.hasOption("set_seed")) {
 
                 this.set_seed = Integer.parseInt(cmd.getOptionValue("set_seed"));
+            }
+
+            if(cmd.hasOption("change_point_type")){
+
+                this.change_point_type = Integer.parseInt(cmd.getOptionValue("change_point_type"));
+
+                this.inclusionRule.changePointFormat(this.change_point_type);
             }
 
             if (cmd.hasOption("label_index")) {

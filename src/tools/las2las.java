@@ -52,7 +52,7 @@ public class las2las{
 
             maxi = (int) Math.min(10000, Math.abs(in.getNumberOfPointRecords() - i));
 
-                aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, 10000);
 
             for (int j = 0; j < maxi; j++) {
 
@@ -79,10 +79,7 @@ public class las2las{
 
                 }
 
-                //buf.writePoint(tempPoint, aR.inclusionRule, i+j);
                 try {
-
-
 
                     aR.pfac.writePoint(tempPoint, i + j, thread_n);
                 }catch (Exception e){

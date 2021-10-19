@@ -123,6 +123,8 @@ public class PointInclusionRule{
 
 	boolean remove_buffer = false;
 
+	int changePointFormat = -999;
+
 
 	/*
 	NEW ONES! THESE ARE NOT IN THE SCRIPT FILES!
@@ -392,6 +394,11 @@ public class PointInclusionRule{
 		set_point_source_id = in;
 	}
 
+	public void changePointFormat(int toFormat){
+
+		this.changePointFormat = toFormat;
+
+	}
 
 	public void translate_x(double in){
 
@@ -435,7 +442,6 @@ public class PointInclusionRule{
 
 
 		/* Here we do removes that are done regardless of read or write */
-
 		if(!io && remove_buffer) {
 			if (tempPoint.synthetic) {
 				return false;
@@ -447,7 +453,6 @@ public class PointInclusionRule{
 		if(set_point_source_id != -999){
 			tempPoint.pointSourceId = (short)this.set_point_source_id;
 		}
-
 
 
 		/*
