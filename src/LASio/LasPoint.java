@@ -23,7 +23,7 @@ public class LasPoint implements Cloneable {
     public int scanDirectionFlag;
     /** Indicates whether the detection was at the edge of a flight line */
     public boolean edgeOfFlightLine;
-    /** The observation-category classification for the return */
+    /** The classification for the return */
     public int classification;
     /** Indicates that point was created by techniques other than LIDAR */
     public boolean synthetic;

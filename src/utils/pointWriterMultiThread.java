@@ -11,22 +11,8 @@ import java.util.concurrent.BlockingQueue;
 
 public class pointWriterMultiThread {
 
-
-    protected BlockingQueue<LasPoint> blockingQueue = null;
-    //public File outFile;
-
-    private LASraf raOutput;
-    private PointInclusionRule rule;
-
     public LASReader tempReader;
-    BlockingQueue<byte[]> que;
 
-    ArrayList<BlockingQueue<byte[]>> thread_ques;
-    BlockingQueue<Integer> threadWrote;
-    boolean end = false;
-    int takeInt;
-
-    long start = System.currentTimeMillis();
     public LASraf outputFile;
 
     int pointCount = 0;

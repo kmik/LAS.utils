@@ -47,23 +47,12 @@ public class las2las{
         LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
         aR.pfac.addWriteThread(thread_n, pw, buf);
-/*
-        aR.p_update.threadFile[coreNumber-1] = in.getFile().getName();
-        aR.p_update.threadEnd[coreNumber-1] = (int)in.getNumberOfPointRecords();
 
-        aR.p_update.threadProgress[coreNumber-1] = 0;
-
-        aR.p_update.updateProgressLas2Las();
-*/
         for(int i = 0; i < in.getNumberOfPointRecords(); i += 10000) {
 
             maxi = (int) Math.min(10000, Math.abs(in.getNumberOfPointRecords() - i));
 
-
-                //in.readRecord_noRAF(i, tempPoint, 10000);
                 aR.pfac.prepareBuffer(thread_n, i, 10000);
-
-            //pointCloud.braf.buffer.position(0);
 
             for (int j = 0; j < maxi; j++) {
 

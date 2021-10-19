@@ -2,8 +2,6 @@ package LASio;
 
 import utils.argumentReader;
 import utils.pointWriterMultiThread;
-
-
 import java.io.IOException;
 import java.util.ArrayList;
 
