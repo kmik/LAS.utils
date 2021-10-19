@@ -1127,7 +1127,6 @@ public class GroundDetector{
                         if(tempPoint.classification == 2)
                             tempPoint.classification = 0;
 
-                        //if (doneIndexes.contains(p+j))
                         if (doneInd[p+j])
                             tempPoint.classification = 2;
 
@@ -1138,16 +1137,8 @@ public class GroundDetector{
                             tempPoint.z -= interpolatedZ;
                         }
 
-                        //buf.writePoint(tempPoint, aR.inclusionRule, p+j);
                         aR.pfac.writePoint(tempPoint, p + j, thread_n);
-                  /*
-                    if(asd2.writePoint( tempPoint, rule, pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
-                            pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, i)) {
-                        pointCount++;
 
-                   */
-                        //System.out.println("!!!");
-                        //}
 
                     }
                 }
@@ -1165,7 +1156,6 @@ public class GroundDetector{
         long tDelta = tEnd - tStart;
         double elapsedSeconds = tDelta / 1000.0;
 
-        //System.out.println("\nProcessing time: " + elapsedSeconds + " s");
         tStart = System.currentTimeMillis();
 
         String otype = "las";
@@ -1174,8 +1164,6 @@ public class GroundDetector{
         tEnd = System.currentTimeMillis();
         tDelta = tEnd - tStart;
         elapsedSeconds = tDelta / 1000.0;
-
-        //int[] result = indexes.stream().mapToInt(i -> i).toArray();
 
         int[] result = new int[indexes.size()];
         for(int i = 0; i < result.length; i++){

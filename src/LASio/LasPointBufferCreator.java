@@ -43,7 +43,6 @@ public class LasPointBufferCreator {
 
     long pointCount = 0;
 
-
     public LasPointBufferCreator(int bufferId, pointWriterMultiThread pwrite){
 
         this.pointLengthInBytes = pwrite.pointDataRecordLength;
@@ -64,69 +63,18 @@ public class LasPointBufferCreator {
 
 
     public void output() throws IOException {
-/*
-        System.out.println("writing started!! " + this.bufferId + " buf size: " + outputQue.get(this.bufferId-1).size());
-        System.out.println("writing started!! " + this.bufferId + " buf size: " + outputQue.get(this.bufferId-1).size());
-        System.out.println("writing started!! " + this.bufferId + " buf size: " + outputQue.get(this.bufferId-1).size());
-        System.out.println("writing started!! " + this.bufferId + " buf size: " + outputQue.get(this.bufferId-1).size());
-        System.out.println("writing started!! " + this.bufferId + " buf size: " + outputQue.get(this.bufferId-1).size());
-
-*/
-
-        //try {
-        /*
-            outputQue.get(this.bufferId-1).add(this.allArray2.clone());
-
-            try {
-                threadDone.put(this.bufferId - 1);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-
-         */
 
         pwrite.write(allArray2);
-        /*
-        if(this.bufferId > 1) {
-            //System.out.println("return!");
-            return;
-        }
-
-        if(!pwrite.writing)
-
-        else
-            pwrite.addToQueue(allArray2);
-              //pointCloudOut.write(this.allArray2, pointLengthInBytes);
-        */
-        //} catch (IOException e) {
-          //  e.printStackTrace();
-        //}
-/*
-        System.out.println("writing ended!! " + this.bufferId + " buf size: " + outputQue.get(this.bufferId-1).size());
-        System.out.println("writing ended!! " + this.bufferId + " buf size: " + outputQue.get(this.bufferId-1).size());
-        System.out.println("writing ended!! " + this.bufferId + " buf size: " + outputQue.get(this.bufferId-1).size());
-        System.out.println("writing ended!! " + this.bufferId + " buf size: " + outputQue.get(this.bufferId-1).size());
-        System.out.println("writing ended!! " + this.bufferId + " buf size: " + outputQue.get(this.bufferId-1).size());
-        System.out.println("writing ended!! " + this.bufferId + " buf size: " + outputQue.get(this.bufferId-1).size());
-*/
-
-
 
     }
     public void writeInt(int in) throws IOException {
-        //buffer.clear();
-
-        //intArray = intToByteArray(in);
 
         intArray[3] = (byte)(in >>> 24);
         intArray[2] = (byte)(in >>> 16);
         intArray[1] = (byte)(in >>> 8);
         intArray[0] = (byte)in;
 
-        //System.out.println(ByteBuffer.wrap(intArray).getInt() + " == " + in);
-
         if(allArray2Index + intArray.length >= allArray2.length) {
-            //writeBuffer2();
 
             allArray2[allArray2Index] = intArray[0];
             allArray2Index++;
