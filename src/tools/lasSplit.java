@@ -201,14 +201,14 @@ public class lasSplit {
             case 1 :
 
                 pw = new pointWriterMultiThread(aR.createOutputFileWithExtension(pointCloud, "_flightLine_" + split + ".las"), pointCloud, "lasSplit", aR);
-                buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+                buf = new LasPointBufferCreator(1, pw);
                 this.tempFiles_buf.put(split, buf);
                 break;
 
             case 2 :
 
                 pw = new pointWriterMultiThread(aR.createOutputFileWithExtension(pointCloud, "_classification_" + split + ".las"), pointCloud, "lasSplit", aR);
-                buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+                buf = new LasPointBufferCreator(1, pw);
                 this.tempFiles_buf.put(split, buf);
 
                 /*
@@ -226,7 +226,7 @@ public class lasSplit {
 
                  */
                 pw = new pointWriterMultiThread(aR.createOutputFileWithExtension(pointCloud, "_return_" + split + ".las"), pointCloud, "lasSplit", aR);
-                buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+                buf = new LasPointBufferCreator(1, pw);
                 this.tempFiles_buf.put(split, buf);
                 break;
 
@@ -238,7 +238,7 @@ public class lasSplit {
 
                  */
                 pw = new pointWriterMultiThread(aR.createOutputFileWithExtension(pointCloud, "_userData_" + split + ".las"), pointCloud, "lasSplit", aR);
-                buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+                buf = new LasPointBufferCreator(1, pw);
                 this.tempFiles_buf.put(split, buf);
                 break;
 
@@ -250,7 +250,7 @@ public class lasSplit {
 
                  */
                 pw = new pointWriterMultiThread(aR.createOutputFileWithExtension(pointCloud, "_pointSourceId_" + split + ".las"), pointCloud, "lasSplit", aR);
-                buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+                buf = new LasPointBufferCreator(1, pw);
                 this.tempFiles_buf.put(split, buf);
                 break;
         }

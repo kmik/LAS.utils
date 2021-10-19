@@ -80,7 +80,7 @@ public class Merger{
 
         pointWriterMultiThread pw = new pointWriterMultiThread(this.outputfile, tempReader1, "lasmerge", aR);
 
-        LasPointBufferCreator buf = new LasPointBufferCreator(tempReader1.pointDataRecordLength, 1, pw);
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
 
         double minX = Double.MAX_VALUE;

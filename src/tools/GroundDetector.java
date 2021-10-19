@@ -1085,7 +1085,7 @@ public class GroundDetector{
 
         pointWriterMultiThread pw = new pointWriterMultiThread(outputFile, pointCloud, "las2las", aR);
 
-        LasPointBufferCreator buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
         aR.pfac.addWriteThread(thread_n, pw, buf);
 
@@ -2711,7 +2711,7 @@ public class GroundDetector{
 
         pointWriterMultiThread pw = new pointWriterMultiThread(this.outWriteFile, pointCloud, "las2las", aR);
 
-        LasPointBufferCreator buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
         //LASwrite.writeHeader(asd2, "lasheight", pointCloud.versionMajor, pointCloud.versionMinor, pointCloud.pointDataRecordFormat, pointCloud.pointDataRecordLength);
         int pointCount = 0;
@@ -2856,7 +2856,7 @@ public class GroundDetector{
 
             pointWriterMultiThread pw = new pointWriterMultiThread(this.outWriteFile, pointCloud, "las2las", aR);
 
-            LasPointBufferCreator buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+            LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
             aR.pfac.addWriteThread(thread_n, pw, buf);
 
@@ -3006,7 +3006,7 @@ public class GroundDetector{
             double distance = 0.0;
             pointWriterMultiThread pw = new pointWriterMultiThread(this.outWriteFile, pointCloud, "las2las", aR);
 
-            LasPointBufferCreator buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+            LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
             //LASwrite.writeHeader(asd2, "lasheight", pointCloud.versionMajor, pointCloud.versionMinor, pointCloud.pointDataRecordFormat, pointCloud.pointDataRecordLength);
             int pointCount = 0;

@@ -1030,10 +1030,10 @@ class MKid4pointsLAS{
 
         if(aR.split){
             for(int i = 0; i < outputFiles.size(); i++)
-                outputBuffers.add(new LasPointBufferCreator(templateCloud.pointDataRecordLength, part, outputFiles.get(i)));
+                outputBuffers.add(new LasPointBufferCreator(part, outputFiles.get(i)));
         }
         else
-            pointBuffer = new LasPointBufferCreator(templateCloud.pointDataRecordLength, part, pwrite);
+            pointBuffer = new LasPointBufferCreator(part, pwrite);
 
         File tietue = new File("output" + System.getProperty("file.separator") + plotOutName);
 
@@ -2026,10 +2026,10 @@ class MKid4pointsLAS{
         LasPointBufferCreator pointBuffer = null;
 
 
-        pointBuffer = new LasPointBufferCreator(templateCloud.pointDataRecordLength, 1, pw);
+        pointBuffer = new LasPointBufferCreator(1, pw);
 
 
-        LasPointBufferCreator buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
 
         ArrayList<String> pisteet = new ArrayList<String>();   //TULOSTEPISTELISTA

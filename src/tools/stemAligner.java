@@ -99,7 +99,7 @@ public class stemAligner {
 
         pointWriterMultiThread pw = new pointWriterMultiThread(pointCloud.getFile(), pointCloud, "las2las", aR);
 
-        LasPointBufferCreator buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
         int maxi = 0;
 
         LasPoint tempPoint = new LasPoint();

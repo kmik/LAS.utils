@@ -235,7 +235,7 @@ public class trunkDBH {
 
         pointWriterMultiThread pw = new pointWriterMultiThread(o_file, pointCloud, "las2las", aR);
 
-        LasPointBufferCreator buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
         aR.pfac.addWriteThread(thread_n, pw, buf);
 
         for(int i = 0; i < this.pointCloud.getNumberOfPointRecords(); i += 10000) {

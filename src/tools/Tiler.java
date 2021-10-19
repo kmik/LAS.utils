@@ -201,7 +201,7 @@ public class Tiler{
                 //outputFilesMatrix[ (int)((maxX - i) / sideLength) ][(int)((maxY - j) / sideLength) ] = raTemp;
 
                 outputFilesMatrix_pw[ (int)((maxX - i) / sideLength) ][(int)((maxY - j) / sideLength) ] = new pointWriterMultiThread(temp, pointClouds.get(0), "lasTile", aR);
-                outputFilesMatrix_buf[ (int)((maxX - i) / sideLength) ][(int)((maxY - j) / sideLength) ] = new LasPointBufferCreator(pointClouds.get(0).pointDataRecordLength, 1, outputFilesMatrix_pw[ (int)((maxX - i) / sideLength) ][(int)((maxY - j) / sideLength) ]);
+                outputFilesMatrix_buf[ (int)((maxX - i) / sideLength) ][(int)((maxY - j) / sideLength) ] = new LasPointBufferCreator(1, outputFilesMatrix_pw[ (int)((maxX - i) / sideLength) ][(int)((maxY - j) / sideLength) ]);
                 //System.out.println(fileName);
             }
 

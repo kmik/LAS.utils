@@ -436,7 +436,7 @@ public class Thinner{
 
         pointWriterMultiThread pw = new pointWriterMultiThread(outputFile,pointCloud, "lasthin", aR);
 
-        LasPointBufferCreator buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
         boolean[] includeOrNot = new boolean[(int)pointCloud.getNumberOfPointRecords()];
 

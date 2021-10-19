@@ -44,7 +44,7 @@ public class LasPointBufferCreator {
     long pointCount = 0;
 
 
-    public LasPointBufferCreator(int pointLengthInBytes, int bufferId, pointWriterMultiThread pwrite){
+    public LasPointBufferCreator(int bufferId, pointWriterMultiThread pwrite){
 
         this.pointLengthInBytes = pwrite.pointDataRecordLength;
         this.bufferId = bufferId;

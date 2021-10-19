@@ -44,7 +44,7 @@ public class las2las{
 
         pointWriterMultiThread pw = new pointWriterMultiThread(outFile, in, "las2las", aR);
 
-        LasPointBufferCreator buf = new LasPointBufferCreator(in.pointDataRecordLength, 1, pw);
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
         aR.pfac.addWriteThread(thread_n, pw, buf);
 /*

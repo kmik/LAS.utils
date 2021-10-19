@@ -187,7 +187,7 @@ public class lasSort {
 
         pointWriterMultiThread pw = new pointWriterMultiThread(outputFile, pointCloud, "lasSort", aR);
 
-        LasPointBufferCreator buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
 
         while(prioque.size() > 0){

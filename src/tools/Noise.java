@@ -248,7 +248,7 @@ public class Noise{
 
         pointWriterMultiThread pw = new pointWriterMultiThread(outWriteFile, pointCloud, "las2las", aR);
 
-        LasPointBufferCreator buf = new LasPointBufferCreator(pointCloud.pointDataRecordLength, 1, pw);
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
         aR.pfac.addWriteThread(thread_n, pw, buf);
 
         int noisePointCount = 0;
