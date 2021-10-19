@@ -1416,8 +1416,6 @@ public class LASReader {
         p.y_t = braf.buffer.getFloat();
         p.z_t = braf.buffer.getFloat();
 
-
-
       }
 
       //If someone has decided they want to have their OWN point data format... this is just dumb.
