@@ -79,14 +79,7 @@ public class pointWriterMultiThread {
         if(aR.change_version_minor != -999){
 
         }
-/*
-        LASwrite.writeHeader(outputFile, softwareName, tempReader.versionMajor, tempReader.versionMinor,
-                this.pointDataRecordFormat, this.pointDataRecordLength,
-                tempReader.headerSize, tempReader.offsetToPointData, tempReader.numberVariableLengthRecords,
-                tempReader.fileSourceID, tempReader.globalEncoding,
-                tempReader.xScaleFactor, tempReader.yScaleFactor, tempReader.zScaleFactor,
-                tempReader.xOffset, tempReader.yOffset, tempReader.zOffset);
-*/
+
         LASwrite.writeHeader(outputFile, softwareName, tempReader, aR);
 
     }
