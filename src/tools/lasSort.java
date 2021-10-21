@@ -366,16 +366,19 @@ public class lasSort {
 
         }
 
-        //File outputFile = aR.createOutputFileWithExtension(pointCloud, "_sorted.las");
-
         LASraf br = new LASraf(outputFile);
-
+/*
         LASwrite.writeHeader(br, "lasSort", this.pointCloud.versionMajor, this.pointCloud.versionMinor, this.pointCloud.pointDataRecordFormat,
                 this.pointCloud.pointDataRecordLength,
                 this.pointCloud.headerSize, this.pointCloud.offsetToPointData, this.pointCloud.numberVariableLengthRecords,
                 this.pointCloud.fileSourceID, this.pointCloud.globalEncoding,
                 this.pointCloud.xScaleFactor, this.pointCloud.yScaleFactor, this.pointCloud.zScaleFactor,
                 this.pointCloud.xOffset, this.pointCloud.yOffset, this.pointCloud.zOffset);
+
+ */
+
+        LASwrite.writeHeader(br, "lasSort", this.pointCloud, aR);
+
         int pointCount = 0;
 
         int counter = 0;
@@ -402,8 +405,6 @@ public class lasSort {
 
         TreeSet<Pair_z> setti = new TreeSet<>();
 
-        //System.out.println(tempFiles.get(0).buffer.remaining() + " " + tempFiles.get(0).buffer.capacity());
-
         Pair_z tempPair = new Pair_z(0,0);
 
         double previous = -1.0;
@@ -419,7 +420,6 @@ public class lasSort {
             for (int i = 0; i < 1000; i++) {
 
                 tempFiles.get(j).readFromBuffer2(tempPair);
-                //help.put(tempPair.z_order, tempPair.index);
 
                 ehm[j][i].z_order = tempPair.z_order;
                 ehm[j][i].index = tempPair.index;
@@ -429,23 +429,15 @@ public class lasSort {
 
                     ehm[j][i].z_order += 0.0000001 * increment;
                     increment++;
-                    //System.out.println(ehm[j][i].z_order);
                     prioque.add(ehm[j][i]);
                 }else{
                     previous = ehm[j][i].z_order;
                     prioque.add(ehm[j][i]);
                 }
-                //System.out.println(prioque.size() + " " + j + " / " + tempFiles.size());
             }
 
 
         }
-
-        long start; // = System.nanoTime();
-
-        long timeAverage = 0; // += (System.nanoTime() - start);
-        long timeAverageCount = 0; //++;
-
 
         Pair_z tempPair2;
 
@@ -455,25 +447,15 @@ public class lasSort {
 
         while(prioque.size() > 0){
 
-
-            //System.out.println((int)(timeAverage / Math.max(timeAverageCount, 1)));
-
             counteri++;
-            //start = System.nanoTime();
 
             tempPair2 = prioque.poll();
-
-            //timeAverage += (System.nanoTime() - start);
-            //timeAverageCount++;
 
             pointCloud.readRecord(tempPair2.index, tempPoint);
 
             if(br.writePoint( tempPoint, aR.getInclusionRule(), pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
                     pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, counter))
                 pointCount++;
-
-            //if(tempPoint.edgeOfFlightLine)
-               // System.out.println(tempPoint.gpsTime);
 
             counts[tempPair2.extra]--;
             pointCountsPerFile[tempPair2.extra]--;
@@ -484,8 +466,6 @@ public class lasSort {
 
                     tempFiles.get(tempPair2.extra).read((4 + 4) * Math.min(1000, pointCountsPerFile[tempPair2.extra]));
 
-                    //System.out.println(Arrays.toString(pointCountsPerFile) + " " + tempPair2.extra);
-                    //if(tempFiles.get(tempPair2.extra).raFile.getFilePointer() < tempFiles.get(tempPair2.extra).raFile.length())
                     for (int i = 0; i < Math.min(1000, pointCountsPerFile[tempPair2.extra]); i++) {
 
                         tempFiles.get(tempPair2.extra).readFromBuffer2(ehm[tempPair2.extra][i]);
