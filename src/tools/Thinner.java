@@ -152,10 +152,8 @@ public class Thinner{
         aR.p_update.threadEnd[coreNumber-1] = (int)pointCloud.getNumberOfPointRecords();
         aR.p_update.threadProgress[coreNumber-1] = 0;
 
-        //pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
-
-            int x_index;
-            int y_index;
+        int x_index;
+        int y_index;
 
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000){
 
@@ -171,15 +169,13 @@ public class Thinner{
 
                 pointCloud.readFromBuffer(tempPoint);
 
-                    x_index = (int)Math.floor((tempPoint.x - minX) / step);
-                    y_index = (int)Math.floor((maxY - tempPoint.y) / step);
+                x_index = (int)Math.floor((tempPoint.x - minX) / step);
+                y_index = (int)Math.floor((maxY - tempPoint.y) / step);
 
-                    if(tempPoint.z < min_z[x_index][y_index]){
-                        min_z[x_index][y_index] = (float)tempPoint.z;
-                        minIndex[x_index][y_index] = i+j;
-
-
-                    }
+                if(tempPoint.z < min_z[x_index][y_index]){
+                    min_z[x_index][y_index] = (float)tempPoint.z;
+                    minIndex[x_index][y_index] = i+j;
+                }
 
                 aR.p_update.threadProgress[coreNumber-1]++;
 
@@ -198,12 +194,18 @@ public class Thinner{
 
         LASraf br = new LASraf(outputFile);
 
+        /*
         LASwrite.writeHeader(br, "lasthin", this.pointCloud.versionMajor, this.pointCloud.versionMinor,
                 this.pointCloud.pointDataRecordFormat, this.pointCloud.pointDataRecordLength,
                 pointCloud.headerSize, pointCloud.offsetToPointData, pointCloud.numberVariableLengthRecords,
                 pointCloud.fileSourceID, pointCloud.globalEncoding,
                 pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
                 pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset);
+
+         */
+
+        LASwrite.writeHeader(br, "lasThin", this.pointCloud, aR);
+
         int pointCount = 0;
 
         aR.p_update.threadFile[coreNumber-1] = "outputting";
@@ -316,118 +318,85 @@ public class Thinner{
             n = suurin - pienin;
             */
 
-            Pair[] parit = new Pair[n];
+        Pair[] parit = new Pair[n];
 
-            LasPoint tempPoint = new LasPoint();
+        LasPoint tempPoint = new LasPoint();
 
-            int xCoord;
-            int yCoord;
-            int zCoord;
+        int xCoord;
+        int yCoord;
+        int zCoord;
 
-            int voxelNumber;
-            long voxelNumber_long;
+        int voxelNumber;
+        long voxelNumber_long;
 
-            long current;
-            long replace;
+        long current;
+        long replace;
 
-            long maxValue = 0;
-            int indeksi = 0;
+        long maxValue = 0;
+        int indeksi = 0;
 
-            long voxelCount = numberOfPixelsX * numberOfPixelsY * numberOfPixelsZ;
+        long voxelCount = numberOfPixelsX * numberOfPixelsY * numberOfPixelsZ;
 
-            int[] vox = new int[1000000];
+        int[] vox = new int[1000000];
 
-            int maxi = 0;
+        int maxi = 0;
 
-            //pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
 
         aR.p_update.threadFile[coreNumber-1] = "first pass";
         aR.p_update.threadEnd[coreNumber-1] = (int)pointCloud.getNumberOfPointRecords();
         aR.p_update.threadProgress[coreNumber-1] = 0;
 
-            for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000){
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000){
 
-                maxi = (int)Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            maxi = (int)Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-                try {
-                    pointCloud.readRecord_noRAF(i, tempPoint, maxi);
-                }catch(Exception e){
-                 e.printStackTrace();//pointCloud.braf.buffer.position(0);
-                }
+            try {
+                pointCloud.readRecord_noRAF(i, tempPoint, maxi);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
 
-                for (int j = 0; j < maxi; j++) {
-                    //Sstem.out.println(j);
-                    pointCloud.readFromBuffer(tempPoint);
+            for (int j = 0; j < maxi; j++) {
+
+                pointCloud.readFromBuffer(tempPoint);
+
+                xCoord = (int) ((tempPoint.x - minX) / step);
+                yCoord = (int) ((maxY - tempPoint.y) / step);
+                zCoord = (int) ((tempPoint.z - minZ) / step);
+
+                voxelNumber_long = yCoord * numberOfPixelsX + xCoord + zCoord * (numberOfPixelsX * numberOfPixelsY);
+
+                parit[indeksi] = new Pair(i+j, voxelNumber_long);
+                indeksi++;
+
+                if (voxelNumber_long > maxValue)
+                    maxValue = voxelNumber_long;
 
 
-                    //for (int i = 0; i < n; i++) {
+                aR.p_update.threadProgress[coreNumber-1]++;
 
-                    //pointCloud.readRecord(i, tempPoint);
-
-                    xCoord = (int) ((tempPoint.x - minX) / step);
-                    yCoord = (int) ((maxY - tempPoint.y) / step);
-                    zCoord = (int) ((tempPoint.z - minZ) / step);
-
-                    //voxelNumber = yCoord * numberOfPixelsX + xCoord + zCoord * (numberOfPixelsX * numberOfPixelsY);
-                    voxelNumber_long = yCoord * numberOfPixelsX + xCoord + zCoord * (numberOfPixelsX * numberOfPixelsY);
-
-                    parit[indeksi] = new Pair(i+j, voxelNumber_long);
-                    indeksi++;
-/*
-                    if(hashmappi.containsKey(voxelNumber_long)){
-
-                        hashmappi.get(voxelNumber_long).add(i+j);
-
-                    }else{
-
-                        hashmappi.put(voxelNumber_long, new ArrayList<>());
-                        hashmappi.get(voxelNumber_long).add(i+j);
-
-                    }
-*/
-                    if (voxelNumber_long > maxValue)
-                        maxValue = voxelNumber_long;
-                    //}
-
-                    aR.p_update.threadProgress[coreNumber-1]++;
-
-                    if(aR.p_update.threadProgress[coreNumber-1] % 10000 == 0){
-                        aR.p_update.updateProgressThin();
-                    }
-
+                if(aR.p_update.threadProgress[coreNumber-1] % 10000 == 0){
+                    aR.p_update.updateProgressThin();
                 }
 
             }
+
+        }
 
         aR.p_update.updateProgressThin();
-            int endIndex = n;
-
-            /*
-            for(int i = 0; i < n; i++){
-
-                if(parit[i] == null) {
-                    endIndex = i;
-                    break;
-                }
-            }
-            */
+        int endIndex = n;
 
         parit = Arrays.copyOfRange(parit, 0, endIndex);
 
-            long prevValue = parit[0].value;
-            //long prevValue = 0;
+        long prevValue = parit[0].value;
 
-            Arrays.sort(parit);
-            //int[] takeRandom = new int[100000];
-            ArrayList<Integer> takeRandomList = new ArrayList<>();
-            //System.out.println("SORTERD!");
+        Arrays.sort(parit);
+        ArrayList<Integer> takeRandomList = new ArrayList<>();
 
+        int[] randomit = new int[this.n_ranodm];
+        int randomIndex = 0;
 
-
-            int[] randomit = new int[this.n_ranodm];
-            int randomIndex = 0;
-
-            int writeIndex = 0;
+        int writeIndex = 0;
         aR.p_update.threadFile[coreNumber-1] = "second pass";
         aR.p_update.threadEnd[coreNumber-1] = parit.length;
         //aR.p_update.threadEnd[coreNumber-1] = hashmappi.size();
@@ -441,63 +410,49 @@ public class Thinner{
         boolean[] includeOrNot = new boolean[(int)pointCloud.getNumberOfPointRecords()];
 
         if(false)
-        for (Map.Entry<Long, ArrayList<Integer>> entry : hashmappi.entrySet())
-        {
-            a = entry.getValue();
+            for (Map.Entry<Long, ArrayList<Integer>> entry : hashmappi.entrySet())
+            {
+                a = entry.getValue();
 
-            if(a.size() > this.n_ranodm) {
-                //writeIndex = takeRandom(takeRandom, randomIndex);
-                //System.out.println(Arrays.toString(takeRandomList.toArray()));
-                take_n_Random(a, this.n_ranodm, randomit);
+                if(a.size() > this.n_ranodm) {
 
-                //System.out.println(randomit[0] + " " + randomit[1]);
+                    take_n_Random(a, this.n_ranodm, randomit);
 
-                for (int kkk = 0; kkk < this.n_ranodm; kkk++) {
+                    for (int kkk = 0; kkk < this.n_ranodm; kkk++) {
 
-                    //pointCloud.readRecord(randomit[kkk], tempPoint);
-                    includeOrNot[randomit[kkk]] = true;
-                    //buf.writePoint(tempPoint, aR.inclusionRule, pointCount);
-                       // pointCount++;
+                        includeOrNot[randomit[kkk]] = true;
+
+                    }
+                }
+
+                else{
+
+                    for(int kkk = 0; kkk < a.size(); kkk++){
+
+                        includeOrNot[a.get(kkk)] = true;
+
+                    }
+                }
+
+
+                aR.p_update.threadProgress[coreNumber-1]++;
+
+                if(aR.p_update.threadProgress[coreNumber-1] % 1000 == 0){
+                    aR.p_update.updateProgressThin();
                 }
             }
-
-            else{
-                //writeIndex = takeRandom[0];
-                for(int kkk = 0; kkk < a.size(); kkk++){
-
-                    //pointCloud.readRecord(a.get(kkk), tempPoint);
-                    includeOrNot[a.get(kkk)] = true;
-                    //buf.writePoint(tempPoint, aR.inclusionRule, pointCount);
-                     //   pointCount++;
-
-                }
-            }
-
-
-            aR.p_update.threadProgress[coreNumber-1]++;
-
-            if(aR.p_update.threadProgress[coreNumber-1] % 1000 == 0){
-                aR.p_update.updateProgressThin();
-            }
-        }
 
 
 
         for(int i = 0; i < parit.length; i++){
 
             if(parit[i].value == prevValue){
-                //takeRandom[randomIndex] = parit[i].index;
                 takeRandomList.add(parit[i].index);
-                //randomIndex++;
-
             }
             else{
-                //System.out.println("--------------");
-                //if(randomIndex > 1)
 
                 if(takeRandomList.size() > this.n_ranodm) {
-                    //writeIndex = takeRandom(takeRandom, randomIndex);
-                    //System.out.println(Arrays.toString(takeRandomList.toArray()));
+
                     take_n_Random(takeRandomList, this.n_ranodm, randomit);
 
                     //System.out.println(randomit[0] + " " + randomit[1]);
@@ -569,9 +524,9 @@ public class Thinner{
 
 
         //br.writeBuffer2();
-            //br.updateHeader2();
+        //br.updateHeader2();
 
-            n = numberOfPixelsX * numberOfPixelsY * numberOfPixelsZ;
+        n = numberOfPixelsX * numberOfPixelsY * numberOfPixelsZ;
         //}
 
     }
