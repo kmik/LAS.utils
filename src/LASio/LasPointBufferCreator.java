@@ -40,12 +40,15 @@ public class LasPointBufferCreator {
     double maxZ = Double.NEGATIVE_INFINITY;
 
     long[] pointsByReturn = new long[5];
+    int pointDataRecordFormat = -1;
 
     long pointCount = 0;
 
     public LasPointBufferCreator(int bufferId, pointWriterMultiThread pwrite){
 
         this.pointLengthInBytes = pwrite.pointDataRecordLength;
+        this.pointDataRecordFormat = pwrite.pointDataRecordFormat;
+
         this.bufferId = bufferId;
 
         this.bufferSize = this.pointLengthInBytes * 50000;
@@ -193,31 +196,32 @@ public class LasPointBufferCreator {
         boolean output = false;
 
         /* Write if rule says so */
-        if(rule.ask(tempPoint, i, true)){
+        if(rule.ask(tempPoint, i, false)){
 
             /* We got here, so output true */
             output = true;
 
-            double x = tempPoint.x;
-            double y = tempPoint.y;
-            double z = tempPoint.z;
+            if(pointDataRecordFormat <= 5) {
+                double x = tempPoint.x;
+                double y = tempPoint.y;
+                double z = tempPoint.z;
 
-            /* Scale x and apply xOffset */
-            int lx = (int)((x - this.pwrite.tempReader.xOffset) / this.pwrite.tempReader.xScaleFactor);
-            /* Scale y and apply yOffset */
-            int ly = (int)((y - this.pwrite.tempReader.yOffset) / this.pwrite.tempReader.yScaleFactor);
-            /* Scale z and apply zOffset */
-            int lz = (int)((z - this.pwrite.tempReader.zOffset) / this.pwrite.tempReader.zScaleFactor);
+                /* Scale x and apply xOffset */
+                int lx = (int) ((x - this.pwrite.tempReader.xOffset) / this.pwrite.tempReader.xScaleFactor);
+                /* Scale y and apply yOffset */
+                int ly = (int) ((y - this.pwrite.tempReader.yOffset) / this.pwrite.tempReader.yScaleFactor);
+                /* Scale z and apply zOffset */
+                int lz = (int) ((z - this.pwrite.tempReader.zOffset) / this.pwrite.tempReader.zScaleFactor);
 
-            /* Write scaled and offset x, y and z */
-            this.writeInt(lx);
-            this.writeInt(ly);
-            this.writeInt(lz);
+                /* Write scaled and offset x, y and z */
+                this.writeInt(lx);
+                this.writeInt(ly);
+                this.writeInt(lz);
 
 
 
-            /* Write intensity */
-            this.writeUnsignedShort((short)tempPoint.intensity);// braf.readUnsignedShort()
+                /* Write intensity */
+                this.writeUnsignedShort((short) tempPoint.intensity);// braf.readUnsignedShort()
 
 			/*
 				Return Number 3 bits 					(bits 0, 1, 2) 3 bits *
@@ -226,20 +230,20 @@ public class LasPointBufferCreator {
 				Edge of Flight Line 1 bit 				(bit 7)
 			 */
 
-            myBitti = setUnsetBit(myBitti, 7, tempPoint.edgeOfFlightLine ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 6, tempPoint.scanDirectionFlag);
-            myBitti = setUnsetBit(myBitti, 5, ((byte)tempPoint.numberOfReturns & (1 << (2))) > 0 ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 4, ((byte)tempPoint.numberOfReturns & (1 << (1))) > 0 ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 3, ((byte)tempPoint.numberOfReturns & (1 << (0))) > 0 ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 2, ((byte)tempPoint.returnNumber & (1 << (2))) > 0 ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 1, ((byte)tempPoint.returnNumber & (1 << (1))) > 0 ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 0, ((byte)tempPoint.returnNumber & (1 << (0))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 7, tempPoint.edgeOfFlightLine ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 6, tempPoint.scanDirectionFlag);
+                myBitti = setUnsetBit(myBitti, 5, ((byte) tempPoint.numberOfReturns & (1 << (2))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 4, ((byte) tempPoint.numberOfReturns & (1 << (1))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 3, ((byte) tempPoint.numberOfReturns & (1 << (0))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 2, ((byte) tempPoint.returnNumber & (1 << (2))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 1, ((byte) tempPoint.returnNumber & (1 << (1))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 0, ((byte) tempPoint.returnNumber & (1 << (0))) > 0 ? 1 : 0);
 
-            /* Write byte */
-            this.writeUnsignedByte(myBitti);
+                /* Write byte */
+                this.writeUnsignedByte(myBitti);
 
-            /* Reset the byte */
-            //myByte = 0;
+                /* Reset the byte */
+                //myByte = 0;
 
 
 			/*
@@ -259,65 +263,167 @@ public class LasPointBufferCreator {
 			*/
 
 
-            myBitti = setUnsetBit(myBitti, 7, (tempPoint.withheld) ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 6, (tempPoint.keypoint) ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 5, (tempPoint.synthetic) ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 4, ((byte)tempPoint.classification & (1 << (4))) > 0 ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 3, ((byte)tempPoint.classification & (1 << (3))) > 0 ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 2, ((byte)tempPoint.classification & (1 << (2))) > 0 ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 1, ((byte)tempPoint.classification & (1 << (1))) > 0 ? 1 : 0);
-            myBitti = setUnsetBit(myBitti, 0, ((byte)tempPoint.classification & (1 << (0))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 7, (tempPoint.withheld) ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 6, (tempPoint.keypoint) ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 5, (tempPoint.synthetic) ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 4, ((byte) tempPoint.classification & (1 << (4))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 3, ((byte) tempPoint.classification & (1 << (3))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 2, ((byte) tempPoint.classification & (1 << (2))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 1, ((byte) tempPoint.classification & (1 << (1))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 0, ((byte) tempPoint.classification & (1 << (0))) > 0 ? 1 : 0);
 
 
-            /* Write the byte */
-            this.writeUnsignedByte(myBitti);
+                /* Write the byte */
+                this.writeUnsignedByte(myBitti);
 
-            /* Write scan angle */
-            this.writeUnsignedByte((byte)tempPoint.scanAngleRank);
+                /* Write scan angle */
+                this.writeUnsignedByte((byte) tempPoint.scanAngleRank);
 
-            /* Write user data */
-            this.writeUnsignedByte((byte)tempPoint.userData);
+                /* Write user data */
+                this.writeUnsignedByte((byte) tempPoint.userData);
 
-            /* Write point source ID */
-            this.writeUnsignedShort(tempPoint.pointSourceId);
+                /* Write point source ID */
+                this.writeUnsignedShort(tempPoint.pointSourceId);
 
 
             /* Previous stuff is pretty much standard for any point data type.
              How to do the extra stuff that is point data type specific? */
 
-            /* RGB is included in both 2 and 3 record types in LAS 1.2 */
+                /* RGB is included in both 2 and 3 record types in LAS 1.2 */
 
-            if (this.pwrite.pointDataRecordFormat == 1 ||
-                    this.pwrite.pointDataRecordFormat == 3 ||
-                    this.pwrite.pointDataRecordFormat == 4 ||
-                    this.pwrite.pointDataRecordFormat == 5) {
+                if (this.pwrite.pointDataRecordFormat == 1 ||
+                        this.pwrite.pointDataRecordFormat == 3 ||
+                        this.pwrite.pointDataRecordFormat == 4 ||
+                        this.pwrite.pointDataRecordFormat == 5) {
 
-                this.writeDouble(tempPoint.gpsTime);// = braf.readDouble();
+                    this.writeDouble(tempPoint.gpsTime);// = braf.readDouble();
 
+                }
+
+                if (this.pwrite.pointDataRecordFormat == 2 ||
+                        this.pwrite.pointDataRecordFormat == 3 ||
+                        this.pwrite.pointDataRecordFormat == 5) {
+
+                    this.writeUnsignedShort(tempPoint.R);
+                    this.writeUnsignedShort(tempPoint.G);
+                    this.writeUnsignedShort(tempPoint.B);
+
+                }
+
+                if (this.pwrite.pointDataRecordFormat == 4 ||
+                        this.pwrite.pointDataRecordFormat == 5) {
+
+                    this.writeUnsignedByte((byte) tempPoint.WavePacketDescriptorIndex);
+                    this.writeLong(tempPoint.ByteOffsetToWaveformData);
+                    this.writeUnsignedInt(tempPoint.WaveformPacketSizeInBytes);
+                    this.writeFloat(tempPoint.ReturnPointWaveformLocation);
+
+                    this.writeFloat(tempPoint.x_t);
+                    this.writeFloat(tempPoint.y_t);
+                    this.writeFloat(tempPoint.z_t);
+                }
+            }else{
+
+                double x = tempPoint.x;
+                double y = tempPoint.y;
+                double z = tempPoint.z;
+
+                /* Scale x and apply xOffset */
+                int lx = (int) ((x - this.pwrite.tempReader.xOffset) / this.pwrite.tempReader.xScaleFactor);
+                /* Scale y and apply yOffset */
+                int ly = (int) ((y - this.pwrite.tempReader.yOffset) / this.pwrite.tempReader.yScaleFactor);
+                /* Scale z and apply zOffset */
+                int lz = (int) ((z - this.pwrite.tempReader.zOffset) / this.pwrite.tempReader.zScaleFactor);
+
+                /* Write scaled and offset x, y and z */
+                this.writeInt(lx);
+                this.writeInt(ly);
+                this.writeInt(lz);
+
+                this.writeUnsignedShort((short) tempPoint.intensity);// braf.readUnsignedShort()
+
+                /*
+				Return Number 3 bits 					(bits 0, 1, 2, 3) 4 bits *
+				Number of Returns (given pulse) 3 bits 	(bits 4, 5, 6, 7) 4 bits *
+			 */
+
+                myBitti = setUnsetBit(myBitti, 7, ((byte) tempPoint.numberOfReturns & (1 << (3))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 6, ((byte) tempPoint.numberOfReturns & (1 << (2))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 5, ((byte) tempPoint.numberOfReturns & (1 << (1))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 4, ((byte) tempPoint.numberOfReturns & (1 << (0))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 3, ((byte) tempPoint.returnNumber & (1 << (3))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 2, ((byte) tempPoint.returnNumber & (1 << (2))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 1, ((byte) tempPoint.returnNumber & (1 << (1))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 0, ((byte) tempPoint.returnNumber & (1 << (0))) > 0 ? 1 : 0);
+
+                /* Write byte */
+                this.writeUnsignedByte(myBitti);
+
+                /*
+
+			Bits 	Explanation
+
+			0 - 3 	Classification Flags: Classification flags are used to indicate special characteristics associated
+                    with the point.
+			4 - 5   Scanner Channel
+            6       Scan Direction Flag
+            7       Edge of Flight Line
+			*/
+
+                /* NOT TESTED!!!! */
+                myBitti = setUnsetBit(myBitti, 7, (tempPoint.overlap) ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 6, (tempPoint.withheld) ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 5, (tempPoint.keypoint) ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 4, (tempPoint.synthetic) ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 3, ((byte) tempPoint.scannerCannel & (1 << (1))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 2, ((byte) tempPoint.scannerCannel & (1 << (0))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 1, (tempPoint.scanDirectionFlag == 1) ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 0, (tempPoint.edgeOfFlightLine) ? 1 : 0);
+
+                /* Write byte */
+                this.writeUnsignedByte(myBitti);
+
+                /* Write classification */
+                this.writeUnsignedByte((byte) tempPoint.classification);
+
+                /* Write user data */
+                this.writeUnsignedByte((byte) tempPoint.userData);
+
+                /* Write scan angle */
+                this.writeUnsignedShort((byte) tempPoint.scanAngleRank);
+
+                /* Write pointSourceId */
+                this.writeUnsignedShort((byte) tempPoint.pointSourceId);
+
+                /* Write gps time */
+                this.writeDouble(tempPoint.gpsTime);
+
+
+                if(pointDataRecordFormat >= 7 && pointDataRecordFormat != 9){
+
+                    this.writeUnsignedShort(tempPoint.R);
+                    this.writeUnsignedShort(tempPoint.G);
+                    this.writeUnsignedShort(tempPoint.B);
+
+                    if(pointDataRecordFormat >= 8){
+                        this.writeUnsignedShort(tempPoint.N);
+                    }
+                }
+                if(pointDataRecordFormat == 10 || pointDataRecordFormat == 9){
+
+                    this.writeUnsignedByte((byte) tempPoint.WavePacketDescriptorIndex);
+                    this.writeLong(tempPoint.ByteOffsetToWaveformData);
+                    this.writeUnsignedInt(tempPoint.WaveformPacketSizeInBytes);
+                    this.writeFloat(tempPoint.ReturnPointWaveformLocation);
+
+                    this.writeFloat(tempPoint.x_t);
+                    this.writeFloat(tempPoint.y_t);
+                    this.writeFloat(tempPoint.z_t);
+
+                }
             }
 
-            if(this.pwrite.pointDataRecordFormat == 2 ||
-                    this.pwrite.pointDataRecordFormat == 3 ||
-                    this.pwrite.pointDataRecordFormat == 5){
 
-                this.writeUnsignedShort(tempPoint.R);
-                this.writeUnsignedShort(tempPoint.G);
-                this.writeUnsignedShort(tempPoint.B);
-
-            }
-
-            if(this.pwrite.pointDataRecordFormat == 4 ||
-                    this.pwrite.pointDataRecordFormat == 5){
-
-                this.writeUnsignedByte((byte)tempPoint.WavePacketDescriptorIndex);
-                this.writeLong(tempPoint.ByteOffsetToWaveformData);
-                this.writeUnsignedInt(tempPoint.WaveformPacketSizeInBytes);
-                this.writeFloat(tempPoint.ReturnPointWaveformLocation);
-
-                this.writeFloat(tempPoint.x_t);
-                this.writeFloat(tempPoint.y_t);
-                this.writeFloat(tempPoint.z_t);
-            }
 
             this.pointCount++;
 

@@ -195,6 +195,7 @@ public class argumentReader {
     public int keep_classification = -999;
 
     public int change_point_type = -999;
+    public int change_version_minor = -999;
 
     public int convolution_option = 1;
 
@@ -462,9 +463,16 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
-                .longOpt("change_point_type")
+                .longOpt("change_point_format")
                 .hasArg(true)
                 .desc("Change point type")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("change_version_minor")
+                .hasArg(true)
+                .desc("Change las version minor")
                 .required(false)
                 .build());
 
@@ -1181,11 +1189,17 @@ public class argumentReader {
                 this.set_seed = Integer.parseInt(cmd.getOptionValue("set_seed"));
             }
 
-            if(cmd.hasOption("change_point_type")){
+            if(cmd.hasOption("change_point_format")){
 
-                this.change_point_type = Integer.parseInt(cmd.getOptionValue("change_point_type"));
+                this.change_point_type = Integer.parseInt(cmd.getOptionValue("change_point_format"));
 
                 this.inclusionRule.changePointFormat(this.change_point_type);
+            }
+
+            if(cmd.hasOption("change_version_minor")){
+
+                this.change_version_minor = Integer.parseInt(cmd.getOptionValue("change_version_minor"));
+
             }
 
             if (cmd.hasOption("label_index")) {

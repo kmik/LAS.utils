@@ -4,6 +4,8 @@ import LASio.LASReader;
 import LASio.LASraf;
 import LASio.LasPoint;
 import LASio.PointInclusionRule;
+import org.apache.commons.lang.StringUtils;
+import utils.argumentReader;
 
 import java.io.*;
 import java.util.*;
@@ -543,7 +545,7 @@ public class LASwrite {
 					}
 				}
 
-	        	if(rule.ask(tempPoint, count, true)){
+	        	if(rule.ask(tempPoint, count, false)){
 
 					pointCount++;
 					
@@ -1109,6 +1111,7 @@ public class LASwrite {
 												  double xScaleFactor, double yScaleFactor, double zScaleFactor,
 												  double xOffset, double yOffset, double zOffset, int pointDataRecordFormat, int i) throws IOException{
 
+
 		/* Written or not */
 		boolean output = false;
 
@@ -1301,15 +1304,7 @@ public class LASwrite {
 												int headerSize, long offSetToPointData, long numVariableLength, int fileSourceId,
 												int globalEncoding, double xScale, double yScale, double zScale,
 												double xOff, double yOff, double zOff) throws IOException{
-/*
-		xScale = 0.01;
-		yScale = 0.01;
-		zScale = 0.01;
 
-		xOff= 0.0;
-		yOff = 0.0;
-		zOff = 0.0;
-*/
 
 		to.pointDataRecordFormat = pointDataType;
 		to.xScaleFactor = xScale;
@@ -1436,6 +1431,174 @@ public class LASwrite {
 			}
 		}
 	    to.writeBuffer2();
+
+	}
+
+
+	public static synchronized void writeHeader(LASraf to, String softwareName, LASReader p_c, argumentReader aR) throws IOException{
+
+
+		if(aR.change_point_type == -999)
+			to.pointDataRecordFormat = p_c.pointDataRecordFormat;
+		else
+			to.pointDataRecordFormat = aR.change_point_type;
+
+		to.xScaleFactor = p_c.xScaleFactor;
+		to.yScaleFactor = p_c.yScaleFactor;
+		to.zScaleFactor = p_c.zScaleFactor;
+
+		to.xOffset = p_c.xOffset;
+		to.yOffset = p_c.yOffset;
+		to.zOffset = p_c.zOffset;
+
+		to.writeAscii(4, "LASF");
+
+		/* File source ID */
+		if(p_c.fileSourceID == 0)
+			to.writeUnsignedShort((short)42); // = braf.readUnsignedShort();
+		else
+			to.writeUnsignedShort((short)p_c.fileSourceID); // = braf.readUnsignedShort();
+
+		/* Global encoding */
+		to.writeUnsignedShort((short)p_c.globalEncoding); // = braf.readUnsignedShort();
+
+		/* ID */
+		to.writeLong(0);
+
+		/* GUID */
+		to.writeAscii(8, "");
+
+		/* Version major */
+		to.writeUnsignedByte((byte)p_c.versionMajor);// = braf.readUnsignedByte();
+
+		/* Version minor */
+		if(aR.change_version_minor == -999)
+			to.writeUnsignedByte((byte)p_c.versionMinor);// = braf.readUnsignedByte();
+		else
+			to.writeUnsignedByte((byte)aR.change_version_minor);
+
+		/* System identified */
+		to.writeAscii(32, "LASutils (c) by Mikko Kukkonen");// systemIdentifier = braf.readAscii(32);
+
+		/* Generating software */
+		to.writeAscii(32, (softwareName + " version 0.1"));// generatingSoftware = braf.readAscii(32);
+
+		//System.out.println(from.generatingSoftware);
+		//Date now = new Date();     // Gets the current date and time
+		int year = Calendar.getInstance().get(Calendar.YEAR); //now.getYear();
+		Calendar calendar = Calendar.getInstance();
+		int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
+
+		/* File creation date */
+		to.writeUnsignedShort((short)dayOfYear);// = braf.readUnsignedShort();
+
+		/* File creation year */
+		to.writeUnsignedShort((short)(1900 + year));// = braf.readUnsignedShort();
+
+		/* Header size */
+		to.writeUnsignedShort((short)p_c.headerSize);// = braf.readUnsignedShort();
+
+		//System.out.println((short)headerSize);
+		/* Offset to point data */
+		to.writeUnsignedInt((short)p_c.offsetToPointData);
+
+		/* #Variable length records*/
+		to.writeUnsignedInt(0);// = braf.readUnsignedInt();
+
+		/* Point data format */
+		if(aR.change_point_type == -999)
+			to.writeUnsignedByte((byte)p_c.pointDataRecordFormat);// = braf.readUnsignedByte();
+		else
+			to.writeUnsignedByte((byte)aR.change_point_type);
+
+		/* Point data record length */
+		if(aR.change_point_type == -999)
+			to.writeUnsignedShort((short)p_c.pointDataRecordLength);// = braf.readUnsignedShort();
+		else{
+			if(aR.change_point_type == 0){
+				to.writeUnsignedShort(20);
+			}else if(aR.change_point_type== 1){
+				to.writeUnsignedShort(20);
+			}else if(aR.change_point_type == 2){
+				to.writeUnsignedShort(26);
+			}else if(aR.change_point_type == 3){
+				to.writeUnsignedShort(34);
+			}else if(aR.change_point_type == 4){
+				to.writeUnsignedShort(57);
+			}else if(aR.change_point_type == 5){
+				to.writeUnsignedShort(63);
+			}else if(aR.change_point_type == 6){
+				to.writeUnsignedShort(30);
+			}else if(aR.change_point_type == 7){
+				to.writeUnsignedShort(36);
+			}else if(aR.change_point_type == 8){
+				to.writeUnsignedShort(38);
+			}else if(aR.change_point_type == 9){
+				to.writeUnsignedShort(59);
+			}else if(aR.change_point_type == 10){
+				to.writeUnsignedShort(67);
+			}
+		}
+
+		/* Number of point records */
+		to.writeUnsignedInt(0);// = braf.readUnsignedInt();
+
+		/* Number of points by return 0,1 ... 4, 5 */
+		to.writeUnsignedInt(0);
+		to.writeUnsignedInt(0);
+		to.writeUnsignedInt(0);
+		to.writeUnsignedInt(0);
+		to.writeUnsignedInt(0);
+
+		/* X scale factor */
+		to.writeDouble(p_c.xScaleFactor);// = braf.readDouble();
+
+		/* Y scale factor */
+		to.writeDouble((p_c.yScaleFactor));// = braf.readDouble();
+
+		/* Z scale factor */
+		to.writeDouble((p_c.zScaleFactor));// = braf.readDouble();
+
+		/* X offset */
+		to.writeDouble((p_c.xOffset));// = braf.readDouble();
+
+		/* Y offset */
+		to.writeDouble((p_c.yOffset));// = braf.readDouble();
+
+		/* Z offset */
+		to.writeDouble((p_c.zOffset));// = braf.readDouble();
+
+		/* Max X */
+		to.writeDouble(0);// = braf.readDouble();
+		/* Min X */
+		to.writeDouble(0);// = braf.readDouble();
+
+		/* Max Y */
+		to.writeDouble(0);// = braf.readDouble();
+		/* Min Y */
+		to.writeDouble(0);// = braf.readDouble();
+
+		/* Max Z */
+		to.writeDouble(0);// = braf.readDouble();
+		/* Min Z */
+		to.writeDouble(0);// = braf.readDouble();
+
+		if(p_c.versionMinor == 3){
+			to.writeLong(0);
+		}
+
+		if(p_c.versionMinor == 4){
+			to.writeLong(0);
+			to.writeLong(0);
+			to.writeUnsignedInt(0);
+			to.writeLong(0);
+
+			//numberOfPointsByReturn = new long[15];
+			for (int i = 0; i < 15; i++) {
+				to.writeLong(0);
+			}
+		}
+		to.writeBuffer2();
 
 	}
 

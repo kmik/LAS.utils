@@ -1599,7 +1599,7 @@ public class gridRAF implements Closeable {
         //byte myBitti = myByte.byteValue();
 
         /* Write if rule says so */
-        if(rule.ask(tempPoint, i, true)){
+        if(rule.ask(tempPoint, i, false)){
 
             /* We got here, so output true */
             output = true;
