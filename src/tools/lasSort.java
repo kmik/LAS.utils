@@ -61,6 +61,7 @@ public class lasSort {
 
         int[] pointCountsPerFile = new int[parts];
 
+
         for(int i = 1; i <= parts; i++) {
 
 
@@ -83,7 +84,6 @@ public class lasSort {
             for(int s = pienin; s < suurin; s += 10000){
 
                 maxi = Math.min(10000, Math.abs(suurin - s));
-                //System.out.println("maxi: " + maxi + " s: " + s);
                 try {
                     pointCloud.readRecord_noRAF(s, tempPoint, maxi);
                 }catch (Exception e){
@@ -108,11 +108,9 @@ public class lasSort {
             for (Pair_float pair_float : parit) {
 
                 tempFiles.get(i - 1).writeInt(pair_float.index);
-                //System.out.println(parit[g].value);
                 tempFiles.get(i - 1).writeDouble(pair_float.value);
 
                 pointCountsPerFile[i - 1]++;
-                //System.out.println(tempFiles.get(i-1).raFile.getFilePointer());
 
             }
 
@@ -122,17 +120,9 @@ public class lasSort {
 
         }
 
-        //File outputFile = aR.createOutputFileWithExtension(pointCloud, "_sorted.las");
-
-        //LASraf br = new LASraf(outputFile);
-
-        //LASwrite.writeHeader(br, "lasSort", this.pointCloud.versionMajor, this.pointCloud.versionMinor, this.pointCloud.pointDataRecordFormat, this.pointCloud.pointDataRecordLength);
         int pointCount = 0;
 
         int counter = 0;
-
-
-        //TreeMap<Double, Integer> help = new TreeMap<>();
 
         int[] counts = new int[tempFiles.size()];
 
@@ -165,7 +155,6 @@ public class lasSort {
             for (int i = 0; i < 1000; i++) {
 
                 tempFiles.get(j).readFromBuffer(tempPair);
-                //help.put(tempPair.value, tempPair.index);
 
                 ehm[j][i].value = tempPair.value;
                 ehm[j][i].index = tempPair.index;
@@ -176,14 +165,9 @@ public class lasSort {
             }
         }
 
-        Pair_float tempPair2;// = new Pair_float(0,0);
+        Pair_float tempPair2;
 
         int counteri = 0;
-
-        long start; // = System.nanoTime();
-
-        long timeAverage = 0; // += (System.nanoTime() - start);
-        long timeAverageCount = 0; //++;
 
         pointWriterMultiThread pw = new pointWriterMultiThread(outputFile, pointCloud, "lasSort", aR);
 
@@ -194,24 +178,14 @@ public class lasSort {
 
             counteri++;
 
-            //System.out.println((int)(timeAverage / Math.max(timeAverageCount, 1)));
-
             counteri++;
-            //start = System.nanoTime();
 
             tempPair2 = prioque.poll();
-            //timeAverage += (System.nanoTime() - start);
-            //timeAverageCount++;
 
             pointCloud.readRecord(tempPair2.index, tempPoint);
-/*
-            if(br.writePoint( tempPoint, aR.getInclusionRule(), 0.01, 0.01, 0.01, 0, 0, 0, pointCloud.pointDataRecordFormat, counter))
-                pointCount++;
-*/
+
             if(buf.writePoint( tempPoint, aR.getInclusionRule(), counter))
                 pointCount++;
-            //if(tempPoint.edgeOfFlightLine)
-            //System.out.println(tempPoint.gpsTime);
 
             counts[tempPair2.extra]--;
             pointCountsPerFile[tempPair2.extra]--;
@@ -220,15 +194,12 @@ public class lasSort {
 
                 if(pointCountsPerFile[tempPair2.extra] > 0) {
 
-                    //System.out.println(Arrays.toString(pointCountsPerFile) + " " + tempPair2.extra);
                     tempFiles.get(tempPair2.extra).read((4 + 8) * Math.min(1000, pointCountsPerFile[tempPair2.extra]));
 
-                    //if(tempFiles.get(tempPair2.extra).raFile.getFilePointer() < tempFiles.get(tempPair2.extra).raFile.length())
                     for (int i = 0; i < Math.min(1000, pointCountsPerFile[tempPair2.extra]); i++) {
 
                         tempFiles.get(tempPair2.extra).readFromBuffer(ehm[tempPair2.extra][i]);
                         ehm[tempPair2.extra][i].extra = tempPair2.extra;
-                        //help.put(tempPair.value, tempPair.index);
                         prioque.add(ehm[tempPair2.extra][i]);
 
                     }
@@ -244,10 +215,7 @@ public class lasSort {
 
             tempPair2 = null;
         }
-/*
-        br.writeBuffer2();
-        br.updateHeader2();
-*/
+
 
         buf.close();
         pw.close(aR);

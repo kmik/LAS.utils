@@ -48,8 +48,6 @@ public class stemDetector{
     int yDim;
     int zDim;
 
-    //Mat layeri;
-
     byte[][] layer;
 
     double maxStemDiameter = 0.5;
@@ -64,8 +62,6 @@ public class stemDetector{
     public boolean[] stemUnderstorey;
 
     public SimpleRegression regression = new SimpleRegression();
-
-    //HashMap<Short, Short> mergeMap = new HashMap<>();
 
     HashMap<Integer, Integer> stemLocations = new HashMap<Integer, Integer>();
 

@@ -2875,22 +2875,20 @@ public class GroundDetector{
 
                     aR.p_update.threadProgress[coreNumber-1] = this.progress_current;
 
-                    //if(tin.isPointInsideTin(tempPoint.x, tempPoint.y)) {
+
                     if(isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Inside) {
+
                         interpolatedvalue = polator.interpolate(tempPoint.x, tempPoint.y, valuator);
 
-                        //if(!Double.isNaN(interpolatedvalue)) {
                         distance = (tempPoint.z - interpolatedvalue);
 
                         tempPoint.z = distance;
 
-                        //buf.writePoint(tempPoint, aR.inclusionRule, i);
                         aR.pfac.writePoint(tempPoint, i + j, thread_n);
 
 
                         if (progress_current % 10000 == 0) {
                             aR.p_update.updateProgressNormalize();
-                            //this.updateProgress_normalize();
                         }
                     }else {
                         this.pointsOutsideTin++;
@@ -3059,22 +3057,52 @@ public class GroundDetector{
      * @param groundClassification 	Ground class
      */
 
-    public void createTin(int groundClassification) throws IOException{
+    public void createTin(int groundClassification) throws Exception{
 
         LasPoint tempPoint = new LasPoint();
 
-        long n = pointCloud.getNumberOfPointRecords();
+        int thread_n = aR.pfac.addReadThread(pointCloud);
 
-        for(int i = 0; i < n; i++){
+        int decimate_res = aR.decimate_tin;
 
-            pointCloud.readRecord(i, tempPoint);
+        boolean decimate = decimate_res > 0;
+        List<Vertex> closest;
+        Vertex closest_vertex;
 
-            if(tempPoint.classification == groundClassification)
-                tin.add(new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+        boolean tin_is_bootstrapped = false;
 
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+
+            int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+            aR.pfac.prepareBuffer(thread_n, i, 10000);
+
+            for (int j = 0; j < maxi; j++) {
+
+                pointCloud.readFromBuffer(tempPoint);
+
+                if(tempPoint.classification == groundClassification) {
+
+                    if(decimate && tin_is_bootstrapped){
+
+                        closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(tempPoint.x, tempPoint.y, 0, 0);
+                        closest_vertex = closest.get(0);
+
+                        if(euclideanDistance(tempPoint.x, tempPoint.y, closest_vertex.x, closest_vertex.y) > decimate_res){
+                            tin.add(new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+
+                        }
+
+                    }else{
+                        tin.add(new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+                        if(!tin_is_bootstrapped){
+                            tin_is_bootstrapped = tin.isBootstrapped();
+                        }
+                    }
+                }
+
+            }
         }
-
-
     }
 
     /**

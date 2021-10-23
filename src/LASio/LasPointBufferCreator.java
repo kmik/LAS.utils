@@ -1,5 +1,6 @@
 package LASio;
 
+import err.lasFormatException;
 import utils.pointWriterMultiThread;
 
 import java.io.IOException;
@@ -208,12 +209,38 @@ public class LasPointBufferCreator {
                 double y = tempPoint.y;
                 double z = tempPoint.z;
 
+
+
+
                 /* Scale x and apply xOffset */
                 int lx = (int) ((x - this.pwrite.tempReader.xOffset) / this.pwrite.tempReader.xScaleFactor);
                 /* Scale y and apply yOffset */
                 int ly = (int) ((y - this.pwrite.tempReader.yOffset) / this.pwrite.tempReader.yScaleFactor);
                 /* Scale z and apply zOffset */
                 int lz = (int) ((z - this.pwrite.tempReader.zOffset) / this.pwrite.tempReader.zScaleFactor);
+
+                if(lx > Integer.MAX_VALUE ||
+                        lx < Integer.MIN_VALUE ){
+
+                    throw new lasFormatException("X scale factor / offset out of range!");
+
+                }
+
+                if(lz > Integer.MAX_VALUE ||
+                        lz < Integer.MIN_VALUE ){
+
+                    throw new lasFormatException("Z scale factor / offset out of range!");
+
+
+                }
+
+                if(ly > Integer.MAX_VALUE ||
+                        ly < Integer.MIN_VALUE ){
+
+                    throw new lasFormatException("Y scale factor / offset out of range!");
+
+
+                }
 
                 /* Write scaled and offset x, y and z */
                 this.writeInt(lx);

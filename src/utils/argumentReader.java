@@ -7,7 +7,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Stream;
 
@@ -53,6 +52,9 @@ public class argumentReader {
     public ArrayList<LASReader> pointClouds = new ArrayList<LASReader>();
     public ArrayList<File> inputFiles = new ArrayList<>();
     public ArrayList<File> outputFiles = new ArrayList<File>();
+
+
+    public int decimate_tin = -1;
 
     public int tool;
 
@@ -376,6 +378,13 @@ public class argumentReader {
                 .longOpt("validation")
                 .hasArg(true)
                 .desc("neural network validation set")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("decimate_tin")
+                .hasArg(true)
+                .desc("Use a decimated TIN")
                 .required(false)
                 .build());
 
@@ -1215,8 +1224,6 @@ public class argumentReader {
 
             }
 
-
-
             if (cmd.hasOption("learning_rate")) {
 
                 this.learning_rate = (Double.parseDouble(cmd.getOptionValue("learning_rate")));
@@ -1262,6 +1269,11 @@ public class argumentReader {
 
                 this.altitude = Double.parseDouble(cmd.getOptionValue("alt"));
 
+            }
+
+            if(cmd.hasOption("decimate_tin")){
+
+                this.decimate_tin = Integer.parseInt(cmd.getOptionValue("decimate_tin"));
             }
 
             if (cmd.hasOption("prep_nn_input")) {
