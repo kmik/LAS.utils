@@ -29,6 +29,7 @@ public class pointWriterMultiThread {
     double maxZ = Double.NEGATIVE_INFINITY;
 
     long[] pointsByReturn = new long[5];
+    long[] pointsByReturn_1_4 = new long[15];
 
     BlockingQueue<byte[]> spareInput = new ArrayBlockingQueue<byte[]>(5000);
 

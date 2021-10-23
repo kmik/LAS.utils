@@ -153,7 +153,7 @@ public class LASReader {
 
       System.out.println("POINT DATA RECORD LENGTH IS NOT STANDARD. SOMEONE ADDED SOME BYTES TO THE POINTS!!");
       System.out.println(this.pointDataRecordFormat + " " + this.pointDataRecordLength);
-      System.exit(1);
+      //System.exit(1);
 
       this.extraBytesInPoint = this.pointDataRecordLength - sanityCheckPointRecordLength.get(this.pointDataRecordFormat);
       readExtra = new byte[this.extraBytesInPoint];
@@ -1046,6 +1046,8 @@ public class LASReader {
       lasGpsTimeType = LasGpsTimeType.SatelliteTime;
     }
 
+
+    /* Right now, we don't really need this information */
     for (int i = 0; i < this.numberVariableLengthRecords; i++) {
       //System.out.println("got here");
       LasVariableLengthRecord vlrHeader = readVlrHeader();
@@ -1058,8 +1060,6 @@ public class LASReader {
       loadGeoTiffSpecification();  //NOPMD
       //
     }
-
-    //System.out.println(this.getFile().getName() + " Number of points: " + legacyNumberOfPointRecords);
 
   }
 
