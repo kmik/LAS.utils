@@ -1,4 +1,4 @@
-package errorHandling;
+package err;
 
 public class lasFormatException extends RuntimeException {
 

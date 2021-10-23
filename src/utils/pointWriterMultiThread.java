@@ -1,14 +1,11 @@
 package utils;
 
 import LASio.*;
-import errorHandling.lasFormatException;
+import err.lasFormatException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 
 public class pointWriterMultiThread {
 
