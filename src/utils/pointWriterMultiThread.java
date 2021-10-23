@@ -129,9 +129,9 @@ public class pointWriterMultiThread {
 
     }
 
-    public void close() throws IOException{
+    public void close(argumentReader aR) throws IOException{
 
-        outputFile.updateHeader(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn);
+        outputFile.updateHeader(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn, aR);
         outputFile.close();
     }
 }

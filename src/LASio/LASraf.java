@@ -1,6 +1,8 @@
 package LASio;
 
 
+import utils.argumentReader;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -1539,12 +1541,15 @@ public class LASraf implements Closeable {
 
   }
 
-  public void updateHeader(double minX, double maxX, double minY, double maxY, double minZ, double maxZ, long[] pointsByReturn) throws IOException{
+  public void updateHeader(double minX, double maxX, double minY, double maxY, double minZ, double maxZ, long[] pointsByReturn,
+                           argumentReader aR) throws IOException{
 
     this.writePointCount(this.writtenPoints);
 
     this.writeMinMax(minX, maxX, minY, maxY, maxZ, minZ);
     this.writePByReturn(pointsByReturn);
+
+
 
 /*
     System.out.println("");

@@ -53,7 +53,7 @@ public class lasReadWriteFactory {
 
         try {
             buf.get(thread).close();
-            pw.get(thread).close();
+            pw.get(thread).close(aR);
         }catch (IOException e){
             e.printStackTrace();
         }

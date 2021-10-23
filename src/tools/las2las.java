@@ -93,9 +93,6 @@ public class las2las{
             }
         }
 
-        //buf.close();
-        //pw.close();
-
             aR.pfac.closeThread(thread_n);
 
         return true;

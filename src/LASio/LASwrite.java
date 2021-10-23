@@ -1496,11 +1496,32 @@ public class LASwrite {
 		to.writeUnsignedShort((short)(1900 + year));// = braf.readUnsignedShort();
 
 		/* Header size */
-		to.writeUnsignedShort((short)p_c.headerSize);// = braf.readUnsignedShort();
-
-		//System.out.println((short)headerSize);
+		if(aR.change_version_minor == -999)
+			to.writeUnsignedShort((short)p_c.headerSize);// = braf.readUnsignedShort();
+		else if(aR.change_version_minor == 2){
+			to.writeUnsignedShort((short)227);
+		}
+		else if(aR.change_version_minor == 3){
+			to.writeUnsignedShort((short)235);
+		}
+		else if(aR.change_version_minor == 4){
+			to.writeUnsignedShort((short)375);
+		}
 		/* Offset to point data */
-		to.writeUnsignedInt((short)p_c.offsetToPointData);
+		//to.writeUnsignedInt((short)p_c.offsetToPointData);
+
+		if(aR.change_version_minor == -999)
+			to.writeUnsignedInt((short)p_c.offsetToPointData);
+		else if(aR.change_version_minor == 2){
+			to.writeUnsignedInt((short)227);
+		}
+		else if(aR.change_version_minor == 3){
+			to.writeUnsignedInt((short)235);
+		}
+		else if(aR.change_version_minor == 4){
+			to.writeUnsignedInt((short)375);
+		}
+
 
 		/* #Variable length records*/
 		to.writeUnsignedInt(0);// = braf.readUnsignedInt();
@@ -1583,20 +1604,27 @@ public class LASwrite {
 		/* Min Z */
 		to.writeDouble(0);// = braf.readDouble();
 
-		if(p_c.versionMinor == 3){
+		if(p_c.versionMinor == 3 || aR.change_version_minor == 3){
 			to.writeLong(0);
 		}
 
-		if(p_c.versionMinor == 4){
+		if(p_c.versionMinor == 4 || aR.change_version_minor == 4){
 			to.writeLong(0);
 			to.writeLong(0);
 			to.writeUnsignedInt(0);
 			to.writeLong(0);
 
 			//numberOfPointsByReturn = new long[15];
-			for (int i = 0; i < 15; i++) {
-				to.writeLong(0);
+			if(aR.change_version_minor == -999)
+				for (int i = 0; i < 15; i++) {
+					to.writeLong(0);
+				}
+			else{
+				for (int i = 0; i < 15; i++) {
+					to.writeLong(0);
+				}
 			}
+
 		}
 		to.writeBuffer2();
 
