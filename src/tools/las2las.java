@@ -17,27 +17,12 @@ public class las2las{
     }
 
     public boolean convert(LASReader in, argumentReader aR) throws Exception {
-        long n = in.getNumberOfPointRecords();
 
-        if(aR.change_point_type != -999) {
-            //aR.changePointType(aR.change_point_type, in);
-        }
-
-        boolean ordered = true;
-
-        int pointCount = 0;
         LasPoint tempPoint = new LasPoint();
 
         File outFile = aR.createOutputFile(in);
-        //System.out.println(outFile.getAbsolutePath());
-        //LASraf outPointCloud = new LASraf(outFile);
-
-        //LASwrite.writeHeader(outPointCloud, "las2las", in.versionMajor, in.versionMinor, in.pointDataRecordFormat, in.pointDataRecordLength);
 
         int maxi;
-
-        int counter = 0;
-        long paritus ;
 
         int thread_n = aR.pfac.addReadThread(in);
 
@@ -85,11 +70,6 @@ public class las2las{
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-
-                //aR.p_update.threadProgress[coreNumber-1]++;
-
-                //if(aR.p_update.threadProgress[coreNumber-1] % 10000 == 0)
-                   // aR.p_update.updateProgressLas2Las();
             }
         }
 

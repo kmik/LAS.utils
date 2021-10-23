@@ -32,8 +32,6 @@ public class pointWriterMultiThread {
     public long[] pointsByReturn = new long[5];
     public long[] pointsByReturn_1_4 = new long[15];
 
-    BlockingQueue<byte[]> spareInput = new ArrayBlockingQueue<byte[]>(5000);
-
     public argumentReader aR;
 
     public int pointDataRecordFormat = 0;
@@ -89,6 +87,8 @@ public class pointWriterMultiThread {
         if(tempReader1 != null)
             this.version_minor_source = tempReader1.versionMinor;
 
+
+
         if(this.version_minor_destination < 4 && this.pointDataRecordFormat > 5){
 
             throw new lasFormatException("PointFormat and LAS version mismatch. PointFormat " + this.pointDataRecordFormat +
@@ -107,15 +107,6 @@ public class pointWriterMultiThread {
 
     }
 
-    public synchronized void addToQueue(byte[] in) {
-
-        try {
-            spareInput.put(in.clone());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     public void writeRemaining(byte[] in, int length) throws IOException{
 
