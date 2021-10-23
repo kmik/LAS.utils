@@ -461,9 +461,7 @@ public class LasPointBufferCreator {
     }
 
     public void writeLong(long in) throws IOException {
-        //prepareBufferForRead(8);
-        //buffer.clear();
-        //byte[] array =  new byte[8];// ByteBuffer.allocate(8).putLong(in).array();
+
         longArray[7] = (byte)(in >>> 56);
         longArray[6] = (byte)(in >>> 48);
         longArray[5] = (byte)(in >>> 40);
@@ -473,26 +471,6 @@ public class LasPointBufferCreator {
         longArray[1] = (byte)(in >>>  8);
         longArray[0] = (byte)(in >>>  0);
 
-    /*
-    buffer.wrap(array);
-    buffer.flip();
-    fileChannel.write(buffer);
-    */
-        //fileChannel.position(fileChannel.size());
-        //fileChannel.write(ByteBuffer.wrap(array));
-        //allArray = concatenateByteArrays(allArray, array);
-        /*
-    writeBuffer_long.position(0);
-    writeBuffer_long.put(longArray);
-    writeBuffer_long.position(0);
-    raFile.seek(raFile.length());
-    fileChannel.write(writeBuffer_long);
-
-    if(true)
-      return;
-
-
-         */
 
 
         if(allArray2Index + longArray.length >= allArray2.length) {
@@ -514,17 +492,7 @@ public class LasPointBufferCreator {
             allArray2Index++;
             allArray2[allArray2Index] = longArray[7];
             allArray2Index++;
-/*
-            try {
-                outputQue.put(allArray2.clone());
-            }catch (Exception e){
-                e.printStackTrace();
-            }
 
-            allArray2Index = 0;
-            return;
-
- */
             output();
             allArray2Index = 0;
 
