@@ -1032,6 +1032,8 @@ public class LASwrite {
 		//System.out.println(from.generatingSoftware);
 		//Date now = new Date();     // Gets the current date and time
 		int year = Calendar.getInstance().get(Calendar.YEAR); //now.getYear();
+		System.out.println(year);
+		System.exit(1);
 		Calendar calendar = Calendar.getInstance();
 		int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
 

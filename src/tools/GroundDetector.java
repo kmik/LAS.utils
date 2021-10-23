@@ -76,7 +76,6 @@ public class GroundDetector{
     ArrayList<LasPoint> surfaceNormalPoints = new ArrayList<LasPoint>();
 
     VertexValuatorDefault valuator = new VertexValuatorDefault();
-
     PointInclusionRule rule = new PointInclusionRule(true);
 
     double miniX;
