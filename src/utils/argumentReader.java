@@ -1242,6 +1242,9 @@ public class argumentReader {
             if (cmd.hasOption("debug_file")) {
 
                 this.debug_file = new File(cmd.getOptionValue("debug_file"));
+
+                if(!this.debug_file.exists())
+                    throw new argumentException("-debug_file does not exist!");
             }
 
             if (cmd.hasOption("o")) {
@@ -1289,6 +1292,10 @@ public class argumentReader {
 
                 this.poly = cmd.getOptionValue("poly");
 
+                if(!new File(this.poly).exists())
+                    throw new argumentException("-poly does not exist!");
+
+
             }
 
             if (cmd.hasOption("convolution_option")) {
@@ -1302,6 +1309,9 @@ public class argumentReader {
             if (cmd.hasOption("measured_trees")) {
 
                 this.measured_trees = new File(cmd.getOptionValue("measured_trees"));
+
+                if(!this.measured_trees.exists())
+                    throw new argumentException("-measured_trees does not exist!");
 
             }
 
@@ -1455,7 +1465,6 @@ public class argumentReader {
             if (cmd.hasOption("axGrid")) {
 
                 this.axgrid = Double.parseDouble(cmd.getOptionValue("axGrid"));
-                //System.out.println("SET AXGRID: " + Double.parseDouble(cmd.getOptionValue("axGrid")));
             }
 
             if (cmd.hasOption("kernel")) {
@@ -1512,6 +1521,9 @@ public class argumentReader {
 
                 this.exterior = cmd.getOptionValue("exterior");
 
+                if(!new File(this.exterior).exists())
+                    throw new argumentException("-exterior does not exist!");
+
             }
 
             if (cmd.hasOption("otype")) {
@@ -1543,16 +1555,14 @@ public class argumentReader {
 
                 this.method = cmd.getOptionValue("method");
 
-            }options.addOption(Option.builder()
-                .longOpt("dz_")
-                .hasArg(false)
-                .desc("dz on the fly")
-                .required(false)
-                .build());
+            }
 
             if (cmd.hasOption("traj")) {
 
                 this.trajectory = cmd.getOptionValue("traj");
+
+                if(!new File(this.trajectory).exists())
+                    throw new argumentException("-traj does not exist!");
 
             }
 
