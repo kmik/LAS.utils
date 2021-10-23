@@ -111,7 +111,7 @@ public class Merger{
         }
 
         buf.close();
-        pw.close();
+        pw.close(aR);
 
     }
 }

@@ -182,7 +182,7 @@ public class lasSplit {
             tempFiles.get(i).updateHeader2();
             */
             tempFiles_buf.get(i).close();
-            tempFiles_buf.get(i).pwrite.close();
+            tempFiles_buf.get(i).pwrite.close(aR);
         }
 
         aR.p_update.fileProgress++;

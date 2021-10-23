@@ -3045,7 +3045,7 @@ public class GroundDetector{
             }
 
             buf.close();
-            buf.pwrite.close();
+            buf.pwrite.close(aR);
         }
         aR.p_update.lasground_fileProgress++;
         aR.p_update.updateProgressNormalize();

@@ -520,7 +520,7 @@ public class Thinner{
         }
 
         buf.close();
-        pw.close();
+        pw.close(aR);
 
 
         //br.writeBuffer2();

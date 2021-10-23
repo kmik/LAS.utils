@@ -1242,7 +1242,7 @@ class ai2las{
 
 				if(aR.olas){
 					buf.close();
-					pw.close();
+					pw.close(aR);
 				}
 
 

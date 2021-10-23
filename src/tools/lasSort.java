@@ -250,7 +250,7 @@ public class lasSort {
 */
 
         buf.close();
-        pw.close();
+        pw.close(aR);
 
         deleteTemporaryFiles(parts);
 

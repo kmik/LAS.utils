@@ -366,7 +366,7 @@ public class Tiler{
 
                      */
                     outputFilesMatrix_buf[i][j].close();
-                    outputFilesMatrix_pw[i][j].close();
+                    outputFilesMatrix_pw[i][j].close(aR);
 
                 }
                 else
@@ -391,7 +391,7 @@ public class Tiler{
 
                      */
                     outputFilesMatrix_buf[i][j].close();
-                    outputFilesMatrix_pw[i][j].close();
+                    outputFilesMatrix_pw[i][j].close(aR);
                 }
                 else
                     outputFilesMatrix_pw[i][j].outputFile.file.delete();

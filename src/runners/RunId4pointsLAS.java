@@ -1432,12 +1432,12 @@ public class RunId4pointsLAS{
         if(aR.split){
             for(int i = 0; i < outputFiles.size(); i++){
                 //outputFiles.get(i).close();
-                outputFiles.get(i).close();
+                outputFiles.get(i).close(aR);
             }
         }
 
         if(!aR.split)
-            pwrite.close();
+            pwrite.close(aR);
 
         String outName = "hilaFile.txt";
 
