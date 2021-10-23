@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Stream;
 
+import err.argumentException;
+import err.lasFormatException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -1132,7 +1134,7 @@ public class argumentReader {
 
                 files = cmd.getOptionValues("i");
 
-                System.out.println(Arrays.toString(files));
+                //System.out.println(Arrays.toString(files));
 
                 if(files[0].split(";").length > 1){
                     files = files[0].split(";");
@@ -1152,14 +1154,14 @@ public class argumentReader {
                     }else{
                         temp.add(s);
                         this.inputFiles.add(new File(s));
-                        System.out.println(s + " is not a LAS file, terminating");
+                        //System.out.println(s + " is not a LAS file, terminating");
                     }
                     //}
                 }
 
                 files = temp.toArray(new String[0]);
 
-                System.out.println(Arrays.toString(files));
+                //System.out.println(Arrays.toString(files));
             }
 
             if (cmd.hasOption("seq")) {
@@ -1210,6 +1212,7 @@ public class argumentReader {
             if (cmd.hasOption("drop_classification")) {
 
                 this.inclusionRule.dropClassification(Integer.parseInt(cmd.getOptionValue("drop_classification")));
+
             }
 
 
@@ -1370,11 +1373,17 @@ public class argumentReader {
 
                 this.train = new File(cmd.getOptionValue("train"));
 
+                if(!this.train.exists())
+                    throw new argumentException("-train does not exist!");
+
             }
 
             if (cmd.hasOption("test")) {
 
                 this.test = new File(cmd.getOptionValue("test"));
+
+                if(!this.test.exists())
+                    throw new argumentException("-test does not exist!");
 
             }
 
@@ -1382,11 +1391,17 @@ public class argumentReader {
 
                 this.validation = new File(cmd.getOptionValue("validation"));
 
+                if(!this.validation.exists())
+                    throw new argumentException("-validation does not exist!");
+
             }
 
             if (cmd.hasOption("train2")) {
 
                 this.train_2 = new File(cmd.getOptionValue("train2"));
+
+                if(!this.train_2.exists())
+                    throw new argumentException("-train2 does not exist!");
 
             }
 
@@ -1394,11 +1409,17 @@ public class argumentReader {
 
                 this.test_2 = new File(cmd.getOptionValue("test2"));
 
+                if(!this.test_2.exists())
+                    throw new argumentException("-test2 does not exist!");
+
             }
 
             if (cmd.hasOption("validation2")) {
 
                 this.validation_2 = new File(cmd.getOptionValue("validation2"));
+
+                if(!this.validation_2.exists())
+                    throw new argumentException("-validation2 does not exist!");
 
             }
 
@@ -1417,6 +1438,9 @@ public class argumentReader {
             if (cmd.hasOption("interior")) {
 
                 this.interior = cmd.getOptionValue("interior");
+
+                if(!new File(this.interior).exists())
+                    throw new argumentException("-interior does not exist!");
 
             }
 
@@ -1444,6 +1468,9 @@ public class argumentReader {
 
                 this.inclusionRule.setUserData(Integer.parseInt(cmd.getOptionValue("set_user_data")));
 
+                if(Integer.parseInt(cmd.getOptionValue("set_user_data")) > 255){
+                    throw new lasFormatException("-set_user_data exceeds unsigned byte range 0 - 255");
+                }
             }
 
             if (cmd.hasOption("theta")) {
@@ -1536,10 +1563,8 @@ public class argumentReader {
 
                 if (!odr.isDirectory()) {
 
-                    odr.mkdir();
-                    System.out.println(odr.getAbsolutePath());
-                    System.out.println("IDIR IS NOT DIRECTORY, exiting");
-                    System.exit(1);
+                    throw new argumentException("-idir not a directory!");
+
                 }
 
                 this.idir = odr.getCanonicalPath() + System.getProperty("file.separator");
@@ -1553,44 +1578,15 @@ public class argumentReader {
 
                 if(!odr.isDirectory()){
 
-                    odr.mkdir();
-                    System.out.println(odr.getAbsolutePath());
-                    System.out.println("ODIR IS NOT DIRECTORY, exiting");
-                    System.exit(1);
+                    throw new argumentException("-odir is not a directory!");
+
                 }
 
                 this.odir = odr.getCanonicalPath() + System.getProperty("file.separator");
 
-                //
-
-
-                if(false)
-                if(odir.charAt(0) == '/' || odir.charAt(0) == '\\'){
-                    odir = odir.substring(1);
-                }
 
                 String odirFirst = "asd";
 
-
-    /*
-                if(odir.split(System.getProperty("file.separator")).length > 1)
-                    odirFirst = odir.split(System.getProperty("file.separator"))[0];
-
-
-                execDir = System.getProperty("user.dir");
-
-                File curDir = new File(execDir);
-
-                if(!odirFirst.equals("asd"))
-                    for(File f : curDir.listFiles()){
-
-                        if(f.getName().equals(odirFirst )) {
-
-                            odir = curDir.getAbsolutePath() + System.getProperty("file.separator") + odir + System.getProperty("file.separator");
-                        }
-                    }
-
-*/
             }
 
             if (cmd.hasOption("split")) {
@@ -1969,7 +1965,7 @@ public class argumentReader {
             if(!odir.equals("asd"))
                 tempPath = odir + pathSep + tempPath;
 
-            System.out.println(tempPath);
+            //System.out.println(tempPath);
             tempFile = new File(tempPath);
 
             if(tempFile.exists())

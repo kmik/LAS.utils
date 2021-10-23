@@ -251,7 +251,7 @@ public class RunLASutils {
 
         aR.p_update.totalFiles = aR.pointClouds.size();
 
-        System.out.println(Arrays.toString(aR.inputFiles.toArray()));
+        //System.out.println(Arrays.toString(aR.inputFiles.toArray()));
 
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
