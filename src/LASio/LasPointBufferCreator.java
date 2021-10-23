@@ -40,9 +40,11 @@ public class LasPointBufferCreator {
     double maxZ = Double.NEGATIVE_INFINITY;
 
     long[] pointsByReturn = new long[5];
+    long[] pointsByReturn_1_4 = new long[15];
     int pointDataRecordFormat = -1;
 
     long pointCount = 0;
+    long pointCount_1_4 = 0;
 
     public LasPointBufferCreator(int bufferId, pointWriterMultiThread pwrite){
 
@@ -218,8 +220,6 @@ public class LasPointBufferCreator {
                 this.writeInt(ly);
                 this.writeInt(lz);
 
-
-
                 /* Write intensity */
                 this.writeUnsignedShort((short) tempPoint.intensity);// braf.readUnsignedShort()
 
@@ -370,15 +370,17 @@ public class LasPointBufferCreator {
             7       Edge of Flight Line
 			*/
 
+
                 /* NOT TESTED!!!! */
-                myBitti = setUnsetBit(myBitti, 7, (tempPoint.overlap) ? 1 : 0);
-                myBitti = setUnsetBit(myBitti, 6, (tempPoint.withheld) ? 1 : 0);
-                myBitti = setUnsetBit(myBitti, 5, (tempPoint.keypoint) ? 1 : 0);
-                myBitti = setUnsetBit(myBitti, 4, (tempPoint.synthetic) ? 1 : 0);
-                myBitti = setUnsetBit(myBitti, 3, ((byte) tempPoint.scannerCannel & (1 << (1))) > 0 ? 1 : 0);
-                myBitti = setUnsetBit(myBitti, 2, ((byte) tempPoint.scannerCannel & (1 << (0))) > 0 ? 1 : 0);
-                myBitti = setUnsetBit(myBitti, 1, (tempPoint.scanDirectionFlag == 1) ? 1 : 0);
-                myBitti = setUnsetBit(myBitti, 0, (tempPoint.edgeOfFlightLine) ? 1 : 0);
+
+                myBitti = setUnsetBit(myBitti, 7, (tempPoint.edgeOfFlightLine) ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 6, (tempPoint.scanDirectionFlag == 1) ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 5, ((byte) tempPoint.scannerCannel & (1 << (7))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 4, ((byte) tempPoint.scannerCannel & (1 << (6))) > 0 ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 3, (tempPoint.overlap) ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 2, (tempPoint.withheld) ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 1, (tempPoint.keypoint) ? 1 : 0);
+                myBitti = setUnsetBit(myBitti, 0, (tempPoint.synthetic) ? 1 : 0);
 
                 /* Write byte */
                 this.writeUnsignedByte(myBitti);
@@ -423,8 +425,6 @@ public class LasPointBufferCreator {
                 }
             }
 
-
-
             this.pointCount++;
 
             if(tempPoint.z < this.minZ)
@@ -444,6 +444,16 @@ public class LasPointBufferCreator {
 
             if(tempPoint.returnNumber <= 5)
                 pointsByReturn[tempPoint.returnNumber - 1]++;
+
+            if(this.pwrite.version_minor_destination >= 4){
+
+
+                if(tempPoint.returnNumber <= 15)
+                    this.pwrite.pointsByReturn_1_4[tempPoint.returnNumber - 1]++;
+
+                this.pointCount_1_4++;
+
+            }
 
         }
 

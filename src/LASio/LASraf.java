@@ -843,6 +843,19 @@ public class LASraf implements Closeable {
             (byte)(value >>> 16),
             (byte)(value >>> 24)};
 }
+  public static synchronized byte[] longToByteArray(long value) {
+    return new byte[] {
+            (byte)(value),
+            (byte)(value >>> 8),
+            (byte)(value >>> 16),
+            (byte)(value >>> 24),
+            (byte)(value >>> 32),
+            (byte)(value >>> 40),
+            (byte)(value >>> 48),
+            (byte)(value >>> 56)};
+  }
+
+
     /**
    * Read 4 bytes and return Java integer.
    *
@@ -1365,10 +1378,36 @@ public class LASraf implements Closeable {
     
   }
 
+  public synchronized void write_n_points_1_4(long in)throws IOException{
+
+    int skip = 247;
+
+    raFile.seek(skip);
+    byte[] array = longToByteArray(in);
+    raFile.write(array);
+
+  }
+
+  public synchronized void writePByReturn_1_4(long[] in)throws IOException{
+
+    int skip = 255;
+
+    for(int i = 0; i < in.length; i++){
+
+      raFile.seek(skip + 8 * i);
+      byte[] array = longToByteArray(in[i]);
+      raFile.write(array);
+
+    }
+
+
+
+  }
+
   public synchronized void writePByReturn(long[] in)throws IOException{
 
     int skip = 111;
-    
+
     raFile.seek(skip);
     byte[] array = intToByteArray((int)in[0]);
     raFile.write(array);
@@ -1564,6 +1603,32 @@ public class LASraf implements Closeable {
 */
 
   }
+
+  public void updateHeader_1_4(double minX, double maxX, double minY, double maxY, double minZ, double maxZ, long[] pointsByReturn, long[] pointsByReturn_1_4,
+                           argumentReader aR) throws IOException{
+    this.writeMinMax(minX, maxX, minY, maxY, maxZ, minZ);
+
+    if(this.pointDataRecordFormat >= 6){
+      this.writePointCount(0);
+      this.writePByReturn(new long[]{0,0,0,0,0});
+    }
+    else {
+
+      this.writePointCount(this.writtenPoints);
+      this.writePByReturn(pointsByReturn);
+
+    }
+
+
+
+    this.write_n_points_1_4(this.writtenPoints);
+    this.writePByReturn_1_4(pointsByReturn_1_4);
+
+    System.out.println(Arrays.toString(pointsByReturn_1_4));
+
+
+  }
+
 
   /**
    * Update LAS file header information after the file has been completely written

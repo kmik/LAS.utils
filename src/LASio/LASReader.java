@@ -1540,7 +1540,7 @@ public class LASReader {
   public long getNumberOfPointRecords() {
 
     //System.out.println("Returning: " + this.legacyNumberOfPointRecords);
-    return this.legacyNumberOfPointRecords;
+    return Math.max(this.legacyNumberOfPointRecords, this.numberOfPointRecords);
 
   }
 

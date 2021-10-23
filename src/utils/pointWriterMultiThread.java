@@ -28,15 +28,18 @@ public class pointWriterMultiThread {
     double minZ = Double.POSITIVE_INFINITY;
     double maxZ = Double.NEGATIVE_INFINITY;
 
-    long[] pointsByReturn = new long[5];
-    long[] pointsByReturn_1_4 = new long[15];
+    public long[] pointsByReturn = new long[5];
+    public long[] pointsByReturn_1_4 = new long[15];
 
     BlockingQueue<byte[]> spareInput = new ArrayBlockingQueue<byte[]>(5000);
 
-    argumentReader aR;
+    public argumentReader aR;
 
     public int pointDataRecordFormat = 0;
     public int pointDataRecordLength = 0;
+    public int version_minor_source = 0;
+    public int version_minor_destination = 0;
+
 
     public pointWriterMultiThread(File outFile2, LASReader tempReader1, String softwareName, argumentReader aR) throws IOException {
 
@@ -78,8 +81,12 @@ public class pointWriterMultiThread {
         }
 
         if(aR.change_version_minor != -999){
+            this.version_minor_destination = aR.change_version_minor;
+        }else
+            this.version_minor_destination = tempReader.versionMinor;
 
-        }
+        if(tempReader1 != null)
+            this.version_minor_source = tempReader1.versionMinor;
 
         LASwrite.writeHeader(outputFile, softwareName, tempReader, aR);
 
@@ -132,7 +139,11 @@ public class pointWriterMultiThread {
 
     public void close(argumentReader aR) throws IOException{
 
-        outputFile.updateHeader(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn, aR);
+        if(this.version_minor_destination >= 4) {
+            outputFile.updateHeader_1_4(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn, this.pointsByReturn_1_4, aR);
+        }
+        else
+            outputFile.updateHeader(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn, aR);
         outputFile.close();
     }
 }
