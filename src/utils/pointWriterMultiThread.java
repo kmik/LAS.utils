@@ -1,6 +1,7 @@
 package utils;
 
 import LASio.*;
+import errorHandling.lasFormatException;
 
 import java.io.File;
 import java.io.IOException;
@@ -87,6 +88,13 @@ public class pointWriterMultiThread {
 
         if(tempReader1 != null)
             this.version_minor_source = tempReader1.versionMinor;
+
+        if(this.version_minor_destination < 4 && this.pointDataRecordFormat > 5){
+
+            throw new lasFormatException("PointFormat and LAS version mismatch. PointFormat " + this.pointDataRecordFormat +
+                    " cannot be used with LAS version 1." + this.version_minor_destination);
+
+        }
 
         LASwrite.writeHeader(outputFile, softwareName, tempReader, aR);
 
