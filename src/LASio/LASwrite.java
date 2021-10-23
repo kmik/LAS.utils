@@ -354,7 +354,7 @@ public class LASwrite {
 		int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);  
 	    to.writeUnsignedShort((short)dayOfYear);// = braf.readUnsignedShort();
 	    
-	    to.writeUnsignedShort((short)(1900 + year));// = braf.readUnsignedShort();
+	    to.writeUnsignedShort((short)(year));// = braf.readUnsignedShort();
 
 	    //fileCreationDate = cal.getTime();
 
@@ -900,7 +900,7 @@ public class LASwrite {
 	    to.writeUnsignedShort((short)dayOfYear);// = braf.readUnsignedShort();
 
 		/* File creation year */
-	    to.writeUnsignedShort((short)(1900 + year));// = braf.readUnsignedShort();
+	    to.writeUnsignedShort((short)(year));// = braf.readUnsignedShort();
 
 		/* Header size */
 	    to.writeUnsignedShort((short)headerSize);// = braf.readUnsignedShort();
@@ -1032,8 +1032,7 @@ public class LASwrite {
 		//System.out.println(from.generatingSoftware);
 		//Date now = new Date();     // Gets the current date and time
 		int year = Calendar.getInstance().get(Calendar.YEAR); //now.getYear();
-		System.out.println(year);
-		System.exit(1);
+
 		Calendar calendar = Calendar.getInstance();
 		int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
 
@@ -1041,7 +1040,7 @@ public class LASwrite {
 		to.writeUnsignedShort((short)dayOfYear);// = braf.readUnsignedShort();
 
 		/* File creation year */
-		to.writeUnsignedShort((short)(1900 + year));// = braf.readUnsignedShort();
+		to.writeUnsignedShort((short)(year));// = braf.readUnsignedShort();
 
 		/* Header size */
 		if(aR.change_version_minor == -999)

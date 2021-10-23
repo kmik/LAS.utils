@@ -1499,7 +1499,7 @@ public class LASraf implements Closeable {
     this.writeUnsignedShort((short)dayOfYear);// = braf.readUnsignedShort();
 
     /* File creation year */
-    this.writeUnsignedShort((short)(1900 + year));// = braf.readUnsignedShort();
+    this.writeUnsignedShort((short)(year));// = braf.readUnsignedShort();
 
     /* Header size */
     this.writeUnsignedShort((short)227);// = braf.readUnsignedShort();
