@@ -15,7 +15,9 @@ import java.util.*;
 public class LASwrite {
 
 	public static Byte myByte = new Byte("00000000");
+	public static Byte myByte2 = new Byte("0000000000000000");
 	public static byte myBitti = myByte.byteValue();
+	public static byte myBitti2 = myByte.byteValue();
 
 	public static ThreadProgressBar proge = new ThreadProgressBar();
 
@@ -1006,7 +1008,45 @@ public class LASwrite {
 			to.writeUnsignedShort((short)p_c.fileSourceID); // = braf.readUnsignedShort();
 
 		/* Global encoding */
-		to.writeUnsignedShort((short)p_c.globalEncoding); // = braf.readUnsignedShort();
+
+		if(aR.change_point_type == 4 || aR.change_point_type == 5 || aR.change_point_type == 9 || aR.change_point_type == 10){
+
+			//boolean globalEncoding = ((p_c.globalEncoding >> 0) & 1) != 0;
+
+			myBitti2 = setUnsetBit(myBitti2, 15, 0);
+			myBitti2 = setUnsetBit(myBitti2, 14, 0);
+			myBitti2 = setUnsetBit(myBitti2, 13, 0);
+			myBitti2 = setUnsetBit(myBitti2, 12, 0);
+			myBitti2 = setUnsetBit(myBitti2, 11, 0);
+
+			/* Set if waveform data in extenral WPD file. We set this by default
+			in order to not trigger a check warning regarding the start of the
+			waveform data.
+			 */
+			myBitti2 = setUnsetBit(myBitti2, 10, 0);
+
+			/* Set if waveform data is in this file
+			 */
+			myBitti2 = setUnsetBit(myBitti2, 9, 0);
+
+			myBitti2 = setUnsetBit(myBitti2, 8, 0);
+
+
+
+			myBitti2 = setUnsetBit(myBitti2, 7,0);
+			myBitti2 = setUnsetBit(myBitti2, 6, 0);
+			myBitti2 = setUnsetBit(myBitti2, 5, 0);
+			myBitti2 = setUnsetBit(myBitti2, 4, 0);
+			myBitti2 = setUnsetBit(myBitti2, 3, 0);
+			myBitti2 = setUnsetBit(myBitti2, 2, 1);
+			myBitti2 = setUnsetBit(myBitti2, 1, 0);
+			myBitti2 = setUnsetBit(myBitti2, 0, p_c.globalEncoding==1 ? 1 : 0);
+
+			to.writeUnsignedShort(myBitti2);
+
+
+		}else
+			to.writeUnsignedShort((short)p_c.globalEncoding); // = braf.readUnsignedShort();
 
 		/* ID */
 		to.writeLong(0);
@@ -1029,7 +1069,6 @@ public class LASwrite {
 		/* Generating software */
 		to.writeAscii(32, (softwareName + " version 0.1"));// generatingSoftware = braf.readAscii(32);
 
-		//System.out.println(from.generatingSoftware);
 		//Date now = new Date();     // Gets the current date and time
 		int year = Calendar.getInstance().get(Calendar.YEAR); //now.getYear();
 

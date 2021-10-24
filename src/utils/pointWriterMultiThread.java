@@ -84,8 +84,6 @@ public class pointWriterMultiThread {
         if(tempReader1 != null)
             this.version_minor_source = tempReader1.versionMinor;
 
-
-
         if(this.version_minor_destination < 4 && this.pointDataRecordFormat > 5){
 
             throw new lasFormatException("PointFormat and LAS version mismatch. PointFormat " + this.pointDataRecordFormat +

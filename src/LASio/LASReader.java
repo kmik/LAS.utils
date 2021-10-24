@@ -1006,9 +1006,9 @@ public class LASReader {
     // Use the file size  to avoid reading them if they are not there.
     long pos = braf.getFilePosition();
 
-    if (headerSize <= pos) {
+    if (versionMinor <= 2) {
       numberOfPointRecords = this.legacyNumberOfPointRecords;
-      numberOfPointsByReturn = new long[15];
+      numberOfPointsByReturn = this.legacyNumberOfPointsByReturn;
       /*
       System.arraycopy(
         numberOfPointsByReturn, 0,
@@ -1016,7 +1016,11 @@ public class LASReader {
         5);
         */
     } else if(versionMinor == 3) {
+
+      numberOfPointRecords = this.legacyNumberOfPointRecords;
+      numberOfPointsByReturn = this.legacyNumberOfPointsByReturn;
       startOfWaveformDataPacketRec = braf.readLong();
+
     }else if(versionMinor == 4){
       startOfWaveformDataPacketRec = braf.readLong();
 
@@ -1396,6 +1400,7 @@ public class LASReader {
 
       int classificationFlag = mask>>4;
 
+      /* NOT TESTED! */
       p.synthetic =   ((classificationFlag >> 0) & 1) != 0;
       p.keypoint  =   ((classificationFlag >> 1) & 1) != 0;
       p.withheld  =   ((classificationFlag >> 2) & 1) != 0;

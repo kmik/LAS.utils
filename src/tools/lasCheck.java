@@ -46,10 +46,12 @@ public class lasCheck {
 
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
+
             maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
             //try {
                 //pointCloud.readRecord_noRAF(i, tempPoint, maxi);
+
             aR.pfac.prepareBuffer(thread_n, i, 10000);
             //} catch (Exception e) {
                 //e.printStackTrace();//pointCloud.braf.buffer.position(0);
@@ -92,6 +94,10 @@ public class lasCheck {
 
     public boolean check(){
 
+        //System.out.println(4 & 2);
+        //System.exit(1);
+
+        int global_encoding = pointCloud.globalEncoding;
         if(!pointCloud.fileSignature.equals("LASF")){
             fails.add("File signature should be LASF and not " + pointCloud.fileSignature);
         }
@@ -117,6 +123,7 @@ public class lasCheck {
             }
         }
 
+        //if ((pointCloud.globalEncoding & 16) == 1) {
         if ((pointCloud.globalEncoding & 16) == 1) {
             if ((pointCloud.versionMajor == 1) && (pointCloud.versionMinor <= 3)) {
                 fails.add(String.format("global encoding: set bit 4 not defined for LAS version %d.%d", pointCloud.versionMajor, pointCloud.versionMinor));
@@ -148,7 +155,7 @@ public class lasCheck {
         else if ((pointCloud.versionMajor == 1) && (pointCloud.versionMinor >= 3))
         {
             if ((pointCloud.pointDataRecordFormat == 4) || (pointCloud.pointDataRecordFormat == 5) || (pointCloud.pointDataRecordFormat == 9) || (pointCloud.pointDataRecordFormat == 10)) {
-                if ((pointCloud.globalEncoding & 2) == 0) {
+                if ((pointCloud.globalEncoding & 2) == 0 && (pointCloud.globalEncoding & 4) == 0) {
                     fails.add(String.format("global encoding: neither bit 1 nor bit 2 are set for point data format %d", pointCloud.pointDataRecordFormat));
                 }
             }
@@ -268,7 +275,7 @@ public class lasCheck {
             // does the year fall into the expected range
 
             if ((pointCloud.fileCreationYear < 1990) || (pointCloud.fileCreationYear > today_year)) {
-                fails.add(String.format("file creation year: should be between 1990 and %d and not %d", pointCloud.fileCreationYear));
+                fails.add(String.format("file creation year: should be between 1990 and %d and not %d", today_year, pointCloud.fileCreationYear));
             }
 
             // does the day fall into the expected range
