@@ -1,5 +1,7 @@
 package utils;
 
+import org.apache.commons.lang.StringUtils;
+
 public class progressUpdater {
 
     ThreadProgressBar progeBar = new ThreadProgressBar();
@@ -168,7 +170,7 @@ public class progressUpdater {
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "-------------------------------------------------------------------");
 
         for(int i = 0; i < aR.cores; i++) {
-            System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "%-8d" + "%-25s" + "%-12d" + "%-12.2f" + "%-12d", i+1, threadFile[i], threadProgress[i], threadDouble[i], threadEnd[i]);
+            System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "%-8d" + "%-25s" + "%-12d" + "%-12.2f" + "%-12d", i+1, StringUtils.abbreviate(threadFile[i], 25), threadProgress[i], threadDouble[i], threadEnd[i]);
         }
 
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K");

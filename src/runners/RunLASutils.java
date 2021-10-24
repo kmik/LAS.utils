@@ -168,20 +168,13 @@ public class RunLASutils {
         ArrayList<File> inputFiles = new ArrayList<>();
 
         if (lasFormat) {
-/*
-            if(wildCard){
-                String prefix = aR.input.split("\\*")[aR.input.split("\\*").length - 1];
 
-                filesList = MKid4pointsLAS.listFiles(aR.input.split("\\*")[0], prefix);
-            }
-            */
 
             filesList.addAll(Arrays.asList(aR.files));
 
 
             for (int i = 0; i < filesList.size(); i++) {
 
-                //pointClouds.add(new LASReader(new File(filesList.get(i))));
                 inputFiles.add(new File(filesList.get(i)));
 
             }
@@ -194,12 +187,7 @@ public class RunLASutils {
 
             proge.setName("Converting .txt to .las ...");
             ArrayList<String> tempList = new ArrayList<String>();
-/*
-            if(wildCard){
-                //tiedostot_indeksi = homma.listFiles(pathi, ".lasx");
-                tempList = MKid4pointsLAS.listFiles(aR.input.split("\\*")[0], ".txt");
-            }
-*/
+
 
             tempList.addAll(Arrays.asList(aR.files));
 
@@ -1577,7 +1565,7 @@ public class RunLASutils {
 
                 for (int i = 0; i < tiedostot.size(); i++) {
 
-                    LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", " ", rule, echoClass);
+                    LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", "\t", rule, echoClass);
                     to.get(i).writeBuffer2();
                     to.get(i).close();
                     //System.out.println("GOT HERE");
@@ -1859,6 +1847,7 @@ public class RunLASutils {
 
                         if (f == null)
                             continue;
+
                         LASReader temp = new LASReader(f);
 
                         try {

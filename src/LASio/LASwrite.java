@@ -303,54 +303,26 @@ public class LASwrite {
 
 	public static void txt2las(File from, LASraf to, String parse, String softwareName, String sep, PointInclusionRule rule, boolean echoClass) throws IOException{
 
-		//PointInclusionRule rule = new PointInclusionRule();
-		//PointModifyRule prule = new PointModifyRule();
-		//System.out.println(parse);
-		//proge.setName(softwareName + " export");
-		//proge.setEnd((int)from.getNumberOfPointRecords());
-
-		//prule.setClassification(2);
-		//rule.keepClassifcation(12);
-		//rule.dropClassification(12);
-		//rule.dropClassification(12);
-		//rule.dropFirst();
-		//rule.keepTriple();
-
+		/* First just create a placeholder header. Minimum header requirements will be updated
+			with the information inferred from the point records.
+		 */
 		to.writeAscii(4, "LASF");
-		
-		//to.fileChannel.position(to.raFile.length());
-		
+
 	    to.writeUnsignedShort((short)2); // = braf.readUnsignedShort();
 	    
-	    //System.out.println(to.fileChannel.position());
 	    to.writeUnsignedShort((short)0); // = braf.readUnsignedShort();
 
 	    // GUID
-	    
 	    to.writeLong(0);
-	    
-	    //to.writeUnsignedShort((short)0);
-	    
-	    //to.writeUnsignedShort((short)0);
-	    
+
 	    to.writeAscii(8, "");
-	   	//to.skipBytes(16); 
- 		
-	    //braf.skipBytes(16);
-	    
+
 	    to.writeUnsignedByte((byte)1);// = braf.readUnsignedByte();
 	    to.writeUnsignedByte((byte)2);// = braf.readUnsignedByte();
-	    
-	    //System.out.println((byte)from.versionMajor);
-	    //System.out.println((byte)from.versionMinor);
-	    
-
 
 	    to.writeAscii(32, "LASutils (c) by Mikko Kukkonen");// systemIdentifier = braf.readAscii(32);
 	    to.writeAscii(32, (softwareName + " version 0.1"));// generatingSoftware = braf.readAscii(32);
-	    
-	    //System.out.println(from.generatingSoftware);
-	    //Date now = new Date();     // Gets the current date and time
+
 		int year = Calendar.getInstance().get(Calendar.YEAR); //now.getYear();
 		Calendar calendar = Calendar.getInstance();
 		int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);  
@@ -358,35 +330,24 @@ public class LASwrite {
 	    
 	    to.writeUnsignedShort((short)(year));// = braf.readUnsignedShort();
 
-	    //fileCreationDate = cal.getTime();
-
 	    to.writeUnsignedShort((short)227);// = braf.readUnsignedShort();
-	    //System.out.println((int)from.headerSize);
-	    
-	    //to.writeUnsignedInt((int)from.offsetToPointData);// = braf.readUnsignedInt();
+
 	    to.writeUnsignedInt(227);
 
-	    //to.writeUnsignedInt((int)from.numberVariableLengthRecords);// = braf.readUnsignedInt();
 	    to.writeUnsignedInt(0);// = braf.readUnsignedInt();
 
-	    //System.out.println((int)from.numberVariableLengthRecords);
 	    to.writeUnsignedByte((byte)3);// = braf.readUnsignedByte();
 	    to.writeUnsignedShort((short)34);// = braf.readUnsignedShort();
 	    
 	    to.writeUnsignedInt(0);// = braf.readUnsignedInt();
-	    //System.out.println(from.legacyNumberOfPointRecords);
-	    //legacyNumberOfPointsByReturn = new long[5];
+
 	   	to.writeUnsignedInt(0);
 
-	   	//System.out.println(from.legacyNumberOfPointsByReturn[1]);
-	   	
 	   	to.writeUnsignedInt(0);
 	   	to.writeUnsignedInt(0);
 	   	to.writeUnsignedInt(0);
 	   	to.writeUnsignedInt(0);
 
-		
-	    
 	    to.writeDouble(0.01);// = braf.readDouble();
 	    
 	    
@@ -404,19 +365,9 @@ public class LASwrite {
 	    to.writeDouble(0);// = braf.readDouble();
 	    to.writeDouble(0);// = braf.readDouble();
 
-	    //System.out.println(to.raFile.length());
-	    /*
-	    if(from.numberVariableLengthRecords > 0){
-
-	    	System.out.println("MORE VARIABLES");
-	    	
-	    }
-		*/
 	    to.writeBuffer2();
 	    long n = 0;//from.getNumberOfPointRecords();
 		LasPoint tempPoint = new LasPoint();
-		//to.writeBuffer();
-		//to.writeShort((short)0);
 
 		double minX = Double.POSITIVE_INFINITY;
 		double maxX = Double.NEGATIVE_INFINITY;
@@ -430,6 +381,8 @@ public class LASwrite {
 		long pointCount = 0;
 
 		long[] pointsByReturn = new long[5];
+		long[] pointsByReturn_1_4 = new long[15];
+
 		String line = "";
 
 		//LasPoint tempPoint = new LasPoint();
@@ -438,6 +391,14 @@ public class LASwrite {
 		double scaleFactor = 0.01;
 
 		int count = 0;
+
+
+		/* UPDATE THESE HEADER INFORMATION */
+
+		int version_minor_update = 2;
+		int point_data_format_update = 0;
+		int x_offset_update = 0, y_offset_update = 0, z_offset_update = 0;
+		int x_scale_update = 0, y_scale_update = 0, z_scale_update = 0;
 
 		try {
 	        FileInputStream fis = new FileInputStream(from);
@@ -448,6 +409,12 @@ public class LASwrite {
 	        	//System.out.println("line: " + line);
 	        	String2LASpoint(tempPoint, line, parse, sep);
 	        	//System.out.println(tempPoint.z + " " + tempPoint.R + " " + tempPoint.N);
+
+				if(tempPoint.numberOfReturns > 5){
+					version_minor_update = 4;
+				}
+
+
 
 				if(echoClass){
 
@@ -475,10 +442,10 @@ public class LASwrite {
 					
 					int returnNumberi = tempPoint.returnNumber - 1;
 
-					if(returnNumberi >= 0)
+					if(returnNumberi >= 0 && returnNumberi < 5)
 						pointsByReturn[returnNumberi]++;
-
-				 	
+					if(returnNumberi >= 0 && returnNumberi < 15)
+						pointsByReturn_1_4[returnNumberi]++;
 
 					double x = tempPoint.x;
 					double y = tempPoint.y;
@@ -497,7 +464,7 @@ public class LASwrite {
 						maxX = x;
 					if(y > maxY)
 						maxY = y;
-					//System.out.println((int)((x - from.xOffset) / from.xScaleFactor));
+
 					int lx = (int)((x - offSet) / scaleFactor);
 		    		int ly = (int)((y - offSet) / scaleFactor);
 		    		int lz = (int)((z - offSet) / scaleFactor);
@@ -506,12 +473,9 @@ public class LASwrite {
 					to.writeInt(ly);
 
 					to.writeInt(lz);
-					
-					//System.out.println(lx);
 
 					to.writeUnsignedShort((short)tempPoint.intensity);// braf.readUnsignedShort()
 					
-					//String returnNumber = Integer.toBinaryString(tempPoint.returnNumber);
 					String bitti = "";
 
 					if(tempPoint.edgeOfFlightLine)
@@ -1091,7 +1055,7 @@ public class LASwrite {
 		//to.writeUnsignedInt((short)p_c.offsetToPointData);
 
 		if(aR.change_version_minor == -999)
-			to.writeUnsignedInt((short)p_c.offsetToPointData);
+			to.writeUnsignedInt((short)p_c.headerSize);
 		else if(aR.change_version_minor == 2){
 			to.writeUnsignedInt((short)227);
 		}
