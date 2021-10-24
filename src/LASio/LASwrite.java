@@ -256,7 +256,6 @@ public class LASwrite {
 					break;
 				case 'i':
 					point.intensity = (int)Math.round(Double.parseDouble(tokens[i]));
-
 					break;
 				case 'c':
 					point.classification = Integer.parseInt(tokens[i]);
@@ -272,6 +271,9 @@ public class LASwrite {
 					break;
 				case 'p':
 					point.pointSourceId = (short)Integer.parseInt(tokens[i]);
+					break;
+				case 's':
+					point.scanAngleRank = Integer.parseInt(tokens[i]);
 					break;
 				case 'u':
 					point.userData = Integer.parseInt(tokens[i]);
@@ -338,7 +340,6 @@ public class LASwrite {
 */
 		}
 
-		//System.out.println(point.scanAngleRank);
 
 	}
 
