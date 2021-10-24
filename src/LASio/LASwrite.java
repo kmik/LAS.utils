@@ -1011,37 +1011,31 @@ public class LASwrite {
 
 		if(aR.change_point_type == 4 || aR.change_point_type == 5 || aR.change_point_type == 9 || aR.change_point_type == 10){
 
-			//boolean globalEncoding = ((p_c.globalEncoding >> 0) & 1) != 0;
-
 			myBitti2 = setUnsetBit(myBitti2, 15, 0);
 			myBitti2 = setUnsetBit(myBitti2, 14, 0);
 			myBitti2 = setUnsetBit(myBitti2, 13, 0);
 			myBitti2 = setUnsetBit(myBitti2, 12, 0);
 			myBitti2 = setUnsetBit(myBitti2, 11, 0);
-
-			/* Set if waveform data in extenral WPD file. We set this by default
-			in order to not trigger a check warning regarding the start of the
-			waveform data.
-			 */
 			myBitti2 = setUnsetBit(myBitti2, 10, 0);
-
-			/* Set if waveform data is in this file
-			 */
 			myBitti2 = setUnsetBit(myBitti2, 9, 0);
-
 			myBitti2 = setUnsetBit(myBitti2, 8, 0);
-
-
-
 			myBitti2 = setUnsetBit(myBitti2, 7,0);
 			myBitti2 = setUnsetBit(myBitti2, 6, 0);
 			myBitti2 = setUnsetBit(myBitti2, 5, 0);
 			myBitti2 = setUnsetBit(myBitti2, 4, 0);
 			myBitti2 = setUnsetBit(myBitti2, 3, 0);
-			myBitti2 = setUnsetBit(myBitti2, 2, 1);
-			myBitti2 = setUnsetBit(myBitti2, 1, 0);
-			myBitti2 = setUnsetBit(myBitti2, 0, p_c.globalEncoding==1 ? 1 : 0);
 
+			/* Set if waveform data in extenral .wpd file. We set this by default
+			in order to not trigger a check warning regarding the start of the
+			waveform data.
+			 */
+			myBitti2 = setUnsetBit(myBitti2, 2, 1);
+
+			/* Set if waveform data is in this file. This is deprecated.
+			 */
+			myBitti2 = setUnsetBit(myBitti2, 1, 0);
+			/* This can be read from the input file */
+			myBitti2 = setUnsetBit(myBitti2, 0, p_c.globalEncoding==1 ? 1 : 0);
 			to.writeUnsignedShort(myBitti2);
 
 
