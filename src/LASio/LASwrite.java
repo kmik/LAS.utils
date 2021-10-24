@@ -4,6 +4,8 @@ import LASio.LASReader;
 import LASio.LASraf;
 import LASio.LasPoint;
 import LASio.PointInclusionRule;
+import err.argumentException;
+import err.lasFormatException;
 import org.apache.commons.lang.StringUtils;
 import utils.argumentReader;
 
@@ -238,9 +240,59 @@ public class LASwrite {
 
 		String[] tokens = in.split(sep);
 
-		//System.out.println("SHOULD GET HERE");
+
 		for(int i = 0; i < charArray.length; i++){
 
+			switch(charArray[i])
+			{
+				case 'x':
+					point.x = Double.parseDouble(tokens[i]);
+					break;
+				case 'y':
+					point.y = Double.parseDouble(tokens[i]);
+					break;
+				case 'z':
+					point.z = Double.parseDouble(tokens[i]);
+					break;
+				case 'i':
+					point.intensity = (int)Math.round(Double.parseDouble(tokens[i]));
+
+					break;
+				case 'c':
+					point.classification = Integer.parseInt(tokens[i]);
+					break;
+				case 't':
+					point.gpsTime = Double.parseDouble(tokens[i]);
+					break;
+				case 'n':
+					point.numberOfReturns = Integer.parseInt(tokens[i]);
+					break;
+				case 'r':
+					point.returnNumber = Integer.parseInt(tokens[i]);
+					break;
+				case 'p':
+					point.pointSourceId = (short)Integer.parseInt(tokens[i]);
+					break;
+				case 'u':
+					point.userData = Integer.parseInt(tokens[i]);
+					break;
+				case 'R':
+					point.R = (short)Double.parseDouble(tokens[i]);
+					break;
+				case 'G':
+					point.G = (short)Double.parseDouble(tokens[i]);
+					break;
+				case 'B':
+					point.B = (short)Double.parseDouble(tokens[i]);
+					break;
+				case 'N':
+					point.N = (short)Double.parseDouble(tokens[i]);
+					break;
+				default:
+					throw new argumentException("-iparse command " + charArray[i] + " not recognized");
+			}
+
+			/*
 			if(charArray[i] == 'x')
 				point.x = Double.parseDouble(tokens[i]);
 
@@ -283,7 +335,7 @@ public class LASwrite {
 				point.B = (short)Double.parseDouble(tokens[i]);
 			if(charArray[i] == 'N')
 				point.N = (short)Double.parseDouble(tokens[i]);
-
+*/
 		}
 
 		//System.out.println(point.scanAngleRank);
