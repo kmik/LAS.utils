@@ -1707,11 +1707,33 @@ public class LASraf implements Closeable {
   }
 
   public void updateHeader(double minX, double maxX, double minY, double maxY, double minZ, double maxZ, long[] pointsByReturn,
-                           argumentReader aR) throws IOException{
+                           argumentReader aR,
+                           double x_offset, double y_offset, double z_offset,
+                           double x_scale, double y_scale, double z_scale	) throws IOException{
+
+
+    int lx = (int)((minX - x_offset) / x_scale);
+    int ly = (int)((minY - y_offset) / y_scale);
+    int lz = (int)((minZ - z_offset) / z_scale);
+
+    double min_x = lx * x_scale + x_offset;
+    double min_y = ly * y_scale + y_offset;
+    double min_z = lz * z_scale + z_offset;
+
+
+    lx = (int)((maxX - x_offset) / x_scale);
+    ly = (int)((maxY - y_offset) / y_scale);
+    lz = (int)((maxZ - z_offset) / z_scale);
+
+    double max_x = lx * x_scale + x_offset;
+    double max_y = ly * y_scale + y_offset;
+    double max_z = lz * z_scale + z_offset;
+
+
 
     this.writePointCount(this.writtenPoints);
 
-    this.writeMinMax(minX, maxX, minY, maxY, maxZ, minZ);
+    this.writeMinMax(min_x, max_x, min_y, max_y, max_z, min_z);
     this.writePByReturn(pointsByReturn);
 
 
@@ -1731,8 +1753,28 @@ public class LASraf implements Closeable {
   }
 
   public void updateHeader_1_4(double minX, double maxX, double minY, double maxY, double minZ, double maxZ, long[] pointsByReturn, long[] pointsByReturn_1_4,
-                           argumentReader aR) throws IOException{
-    this.writeMinMax(minX, maxX, minY, maxY, maxZ, minZ);
+                           argumentReader aR,
+                               double x_offset, double y_offset, double z_offset,
+                               double x_scale, double y_scale, double z_scale	) throws IOException{
+
+    int lx = (int)((minX - x_offset) / x_scale);
+    int ly = (int)((minY - y_offset) / y_scale);
+    int lz = (int)((minZ - z_offset) / z_scale);
+
+    double min_x = lx * x_scale + x_offset;
+    double min_y = ly * y_scale + y_offset;
+    double min_z = lz * z_scale + z_offset;
+
+
+    lx = (int)((maxX - x_offset) / x_scale);
+    ly = (int)((maxY - y_offset) / y_scale);
+    lz = (int)((maxZ - z_offset) / z_scale);
+
+    double max_x = lx * x_scale + x_offset;
+    double max_y = ly * y_scale + y_offset;
+    double max_z = lz * z_scale + z_offset;
+
+    this.writeMinMax(min_x, max_x, min_y, max_y, max_z, min_z);
 
     if(this.pointDataRecordFormat >= 6){
       this.writePointCount(0);

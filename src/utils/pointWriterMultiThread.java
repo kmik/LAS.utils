@@ -26,6 +26,9 @@ public class pointWriterMultiThread {
     double minZ = Double.POSITIVE_INFINITY;
     double maxZ = Double.NEGATIVE_INFINITY;
 
+    double x_scale, y_scale, z_scale;
+    double x_offset, y_offset, z_offset;
+
     public long[] pointsByReturn = new long[5];
     public long[] pointsByReturn_1_4 = new long[15];
 
@@ -41,6 +44,14 @@ public class pointWriterMultiThread {
 
         this.aR = aR;
         this.tempReader = tempReader1;
+
+        this.x_offset = tempReader.xOffset;
+        this.y_offset = tempReader.yOffset;
+        this.z_offset = tempReader.zOffset;
+
+        this.x_scale = tempReader.xScaleFactor;
+        this.y_scale = tempReader.yScaleFactor;
+        this.z_scale = tempReader.zScaleFactor;
 
         outputFile = new LASraf(outFile2);
 
@@ -134,10 +145,12 @@ public class pointWriterMultiThread {
     public void close(argumentReader aR) throws IOException{
 
         if(this.version_minor_destination >= 4) {
-            outputFile.updateHeader_1_4(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn, this.pointsByReturn_1_4, aR);
+            outputFile.updateHeader_1_4(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn, this.pointsByReturn_1_4, aR,
+                    this.x_offset, this.y_offset, this.z_offset, this.x_scale, this.y_scale, this.z_scale);
         }
         else
-            outputFile.updateHeader(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn, aR);
+            outputFile.updateHeader(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn, aR,
+                    this.x_offset, this.y_offset, this.z_offset, this.x_scale, this.y_scale, this.z_scale);
         outputFile.close();
     }
 }

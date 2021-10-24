@@ -132,8 +132,26 @@ public class LASwrite {
 			int x_offset, int y_offset, int z_offset,
 										double x_scale, double y_scale, double z_scale	) throws IOException{
 
+
+		int lx = (int)((minX - x_offset) / x_scale);
+		int ly = (int)((minY - y_offset) / y_scale);
+		int lz = (int)((minZ - z_offset) / z_scale);
+
+		double min_x = lx * x_scale + x_offset;
+		double min_y = ly * y_scale + y_offset;
+		double min_z = lz * z_scale + z_offset;
+
+
+		lx = (int)((maxX - x_offset) / x_scale);
+		ly = (int)((maxY - y_offset) / y_scale);
+		lz = (int)((maxZ - z_offset) / z_scale);
+
+		double max_x = lx * x_scale + x_offset;
+		double max_y = ly * y_scale + y_offset;
+		double max_z = lz * z_scale + z_offset;
+
 		to.writePointCount(pointCount);
-		to.writeMinMax(minX, maxX, minY, maxY, maxZ, minZ);
+		to.writeMinMax(min_x, max_x, min_y, max_y, max_z, min_z);
 		to.writePByReturn(nPerReturn);
 
 		to.write_z_offset((double)z_offset);
