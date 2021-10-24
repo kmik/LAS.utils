@@ -842,7 +842,20 @@ public class LASraf implements Closeable {
             (byte)(value >>> 8),
             (byte)(value >>> 16),
             (byte)(value >>> 24)};
-}
+  }
+
+  public static synchronized byte[] doubleToByteArray(double value) {
+/*
+    byte[] output = new byte[8];
+    long lng = Double.doubleToLongBits(value);
+    for(int i = 0; i < 8; i++) output[i] = (byte)((lng >> ((7 - i) * 8)) & 0xff);
+
+    return output;
+
+ */
+    return ByteBuffer.allocate(8).putDouble(value).array();
+  }
+
   public static synchronized byte[] longToByteArray(long value) {
     return new byte[] {
             (byte)(value),
@@ -1430,6 +1443,119 @@ public class LASraf implements Closeable {
     
   }
 
+  public synchronized void write_x_scale_factor(double in)throws IOException{
+
+    int skip = 131;
+
+    raFile.seek(skip);
+    long v = Double.doubleToLongBits(in);
+    byte [] array = new byte[8];// buffer.allocate(8).putDouble(in).array();
+    array[0] = (byte)(v);
+    array[1] = (byte)(v>>>8);
+    array[2] = (byte)(v>>>16);
+    array[3] = (byte)(v>>>24);
+    array[4] = (byte)(v>>>32);
+    array[5] = (byte)(v>>>40);
+    array[6] = (byte)(v>>>48);
+    array[7]   = (byte)(v>>>56);
+    raFile.write(array);
+
+  }
+
+  public synchronized void write_y_scale_factor(double in)throws IOException{
+
+    int skip = 139;
+
+    raFile.seek(skip);
+    long v = Double.doubleToLongBits(in);
+    byte [] array = new byte[8];// buffer.allocate(8).putDouble(in).array();
+    array[0] = (byte)(v);
+    array[1] = (byte)(v>>>8);
+    array[2] = (byte)(v>>>16);
+    array[3] = (byte)(v>>>24);
+    array[4] = (byte)(v>>>32);
+    array[5] = (byte)(v>>>40);
+    array[6] = (byte)(v>>>48);
+    array[7]   = (byte)(v>>>56);
+    raFile.write(array);
+
+  }
+
+  public synchronized void write_z_scale_factor(double in)throws IOException{
+
+    int skip = 147;
+
+    raFile.seek(skip);
+    long v = Double.doubleToLongBits(in);
+    byte [] array = new byte[8];// buffer.allocate(8).putDouble(in).array();
+    array[0] = (byte)(v);
+    array[1] = (byte)(v>>>8);
+    array[2] = (byte)(v>>>16);
+    array[3] = (byte)(v>>>24);
+    array[4] = (byte)(v>>>32);
+    array[5] = (byte)(v>>>40);
+    array[6] = (byte)(v>>>48);
+    array[7]   = (byte)(v>>>56);
+    raFile.write(array);
+
+  }
+
+  public synchronized void write_x_offset(double in)throws IOException{
+
+    int skip = 155;
+
+    raFile.seek(skip);
+    long v = Double.doubleToLongBits(in);
+    byte [] array = new byte[8];// buffer.allocate(8).putDouble(in).array();
+    array[0] = (byte)(v);
+    array[1] = (byte)(v>>>8);
+    array[2] = (byte)(v>>>16);
+    array[3] = (byte)(v>>>24);
+    array[4] = (byte)(v>>>32);
+    array[5] = (byte)(v>>>40);
+    array[6] = (byte)(v>>>48);
+    array[7]   = (byte)(v>>>56);
+    raFile.write(array);
+
+  }
+
+  public synchronized void write_y_offset(double in)throws IOException{
+
+    int skip = 163;
+
+    raFile.seek(skip);
+    long v = Double.doubleToLongBits(in);
+    byte [] array = new byte[8];// buffer.allocate(8).putDouble(in).array();
+    array[0] = (byte)(v);
+    array[1] = (byte)(v>>>8);
+    array[2] = (byte)(v>>>16);
+    array[3] = (byte)(v>>>24);
+    array[4] = (byte)(v>>>32);
+    array[5] = (byte)(v>>>40);
+    array[6] = (byte)(v>>>48);
+    array[7]   = (byte)(v>>>56);
+    raFile.write(array);
+
+  }
+
+  public synchronized void write_z_offset(double in)throws IOException{
+
+    int skip = 171;
+
+    raFile.seek(skip);
+    long v = Double.doubleToLongBits(in);
+    byte [] array = new byte[8];// buffer.allocate(8).putDouble(in).array();
+    array[0] = (byte)(v);
+    array[1] = (byte)(v>>>8);
+    array[2] = (byte)(v>>>16);
+    array[3] = (byte)(v>>>24);
+    array[4] = (byte)(v>>>32);
+    array[5] = (byte)(v>>>40);
+    array[6] = (byte)(v>>>48);
+    array[7]   = (byte)(v>>>56);
+    raFile.write(array);
+
+  }
 
 
   /**

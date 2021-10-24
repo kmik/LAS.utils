@@ -7,6 +7,7 @@ import LASio.PointInclusionRule;
 import err.argumentException;
 import err.lasFormatException;
 import org.apache.commons.lang.StringUtils;
+import org.deeplearning4j.nn.layers.feedforward.autoencoder.recursive.Tree;
 import utils.argumentReader;
 
 import java.io.*;
@@ -126,6 +127,25 @@ public class LASwrite {
 
 	}
 
+	public static void updateHeader_txt2las(long pointCount, long[] nPerReturn, double minX, double maxX, double minY, double maxY
+			, double maxZ, double minZ, LASraf to,
+			int x_offset, int y_offset, int z_offset,
+										double x_scale, double y_scale, double z_scale	) throws IOException{
+
+		to.writePointCount(pointCount);
+		to.writeMinMax(minX, maxX, minY, maxY, maxZ, minZ);
+		to.writePByReturn(nPerReturn);
+
+		to.write_z_offset((double)z_offset);
+		to.write_y_offset((double)y_offset);
+		to.write_x_offset((double)x_offset);
+
+		to.write_x_scale_factor(x_scale);
+		to.write_y_scale_factor(y_scale);
+		to.write_z_scale_factor(z_scale);
+
+	}
+
 	/**
 	*	Converts a LAS point into a line of string
 	*	
@@ -221,6 +241,127 @@ public class LASwrite {
 
 	}
 
+	public static int inferPointDataFormat(String parse){
+
+		int format_out = -1;
+		char[] charArray = parse.toCharArray();
+
+		ArrayList<TreeSet<Integer>> minimumFormat = new ArrayList<>();
+
+		for(int i = 0; i < charArray.length; i++) {
+
+			switch (charArray[i]) {
+				case 'x':
+					/* Irrelevant */
+					break;
+				case 'y':
+					/* Irrelevant */
+					break;
+				case 'z':
+					/* Irrelevant */
+					break;
+				case 'i':
+					/* Irrelevant */
+					break;
+				case 'c':
+					/* Irrelevant */
+					break;
+				case 't':
+					/* This is either 1, 3, 4, 5, 6, 7, 8, 9, 10 */
+					minimumFormat.add(new TreeSet<>());
+					minimumFormat.get(minimumFormat.size() - 1).add(1);
+					minimumFormat.get(minimumFormat.size() - 1).add(3);
+					minimumFormat.get(minimumFormat.size() - 1).add(4);
+					minimumFormat.get(minimumFormat.size() - 1).add(5);
+					minimumFormat.get(minimumFormat.size() - 1).add(6);
+					minimumFormat.get(minimumFormat.size() - 1).add(7);
+					minimumFormat.get(minimumFormat.size() - 1).add(8);
+					minimumFormat.get(minimumFormat.size() - 1).add(9);
+					minimumFormat.get(minimumFormat.size() - 1).add(10);
+					break;
+				case 'n':
+					/* Irrelevant */
+					break;
+				case 'r':
+					/* Irrelevant */
+					break;
+				case 'p':
+					/* Irrelevant */
+					break;
+				case 's':
+					/* Irrelevant */
+					break;
+				case 'u':
+					/* Irrelevant */
+					break;
+				case 'R':
+					/* This is either 2, 3, 5, 7, 8, 10 */
+					minimumFormat.add(new TreeSet<>());
+					minimumFormat.get(minimumFormat.size() - 1).add(2);
+					minimumFormat.get(minimumFormat.size() - 1).add(3);
+					minimumFormat.get(minimumFormat.size() - 1).add(5);
+					minimumFormat.get(minimumFormat.size() - 1).add(7);
+					minimumFormat.get(minimumFormat.size() - 1).add(8);
+					minimumFormat.get(minimumFormat.size() - 1).add(10);
+
+					break;
+				case 'G':
+					/* This is either 2, 3, 5, 7, 8, 10 */
+					minimumFormat.add(new TreeSet<>());
+					minimumFormat.get(minimumFormat.size() - 1).add(2);
+					minimumFormat.get(minimumFormat.size() - 1).add(3);
+					minimumFormat.get(minimumFormat.size() - 1).add(5);
+					minimumFormat.get(minimumFormat.size() - 1).add(7);
+					minimumFormat.get(minimumFormat.size() - 1).add(8);
+					minimumFormat.get(minimumFormat.size() - 1).add(10);
+					break;
+				case 'B':
+					/* This is either 2, 3, 5, 7, 8, 10 */
+					minimumFormat.add(new TreeSet<>());
+					minimumFormat.get(minimumFormat.size() - 1).add(2);
+					minimumFormat.get(minimumFormat.size() - 1).add(3);
+					minimumFormat.get(minimumFormat.size() - 1).add(5);
+					minimumFormat.get(minimumFormat.size() - 1).add(7);
+					minimumFormat.get(minimumFormat.size() - 1).add(8);
+					minimumFormat.get(minimumFormat.size() - 1).add(10);
+					break;
+				case 'N':
+					/* This is either 8, 10 */
+					minimumFormat.add(new TreeSet<>());
+					minimumFormat.get(minimumFormat.size() - 1).add(8);
+					minimumFormat.get(minimumFormat.size() - 1).add(10);
+					break;
+				default:
+					throw new argumentException("-iparse command " + charArray[i] + " not recognized");
+
+			}
+
+		}
+
+		for (int i = 0; i <= 10; i++) {
+
+			boolean all_true = true;
+
+			for(int j = 0; j < minimumFormat.size(); j++){
+
+				if(!minimumFormat.get(j).contains(i)){
+					all_true = false;
+				}
+			}
+
+			if(all_true) {
+				format_out = i;
+				break;
+			}
+		}
+
+		if(format_out == -1){
+			throw new argumentException("-iparse results in impossible pointFormat");
+		}
+
+		return format_out;
+	}
+
 	/**
 	*	Converts a line of string into a LAS point
 	*	
@@ -239,7 +380,6 @@ public class LASwrite {
 		char[] charArray = parse.toCharArray();
 
 		String[] tokens = in.split(sep);
-
 
 		for(int i = 0; i < charArray.length; i++){
 
@@ -343,6 +483,38 @@ public class LASwrite {
 
 	}
 
+	public static int getPointDataRecordLength(int pointDataRecordFormat){
+
+		if(pointDataRecordFormat == 0){
+			return 20;
+		}else if(pointDataRecordFormat == 1){
+			return 28;
+		}else if(pointDataRecordFormat == 2){
+			return 26;
+		}else if(pointDataRecordFormat == 3){
+			return 34;
+		}else if(pointDataRecordFormat == 4){
+			return 57;
+		}else if(pointDataRecordFormat == 5){
+			return 63;
+		}else if(pointDataRecordFormat == 6){
+			return 30;
+		}else if(pointDataRecordFormat == 7){
+			return 36;
+		}else if(pointDataRecordFormat == 8){
+			return 38;
+		}else if(pointDataRecordFormat == 9){
+			return 59;
+		}else if(pointDataRecordFormat == 10){
+			return 67;
+		}
+
+		if(true)
+			throw new lasFormatException("WHAT HAPPENED!!");
+
+		return -1;
+	}
+
 
 	/**
 	*	Converts a txt file into a LAS file.
@@ -359,6 +531,21 @@ public class LASwrite {
 		/* First just create a placeholder header. Minimum header requirements will be updated
 			with the information inferred from the point records.
 		 */
+
+		int minimum_point_format = inferPointDataFormat(parse);
+
+		int minimum_version = -1;
+
+		if(minimum_point_format <= 3){
+			minimum_version = 2;
+		}else if(minimum_point_format <= 5){
+			minimum_version = 3;
+		}else{
+			minimum_version = 4;
+		}
+		//System.out.println(minimum_point_format);
+		//System.exit(1);
+
 		to.writeAscii(4, "LASF");
 
 	    to.writeUnsignedShort((short)2); // = braf.readUnsignedShort();
@@ -371,7 +558,7 @@ public class LASwrite {
 	    to.writeAscii(8, "");
 
 	    to.writeUnsignedByte((byte)1);// = braf.readUnsignedByte();
-	    to.writeUnsignedByte((byte)2);// = braf.readUnsignedByte();
+	    to.writeUnsignedByte((byte)minimum_version);// = braf.readUnsignedByte();
 
 	    to.writeAscii(32, "LASutils (c) by Mikko Kukkonen");// systemIdentifier = braf.readAscii(32);
 	    to.writeAscii(32, (softwareName + " version 0.1"));// generatingSoftware = braf.readAscii(32);
@@ -389,8 +576,8 @@ public class LASwrite {
 
 	    to.writeUnsignedInt(0);// = braf.readUnsignedInt();
 
-	    to.writeUnsignedByte((byte)3);// = braf.readUnsignedByte();
-	    to.writeUnsignedShort((short)34);// = braf.readUnsignedShort();
+	    to.writeUnsignedByte((byte)minimum_point_format);// = braf.readUnsignedByte();
+	    to.writeUnsignedShort((short)getPointDataRecordLength(minimum_point_format));// = braf.readUnsignedShort();
 	    
 	    to.writeUnsignedInt(0);// = braf.readUnsignedInt();
 
@@ -402,8 +589,6 @@ public class LASwrite {
 	   	to.writeUnsignedInt(0);
 
 	    to.writeDouble(0.01);// = braf.readDouble();
-	    
-	    
 	    to.writeDouble(0.01);// = braf.readDouble();
 	    to.writeDouble(0.01);// = braf.readDouble();
 	    
@@ -451,7 +636,7 @@ public class LASwrite {
 		int version_minor_update = 2;
 		int point_data_format_update = 0;
 		int x_offset_update = 0, y_offset_update = 0, z_offset_update = 0;
-		int x_scale_update = 0, y_scale_update = 0, z_scale_update = 0;
+		double x_scale_update = 0, y_scale_update = 0, z_scale_update = 0;
 
 		try {
 	        FileInputStream fis = new FileInputStream(from);
@@ -463,11 +648,25 @@ public class LASwrite {
 	        	String2LASpoint(tempPoint, line, parse, sep);
 	        	//System.out.println(tempPoint.z + " " + tempPoint.R + " " + tempPoint.N);
 
+				tempPoint.numberOfReturns = Math.max(tempPoint.numberOfReturns, 1);
+				tempPoint.returnNumber = Math.max(tempPoint.returnNumber, 1);
+
 				if(tempPoint.numberOfReturns > 5){
 					version_minor_update = 4;
 				}
 
+				/* Infer scale and offset from the first point */
+				if(x_scale_update == 0){
 
+					x_offset_update = (int)tempPoint.x;
+					y_offset_update = (int)tempPoint.y;
+					z_offset_update = (int)tempPoint.z;
+
+					x_scale_update = 0.001;
+					y_scale_update = 0.001;
+					z_scale_update = 0.001;
+
+				}
 
 				if(echoClass){
 
@@ -518,100 +717,209 @@ public class LASwrite {
 					if(y > maxY)
 						maxY = y;
 
-					int lx = (int)((x - offSet) / scaleFactor);
-		    		int ly = (int)((y - offSet) / scaleFactor);
-		    		int lz = (int)((z - offSet) / scaleFactor);
-					
-					to.writeInt(lx);
-					to.writeInt(ly);
+					int lx = (int)((x - x_offset_update) / x_scale_update);
+		    		int ly = (int)((y - y_offset_update) / y_scale_update);
+		    		int lz = (int)((z - z_offset_update) / z_scale_update);
 
-					to.writeInt(lz);
-
-					to.writeUnsignedShort((short)tempPoint.intensity);// braf.readUnsignedShort()
-					
-					String bitti = "";
-
-					if(tempPoint.edgeOfFlightLine)
-						bitti += "1";
-					else
-						bitti += "0";
-
-					bitti += String.format("%01d", Integer.valueOf(Integer.toBinaryString(tempPoint.scanDirectionFlag)));
-					bitti += String.format("%03d", Integer.valueOf(Integer.toBinaryString(tempPoint.numberOfReturns)));
-					bitti += String.format("%03d", Integer.valueOf(Integer.toBinaryString(tempPoint.returnNumber)));
-
-					//System.out.println(String.format("%03d", Integer.valueOf(Integer.toBinaryString(tempPoint.returnNumber))));
-
-					//System.out.println(Integer.toBinaryString(10 | tempPoint.returnNumber));
-
-					byte myByte = (byte)Integer.parseInt(bitti, 2);
-					//System.out.println(myByte);
-					to.writeUnsignedByte(myByte);
-
-				 	bitti = "";
-				 	if(tempPoint.withheld)
-				 		bitti += 1;
-				 	else
-				 		bitti += 0;
-				 	if(tempPoint.keypoint)
-				 		bitti += 1;
-				 	else
-				 		bitti += 0;
-				 	if(tempPoint.synthetic)
-				 		bitti += 1;
-				 	else
-				 		bitti += 0;
-
-				 	bitti += String.format("%04d", Integer.valueOf(Integer.toBinaryString(tempPoint.classification)));
+					if(minimum_point_format <= 5) {
 
 
-				 	myByte = (byte)Integer.parseInt(bitti, 2);
-					to.writeUnsignedByte(myByte);
-					
-					 // we currently skip
-	    			//   scan angle rank  1 byte
-	    				//   user data        1 byte
-	    			//   point source ID  2 bytes
-					to.writeUnsignedByte((byte)tempPoint.scanAngleRank);
-					to.writeUnsignedByte((byte)tempPoint.userData);
-					to.writeUnsignedShort(tempPoint.pointSourceId);
+						to.writeInt(lx);
+						to.writeInt(ly);
+						to.writeInt(lz);
 
+						to.writeUnsignedShort((short) tempPoint.intensity);
 
-					//if (from.pointDataRecordFormat == 1 || from.pointDataRecordFormat == 3) {
-				    to.writeDouble(tempPoint.gpsTime);// = braf.readDouble();
-				      // Depending on the gpsTimeType element, the GPS time can be
-				      // in one of two formats:
-				      //    GPS Week Time  seconds since 12:00 a.m. Sunday
-				      //    GPS Satellite Time   seconds since 12 a.m. Jan 6, 1980
-				      //                         minus an offset 1.0e+9
-				      //    The mapping to a Java time requires information about
-				      //    the GPS time type
-		    		//}
-					//   scan angle rank  1 byte
-		    		//   user data        1 byte
-		    		//   point source ID  2 bytes
+						myBitti = setUnsetBit(myBitti, 7, tempPoint.edgeOfFlightLine ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 6, tempPoint.scanDirectionFlag);
+						myBitti = setUnsetBit(myBitti, 5, ((byte) tempPoint.numberOfReturns & (1 << (2))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 4, ((byte) tempPoint.numberOfReturns & (1 << (1))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 3, ((byte) tempPoint.numberOfReturns & (1 << (0))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 2, ((byte) tempPoint.returnNumber & (1 << (2))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 1, ((byte) tempPoint.returnNumber & (1 << (1))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 0, ((byte) tempPoint.returnNumber & (1 << (0))) > 0 ? 1 : 0);
 
-					// 
-					//p.returnNumber = mask & 0x07;
+						to.writeUnsignedByte(myBitti);
 
-					//System.out.println(tempPoint.returnNumber);
-					//if(i%20 == 0){
+						myBitti = setUnsetBit(myBitti, 7, (tempPoint.withheld) ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 6, (tempPoint.keypoint) ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 5, (tempPoint.synthetic) ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 4, ((byte) tempPoint.classification & (1 << (4))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 3, ((byte) tempPoint.classification & (1 << (3))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 2, ((byte) tempPoint.classification & (1 << (2))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 1, ((byte) tempPoint.classification & (1 << (1))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 0, ((byte) tempPoint.classification & (1 << (0))) > 0 ? 1 : 0);
+
+						to.writeUnsignedByte(myBitti);
+
+						/* Write scan angle */
+						to.writeUnsignedByte((byte) tempPoint.scanAngleRank);
+
+						/* Write user data */
+						to.writeUnsignedByte((byte) tempPoint.userData);
+
+						/* Write point source ID */
+						to.writeUnsignedShort(tempPoint.pointSourceId);
+
+						/* RGB is included in both 2 and 3 record types in LAS 1.2 */
+
+						if (minimum_point_format == 1 ||
+								minimum_point_format == 3 ||
+								minimum_point_format == 4 ||
+								minimum_point_format == 5) {
+
+							to.writeDouble(tempPoint.gpsTime);// = braf.readDouble();
+
+						}
+
+						if (minimum_point_format == 2 ||
+								minimum_point_format == 3 ||
+								minimum_point_format == 5) {
+
+							to.writeUnsignedShort(tempPoint.R);
+							to.writeUnsignedShort(tempPoint.G);
+							to.writeUnsignedShort(tempPoint.B);
+
+						}
+
+						if (minimum_point_format == 4 ||
+								minimum_point_format == 5) {
+
+							to.writeUnsignedByte((byte) tempPoint.WavePacketDescriptorIndex);
+							to.writeLong(tempPoint.ByteOffsetToWaveformData);
+							to.writeUnsignedInt(tempPoint.WaveformPacketSizeInBytes);
+							to.writeFloat(tempPoint.ReturnPointWaveformLocation);
+
+							to.writeFloat(tempPoint.x_t);
+							to.writeFloat(tempPoint.y_t);
+							to.writeFloat(tempPoint.z_t);
+						}
+
+						// Depending on the gpsTimeType element, the GPS time can be
+						// in one of two formats:
+						//    GPS Week Time  seconds since 12:00 a.m. Sunday
+						//    GPS Satellite Time   seconds since 12 a.m. Jan 6, 1980
+						//                         minus an offset 1.0e+9
+						//    The mapping to a Java time requires information about
+						//    the GPS time type
+						//}
+						//   scan angle rank  1 byte
+						//   user data        1 byte
+						//   point source ID  2 bytes
+
+						//
+						//p.returnNumber = mask & 0x07;
+
+						//System.out.println(tempPoint.returnNumber);
+						//if(i%20 == 0){
 						//System.out.println(i);
 						//to.writeBuffer();
-					//}
+						//}
 
-					to.writeUnsignedShort(tempPoint.R);
-					to.writeUnsignedShort(tempPoint.G);
-					to.writeUnsignedShort(tempPoint.B);
+						//to.writeUnsignedShort(tempPoint.R);
+						//to.writeUnsignedShort(tempPoint.G);
+						//to.writeUnsignedShort(tempPoint.B);
+					}else {
+
+						/* Write scaled and offset x, y and z */
+						to.writeInt(lx);
+						to.writeInt(ly);
+						to.writeInt(lz);
+
+						to.writeUnsignedShort((short) tempPoint.intensity);// braf.readUnsignedShort()
+
+                /*
+				Return Number 3 bits 					(bits 0, 1, 2, 3) 4 bits *
+				Number of Returns (given pulse) 3 bits 	(bits 4, 5, 6, 7) 4 bits *
+			 */
+
+						myBitti = setUnsetBit(myBitti, 7, ((byte) tempPoint.numberOfReturns & (1 << (3))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 6, ((byte) tempPoint.numberOfReturns & (1 << (2))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 5, ((byte) tempPoint.numberOfReturns & (1 << (1))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 4, ((byte) tempPoint.numberOfReturns & (1 << (0))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 3, ((byte) tempPoint.returnNumber & (1 << (3))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 2, ((byte) tempPoint.returnNumber & (1 << (2))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 1, ((byte) tempPoint.returnNumber & (1 << (1))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 0, ((byte) tempPoint.returnNumber & (1 << (0))) > 0 ? 1 : 0);
+
+						/* Write byte */
+						to.writeUnsignedByte(myBitti);
+
+                /*
+
+			Bits 	Explanation
+
+			0 - 3 	Classification Flags: Classification flags are used to indicate special characteristics associated
+                    with the point.
+			4 - 5   Scanner Channel
+            6       Scan Direction Flag
+            7       Edge of Flight Line
+			*/
+
+
+						/* NOT TESTED!!!! */
+
+						myBitti = setUnsetBit(myBitti, 7, (tempPoint.edgeOfFlightLine) ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 6, (tempPoint.scanDirectionFlag == 1) ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 5, ((byte) tempPoint.scannerCannel & (1 << (7))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 4, ((byte) tempPoint.scannerCannel & (1 << (6))) > 0 ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 3, (tempPoint.overlap) ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 2, (tempPoint.withheld) ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 1, (tempPoint.keypoint) ? 1 : 0);
+						myBitti = setUnsetBit(myBitti, 0, (tempPoint.synthetic) ? 1 : 0);
+
+
+						/* Write byte */
+						to.writeUnsignedByte(myBitti);
+
+						/* Write classification */
+						to.writeUnsignedByte((byte) tempPoint.classification);
+
+						/* Write user data */
+						to.writeUnsignedByte((byte) tempPoint.userData);
+
+						/* Write scan angle */
+						to.writeUnsignedShort((byte) tempPoint.scanAngleRank);
+
+						/* Write pointSourceId */
+						to.writeUnsignedShort((byte) tempPoint.pointSourceId);
+
+						/* Write gps time */
+						to.writeDouble(tempPoint.gpsTime);
+
+
+						if (minimum_point_format >= 7 && minimum_point_format != 9) {
+
+							to.writeUnsignedShort(tempPoint.R);
+							to.writeUnsignedShort(tempPoint.G);
+							to.writeUnsignedShort(tempPoint.B);
+
+							if (minimum_point_format >= 8) {
+								to.writeUnsignedShort(tempPoint.N);
+							}
+						}
+						if (minimum_point_format == 10 || minimum_point_format == 9) {
+
+							to.writeUnsignedByte((byte) tempPoint.WavePacketDescriptorIndex);
+							to.writeLong(tempPoint.ByteOffsetToWaveformData);
+							to.writeUnsignedInt(tempPoint.WaveformPacketSizeInBytes);
+							to.writeFloat(tempPoint.ReturnPointWaveformLocation);
+
+							to.writeFloat(tempPoint.x_t);
+							to.writeFloat(tempPoint.y_t);
+							to.writeFloat(tempPoint.z_t);
+
+						}
+					}
 				}
 				count++;
-				//System.out.println(count);
 	        }
 	        in.close();
 	    }catch(Exception e){System.out.println(e);}
 	    to.writeBuffer2();
-	    updateHeader(pointCount, pointsByReturn, minX, maxX, minY, maxY
-			, maxZ, minZ, to);
+	    updateHeader_txt2las(pointCount, pointsByReturn, minX, maxX, minY, maxY
+			, maxZ, minZ, to, x_offset_update, y_offset_update, z_offset_update,
+				x_scale_update, y_scale_update, z_scale_update);
 	}
 
 

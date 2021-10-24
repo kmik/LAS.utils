@@ -205,6 +205,7 @@ public class LasPointBufferCreator {
             output = true;
 
             if(pointDataRecordFormat <= 5) {
+
                 double x = tempPoint.x;
                 double y = tempPoint.y;
                 double z = tempPoint.z;
