@@ -829,49 +829,13 @@ public class LasPointBufferCreator {
 
         int unsignedValue = in&0x000000ff;
         byte unsignedValueB = (byte) unsignedValue;
-    /*
-    //unsignedByteArray = buffer2.allocate(1).put(unsignedValueB).array();
-    writeBuffer_unsignedByte.position(0);
-    writeBuffer_unsignedByte.put(unsignedValueB);
-    writeBuffer_unsignedByte.position(0);
-    raFile.seek(raFile.length());
-    fileChannel.write(writeBuffer_unsignedByte);
-    //System.out.println();
 
-    if(true)
-      return;
-    */
         unsignedByteArray[0] = unsignedValueB;
-        //array[0] = unsignedValueB;
-    /*
-    buffer.wrap(array);
-    buffer.flip();
-    fileChannel.write(buffer);
-    */
-
-        //fileChannel.position(fileChannel.size());
-        //  System.out.println(Arrays.toString(array));
-        //fileChannel.write(ByteBuffer.wrap(array));
-
-        //allArray = concatenateByteArrays(allArray, array);
-
-
 
         if(allArray2Index + unsignedByteArray.length >= allArray2.length) {
-            //writeBuffer2();
             allArray2[allArray2Index] = unsignedByteArray[0];
             allArray2Index++;
-            /*
-            try {
-                outputQue.put(allArray2.clone());
-            }catch (Exception e){
-                e.printStackTrace();
-            }
 
-            allArray2Index = 0;
-            return;
-
-             */
             output();
             allArray2Index = 0;
 
@@ -881,20 +845,6 @@ public class LasPointBufferCreator {
         allArray2[allArray2Index] = unsignedByteArray[0];
         allArray2Index++;
 
-/*
-        if(allArray2Index + unsignedByteArray.length >= allArray2.length) {
-            //writeBuffer2();
-            writeBuffer3(unsignedByteArray);
-            return;
-        }
-
- */
-        //for(int i = 0; i < unsignedByteArray.length; i++){
-        //writeBuffer.put(unsignedByteArray);
-
-
-        //}
-        //unsignedByteArray = null;
 
     }
 

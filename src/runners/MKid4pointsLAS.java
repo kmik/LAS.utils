@@ -1965,6 +1965,7 @@ class MKid4pointsLAS{
         aR.p_update.updateProgressClip();
 
         if(!aR.split)
+
             pointBuffer.close();
         else{
             for(int i = 0; i < outputBuffers.size(); i++)

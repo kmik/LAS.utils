@@ -2,6 +2,8 @@ package tools;
 
 import LASio.*;
 //import jdk.jfr.events.ExceptionThrownEvent;
+import err.lasFormatException;
+import err.toolError;
 import gnu.trove.list.array.TIntArrayList;
 import org.tinfour.common.*;
 
@@ -1480,14 +1482,11 @@ public class GroundDetector{
             }catch(Exception e){
                 e.printStackTrace();
             }
-            //pointCloud.braf.buffer.position(0);
 
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
-                //System.out.println(tempPoint.x + " " + tempPoint.y + " " + minX + " " + minY);
 
-                //if(isLastOfManyOrOnly(tempPoint)) {
                     temppi[0] = (long) Math.floor((tempPoint.x - minX) / (double) pulseDensitySpacing);   //X INDEX
                     temppi[1] = (long) Math.floor((maxY - tempPoint.y) / (double) pulseDensitySpacing);
 
@@ -1501,9 +1500,6 @@ public class GroundDetector{
                     if(temppi[1] >= numberOfPixelsY)
                         temppi[1] = numberOfPixelsY - 1;
 
-                    //System.out.println(temppi[0] + " " + temppi[1]);
-                    //System.out.println(tempPoint.x  + " " + tempPoint.y );
-                    //System.out.println(minX  + " " + minY );
                     statisticsTemp[(int) temppi[0]][(int) temppi[1]]++;
                 //}
                 //System.out.println(tempPoint.x);
@@ -2821,20 +2817,14 @@ public class GroundDetector{
                 createTin(groundClassification);
 
             if(!tin.isBootstrapped()){
-                //System.out.println("Degenerate TIN, aborting");
-                return;
+
+                throw new toolError("TIN is not bootstrapped. There are not enough ground points with class " + aR.ground_class + "" +
+                        "to construct a TIN.");
+
             }
 
             org.tinfour.interpolation.NaturalNeighborInterpolator polator = new org.tinfour.interpolation.NaturalNeighborInterpolator(tin);
 
-
-            //File outputFile = new File(outputFileName);
-
-            //if(outputFile.exists())
-              //  outputFile.delete();
-
-            //System.out.println(outputFile.getAbsolutePath());
-            //outputFile.createNewFile();
             long n = pointCloud.getNumberOfPointRecords();
 
             int maxi;
@@ -2853,18 +2843,17 @@ public class GroundDetector{
             //LASwrite.writeHeader(asd2, "lasheight", pointCloud.versionMajor, pointCloud.versionMinor, pointCloud.pointDataRecordFormat, pointCloud.pointDataRecordLength);
             int pointCount = 0;
 
+            boolean debug_print = false;
+
             List<IQuadEdge> perimeter = tin.getPerimeter();
+
+            int counter_debug = 0;
 
             for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
                 maxi = (int) Math.min(10000, pointCloud.getNumberOfPointRecords() - i);
 
-                //try {
-                    //pointCloud.readRecord_noRAF(i, tempPoint, 10000);
-                //} catch (Exception e) {
                 aR.pfac.prepareBuffer(thread_n, i, 10000);
-                //}
-                //pointCloud.braf.buffer.position(0);
 
                 for (int j = 0; j < maxi; j++) {
 
@@ -2874,8 +2863,9 @@ public class GroundDetector{
 
                     aR.p_update.threadProgress[coreNumber-1] = this.progress_current;
 
-
                     if(isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Inside) {
+
+                        counter_debug++;
 
                         interpolatedvalue = polator.interpolate(tempPoint.x, tempPoint.y, valuator);
 
@@ -2885,7 +2875,6 @@ public class GroundDetector{
 
                         aR.pfac.writePoint(tempPoint, i + j, thread_n);
 
-
                         if (progress_current % 10000 == 0) {
                             aR.p_update.updateProgressNormalize();
                         }
@@ -2893,6 +2882,8 @@ public class GroundDetector{
                         this.pointsOutsideTin++;
                         aR.p_update.threadInt[coreNumber - 1] = this.pointsOutsideTin;
                     }
+                    debug_print = false;
+
                 }
             }
 
