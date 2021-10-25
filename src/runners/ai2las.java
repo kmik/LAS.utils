@@ -277,7 +277,7 @@ class ai2las{
 				}
 				System.out.print(count++ + " Images read\r");
 				double sensorSize = interior[1] * (double)tempDataset.GetRasterXSize();
-				double focalLength_millimeters = interior[0] * 1000.0;
+				double focalLength_millimeters = interior[0];
 
 				images.add(tempDataset);
 				imageNames.add("/" + tokens[0]);
@@ -301,10 +301,10 @@ class ai2las{
 				if(aR.altitude != 0.0)
 					flyingHeight = aR.altitude;
 
-				double gsd = ((sensorSize * flyingHeight * 100.0) / (focalLength_millimeters * (double)tempDataset.GetRasterXSize())) / 100.0;
+				double gsd = ((sensorSize / 1000.0 * flyingHeight) / (focalLength_millimeters / 1000.0 * (double)tempDataset.GetRasterXSize())) * 100.0;
 
 
-				System.out.println("img altitude: " + flyingHeight + " gsd: " + gsd);
+				System.out.println("img altitude: " + flyingHeight + " gsd: " + gsd + " cm");
 				System.out.println(sensorSize + " " + focalLength_millimeters + " " + (double)tempDataset.GetRasterXSize());
 
 				tempPoint.x = eoTemp[0];
@@ -389,7 +389,10 @@ class ai2las{
 		double kappa = eo[5];
 
 		double cc = io[0];
-		double ps = io[1] / 1000.0; //12.0 / 1000000.0;
+
+		/** CHANGED THIS ONE */
+		//double ps = io[1] / 1000.0; //12.0 / 1000000.0;
+		double ps = io[1]; //12.0 / 1000000.0;
 
 		double nc = x_s;
 		double nr = y_s;
@@ -453,7 +456,9 @@ class ai2las{
 		double cameraZ = eo[2];
 
 		double cc = io[0];
-		double ps = io[1] / 1000.0; //12.0 / 1000000.0;
+		/** CHANGED THIS ONE */
+		//double ps = io[1] / 1000.0; //12.0 / 1000000.0;
+		double ps = io[1]; //12.0 / 1000000.0;
 
 		double nc = x_s;
 		double nr = y_s;
@@ -534,12 +539,9 @@ class ai2las{
 
 		double[][] rotationMatrix = new double[3][3];
 
-
-
 		double omega = eo[3];
 		double phi = eo[4];
 		double kappa = eo[5];
-
 
 		rotationMatrix[0][0] = Math.cos(phi) * Math.cos(kappa);
 
@@ -853,7 +855,7 @@ class ai2las{
 		txtFormat = new File(aR.files[0]).getName().split("\\.")[1].equals("txt");
 
 			//wildCard = input.split(pathSep)[(input.split(pathSep)).length - 1].split("\\.")[0].equals("*");
-			wildCard = new File(aR.files[0]).getName().split("\\.")[1].equals("*");
+		wildCard = new File(aR.files[0]).getName().split("\\.")[1].equals("*");
 
 		//}
 

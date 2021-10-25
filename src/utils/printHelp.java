@@ -139,10 +139,10 @@ public class printHelp {
                 "\n" +
                 "fc\tps\tppx\tppy\n" +
                 "\n" +
-                "\twhere\tfc = focal length (m)\n" +
+                "\twhere\tfc = focal length (mm)\n" +
                 "\t\tps = pixel size (mm)\n" +
-                "\t\tppx = principal point x offset (m)\n" +
-                "\t\tppy = principal point y offset (m)\n" +
+                "\t\tppx = principal point x offset (mm)\n" +
+                "\t\tppy = principal point y offset (mm)\n" +
                 "\n" +
                 "NOTE: \tThe coordinate origo for each image is TOP LEFT. \n" +
                 "\tppx and ppy are simply added to the projected image\n" +
