@@ -286,9 +286,15 @@ class ai2las{
 				eoTemp[0] = Double.parseDouble(tokens[2]);
 				eoTemp[1] = Double.parseDouble(tokens[3]);
 				eoTemp[2] = Double.parseDouble(tokens[4]);
-				eoTemp[3] = Double.parseDouble(tokens[5]);
-				eoTemp[4] = Double.parseDouble(tokens[6]);
-				eoTemp[5] = Double.parseDouble(tokens[7]);
+
+				if(!aR.input_in_radians) {
+					eoTemp[3] = Math.toRadians(Double.parseDouble(tokens[5]));
+					eoTemp[4] = Math.toRadians(Double.parseDouble(tokens[6]));
+					eoTemp[5] = Math.toRadians(Double.parseDouble(tokens[7]));
+				}
+				else{
+
+				}
 
 				double flyingHeight = eoTemp[2] - minZ;
 
@@ -297,8 +303,9 @@ class ai2las{
 
 				double gsd = ((sensorSize * flyingHeight * 100.0) / (focalLength_millimeters * (double)tempDataset.GetRasterXSize())) / 100.0;
 
-				System.out.println("img altitude: " + flyingHeight + " gsd: " + gsd);
 
+				System.out.println("img altitude: " + flyingHeight + " gsd: " + gsd);
+				System.out.println(sensorSize + " " + focalLength_millimeters + " " + (double)tempDataset.GetRasterXSize());
 
 				tempPoint.x = eoTemp[0];
 				tempPoint.y = eoTemp[1];
@@ -811,9 +818,6 @@ class ai2las{
 
 	public static void main(String[] args) throws IOException {
 
-
-
-
 		argumentReader aR = new argumentReader(args);
 		aR.setExecDir( System.getProperty("user.dir"));
 		aR.parseArguents();
@@ -843,9 +847,6 @@ class ai2las{
 		input = aR.files[0];
 			//input = args[0];
 		System.out.println(input);
-
-		//lasFormat = input.split(pathSep)[(input.split(pathSep)).length - 1].split("\\.")[1].equals("las");
-		//txtFormat = input.split(pathSep)[(input.split(pathSep)).length - 1].split("\\.")[1].equals("txt");
 
 		lasFormat = new File(aR.files[0]).getName().split("\\.")[1].equals("las");
 		//lasFormat = aR.files[0].split("\\.")[1].equals("las");
@@ -945,7 +946,6 @@ class ai2las{
 			}
 		}
 
-		//File asd = new File("196.tif");
 		nCores = 1;
 		ogr.RegisterAll(); //Registering all the formats..
 		gdal.AllRegister();

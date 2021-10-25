@@ -31,6 +31,8 @@ public class argumentReader {
 
     public File debug_file = null;
 
+    public boolean input_in_radians = false;
+
 
     public boolean olas = false;
 
@@ -441,6 +443,13 @@ public class argumentReader {
                 .longOpt("model")
                 .hasArg(true)
                 .desc("neural network model")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("input_in_radians")
+                .hasArg(false)
+                .desc("Input angles are in radians")
                 .required(false)
                 .build());
 
@@ -1294,6 +1303,12 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("input_in_radians")) {
+
+                this.input_in_radians = true;
+
+            }
+
             if (cmd.hasOption("sa")) {
 
                 this.output_only_stemAlignInput = true;
@@ -1760,6 +1775,8 @@ public class argumentReader {
             System.out.println("Please, follow the instructions below:");
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp( "All arguments:", options );
+
+            pe.printStackTrace();
 
             helpPrinter.printHelp(1);
 

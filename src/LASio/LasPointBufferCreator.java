@@ -210,9 +210,6 @@ public class LasPointBufferCreator {
                 double y = tempPoint.y;
                 double z = tempPoint.z;
 
-
-
-
                 /* Scale x and apply xOffset */
                 int lx = (int) ((x - this.pwrite.tempReader.xOffset) / this.pwrite.tempReader.xScaleFactor);
                 /* Scale y and apply yOffset */
@@ -825,7 +822,6 @@ public class LasPointBufferCreator {
     }
 
     public void writeUnsignedByte(byte in) throws IOException {
-        //buffer.clear();
 
         int unsignedValue = in&0x000000ff;
         byte unsignedValueB = (byte) unsignedValue;
