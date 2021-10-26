@@ -2,8 +2,7 @@ package tools;
 
 import LASio.*;
 //import jdk.jfr.events.ExceptionThrownEvent;
-import err.lasFormatException;
-import err.toolError;
+import err.toolException;
 import gnu.trove.list.array.TIntArrayList;
 import org.tinfour.common.*;
 
@@ -2818,7 +2817,7 @@ public class GroundDetector{
 
             if(!tin.isBootstrapped()){
 
-                throw new toolError("TIN is not bootstrapped. There are not enough ground points with class " + aR.ground_class + "" +
+                throw new toolException("TIN is not bootstrapped. There are not enough ground points with class " + aR.ground_class + "" +
                         "to construct a TIN.");
 
             }

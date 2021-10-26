@@ -128,7 +128,12 @@ public class Thinner{
 
         for(int x = 0; x < numberOfPixelsX; x++){
             for(int y = 0; y < numberOfPixelsY; y++) {
-                min_z[x][y] = Float.POSITIVE_INFINITY;
+
+                if(aR.lowest)
+                    min_z[x][y] = Float.POSITIVE_INFINITY;
+                else
+                    min_z[x][y] = Float.NEGATIVE_INFINITY;
+
                 minIndex[x][y] = -1;
             }
         }
@@ -172,11 +177,18 @@ public class Thinner{
                 x_index = (int)Math.floor((tempPoint.x - minX) / step);
                 y_index = (int)Math.floor((maxY - tempPoint.y) / step);
 
-                if(tempPoint.z < min_z[x_index][y_index]){
-                    min_z[x_index][y_index] = (float)tempPoint.z;
-                    minIndex[x_index][y_index] = i+j;
+                if(aR.lowest) {
+                    if (tempPoint.z < min_z[x_index][y_index]) {
+                        min_z[x_index][y_index] = (float) tempPoint.z;
+                        minIndex[x_index][y_index] = i + j;
+                    }
                 }
-
+                else {
+                    if (tempPoint.z > min_z[x_index][y_index]) {
+                        min_z[x_index][y_index] = (float) tempPoint.z;
+                        minIndex[x_index][y_index] = i + j;
+                    }
+                }
                 aR.p_update.threadProgress[coreNumber-1]++;
 
                 if(aR.p_update.threadProgress[coreNumber-1] % 10000 == 0)

@@ -1,5 +1,6 @@
 package LASio;
 
+import err.lasFormatException;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.set.hash.TIntHashSet;
@@ -1468,14 +1469,14 @@ public class LASReader {
   public synchronized void readRecord_noRAF(long recordIndex, LasPoint p, int n) throws Exception {
 
     if (recordIndex < 0 || recordIndex >= this.numberOfPointRecords) {
-      throw new IOException(
+      throw new lasFormatException(
               "Record index "
                       + recordIndex
                       + " out of bounds ["
                       + 0 + ".." + numberOfPointRecords + "]");
     }
     if (isClosed) {
-      throw new IOException("File is closed");
+      throw new lasFormatException("File is closed");
     }
 
     long filePos = this.offsetToPointData

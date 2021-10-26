@@ -285,6 +285,7 @@ public class LevenbergMarquardt {
         Thread[] threads = new Thread[n_threads];
 
         long startTime = System.currentTimeMillis();
+
         if(true)
         if(param.getNumElements() >= n_threads * 10) {
             for (int i = 0; i < n_threads; i++) {
