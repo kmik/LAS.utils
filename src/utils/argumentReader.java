@@ -50,6 +50,9 @@ public class argumentReader {
     public File execDir_file;
     String firstDir = "null";
 
+    public boolean highest = true;
+    public boolean lowest = false;
+
     fileOperations fo = new fileOperations();
     public ArrayList<LASReader> pointClouds = new ArrayList<LASReader>();
     public ArrayList<File> inputFiles = new ArrayList<>();
@@ -429,6 +432,20 @@ public class argumentReader {
                 .longOpt("interior")
                 .hasArg(true)
                 .desc("inter")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("highest")
+                .hasArg(false)
+                .desc("Keep highest point in lasthin")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("lowest")
+                .hasArg(false)
+                .desc("Keep lowest point in lasthin")
                 .required(false)
                 .build());
 
@@ -1392,6 +1409,22 @@ public class argumentReader {
 
                 this.olas = true;
 
+            }
+
+            if (cmd.hasOption("highest")) {
+
+                this.highest = true;
+                this.lowest = false;
+            }
+
+            if (cmd.hasOption("lowest")) {
+
+                this.lowest = true;
+                this.highest = false;
+            }
+
+            if(this.highest && this.lowest){
+                throw new argumentException("Can't have it both -highest and -lowest");
             }
 
             if (cmd.hasOption("splitBy")) {

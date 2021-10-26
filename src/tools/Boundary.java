@@ -3,6 +3,7 @@ package tools;
 import LASio.LASReader;
 import LASio.LasPoint;
 import LASio.PointInclusionRule;
+import err.toolException;
 import javafx.scene.shape.Path;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
@@ -187,13 +188,6 @@ public class Boundary extends tool{
 
         LasPoint tempPoint = new LasPoint();
 
-			/*
-			A = (Ax, Ay) which maximizes x-y
-			B = (Bx, Xy) which maximizes x+y
-			C = (Cx, Cy) which minimizes x-y
-			D = (Dx, Dy) which minimizes x+y
-			*/
-
         double maxA = Double.NEGATIVE_INFINITY;
         double maxB = Double.NEGATIVE_INFINITY;
         double minC = Double.POSITIVE_INFINITY;
@@ -253,8 +247,6 @@ public class Boundary extends tool{
 
         HashSet<Double> donet = new HashSet<Double>();
 
-        //Arrays.sort(boundary);
-
         List<org.tinfour.common.Vertex> closest = new ArrayList<>();
 
         org.tinfour.interpolation.TriangularFacetInterpolator polator = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);
@@ -275,7 +267,6 @@ public class Boundary extends tool{
 
             pointCloud.readRecord(i, tempPoint);
 
-            //System.out.println(tin.getPerimeter().size());
             if(tin.isBootstrapped()) {
 
                 if(currentBorder == null){
@@ -305,6 +296,10 @@ public class Boundary extends tool{
 
         }
 
+        if(!tin.isBootstrapped()){
+            throw new toolException("TIN is not bootstrapped, not enought points in the .las file?");
+        }
+
         perimeterVertices.clear();
 
         perimTin.clear();
@@ -328,7 +323,6 @@ public class Boundary extends tool{
                 start[1] = tempA.y;
             }
 
-            //System.out.println("ADD " + i);
             border.add(new double[]{tempA.x, tempA.y});
 
             if(!vertexSetConcave.contains(tempA)){
