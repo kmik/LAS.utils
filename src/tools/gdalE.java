@@ -99,7 +99,6 @@ class gdalE {
         FloatBuffer floatBuffer = byteBuffer.asFloatBuffer();
         int[] intArray = new int[xsize];
         float[] floatArray = new float[xsize];
-        //System.out.println(filename);
         dataset = driver.Create(filename, xsize, ysize, 1, gdalconst.GDT_Float32);
         band = dataset.GetRasterBand(1);
 
