@@ -183,8 +183,8 @@ class gdalE {
 
     public static Dataset hei(String filename, int xDim, int yDim, float value){
 
-        //ogr.RegisterAll(); //Registering all the formats..
-        //gdal.AllRegister();
+        ogr.RegisterAll(); //Registering all the formats..
+        gdal.AllRegister();
 
         Dataset dataset = null;
         Driver driver = null;
