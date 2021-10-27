@@ -81,6 +81,8 @@ public class argumentReader {
 
     public String neural_mode = "merged";
 
+    public boolean rule_when_reading = false;
+
     public String[] args;
     public PointInclusionRule inclusionRule;
     public PointModifyRule modifyRule;
@@ -602,7 +604,7 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
-                .longOpt("br")
+                .longOpt("read_rules")
                 .hasArg(false)
                 .desc("Apply point mod in read or write")
                 .required(false)
@@ -1050,6 +1052,7 @@ public class argumentReader {
                 .desc("Origin y")
                 .required(false)
                 .build());
+
         options.addOption(Option.builder()
                 .longOpt("orig_x")
                 .hasArg(true)
@@ -1169,16 +1172,9 @@ public class argumentReader {
 
                 files = cmd.getOptionValues("i");
 
-                //System.out.println(Arrays.toString(files));
-
                 if(files[0].split(";").length > 1){
                     files = files[0].split(";");
                 }
-
-
-
-                //this.input = cmd.getOptionValue("i");
-
 
                 ArrayList<String> temp = new ArrayList<>();
 
@@ -1189,14 +1185,11 @@ public class argumentReader {
                     }else{
                         temp.add(s);
                         this.inputFiles.add(new File(s));
-                        //System.out.println(s + " is not a LAS file, terminating");
                     }
-                    //}
                 }
 
                 files = temp.toArray(new String[0]);
 
-                //System.out.println(Arrays.toString(files));
             }
 
             if (cmd.hasOption("seq")) {
@@ -1231,12 +1224,17 @@ public class argumentReader {
                 this.change_point_type = Integer.parseInt(cmd.getOptionValue("change_point_format"));
 
                 this.inclusionRule.changePointFormat(this.change_point_type);
+
+                if(this.change_point_type < 0 || this.change_point_type > 10)
+                    throw new argumentException("Nonsense point format (-change_point_format).");
             }
 
             if(cmd.hasOption("change_version_minor")){
 
                 this.change_version_minor = Integer.parseInt(cmd.getOptionValue("change_version_minor"));
 
+                if(change_version_minor > 4 || change_version_minor < 1)
+                    throw new argumentException("Incomprehensible version minor (-change_version_minor). Great Scott!!");
             }
 
             if (cmd.hasOption("label_index")) {
@@ -1258,6 +1256,7 @@ public class argumentReader {
             if (cmd.hasOption("layers")) {
 
                 this.layers = (Integer.parseInt(cmd.getOptionValue("layers")));
+
             }
 
 
@@ -1295,6 +1294,8 @@ public class argumentReader {
 
                 this.altitude = Double.parseDouble(cmd.getOptionValue("alt"));
 
+                if(this.altitude < 0)
+                    throw new argumentException("Negative altitude is impossible.");
             }
 
             if(cmd.hasOption("decimate_tin")){
@@ -1484,6 +1485,12 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("read_rules")){
+
+                this.rule_when_reading = true;
+
+            }
+
             if (cmd.hasOption("validation2")) {
 
                 this.validation_2 = new File(cmd.getOptionValue("validation2"));
@@ -1558,7 +1565,9 @@ public class argumentReader {
 
                 this.orig_x = Double.parseDouble(cmd.getOptionValue("orig_x"));
 
-            }if (cmd.hasOption("orig_y")) {
+            }
+
+            if (cmd.hasOption("orig_y")) {
 
                 this.orig_y = Double.parseDouble(cmd.getOptionValue("orig_y"));
 
@@ -1811,7 +1820,7 @@ public class argumentReader {
 
             pe.printStackTrace();
 
-            helpPrinter.printHelp(1);
+            //helpPrinter.printHelp(1);
 
             System.exit(1);
         }

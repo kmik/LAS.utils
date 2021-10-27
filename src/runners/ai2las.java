@@ -3,6 +3,8 @@ package runners;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import err.toolException;
 import org.ejml.data.DMatrixRMaj;
@@ -146,6 +148,7 @@ class ai2las{
 
 				int pienin = 0;
 				int suurin = 0;
+
 				if(coreNumber != 0){
 
 					int jako = (int)Math.ceil((double)tiedostot.size() / (double) numberOfCores);
@@ -200,6 +203,7 @@ class ai2las{
 					outList.add(fo.createNewFileWithNewExtension(tiedostot.get(i), ".las").getAbsolutePath());
 
 				}
+
 				PointInclusionRule rule = new PointInclusionRule();
 				tiedostoLista.add(outList);
 
@@ -317,7 +321,6 @@ class ai2las{
 
 				extentsThis[2] = eoTemp[1] - ((double) tempDataset.GetRasterYSize() * gsd);
 				extentsThis[3] = eoTemp[1] + ((double) tempDataset.GetRasterYSize() * gsd);
-
 
 				extents.add(extentsThis.clone());
 
@@ -480,6 +483,52 @@ class ai2las{
 
 	}
 
+	public static double[] collinearStuff_array(double[] point, double[] io, double[] eo, double[][] rotationMatrix, double x_s, double y_s){
+
+		double[] output = new double[2];
+
+		double pointX = point[0];
+		double pointY = point[1];
+		double pointZ = point[2];
+
+		double cameraX = eo[0];
+		double cameraY = eo[1];
+		double cameraZ = eo[2];
+
+		double cc = io[0];
+
+		double ps = io[1]; //12.0 / 1000000.0;
+
+		double nc = x_s;
+		double nr = y_s;
+
+		double ppx = io[2];
+		double ppy = io[3];
+
+		double xx0;
+		double yy0;
+
+		xx0 = -cc * ( ( rotationMatrix[0][0] * (pointX - cameraX) + rotationMatrix[0][1] * (pointY - cameraY) + rotationMatrix[0][2] * (pointZ - cameraZ) ) /
+				( rotationMatrix[2][0] * (pointX - cameraX) + rotationMatrix[2][1] * (pointY - cameraY) + rotationMatrix[2][2] * (pointZ - cameraZ) ) );
+
+		yy0 = -cc * ( ( rotationMatrix[1][0] * (pointX - cameraX) + rotationMatrix[1][1] * (pointY - cameraY) + rotationMatrix[1][2] * (pointZ - cameraZ) ) /
+				( rotationMatrix[2][0] * (pointX - cameraX) + rotationMatrix[2][1] * (pointY - cameraY) + rotationMatrix[2][2] * (pointZ - cameraZ) ) );
+
+
+		double x = xx0 + ppx;
+		double y = yy0 + ppy;
+
+		double xpx = (nc / 2.0) + (x / ps);
+		double ypx = (nr / 2.0) - (y / ps);
+
+		output[0] = xpx;
+		output[1] = ypx;
+
+		return output;
+
+	}
+
+
 	public static double[] collinearStuff3(double p_x, double p_y, double p_z, double[] io, double[] eo, double[][] rotationMatrix, double x_s, double y_s){
 
 		double[] output = new double[2];
@@ -609,8 +658,6 @@ class ai2las{
 		public synchronized void addObservation(Dataset image, int imageId, double x, double y){
 
 			imagesVisible.add(imageId);
-
-			double channelSum = 0.0;
 
 			for(int i = 1; i <= image.GetRasterCount(); i++){
 
@@ -1014,6 +1061,7 @@ class ai2las{
 		}
 
 		if(!aR.debug) {
+
 			for (int t = 0; t < tempList.size(); t++) {
 
 				int outsidePoint = 0;
@@ -1058,6 +1106,28 @@ class ai2las{
 
 				double[] temp;
 
+				int n_threads = 4;
+
+				pointDistributor pdis = new pointDistributor();
+
+				Thread[] threads = new Thread[n_threads];
+
+				int n_img_per_thread = (int)Math.ceil((double)datasets.size() / (double)n_threads);
+
+				ArrayList<PriorityBlockingQueue<double[]>> thread_point_que = new ArrayList<>();
+
+				for (int i = 0; i < n_threads; i++) {
+
+					thread_point_que.add(new PriorityBlockingQueue<>());
+
+					int mini = i * n_img_per_thread;
+					int maxi1 = Math.min(datasets.size(), mini + n_img_per_thread);
+					threads[i] = new ai2lasParallel(mini, maxi1, tempP, thread_point_que.get(thread_point_que.size()-1), datasets, interior, exteriors, rotationMatrices,
+							x_s, y_s, pix_threshold_x, pix_threshold_y, imageIDs, extents);
+					threads[i].start();
+				}
+
+
 				try {
 
 					FileWriter fw = new FileWriter(ofile2);
@@ -1092,7 +1162,7 @@ class ai2las{
 
 							String outWrite2 = "";
 
-							int n_threads = 1;
+							//int n_threads = 1;
 /*
 							Thread[] threads = new Thread[n_threads];
 
@@ -1121,6 +1191,12 @@ class ai2las{
  */
 							/* CAN THIS BE PARALLELIZED?*/
 							//if(true)
+
+							AtomicInteger inti = new AtomicInteger(0);
+
+							inti.addAndGet(1);
+
+
 							for (int j_ = 0; j_ < datasets.size(); j_++) {
 
 								if (tempPoint.x >= extents.get(j_)[0] && tempPoint.x <= extents.get(j_)[1] && tempPoint.y >= extents.get(j_)[2] && tempPoint.y <= extents.get(j_)[3]) {
@@ -1310,7 +1386,7 @@ class ai2lasParallel extends Thread{
 
 	int min, max;
 	ai2las.pointAI tempP;
-	LasPoint tempPoint;
+	PriorityBlockingQueue<double[]> pointQ;
 	ArrayList<Dataset> datasets;
 	double[] interior;
 	ArrayList<double[]> exterior;
@@ -1320,13 +1396,13 @@ class ai2lasParallel extends Thread{
 	int pix_threshold_x, pix_threshold_y;
 	ArrayList<Integer> imageIDs;
 
-	public ai2lasParallel(int min, int max, ai2las.pointAI tempP, LasPoint tempPoint, ArrayList<Dataset> datasets, double[] interior, ArrayList<double[]> exterior, ArrayList<double[][]> rotationMatrices,
+	public ai2lasParallel(int min, int max, ai2las.pointAI tempP, PriorityBlockingQueue<double[]> pointQ, ArrayList<Dataset> datasets, double[] interior, ArrayList<double[]> exterior, ArrayList<double[][]> rotationMatrices,
 						  double x_s, double y_s, int pix_threshold_x, int pix_threshold_y, ArrayList<Integer> imageIDs, ArrayList<double[]> extents){
 
 		this.min = min;
 		this.max = max;
 		this.tempP = tempP;
-		this.tempPoint = tempPoint;
+		this.pointQ = pointQ;
 		this.datasets = datasets;
 		this.interior = interior;
 		this.exterior = exterior;
@@ -1343,22 +1419,27 @@ class ai2lasParallel extends Thread{
 	@Override
 	public void run(){
 
+		double[] point;
 		double[] temp;
-		for( int i = min; i < this.max; i++ ) {
 
-			if (tempPoint.x >= extents.get(i)[0] && tempPoint.x <= extents.get(i)[1] && tempPoint.y >= extents.get(i)[2] && tempPoint.y <= extents.get(i)[3]) {
+		while(true){
 
-				temp = ai2las.collinearStuff2(tempPoint, interior, exterior.get(i), rotationMatrices.get(i), x_s, y_s);
+			point = pointQ.poll();
 
-				if (temp[0] > pix_threshold_x && temp[0] < (x_s - pix_threshold_x)
-						&& temp[1] > pix_threshold_y && temp[1] < (y_s - pix_threshold_y)) {
+			for( int i = min; i < this.max; i++ ) {
 
-					tempP.addObservation(datasets.get(i), imageIDs.get(i), temp[0], temp[1]);
+				if (point[0] >= extents.get(i)[0] && point[0] <= extents.get(i)[1] && point[1] >= extents.get(i)[2] && point[1] <= extents.get(i)[3]) {
 
+					temp = ai2las.collinearStuff_array(point, interior, exterior.get(i), rotationMatrices.get(i), x_s, y_s);
 
+					if (temp[0] > pix_threshold_x && temp[0] < (x_s - pix_threshold_x)
+							&& temp[1] > pix_threshold_y && temp[1] < (y_s - pix_threshold_y)) {
+
+						tempP.addObservation(datasets.get(i), imageIDs.get(i), temp[0], temp[1]);
+
+					}
 				}
 			}
-
 		}
 
 	}

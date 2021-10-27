@@ -142,10 +142,6 @@ public class Thinner{
         double tempx = minX;
         double tempy = maxY;
 
-        long countx = 0;
-        long county = 0;
-        int count2 = 0;
-
         long n = pointCloud.getNumberOfPointRecords();
 
         LasPoint tempPoint = new LasPoint();
@@ -312,24 +308,6 @@ public class Thinner{
 
         TreeMap<Long, ArrayList<Integer>> hashmappi = new TreeMap<>();
 
-/*
-        for(int c = 0; c < nParts; c++) {
-
-            //System.out.println(plotID1.size() / (double)cores);
-            if(c != nParts){
-
-                pienin = (nParts - 1) * jako;
-                suurin = nParts * jako;
-            }
-
-            else{
-                pienin = (c - 1) * jako;
-                suurin = numberOfPixelsX;
-            }
-
-            n = suurin - pienin;
-            */
-
         Pair[] parit = new Pair[n];
 
         LasPoint tempPoint = new LasPoint();
@@ -493,12 +471,9 @@ public class Thinner{
             if(aR.p_update.threadProgress[coreNumber-1] % 1000 == 0){
                 aR.p_update.updateProgressThin();
             }
-            //System.out.println(parit[i].value + " ; " + parit[i].index);
         }
 
-
         aR.p_update.threadFile[coreNumber-1] = "third pass";
-        //aR.p_update.threadEnd[coreNumber-1] = parit.length;
         aR.p_update.threadEnd[coreNumber-1] = hashmappi.size();
         aR.p_update.threadProgress[coreNumber-1] = 0;
 
@@ -511,7 +486,6 @@ public class Thinner{
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            //pointCloud.braf.buffer.position(0);
 
             for (int j = 0; j < maxi; j++) {
 
@@ -523,29 +497,11 @@ public class Thinner{
                     pointCount++;
 
                 }
-
-
             }
-
-
-
         }
 
         buf.close();
         pw.close(aR);
-
-
-        //br.writeBuffer2();
-        //br.updateHeader2();
-
-        n = numberOfPixelsX * numberOfPixelsY * numberOfPixelsZ;
-        //}
-
-    }
-
-    public int takeRandom(int[] arrayIn, int maxIndex){
-
-        return(arrayIn[rand.nextInt(maxIndex - 1)]);
 
     }
 
@@ -558,66 +514,6 @@ public class Thinner{
             outArray[i] = arrayIn.get(i);
 
         }
-        //return(arrayIn[rand.nextInt(maxIndex - 1)]);
-
-    }
-
-    public static String concatString(LasPoint point, String oparse){
-
-        char[] array = oparse.toCharArray();
-
-        String output = "";
-
-        if(oparse.equals("all")){
-
-            output += " " + point.x;
-
-            output += " " + point.y;
-
-            output += " " + point.z;
-
-            output += " " + point.intensity;
-
-            output += " " + point.classification;
-
-            output += " " + point.gpsTime;
-
-            output += " " + point.numberOfReturns;
-
-            output += " " + point.returnNumber;
-
-        }
-
-        for(int i = 0; i < array.length; i++){
-
-            if(array[i] == ('x'))
-                output += " " + point.x;
-
-            if(array[i] == ('y'))
-                output += " " + point.y;
-
-            if(array[i] == ('z'))
-                output += " " + point.z;
-
-            if(array[i] == ('i'))
-                output += " " + point.intensity;
-
-            if(array[i] == ('c'))
-                output += " " + point.classification;
-
-            if(array[i] == ('t'))
-                output += " " + point.gpsTime;
-
-            if(array[i] == ('n'))
-                output += " " + point.numberOfReturns;
-
-            if(array[i] == ('r'))
-                output += " " + point.returnNumber;
-
-            if(array[i] == ('s'))
-                output += " " + 0;
-        }
-        return output;
 
     }
 
