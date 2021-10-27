@@ -695,13 +695,17 @@ public class printHelp {
                 "(2000) algorithm. For photogrammetric data (usually characterized\n" +
                 "by excessive noise in certain flat areas) the user can use \n" +
                 "-photogrammetry argument that improves the accuracy of seed\n" +
-                "point detection. This only affects the detection of seed points\n" +
+                "point detection. In short, the tool does not take the lowest\n" +
+                "point within the -axGrid, but rather computes a smaller grid\n" +
+                "within the -axGrid and only accepts points areas where standard\n" +
+                "deviation of points is in acceptable range.\n" +
+                "This only affects the detection of seed points\n" +
                 "and has no effect on the following densification of the surface.\n" +
                 "\n" +
                 "Usage:\n" +
                 "\n" +
                 "\t-i\t\tInput file(s)\n" +
-                "\t-o\t\tOutput file / prefix(\"xxx_\")\n" +
+                "\t-o\t\tOutput file\n" +
                 "\t-odir\t\tOutput directory\n" +
                 "\t-distance\tDistance threshold (default 1.0 m)\n" +
                 "\t-angle\t\tAngle threshold (default 10.0 degrees)\n" +
