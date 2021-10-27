@@ -75,7 +75,7 @@ class gdalE {
 
     public static void hei(String filename, double[][] in){
 
-        ogr.RegisterAll(); //Registering all the formats..
+        ogr.RegisterAll();
         gdal.AllRegister();
 
         Dataset dataset = null;
