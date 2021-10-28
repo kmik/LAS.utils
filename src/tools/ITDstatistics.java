@@ -20,8 +20,6 @@ import org.tinfour.utils.Polyside;
 import utils.GLCM;
 import utils.KdTree;
 
-//import com.github.mreutegg.laszip4j.*;
-
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.DataBufferByte;

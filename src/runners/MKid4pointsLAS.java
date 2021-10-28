@@ -230,7 +230,6 @@ class MKid4pointsLAS{
 
         Cantor homma = new Cantor();
 
-
         if(part != 0){
 
             int jako = Math.round(pilvi.size()/cores);

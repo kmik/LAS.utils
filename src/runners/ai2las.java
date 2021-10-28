@@ -7,8 +7,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import err.toolException;
-import org.ejml.data.DMatrixRMaj;
-import org.ejml.dense.row.CommonOps_DDRM;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
 import org.gdal.gdal.Dataset;

@@ -9,7 +9,6 @@ import utils.argumentReader;
 import utils.fileOperations;
 
 import java.io.File;
-import java.io.IOException;
 /**
  *	Converts a LAS file into an ESRI format
  *	shp file.

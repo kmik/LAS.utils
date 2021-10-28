@@ -1,13 +1,8 @@
 package LASio;
 
-import LASio.LASReader;
-import LASio.LASraf;
-import LASio.LasPoint;
-import LASio.PointInclusionRule;
+
 import err.argumentException;
 import err.lasFormatException;
-import org.apache.commons.lang.StringUtils;
-import org.deeplearning4j.nn.layers.feedforward.autoencoder.recursive.Tree;
 import utils.argumentReader;
 
 import java.io.*;
