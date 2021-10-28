@@ -201,7 +201,7 @@ public class RunLASutils {
             for (int ii = 1; ii <= aR.cores; ii++) {
 
                 proge.addThread();
-                Thread temp = new Thread(new multiTXT2LAS(tempList, aR.iparse, aR.cores, ii, aR.odir, aR.echoClass));
+                Thread temp = new Thread(new multiTXT2LAS(tempList, aR.iparse, aR.cores, ii, aR.odir, aR.echoClass, aR));
                 lista11.add(temp);
                 temp.start();
 
@@ -489,7 +489,7 @@ public class RunLASutils {
 
 
                 LASraf asd2 = new LASraf(tempFile);
-                LASwrite.txt2las(fromFile, asd2, aR.iparse, "txt2las", aR.sep, aR.getInclusionRule(), false);
+                LASwrite.txt2las(fromFile, asd2, aR.iparse, "txt2las", aR.sep, aR.getInclusionRule(), false, aR);
             }
 
         }
@@ -606,7 +606,7 @@ public class RunLASutils {
                     //System.out.println("Odir: " + odir);
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
 
-                    ToShp toshape = new ToShp(aR.output, temp, aR.getInclusionRule(), aR.odir, aR.oparse);
+                    ToShp toshape = new ToShp(aR.output, temp, aR.getInclusionRule(), aR.odir, aR.oparse, aR);
                     //LASutils.Boundary bound = new LASutils.Boundary(pointClouds.get(i), odir, output, false);
 
                 }
@@ -1339,8 +1339,6 @@ public class RunLASutils {
                         Double.parseDouble(tokens[3]),
                         Double.parseDouble(tokens[4])
                 });
-                //System.out.println(tokens[0]);
-                //System.out.println(Arrays.toString(this.trunkFile.get(Integer.parseInt(tokens[0]))));
 
             }
 
@@ -1472,9 +1470,11 @@ public class RunLASutils {
         int coreNumber;
         boolean echoClass = false;
         String odir;
+        argumentReader aR;
 
-        public multiTXT2LAS(ArrayList<String> tiedostot2, String parse2, int numberOfCores2, int coreNumber2, String odir2, boolean echoClass) {
+        public multiTXT2LAS(ArrayList<String> tiedostot2, String parse2, int numberOfCores2, int coreNumber2, String odir2, boolean echoClass, argumentReader aR) {
 
+            this.aR = aR;
             tiedostot = tiedostot2;
             parse = parse2;
             numberOfCores = numberOfCores2;
@@ -1529,7 +1529,7 @@ public class RunLASutils {
                     File tempFile = new File(tiedostot.get(i));
 
                     File toFile = null;
-
+/*
                     if (odir.equals("asd"))
 
                         toFile = fo.createNewFileWithNewExtension(tempFile, ".las");
@@ -1538,6 +1538,10 @@ public class RunLASutils {
                     if (!odir.equals("asd"))
 
                         toFile = fo.createNewFileWithNewExtension(tempFile, odir, ".las");
+
+ */
+                    toFile = aR.createOutputFile(tempFile);
+
                     //new File(odir + System.getProperty("file.separator") + tempFile.getName().replaceFirst("[.][^.]+$", "") + ".las");
 
                     //System.out.println(toFile);
@@ -1565,7 +1569,7 @@ public class RunLASutils {
 
                 for (int i = 0; i < tiedostot.size(); i++) {
 
-                    LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", "\t", rule, echoClass);
+                    LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", "\t", rule, echoClass, aR);
                     to.get(i).writeBuffer2();
                     to.get(i).close();
                     //System.out.println("GOT HERE");
@@ -1701,9 +1705,11 @@ public class RunLASutils {
                             det.normalizeZ_mem_eff(aR.output, aR.getInclusionRule(), aR.otype);
                         }
 
+                        /* This means that no external .las file was input as ground points */
                         if (aR.groundPoints.equals("-999")) {
 
                             if (aR.ground_class == -1)
+                                /* This is never run? */
                                 det.normalizeZ(aR.output, aR.getInclusionRule(), aR.otype);
                             else
                                 det.normalizeZ(aR.ground_class, aR.output, aR.getInclusionRule(), aR.otype, aR.groundPoints);
@@ -1809,7 +1815,7 @@ public class RunLASutils {
                             continue;
 
                         LASReader temp = new LASReader(f);
-                        ToShp toshape = new ToShp(aR.output, temp, aR.getInclusionRule(), aR.odir, aR.oparse);
+                        ToShp toshape = new ToShp(aR.output, temp, aR.getInclusionRule(), aR.odir, aR.oparse, aR);
 
                     }
 

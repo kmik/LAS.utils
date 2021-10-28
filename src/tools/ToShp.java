@@ -5,6 +5,7 @@ import LASio.LasPoint;
 import LASio.PointInclusionRule;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
+import utils.argumentReader;
 import utils.fileOperations;
 
 import java.io.File;
@@ -31,6 +32,8 @@ public class ToShp{
 
     String pathSep = System.getProperty("file.separator");
 
+    argumentReader aR;
+
     public ToShp(){
 
     }
@@ -46,7 +49,9 @@ public class ToShp{
      *								are included in the shapefile.
      */
 
-    public ToShp(String outFile, LASReader cloud, PointInclusionRule ruleIn, String odirIn, String oparse) throws IOException {
+    public ToShp(String outFile, LASReader cloud, PointInclusionRule ruleIn, String odirIn, String oparse, argumentReader aR) throws Exception {
+
+        this.aR = aR;
 
         this.pointCloud = cloud;
         this.rule = ruleIn;
@@ -85,7 +90,7 @@ public class ToShp{
 
     /** Export LAS file as shp */
 
-    public void export() throws IOException{
+    public void export() throws Exception{
 
         ogr.RegisterAll(); //Registering all the formats..
         gdal.AllRegister();
@@ -110,21 +115,30 @@ public class ToShp{
 
         LasPoint tempPoint = new LasPoint();
 
-        for(int i = 0; i < n; i++){
+        int thread_n = aR.pfac.addReadThread(pointCloud);
 
-            pointCloud.readRecord(i, tempPoint);
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
-            Geometry outShpGeom = new Geometry(1);
-            outShpGeom.SetPoint(0, tempPoint.x , tempPoint.y);
-            outShpFeat.SetField("z", tempPoint.z);
-            outShpFeat.SetGeometryDirectly(outShpGeom);
-            outShpLayer.CreateFeature(outShpFeat);
+            int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+            aR.pfac.prepareBuffer(thread_n, i, 10000);
+
+            for (int j = 0; j < maxi; j++) {
+
+                pointCloud.readFromBuffer(tempPoint);
+
+                Geometry outShpGeom = new Geometry(1);
+                outShpGeom.SetPoint(0, tempPoint.x, tempPoint.y);
+                outShpFeat.SetField("z", tempPoint.z);
+                outShpFeat.SetGeometryDirectly(outShpGeom);
+                outShpLayer.CreateFeature(outShpFeat);
+
+
+            }
 
         }
 
         outShpLayer.SyncToDisk();
-
-
     }
 
 }
