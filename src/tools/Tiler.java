@@ -538,7 +538,7 @@ public class Tiler{
 
     }
 
-    public class multiTile implements Runnable{
+    public static class multiTile implements Runnable{
 
         int coreNumber;
         int numberOfCores;

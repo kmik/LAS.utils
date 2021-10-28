@@ -139,9 +139,6 @@ public class Thinner{
         }
 
 
-        double tempx = minX;
-        double tempy = maxY;
-
         long n = pointCloud.getNumberOfPointRecords();
 
         LasPoint tempPoint = new LasPoint();
@@ -388,9 +385,8 @@ public class Thinner{
         }
 
         aR.p_update.updateProgressThin();
-        int endIndex = n;
 
-        parit = Arrays.copyOfRange(parit, 0, endIndex);
+        parit = Arrays.copyOfRange(parit, 0, n);
 
         long prevValue = parit[0].value;
 

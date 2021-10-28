@@ -94,7 +94,7 @@ public class lasSort {
 
                     pointCloud.readFromBuffer(tempPoint);
 
-                    parit[count] = new Pair_float(s+j, tempPoint.gpsTime);
+                    parit[count] = new Pair_float(s + j, tempPoint.gpsTime);
                     count++;
                 }
 
@@ -135,7 +135,7 @@ public class lasSort {
 
         for(int i = 0; i < ehm[0].length; i++){
             for(int j = 0; j < ehm.length; j++){
-                ehm[j][i] = new Pair_float(0,0,0);
+                ehm[j][i] = new Pair_float(0, 0, 0);
             }
         }
 
@@ -144,7 +144,7 @@ public class lasSort {
 
         System.out.println(tempFiles.get(0).buffer.remaining() + " " + tempFiles.get(0).buffer.capacity());
 
-        Pair_float tempPair = new Pair_float(0,0);
+        Pair_float tempPair = new Pair_float(0, 0);
 
         for(int j = 0; j < tempFiles.size(); j++) {
 
@@ -303,7 +303,7 @@ public class lasSort {
                    // System.out.println((int)(tempPoint.x*1000) + " == " + m.DecodeM2X(morton_uint) + " == " + x.intValue() + " == " + morton);
 
                     //System.out.println(m.EncodeM2D(new UInt32((int)(tempPoint.x*1000)), new UInt32((int)(tempPoint.y*1000))).intValue());
-                    parit[count] = new Pair_z(s+j, calcZOrder( (int)tempPoint.x*10, (int)tempPoint.y*10));
+                    parit[count] = new Pair_z(s + j, calcZOrder((int) tempPoint.x * 10, (int) tempPoint.y * 10));
                     count++;
 
                 }
@@ -365,7 +365,7 @@ public class lasSort {
 
         for(int i = 0; i < ehm[0].length; i++){
             for(int j = 0; j < ehm.length; j++){
-                ehm[j][i] = new Pair_z(0, 0,0);
+                ehm[j][i] = new Pair_z(0, 0, 0);
             }
         }
 
@@ -373,7 +373,7 @@ public class lasSort {
 
         TreeSet<Pair_z> setti = new TreeSet<>();
 
-        Pair_z tempPair = new Pair_z(0,0);
+        Pair_z tempPair = new Pair_z(0, 0);
 
         double previous = -1.0;
 
@@ -501,7 +501,7 @@ public class lasSort {
 
     }
 
-    public class Pair_float implements Comparable<Pair_float> {
+    public static class Pair_float implements Comparable<Pair_float> {
 
         public int index;
         public double value;
@@ -571,7 +571,7 @@ public class lasSort {
         return result;
     }
 
-    public class Pair_z implements Comparable<Pair_z> {
+    public static class Pair_z implements Comparable<Pair_z> {
 
         public int index;
 

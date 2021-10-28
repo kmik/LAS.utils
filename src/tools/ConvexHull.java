@@ -43,9 +43,7 @@ public class ConvexHull {
 		
 		Arrays.sort(points);
 		Point[] mod_points = new Point[n + 1];
-		for (int i = 0; i < n; i++) {
-			mod_points[i] = points[i];
-		}
+		System.arraycopy(points, 0, mod_points, 0, n);
 		mod_points[n] = points[0];
 		points = mod_points;
 		int convex_hull_index = 1;
@@ -74,9 +72,7 @@ public class ConvexHull {
 	public Point[] getConvexHull() {
 		int convex_hull_index = computeConvexHull();
 		Point[] convex_hull_points = new Point[convex_hull_index];
-		for (int i = 0; i < convex_hull_index; i++) {
-			convex_hull_points[i] = points[i];
-		}
+		System.arraycopy(points, 0, convex_hull_points, 0, convex_hull_index);
 		return convex_hull_points;
 	}
 

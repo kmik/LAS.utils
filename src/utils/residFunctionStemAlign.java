@@ -1237,7 +1237,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
             double currentNum = table.get(i);
             total+= currentNum;
         }
-        return total/table.size();
+        return (double)total/(double)table.size();
     }
 
     public static double sd2(ArrayList<Double> sd) {

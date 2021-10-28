@@ -216,10 +216,8 @@ public class Data {
         }
         double divisor = a.length - 1;
         double sum = 0;
-        double aMean = mean_a;
-        double bMean = mean_b;
         for(int i = 0; i < a.length; i++) {
-            sum += (a[i] - aMean) * (b[i] - bMean);
+            sum += (a[i] - mean_a) * (b[i] - mean_b);
         }
         return sum/divisor;
     }

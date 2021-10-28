@@ -269,21 +269,18 @@ public class lasCheck {
             Calendar calendar = Calendar.getInstance();
 
             int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
-            int year = calendar.get(Calendar.YEAR);
-
-            int today_year = year;
 
             // does the year fall into the expected range
 
-            if ((pointCloud.fileCreationYear < 1990) || (pointCloud.fileCreationYear > today_year)) {
-                fails.add(String.format("file creation year: should be between 1990 and %d and not %d", today_year, pointCloud.fileCreationYear));
+            if ((pointCloud.fileCreationYear < 1990) || (pointCloud.fileCreationYear > calendar.get(Calendar.YEAR))) {
+                fails.add(String.format("file creation year: should be between 1990 and %d and not %d", calendar.get(Calendar.YEAR), pointCloud.fileCreationYear));
             }
 
             // does the day fall into the expected range
 
             int max_day_of_year = 365;
 
-            if (pointCloud.fileCreationYear == today_year) {
+            if (pointCloud.fileCreationYear == calendar.get(Calendar.YEAR)) {
                 // for the current year we need to limit the range (plus 1 because in GPS time January 1 is day 1)
 
                 max_day_of_year = dayOfYear + 1;

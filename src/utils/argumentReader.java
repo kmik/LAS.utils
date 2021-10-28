@@ -2311,10 +2311,9 @@ public class argumentReader {
             tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
         }
 
-        String extensionHere = extension;
 
         if(tempFile.exists()){
-            tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
+            tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extension);
         }
 
         if(tempFile.exists())
@@ -2376,10 +2375,9 @@ public class argumentReader {
 
         }
 
-        String extensionHere = extension;
         if(tempFile.exists()){
 
-            tempFile = fo.createNewFileWithNewExtension(tempFile, extensionHere);
+            tempFile = fo.createNewFileWithNewExtension(tempFile, extension);
         }
 
         if(tempFile.exists())
@@ -2409,10 +2407,9 @@ public class argumentReader {
             tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
         }
 
-        String extensionHere = extension;
         if(tempFile.exists()){
 
-            tempFile = fo.createNewFileWithNewExtension(tempFile, extensionHere);
+            tempFile = fo.createNewFileWithNewExtension(tempFile, extension);
         }
 
         if(tempFile.exists())
