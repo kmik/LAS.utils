@@ -52,6 +52,50 @@ An overview of these arguments can be printed with ./'any_tool.sh' -args:
 
     ./las2las.sh -args
 
+    Optional tool-independent arguments
+    -----------------------------------------
+
+        -read_rules	Apply these rules when a 
+                point is read.
+        -write_rules	Apply these rules when a 
+                point is written to .las file
+    
+    ______________________________
+    INCLUDING / EXCLUDING POINTS:
+    ------------------------------
+    
+        -drop_z_below	[float]  	Exclude below (<) 
+                        z threshold.
+                        
+        -drop_z_above	[float]	 	Exclude points above
+                        (>) z threshold.
+                        
+        -drop_noise	[-]	 	Exclude noise points 
+                        (classification 7)
+                        
+        -remove_buffer	[-]	 	Exclude buffer points
+                        (synthetic).
+                        
+        -drop_syntetic	[-]		Exlude synthetic
+                        points.				
+                
+        -keep_classification 	[int]	Include only points 
+                        with this class.
+                        
+        -drop_classification	[int] 	Exclude points with 
+                        this class.
+                        
+        -keep_user_data 	[int]	Include only points 
+                        with this user_data.
+                        
+        -drop_user_data		[int] 	Exclude points with 
+                        this user_data.
+
+                            *
+                            *
+                            *
+                    To be continued...
+
 
 
 Most tools can be parallelized with -cores flag. This usually requires that multiple point clouds are input 
@@ -59,7 +103,7 @@ using e.g. wildcard *. If you only have one input .las file, -cores flag will li
 
     ./lasheight.sh -i ./test_data/*.las -cores 2 -odir ./test_data/
 
-
+    
 
 Currently implemented tools:
 

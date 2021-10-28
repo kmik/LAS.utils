@@ -48,7 +48,13 @@ public class PointInclusionRule{
 	int keep_classification = -999;
 	int drop_classification = -999;
 
+	boolean have_drop_rule = false;
+	boolean have_keep_rule = false;
+
 	boolean drop_noise = false;
+
+	boolean keep_only = false;
+	boolean drop_only = false;
 
 	double drop_z_below = -999;
 	double drop_z_above = -999;
@@ -61,7 +67,10 @@ public class PointInclusionRule{
 
 	boolean last_only = false;
 	boolean keep_last = false;
+	boolean keep_intermediate = false;
+
 	boolean drop_last = false;
+	boolean drop_intermediate = false;
 
 	boolean drop_first_of_many = false;
 	boolean drop_last_of_many = false;
@@ -176,76 +185,53 @@ public class PointInclusionRule{
 
 		keep_classification = in;
 
+		this.have_keep_rule = true;
 	} 
 
 	public void keepClassification(HashSet<Integer> in){
 
 		keep_classificationSet = in;
+		this.have_keep_rule = true;
 
 	} 
 
 	public void dropClassification(int in){
 
 		drop_classification = in;
+		this.have_drop_rule = true;
 
 	} 
 
 	public void dropNoise(){
 
 		drop_noise = true;
-		
+		this.have_drop_rule = true;
 	}
 
 	public void dropSynthetic(){
 
 		drop_synthetic = true;
-		
+		this.have_drop_rule = true;
 	}
 
 	public void removeBuffer(){
+
 		this.remove_buffer = true;
+		this.have_drop_rule = true;
 	}
 
 	public void dropZBelow(double in){
 
 		drop_z_below = in;
-		
+		this.have_drop_rule = true;
 	}
 
 	public void dropZAbove(double in){
 
 		drop_z_above = in;
-		
+		this.have_drop_rule = true;
 	}
 
-	public void keepIndexes(HashSet<Integer> in){
-
-		keepIndex = in;
-		
-	}
-
-	public void modifyIndexes(HashSet<Integer> in, PointModifyRule rule, boolean dropOutside, boolean modAll){
-
-		this.drop_not_in_ModifyIndex = dropOutside;
-		modifyIndex = in;
-
-		//if(in.size() == 0)
-			//modifyAll = true;
-		modifyAll = modAll;
-		prule = rule;
-	}
-
-	public void IgnoreIndexes(HashSet<Integer> in){
-
-		ignoreIndex = in;
-
-	}
-
-	public void dropIndexes(HashSet<Integer> in){
-
-		dropIndex = in;
-		
-	}
 
 	public void scaleFactor(double in){
 
@@ -256,132 +242,169 @@ public class PointInclusionRule{
 	public void firstOnly(){
 
 		first_only = true;
+		this.have_keep_rule = true;
 
 	}
 
 	public void keepFirst(){
 
 		keep_first = true;
+		this.have_keep_rule = true;
 
 	}
 
 	public void dropFirst(){
 
 		drop_first = true;
-
+		this.have_drop_rule = true;
 	}
 
 	public void lastOnly(){
 
 		last_only = true;
+		this.have_keep_rule = true;
 
 	}
 
 	public void keepLast(){
 
 		keep_last = true;
+		this.have_keep_rule = true;
 
+	}
+
+	public void keepIntermediate(){
+
+		keep_intermediate = true;
+		this.have_keep_rule = true;
+
+	}
+
+	public void dropIntermediate(){
+
+		drop_intermediate = true;
+		this.have_drop_rule = true;
 	}
 
 	public void dropLast(){
 
 		drop_last = true;
+		this.have_drop_rule = true;
+	}
 
+	public void keepOnly(){
+
+		keep_only = true;
+		this.have_keep_rule = true;
+
+	}
+
+	public void dropOnly(){
+
+		drop_only = true;
+		this.have_drop_rule = true;
 	}
 
 	public void dropFirstOfMany(){
 
 		drop_first_of_many = true;
-
+		this.have_drop_rule = true;
 	}
 
 	public void dropLastOfMany(){
 
 		drop_last_of_many = true;
-
+		this.have_drop_rule = true;
 	}
 
 	public void keepMiddle(){
 
 		keep_middle = true;
+		this.have_keep_rule = true;
 
 	}
 
 	public void dropMiddle(){
 
 		drop_middle = true;
-
+		this.have_drop_rule = true;
 	}
 
 	public void keepSingle(){
 
 		keep_single = true;
+		this.have_keep_rule = true;
 
 	}
 
 	public void dropSingle(){
 
 		drop_single = true;
-
+		this.have_drop_rule = true;
 	}
 
 	public void keepDouble(){
 
 		keep_double = true;
+		this.have_keep_rule = true;
 
 	}
 
 	public void dropDouble(){
 
 		drop_double = true;
-
+		this.have_drop_rule = true;
 	}
 
 	public void keepTriple(){
 
 		keep_triple = true;
+		this.have_keep_rule = true;
 
 	}
 
 	public void dropTriple(){
 
 		drop_triple = true;
-
+		this.have_drop_rule = true;
 	}
 
 	public void keepQuadruple(){
 
 		keep_quadruple = true;
+		this.have_keep_rule = true;
 
 	}
 
 	public void dropQuadruple(){
 
 		drop_quadruple = true;
-
+		this.have_drop_rule = true;
 	}
 
 	public void keepQuintuple(){
 
 		keep_quintuple = true;
+		this.have_keep_rule = true;
 
 	}
 
 	public void dropQuintuple(){
 
 		drop_quintuple = true;
-
+		this.have_drop_rule = true;
 	}
 
 	public void dropUserData(int in){
 
 		drop_user_data = in;
-
+		this.have_drop_rule = true;
 	}
 
 	public void keepUserData(int in){
 
 		keep_user_data = in;
+		this.have_keep_rule = true;
 
 	}
 
@@ -446,8 +469,6 @@ public class PointInclusionRule{
 
 	public boolean ask(LasPoint tempPoint, int i, boolean areYouReading){
 
-		//System.out.println(areYouReading + " " + applyWhenReading);
-
 
 		if(areYouReading == applyWhenReading){
 
@@ -457,31 +478,6 @@ public class PointInclusionRule{
 					return false;
 				}
 			}
-
-			/* We also modify the point */
-
-			if(set_point_source_id != -999){
-				tempPoint.pointSourceId = (short)this.set_point_source_id;
-			}
-			if(this.translate_x != -999)
-				tempPoint.x += this.translate_x;
-			if(this.translate_y != -999)
-				tempPoint.y += this.translate_y;
-			if(this.translate_z != -999)
-				tempPoint.z += this.translate_z;
-
-			if(this.set_classification != -999)
-				tempPoint.classification = this.set_classification;
-
-			if(this.set_user_data != -999)
-				tempPoint.userData = this.set_user_data;
-
-
-			/*
-			Innocent until proven guilty
-			*/
-
-			boolean output = true;
 
 			/*
 
@@ -496,16 +492,17 @@ public class PointInclusionRule{
 				if(tempPoint.returnNumber == 1)
 					return false;
 
+
+			if(drop_last)
+				if(tempPoint.returnNumber == tempPoint.numberOfReturns)
+					return false;
+
 			if(drop_z_below != -999.0)
 				if(drop_z_below > tempPoint.z)
 					return false;
 
 			if(drop_z_above != -999.0)
 				if(drop_z_above < tempPoint.z)
-					return false;
-
-			if(dropIndex.size() > 0)
-				if(dropIndex.contains(i))
 					return false;
 
 			if(drop_user_data != -999)
@@ -526,38 +523,16 @@ public class PointInclusionRule{
 			if(drop_noise)
 				if(tempPoint.classification == 7)
 					return false;
-			
-			if(drop_last)
-				if(tempPoint.returnNumber == tempPoint.numberOfReturns)
-					return false;
 
-			if(drop_first_of_many)
-				if(tempPoint.returnNumber == 1 && tempPoint.numberOfReturns != 1)
-					return false;
-
-			if(drop_last_of_many)
-				if(tempPoint.numberOfReturns != 1 && tempPoint.returnNumber == tempPoint.numberOfReturns)
-					return false;
 
 			if(drop_single)
 				if(tempPoint.numberOfReturns == 1)
 					return false;
 
-			if(drop_double)
-				if(tempPoint.numberOfReturns == 2)
-					return false;	
-
-			if(drop_triple)
-				if(tempPoint.numberOfReturns == 3)
+			if(drop_intermediate)
+				if(tempPoint.returnNumber > 1 && tempPoint.returnNumber < tempPoint.numberOfReturns)
 					return false;
 
-			if(drop_quadruple)
-				if(tempPoint.numberOfReturns == 4)
-					return false;
-
-			if(drop_quintuple)
-				if(tempPoint.numberOfReturns == 5)
-					return false;
 
 			/*
 
@@ -567,88 +542,67 @@ public class PointInclusionRule{
 
 			 */
 
-			if(keepIndex.size() > 0)
-				if(keepIndex.contains(i))
-					output = true;
+			/* No keep rules, so we don't need to check them */
+			if(!have_keep_rule) {
 
-			if(dropIndex.size() > 0)
-				if(dropIndex.contains(i))
-					return false;
+				modifyPoint(tempPoint);
+				return true;
 
-			if(modifyIndex.size() > 0){
-				if(modifyIndex.contains(i)){
-					//System.out.println("!!!");
-					if(!prule.modify(tempPoint))
-						return false;
-				}
-				else if(drop_not_in_ModifyIndex)
-					return false;
 			}
 
-			if(modifyAll)
-				prule.modify(tempPoint);
-				//else
-					//return false;
 
-
-			/*
-
-			 	This is a little confusing.
-
+			/* Since we got here, we are fairly sure we want
+			to keep some points.
 			 */
-			if(first_only)
-				return tempPoint.returnNumber == 1;
 
-			if(last_only)
-				return tempPoint.returnNumber == tempPoint.numberOfReturns;
+			byte n_keeps = 0;
+			byte n_no_keeps = 0;
+
+			if(keep_intermediate)
+				if(tempPoint.returnNumber > 1 && tempPoint.returnNumber < tempPoint.numberOfReturns)
+					n_keeps++;
+				else
+					n_no_keeps++;
 
 
 			if(keep_first)
-				return tempPoint.returnNumber == 1;
+				if(tempPoint.returnNumber == 1)
+					n_keeps++;
+				else
+					n_no_keeps++;
+
 
 			if(keep_last)
-				return tempPoint.returnNumber == tempPoint.numberOfReturns;
-
-			if(keep_middle)
-				return tempPoint.numberOfReturns != 1 && tempPoint.returnNumber != 1 && tempPoint.returnNumber != tempPoint.numberOfReturns;
-
-			if(keep_double)
-				return tempPoint.numberOfReturns == 2;
-
-			if(keep_triple)
-				return tempPoint.numberOfReturns == 3;
-
-			if(keep_quadruple)
-				return tempPoint.numberOfReturns == 4;
-
-			if(keep_quintuple)
-				return tempPoint.numberOfReturns == 5;
+				if(tempPoint.returnNumber == tempPoint.numberOfReturns)
+					n_keeps++;
+				else
+					n_no_keeps++;
 
 			if(keep_user_data != -999)
-				return tempPoint.userData == keep_user_data;
+				if(tempPoint.userData == keep_user_data)
+					n_keeps++;
+				else
+					n_no_keeps++;
+
 
 			/* Now we check the "keeps". */
-			if(keep_classification != -999){
-				return tempPoint.classification == keep_classification;
-			}
+			if(keep_classification != -999)
+				if(tempPoint.classification == keep_classification)
+					n_keeps++;
+				else
+					n_no_keeps++;
 
 
-			// MODIFY POINT DATA RULES!
-				/*
-			if(output == true){
 
-				if(set_classification != -999)
-					tempPoint.classification = set_classification;
+			if(n_keeps > 0){
+				modifyPoint(tempPoint);
+				return true;
+			}else if(n_no_keeps == 0){
+				modifyPoint(tempPoint);
+				return true;
+			}else
+				return false;
 
-				if(set_user_data != -999)
-					tempPoint.userData = set_user_data;
-
-			}
-			*/
-			//System.out.println(drop_classification);
-
-
-			return output;
 		}
 
 		return true;
@@ -656,7 +610,27 @@ public class PointInclusionRule{
 	}
 
 	
+	public void modifyPoint(LasPoint tempPoint){
 
+		/* We also modify the point */
+		if(set_point_source_id != -999){
+			tempPoint.pointSourceId = (short)this.set_point_source_id;
+		}
+		if(this.translate_x != -999)
+			tempPoint.x += this.translate_x;
+		if(this.translate_y != -999)
+			tempPoint.y += this.translate_y;
+		if(this.translate_z != -999)
+			tempPoint.z += this.translate_z;
+
+		if(this.set_classification != -999)
+			tempPoint.classification = this.set_classification;
+
+		if(this.set_user_data != -999)
+			tempPoint.userData = this.set_user_data;
+
+
+	}
 	
 
 }

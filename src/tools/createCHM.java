@@ -4219,6 +4219,7 @@ public class createCHM{
 
             DataSource outShp;
             outShp = shpDriver.CreateDataSource(out_file);
+
             Layer outShpLayer = outShp.CreateLayer("destination");
 
             FieldDefn layerFieldDef = new FieldDefn("DN",4);
@@ -4375,6 +4376,9 @@ public class createCHM{
             image.deleteTempFiles();
 
             aR.p_update.fileProgress++;
+
+
+
 
             //System.out.println(outPointCloudName);
 

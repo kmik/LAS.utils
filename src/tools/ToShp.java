@@ -67,6 +67,8 @@ public class ToShp{
 
         if(!odir.equals("asd")){
             outputfilename = odir + pathSep + outputfilename;
+        }else{
+            outputfilename = cloud.getFile().getParent() + pathSep + outputfilename;
         }
 
         outputfilename = fo.createNewFileWithNewExtension(outputfilename, "."+otype).getAbsolutePath();
@@ -100,6 +102,7 @@ public class ToShp{
 
         String[]  split2 = out_file.split("/.");
         String out_name = split2[0];
+
 
         Driver shpDriver;
         shpDriver = ogr.GetDriverByName(driverName);

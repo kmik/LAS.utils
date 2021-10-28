@@ -692,7 +692,37 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("keep_intermediate")
+                .hasArg(false)
+                .desc("Keep last")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("drop_intermediate")
+                .hasArg(false)
+                .desc("Keep last")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("drop_last")
+                .hasArg(false)
+                .desc("Drop last")
+                .required(false)
+                .build());
+
+
+        options.addOption(Option.builder()
+                .longOpt("keep_only")
+                .hasArg(false)
+                .desc("Drop last")
+                .required(false)
+                .build());
+
+
+        options.addOption(Option.builder()
+                .longOpt("drop_only")
                 .hasArg(false)
                 .desc("Drop last")
                 .required(false)
@@ -1276,6 +1306,18 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("drop_user_data")) {
+
+                this.inclusionRule.dropUserData(Integer.parseInt(cmd.getOptionValue("drop_user_data")));
+
+            }
+
+            if (cmd.hasOption("keep_user_data")) {
+
+                this.inclusionRule.keepUserData(Integer.parseInt(cmd.getOptionValue("keep_user_data")));
+
+            }
+
             if (cmd.hasOption("learning_rate")) {
 
                 this.learning_rate = (Double.parseDouble(cmd.getOptionValue("learning_rate")));
@@ -1677,6 +1719,49 @@ public class argumentReader {
                 this.method = cmd.getOptionValue("method");
 
             }
+
+            if (cmd.hasOption("keep_first")) {
+
+                this.inclusionRule.keepFirst();
+
+            }
+
+            if (cmd.hasOption("keep_last")) {
+
+                this.inclusionRule.keepLast();
+
+            }
+
+            if (cmd.hasOption("keep_only")) {
+
+                this.inclusionRule.keepOnly();
+
+            }
+
+            if (cmd.hasOption("drop_only")) {
+
+                this.inclusionRule.dropOnly();
+
+            }
+
+            if (cmd.hasOption("keep_intermediate")) {
+
+                this.inclusionRule.keepIntermediate();
+
+            }
+
+            if (cmd.hasOption("drop_intermediate")) {
+
+                this.inclusionRule.dropIntermediate();
+
+            }
+
+            if (cmd.hasOption("drop_synthetic")) {
+
+                this.inclusionRule.dropSynthetic();
+
+            }
+
 
             if (cmd.hasOption("traj")) {
 
@@ -2195,6 +2280,39 @@ public class argumentReader {
         }
 
         String extensionHere = tempFile.getName().substring(tempFile.getName().lastIndexOf("."));
+        if(tempFile.exists()){
+            tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
+        }
+
+        if(tempFile.exists())
+            tempFile.delete();
+
+
+        tempFile.createNewFile();
+
+        return tempFile;
+
+    }
+
+    public File createOutputFile_extension(LASReader in, String extension) throws IOException {
+
+        File tempFile = null;
+        String tempPath = this.output;
+
+        if(this.output.equals("asd"))
+            tempFile =  fo.createNewFileWithNewExtension(in.getFile(), extension);
+        else
+            tempFile = new File(this.output);
+
+        if(!odir.equals("asd")) {
+
+            File diri = new File(odir);
+
+            tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
+        }
+
+        String extensionHere = extension;
+
         if(tempFile.exists()){
             tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
         }
