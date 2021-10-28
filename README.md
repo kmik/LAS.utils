@@ -55,41 +55,42 @@ An overview of these arguments can be printed with ./'any_tool.sh' -args:
     Optional tool-independent arguments
     -----------------------------------------
 
-        -read_rules	Apply these rules when a 
-                point is read.
+        -read_rules	    Apply these rules when a 
+                        point is read.
+
         -write_rules	Apply these rules when a 
-                point is written to .las file
+                        point is written to .las file
     
     ______________________________
     INCLUDING / EXCLUDING POINTS:
     ------------------------------
     
         -drop_z_below	[float]  	Exclude below (<) 
-                        z threshold.
+                                    z threshold.
                         
         -drop_z_above	[float]	 	Exclude points above
-                        (>) z threshold.
+                                    (>) z threshold.
                         
-        -drop_noise	[-]	 	Exclude noise points 
-                        (classification 7)
+        -drop_noise	[-]	 	        Exclude noise points 
+                                    (classification 7)
                         
-        -remove_buffer	[-]	 	Exclude buffer points
-                        (synthetic).
+        -remove_buffer	[-]	 	    Exclude buffer points
+                                    (synthetic).
                         
-        -drop_syntetic	[-]		Exlude synthetic
-                        points.				
+        -drop_syntetic	[-]		    Exlude synthetic
+                                    points.				
                 
-        -keep_classification 	[int]	Include only points 
-                        with this class.
+        -keep_classification [int]	Include only points 
+                                    with this class.
                         
-        -drop_classification	[int] 	Exclude points with 
-                        this class.
+        -drop_classification[int] 	Exclude points with 
+                                    this class.
                         
-        -keep_user_data 	[int]	Include only points 
-                        with this user_data.
+        -keep_user_data [int]	    Include only points 
+                                    with this user_data.
                         
         -drop_user_data		[int] 	Exclude points with 
-                        this user_data.
+                                    this user_data.
 
                             *
                             *
