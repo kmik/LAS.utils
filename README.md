@@ -2,7 +2,7 @@
 
 
 A collection of .las file processing tools specifically designed to be used with point cloud data from forest environments. 
-Tools written in Java, executed with scripts. Inspired by LAStools by Rapidlasso. 
+Tools written in Java, executed with scripts. 
 
 Scripts are run in the following fashion:
 
