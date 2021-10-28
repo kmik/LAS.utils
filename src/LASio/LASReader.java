@@ -1301,6 +1301,7 @@ public class LASReader {
 
   public void readFromBuffer(LasPoint p){
 
+
     if(pointDataRecordFormat <= 5) {
 
       int lx = braf.buffer.getInt();

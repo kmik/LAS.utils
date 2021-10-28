@@ -255,6 +255,7 @@ public class Boundary extends tool{
         long n = pointCloud.getNumberOfPointRecords();
         LasPoint tempPoint = new LasPoint();
 
+        if(false)
         if(!pointCloud.isIndexed){
             pointCloud.index(10);
         }
@@ -263,37 +264,51 @@ public class Boundary extends tool{
 
         List<IQuadEdge> currentBorder = null;
 
-        for(int i = 0; i < n; i++){
+        int thread_n = aR.pfac.addReadThread(pointCloud);
 
-            pointCloud.readRecord(i, tempPoint);
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
-            if(tin.isBootstrapped()) {
+            int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-                if(currentBorder == null){
-                    currentBorder = tin.getPerimeter();
+            aR.pfac.prepareBuffer(thread_n, i, 10000);
+
+            for (int j = 0; j < maxi; j++) {
+
+                pointCloud.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                    it should be modified.
+                     */
+                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    continue;
                 }
+                if (tin.isBootstrapped()) {
 
-                if (isPointInPolygon(currentBorder, tempPoint.x, tempPoint.y) == Polyside.Result.Outside) {
+                    if (currentBorder == null) {
+                        currentBorder = tin.getPerimeter();
+                    }
 
+                    if (isPointInPolygon(currentBorder, tempPoint.x, tempPoint.y) == Polyside.Result.Outside) {
+
+                        tempV = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, 0.0);
+                        //perim.add(i);
+                        tempV.setIndex(i);
+                        tin.add(tempV);
+                        currentBorder = tin.getPerimeter();
+
+
+                    }
+                } else {
                     tempV = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, 0.0);
                     //perim.add(i);
                     tempV.setIndex(i);
                     tin.add(tempV);
-                    currentBorder = tin.getPerimeter();
-
-
                 }
-            }else{
-                tempV = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, 0.0);
-                //perim.add(i);
-                tempV.setIndex(i);
-                tin.add(tempV);
-            }
 
-            if(i % 10000 == 0){
-                calcPerim();
+                if (i % 10000 == 0) {
+                    calcPerim();
+                }
             }
-
         }
 
         if(!tin.isBootstrapped()){
@@ -380,7 +395,7 @@ public class Boundary extends tool{
         if(!pointCloud.isIndexed()){
             aR.p_update.threadFile[coreNumber-1] = "indexing";
             aR.p_update.updateProgressNBorder();
-            pointCloud.index(40);
+            pointCloud.index(20);
         }else{
             pointCloud.getIndexMap();
         }
@@ -412,7 +427,15 @@ public class Boundary extends tool{
             pointCloud.readRecord_noRAF(i, tempPoint, maxi);
 
             for (int j = 0; j < maxi; j++) {
+
                 pointCloud.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!rule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
 
                 if(tempPoint.y < minY) {
                     minYindex = counter;
@@ -538,10 +561,17 @@ public class Boundary extends tool{
 
                         int count1 = 0;
 
-                        for (long p = pienin; p <suurin; p++) {
+                        for (int p = pienin; p <suurin; p++) {
 
                             //System.out.println("READ");
                             pointCloud.readFromBuffer(tempPoint2);
+
+                            /* Reading, so ask if this point is ok, or if
+                            it should be modified.
+                             */
+                            if(!rule.ask(tempPoint, i+p, true)){
+                                continue;
+                            }
 
                             dist = euclideanDistance(tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
 

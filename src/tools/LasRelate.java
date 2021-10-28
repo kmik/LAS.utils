@@ -248,8 +248,6 @@ public class LasRelate{
 
         LasPoint tempPoint = new LasPoint();
 
-
-
         try{
 
             for(int i = 0; i < pointCloudsToRelate.size(); i++){

@@ -41,12 +41,7 @@ import java.util.HashSet;
 public class PointInclusionRule{
 
 
-	/* 	Means if we want to apply
-		the rule while reading (false) or 
-		writing (true)
-	*/
-	boolean readOrWrite = true;
-
+	boolean applyWhenReading = false;
 
 	LasPoint tempPoint = new LasPoint();
 
@@ -98,7 +93,7 @@ public class PointInclusionRule{
 	double translate_y = -999;
 	double translate_z = -999;
 
-    double translate_i = -999;
+    int translate_i = -999;
 	// MODIFY POINT RULES:
 
 	int set_classification = -999;
@@ -161,7 +156,19 @@ public class PointInclusionRule{
 
 	public PointInclusionRule(boolean in){
 		
-		readOrWrite = in;
+		applyWhenReading = in;
+
+	}
+
+	public void applyWhenReading(){
+
+		this.applyWhenReading = true;
+
+	}
+
+	public void applyWhenWriting(){
+
+		this.applyWhenReading = false;
 
 	}
 
@@ -418,7 +425,7 @@ public class PointInclusionRule{
 
 	}
 
-    public void translate_i(double in){
+    public void translate_i(int in){
 
         this.translate_i = in;
 
@@ -431,42 +438,43 @@ public class PointInclusionRule{
 	 *
 	 *	@param tempPoint	Input LAS point
 	 *	@param i 			Point index in LAS file
-	 * 	@param io 			True while writing, false reading
+	 * 	@param areYouReading 			True while writing, false reading
 	 *	@return 			True if the point is kept
 	 *						false if the point is discarded 			
 	 */
 
 
-	public boolean ask(LasPoint tempPoint, int i, boolean io){
+	public boolean ask(LasPoint tempPoint, int i, boolean areYouReading){
+
+		//System.out.println(areYouReading + " " + applyWhenReading);
 
 
+		if(areYouReading == applyWhenReading){
 
-		/* Here we do removes that are done regardless of read or write */
-		if(!io && remove_buffer) {
-			if (tempPoint.synthetic) {
-				return false;
+			/* Here we remove points that do not care for modifications */
+			if(remove_buffer) {
+				if (tempPoint.synthetic) {
+					return false;
+				}
 			}
-		}
 
-		/* We also modify the point */
+			/* We also modify the point */
 
-		if(set_point_source_id != -999){
-			tempPoint.pointSourceId = (short)this.set_point_source_id;
-		}
+			if(set_point_source_id != -999){
+				tempPoint.pointSourceId = (short)this.set_point_source_id;
+			}
+			if(this.translate_x != -999)
+				tempPoint.x += this.translate_x;
+			if(this.translate_y != -999)
+				tempPoint.y += this.translate_y;
+			if(this.translate_z != -999)
+				tempPoint.z += this.translate_z;
 
+			if(this.set_classification != -999)
+				tempPoint.classification = this.set_classification;
 
-		/*
-		Check if IO equals the intended use of this rule
-		*/
-
-		if(keep_classification != -999){
-			return tempPoint.classification == keep_classification;
-		}
-
-		if(io == readOrWrite){
-
-			boolean drop_z_belowT = true;
-			boolean drop_z_aboveT = true;
+			if(this.set_user_data != -999)
+				tempPoint.userData = this.set_user_data;
 
 
 			/*
@@ -504,12 +512,11 @@ public class PointInclusionRule{
 				if(tempPoint.userData == drop_user_data)
 					return false;
 
-			if(drop_classification != -999)
-				if(tempPoint.classification == drop_classification){
-					
+			if(drop_classification != -999) {
+				if (tempPoint.classification == drop_classification) {
 					return false;
 				}
-
+			}
 
 
 			if(drop_synthetic)
@@ -552,9 +559,6 @@ public class PointInclusionRule{
 				if(tempPoint.numberOfReturns == 5)
 					return false;
 
-
-
-
 			/*
 
 			 	Next we have to see if the point in index i
@@ -592,9 +596,6 @@ public class PointInclusionRule{
 			 	This is a little confusing.
 
 			 */
-
-
-				
 			if(first_only)
 				return tempPoint.returnNumber == 1;
 
@@ -626,19 +627,10 @@ public class PointInclusionRule{
 			if(keep_user_data != -999)
 				return tempPoint.userData == keep_user_data;
 
-
-			if(this.translate_x != -999)
-				tempPoint.x += this.translate_x;
-			if(this.translate_y != -999)
-				tempPoint.y += this.translate_y;
-			if(this.translate_z != -999)
-				tempPoint.z += this.translate_z;
-
-			if(this.set_classification != -999)
-				tempPoint.classification = this.set_classification;
-
-			if(this.set_user_data != -999)
-			    tempPoint.userData = this.set_user_data;
+			/* Now we check the "keeps". */
+			if(keep_classification != -999){
+				return tempPoint.classification == keep_classification;
+			}
 
 
 			// MODIFY POINT DATA RULES!

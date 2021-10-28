@@ -83,6 +83,13 @@ public class lasSplit {
 
                     pointCloud.readFromBuffer(tempPoint);
 
+                        /* Reading, so ask if this point is ok, or if
+                    it should be modified.
+                     */
+                    if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                        continue;
+                    }
+
                     if((i+j) == 0){
                         flightLineId++;
                         declareOutputFile(flightLineId);
@@ -132,6 +139,13 @@ public class lasSplit {
                 for (int j = 0; j < maxi; j++) {
                     //Sstem.out.println(j);
                     pointCloud.readFromBuffer(tempPoint);
+
+                    /* Reading, so ask if this point is ok, or if
+                    it should be modified.
+                     */
+                    if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                        continue;
+                    }
 
                     switch (splitBy) {
 

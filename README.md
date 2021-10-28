@@ -1,7 +1,8 @@
 # LASutils
 
 
-A collection of .las file processing tools specifically designed to be used with point cloud data from forest environments. Tools written in Java, executed with scripts. Project in progress...
+A collection of .las file processing tools specifically designed to be used with point cloud data from forest environments. 
+Tools written in Java, executed with scripts. Inspired by LAStools by Rapidlasso. 
 
 Scripts are run in the following fashion:
 
@@ -43,6 +44,14 @@ any arguments, or by giving the tool -h / -help flag.
         -angle	    Angle threshold (default 10.0 degrees)
         -axGrid	    Size of the kernel for seed point search
                         (default 20.0 m)
+
+
+In addition to tool-specific arguments, there are several tool-independent arguments
+that can be passed to any tool. These usually modify / exclude / keep either the input or the output points.
+An overview of these arguments can be printed with ./'any_tool.sh' -args:
+
+    ./las2las.sh -args
+
 
 
 Most tools can be parallelized with -cores flag. This usually requires that multiple point clouds are input 

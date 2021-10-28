@@ -153,6 +153,14 @@ public class Noise{
 
                 //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                 pointCloud.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, p+j, true)){
+                    continue;
+                }
+
                 if((int) ((tempPoint.y - minY) / step) >= numberOfPixelsY) {
                     System.out.println(tempPoint.y + " " + maxY + " " + minY);
                     System.out.println((maxY - minY) / step);
@@ -273,6 +281,14 @@ public class Noise{
 
                 //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                 pointCloud.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, p+j, true)){
+                    continue;
+                }
+
                 int x = (int)((tempPoint.x - minX) / step);
                 int y = (int)((tempPoint.y - minY) / step);
                 int z = (int)((tempPoint.z - minZ) / step);

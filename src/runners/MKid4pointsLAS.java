@@ -1796,8 +1796,12 @@ class MKid4pointsLAS{
                                     //Sstem.out.println(j);
 
                                     if(!doneIndexes.contains(p+s)) {
+
                                         asd.readFromBuffer(tempPoint);
 
+                                        if(!aR.inclusionRule.ask(tempPoint, p+s, true)){
+                                            continue;
+                                        }
                                     //System.out.println((p+s) + " " + va);
 
 
@@ -2283,6 +2287,11 @@ class MKid4pointsLAS{
                                             if (!doneIndexes.contains(p)) {
 
                                                 asd.readFromBuffer(tempPoint);
+
+                                                if(!aR.inclusionRule.ask(tempPoint, p, true)){
+                                                    continue;
+                                                }
+
                                                 readPoints++;
                                                 doneIndexes.add(p);
                                                 //asd.readRecord(p, tempPoint);
@@ -2409,7 +2418,12 @@ class MKid4pointsLAS{
                                     //Sstem.out.println(j);
 
                                     if(!doneIndexes.contains(p+s)) {
+
                                         asd.readFromBuffer(tempPoint);
+
+                                        if(!aR.inclusionRule.ask(tempPoint, p+s, true)){
+                                            continue;
+                                        }
 
                                         //System.out.println((p+s) + " " + va);
 

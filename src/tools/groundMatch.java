@@ -92,6 +92,13 @@ public class groundMatch {
                 //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                 pointCloud1.readFromBuffer(tempPoint);
 
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, p+j, true)){
+                    continue;
+                }
+
                 if(tempPoint.classification == 2){
 
                     int slot_x = (int)Math.floor( (tempPoint.x - min_x) / resolution );
@@ -133,6 +140,13 @@ public class groundMatch {
 
                 //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                 pointCloud2.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, p+j, true)){
+                    continue;
+                }
 
                 if(tempPoint.classification == 2){
 

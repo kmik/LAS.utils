@@ -170,6 +170,13 @@ public class Thinner{
 
                 pointCloud.readFromBuffer(tempPoint);
 
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
+
                 x_index = (int)Math.floor((tempPoint.x - minX) / step);
                 y_index = (int)Math.floor((maxY - tempPoint.y) / step);
 
@@ -350,6 +357,13 @@ public class Thinner{
 
                 pointCloud.readFromBuffer(tempPoint);
 
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
+
                 xCoord = (int) ((tempPoint.x - minX) / step);
                 yCoord = (int) ((maxY - tempPoint.y) / step);
                 zCoord = (int) ((tempPoint.z - minZ) / step);
@@ -490,6 +504,13 @@ public class Thinner{
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
 
                 if(includeOrNot[i+j]){
 

@@ -100,6 +100,13 @@ public class Merger{
                 for (int j = 0; j < maxi; j++) {
                     tempReader.readFromBuffer(tempPoint);
 
+                    /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                    if(!rule.ask(tempPoint, i+j, true)){
+                        continue;
+                    }
+
                     if(buf.writePoint( tempPoint, rule, j+i))
                         pointCount++;
 

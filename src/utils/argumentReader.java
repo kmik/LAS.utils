@@ -82,6 +82,7 @@ public class argumentReader {
     public String neural_mode = "merged";
 
     public boolean rule_when_reading = false;
+    public boolean rule_when_writing = true;
 
     public String[] args;
     public PointInclusionRule inclusionRule;
@@ -255,7 +256,7 @@ public class argumentReader {
         //
 
         this.modifyRule = new PointModifyRule();
-        this.inclusionRule = new PointInclusionRule(this.br == 0);
+        this.inclusionRule = new PointInclusionRule();
     }
 
     public void createOpts(){
@@ -296,6 +297,14 @@ public class argumentReader {
                 .desc("Drop a point class")
                 .required(false)
                 .build());
+
+        options.addOption(Option.builder()
+                .longOpt("drop_noise")
+                .hasArg(false)
+                .desc("Drop noise (class 7)")
+                .required(false)
+                .build());
+
         options.addOption(Option.builder()
                 .longOpt("keep_classification")
                 .hasArg(true)
@@ -611,6 +620,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("write_rules")
+                .hasArg(false)
+                .desc("Apply point mod in read or write")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("by_gps_time")
                 .hasArg(false)
                 .desc("Sort by gps time")
@@ -914,6 +930,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("args")
+                .hasArg(false)
+                .desc("Print tool independent arguments and their explanations.")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("traj")
                 .hasArg(true)
                 .desc("Trajectory file")
@@ -1195,7 +1218,6 @@ public class argumentReader {
             if (cmd.hasOption("seq")) {
 
                 String sequ = cmd.getOptionValue("seq");
-                //System.out.println(Arrays.toString(sequ));
 
                 String[] seqit = sequ.split(",");
 
@@ -1245,6 +1267,12 @@ public class argumentReader {
             if (cmd.hasOption("drop_classification")) {
 
                 this.inclusionRule.dropClassification(Integer.parseInt(cmd.getOptionValue("drop_classification")));
+
+            }
+
+            if (cmd.hasOption("drop_noise")) {
+
+                this.inclusionRule.dropNoise();
 
             }
 
@@ -1301,6 +1329,10 @@ public class argumentReader {
             if(cmd.hasOption("decimate_tin")){
 
                 this.decimate_tin = Integer.parseInt(cmd.getOptionValue("decimate_tin"));
+            }
+
+            if(cmd.hasOption("args")){
+                printHelp pH = new printHelp(9999);
             }
 
             if (cmd.hasOption("prep_nn_input")) {
@@ -1488,8 +1520,17 @@ public class argumentReader {
             if (cmd.hasOption("read_rules")){
 
                 this.rule_when_reading = true;
+                this.inclusionRule.applyWhenReading();
 
             }
+
+            if (cmd.hasOption("write_rules")){
+
+                this.rule_when_writing = true;
+                this.inclusionRule.applyWhenWriting();
+
+            }
+
 
             if (cmd.hasOption("validation2")) {
 
@@ -1547,6 +1588,17 @@ public class argumentReader {
                 if(Integer.parseInt(cmd.getOptionValue("set_user_data")) > 255){
                     throw new lasFormatException("-set_user_data exceeds unsigned byte range 0 - 255");
                 }
+            }
+
+            if (cmd.hasOption("drop_z_below")){
+
+                this.inclusionRule.dropZBelow(Double.parseDouble(cmd.getOptionValue("drop_z_below")));
+
+            }
+            if (cmd.hasOption("drop_z_above")){
+
+                this.inclusionRule.dropZAbove(Double.parseDouble(cmd.getOptionValue("drop_z_above")));
+
             }
 
             if (cmd.hasOption("theta")) {
@@ -1710,6 +1762,32 @@ public class argumentReader {
                 this.angle = Double.parseDouble(cmd.getOptionValue("angle"));
 
             }
+
+            if (cmd.hasOption("translate_x")) {
+
+                this.inclusionRule.translate_x(Double.parseDouble(cmd.getOptionValue("translate_x")));
+
+            }
+            if (cmd.hasOption("translate_y")) {
+
+                this.inclusionRule.translate_y(Double.parseDouble(cmd.getOptionValue("translate_y")));
+
+            }
+
+            if (cmd.hasOption("translate_z")) {
+
+                this.inclusionRule.translate_z(Double.parseDouble(cmd.getOptionValue("translate_z")));
+
+            }
+
+            if (cmd.hasOption("translate_i")) {
+
+                this.inclusionRule.translate_i(Integer.parseInt(cmd.getOptionValue("translate_i")));
+
+            }
+
+
+
 
             if (cmd.hasOption("ground_points")) {
 

@@ -1845,6 +1845,7 @@ public class LASraf implements Closeable {
       for (int j = 0; j < maxi; j++) {
 
         file.readFromBuffer(tempPoint);
+
         pointCount++;
 
         //System.out.println(tempPoint.x + " " + tempPoint.y + " " + tempPoint.z);
@@ -1939,7 +1940,7 @@ public class LASraf implements Closeable {
     //byte myBitti = myByte.byteValue();
 
     /* Write if rule says so */
-    if(rule.ask(tempPoint, i, true)){
+    if(rule.ask(tempPoint, i, false)){
 
       /* We got here, so output true */
       output = true;

@@ -1164,6 +1164,14 @@ public class lasGridStats {
                     for (int p = pienin; p <= suurin; p++) {
 
                         pointCloud.readFromBuffer(tempPoint);
+
+                        /* Reading, so ask if this point is ok, or if
+                        it should be modified.
+                         */
+                        if(!aR.inclusionRule.ask(tempPoint, p, true)){
+                            continue;
+                        }
+
 /*
                         if (tempPoint.z <= this.z_cutoff)
                             continue;

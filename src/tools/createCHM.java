@@ -4643,6 +4643,13 @@ public class createCHM{
                         //count++;
                         pointCloud.readFromBuffer(tempPoint);
 
+                        /* Reading, so ask if this point is ok, or if
+                        it should be modified.
+                         */
+                        if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                            continue;
+                        }
+
                         if(tempPoint.classification == 2){
 
                             tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
@@ -4693,6 +4700,13 @@ public class createCHM{
                     //Sstem.out.println(j);
                     //count++;
                     pointCloud.readFromBuffer(tempPoint);
+
+                    /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                    if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                        continue;
+                    }
 
                     if(dz_on_the_fly){
                         double interpolatedZ = polator.interpolate(tempPoint.x, tempPoint.y, valuator);

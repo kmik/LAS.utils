@@ -325,6 +325,13 @@ public class lasLayer {
                 //Sstem.out.println(j);
                 pointCloud.readFromBuffer(tempPoint);
 
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
+
                 if (tempPoint.z > minz) {
                     int xCoord = (int) ((tempPoint.x - minX) / resolution);
                     int yCoord = (int) ((maxY - tempPoint.y) / resolution);
@@ -945,6 +952,14 @@ public class lasLayer {
             for (int j = 0; j < maxi; j++) {
                 //Sstem.out.println(j);
                 pointCloud.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
+
                 tempPoint.pointSourceId = 0;
                 //if (tempPoint.z > 3.0) {
                     int xCoord = (int) ((tempPoint.x - minX) / resolution);

@@ -271,7 +271,9 @@ public class Tiler{
                     //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                     temp.readFromBuffer(tempPoint);
 
-                    if (rule.ask(tempPoint, j, false)) {
+
+
+                    if (rule.ask(tempPoint, j, true)) {
 
                         int x = (int) ((tempPoint.x - this.minX) / sideLength);
                         int y = (int) ((this.maxY - tempPoint.y) / sideLength);
@@ -443,12 +445,13 @@ public class Tiler{
                     //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                     temp.readFromBuffer(tempPoint);
 
+
                     //for(int j = 0; j < n; j++){
 
                     //temp.readRecord(j, tempPoint);
 
                     //System.out.println("HERE!!");
-                    if (rule.ask(tempPoint, j+p, false)) {
+                    if (rule.ask(tempPoint, j+p, true)) {
 
                         int x = (int) ((tempPoint.x - this.minX) / sideLength);
                         int y = (int) ((this.maxY - tempPoint.y) / sideLength);

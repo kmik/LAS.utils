@@ -61,6 +61,7 @@ public class lasCheck {
                 //Sstem.out.println(j);
                 pointCloud.readFromBuffer(tempPoint);
 
+
                 this.numberOfPoints++;
 
                 numberOfPointsByReturn[tempPoint.returnNumber]++;

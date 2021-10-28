@@ -81,8 +81,15 @@ public class las2txt{
                 }
 
                 for (int j = 0; j < maxi; j++) {
+
                     in.readFromBuffer(tempPoint);
 
+                    /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                    if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                        continue;
+                    }
 
                     //System.out.println("e: " + tempPoint.returnNumber + " n: " + tempPoint.numberOfReturns);
 

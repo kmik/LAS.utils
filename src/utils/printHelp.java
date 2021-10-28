@@ -1,5 +1,7 @@
 package utils;
 
+import err.toolException;
+
 public class printHelp {
 
     public printHelp(){
@@ -116,9 +118,14 @@ public class printHelp {
                 ai2las();
                 break;
 
+            case 9999:
+                new toolIndependentArgumentsPrint();
+                break;
+
 
             default:
-                break;
+                throw new toolException("What happened?");
+
         }
     }
 

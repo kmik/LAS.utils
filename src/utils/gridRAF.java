@@ -1507,6 +1507,7 @@ public class gridRAF implements Closeable {
             for (int j = 0; j < maxi; j++) {
 
                 file.readFromBuffer(tempPoint);
+
                 pointCount++;
 
                 //System.out.println(tempPoint.x + " " + tempPoint.y + " " + tempPoint.z);
@@ -1583,10 +1584,18 @@ public class gridRAF implements Closeable {
 
     }
 
+    /**
+     * @deprecated
+     *
+     * @param tempPoint
+     * @param rule
 
+     * @param i
+     * @return
+     * @throws IOException
+     */
     public synchronized boolean writePoint(LasPoint tempPoint, PointInclusionRule rule,
-                                           double xScaleFactor, double yScaleFactor, double zScaleFactor,
-                                           double xOffset, double yOffset, double zOffset, int pointDataRecordFormat, int i)throws IOException{
+                                           int i)throws IOException{
 
         //xScaleFactor = 0.001;
         //yScaleFactor = 0.001;

@@ -43,6 +43,11 @@ public class las2las{
 
                 in.readFromBuffer(tempPoint);
 
+                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
+
+
                 if(aR.echoClass){
 
                     if(tempPoint.numberOfReturns == 1){
@@ -67,6 +72,7 @@ public class las2las{
                 try {
 
                     aR.pfac.writePoint(tempPoint, i + j, thread_n);
+
                 }catch (Exception e){
                     e.printStackTrace();
                 }

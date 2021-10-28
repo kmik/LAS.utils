@@ -77,6 +77,7 @@ public class GroundDetector{
     ArrayList<LasPoint> surfaceNormalPoints = new ArrayList<LasPoint>();
 
     VertexValuatorDefault valuator = new VertexValuatorDefault();
+
     PointInclusionRule rule = new PointInclusionRule(true);
 
     double miniX;
@@ -167,6 +168,7 @@ public class GroundDetector{
         doneInd = new boolean[(int)pointCloud.getNumberOfPointRecords()];
 
 
+
         this.outWriteFile = aR.createOutputFile(pointCloud2);
 
         //System.out.println("OUTTI1: " + this.outWriteFile.getAbsolutePath());
@@ -202,6 +204,7 @@ public class GroundDetector{
 
         if(false)
             return;
+
         System.out.printf(((char) 0x1b) + "[14A\r" + "\033[2K" + "-------------------------------------------------------");
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "LASutils - Lasground, version (0.1), (c) Mikko Kukkonen");
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "-------------------------------------------------------");
@@ -742,6 +745,13 @@ public class GroundDetector{
                 for (int j = 0; j < maxi; j++) {
 
                     pointCloud.readFromBuffer(tempPoint);
+
+                    if(!rule.ask(tempPoint, p+j, true)){
+                        doneIndexes.add(p+j);
+                        continue;
+                    }
+
+
                     outside = false;
 
                     fullfilledCriteria = 0;
@@ -1023,6 +1033,8 @@ public class GroundDetector{
         //org.tinfour.interpolation.NaturalNeighborInterpolator polator = new org.tinfour.interpolation.NaturalNeighborInterpolator(tin);
         polator.resetForChangeToTin();
         pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
+
+        /* WHAT IS THIS? */
         if(aR.dense)
         for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 10000) {
             //for(int i = 0; i < n; i++){
@@ -1042,6 +1054,10 @@ public class GroundDetector{
 
                 //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                 pointCloud.readFromBuffer(tempPoint);
+
+                if(!rule.ask(tempPoint, p+j, true)){
+                    continue;
+                }
 
                 if (!doneIndexes.contains((p+j))) {
 
@@ -1121,6 +1137,9 @@ public class GroundDetector{
                         //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                         pointCloud.readFromBuffer(tempPoint);
 
+                        if(!rule.ask(tempPoint, p+j, true)){
+                            continue;
+                        }
                         /*      If the las point is already classified as ground, we clear the classification
                                 because we do not trust the prior classification.
                          */
@@ -1485,6 +1504,13 @@ public class GroundDetector{
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!rule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
 
                     temppi[0] = (long) Math.floor((tempPoint.x - minX) / (double) pulseDensitySpacing);   //X INDEX
                     temppi[1] = (long) Math.floor((maxY - tempPoint.y) / (double) pulseDensitySpacing);
@@ -2129,6 +2155,14 @@ public class GroundDetector{
                             for (int p = pienin; p <= suurin; p++) {
 
                                 pointCloud.readFromBuffer(tempPoint);
+
+                                                /* Reading, so ask if this point is ok, or if
+                                it should be modified.
+                                 */
+                                if(!rule.ask(tempPoint, p, true)){
+                                    continue;
+                                }
+
                                 if(tempPoint.x < inside_x + aR.step && tempPoint.x >= inside_x &&
                                         tempPoint.y >= inside_y - aR.step && tempPoint.y < inside_y)
                                 if(tempPoint.classification == 2)
@@ -2180,6 +2214,13 @@ public class GroundDetector{
                             for (int p = pienin; p <= suurin; p++) {
 
                                 pointCloud.readFromBuffer(tempPoint);
+
+                                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                                if(!rule.ask(tempPoint, p, true)){
+                                    continue;
+                                }
 
                                 /* We must find new ground points to the tin, but with what
                                   criterion?
@@ -2447,6 +2488,13 @@ public class GroundDetector{
                         for (int p = pienin; p <= suurin; p++) {
 
                             pointCloud.readFromBuffer(tempPoint);
+/* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                            if(!rule.ask(tempPoint, p, true)){
+                                continue;
+                            }
+
 
                             if(tempPoint.x >= minx && tempPoint.x < maxx && tempPoint.y >= miny && tempPoint.y < maxy){
                                 pointsRead++;
@@ -2725,6 +2773,13 @@ public class GroundDetector{
 
                 pointCloud.readFromBuffer(tempPoint);
 
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!rule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
+
                 this.progress_current++;
                 aR.p_update.threadProgress[coreNumber-1] = this.progress_current;
 
@@ -2857,6 +2912,13 @@ public class GroundDetector{
                 for (int j = 0; j < maxi; j++) {
 
                     pointCloud.readFromBuffer(tempPoint);
+
+                    /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                    if(!rule.ask(tempPoint, i+j, true)){
+                        continue;
+                    }
 
                     this.progress_current++;
 
@@ -3005,6 +3067,13 @@ public class GroundDetector{
 
                     pointCloud.readFromBuffer(tempPoint);
 
+                    /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                    if(!rule.ask(tempPoint, i+j, true)){
+                        continue;
+                    }
+
                     this.progress_current++;
                     aR.p_update.threadProgress[coreNumber-1] = this.progress_current;
 
@@ -3069,6 +3138,13 @@ public class GroundDetector{
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!rule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
 
                 if(tempPoint.classification == groundClassification) {
 

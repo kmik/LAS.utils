@@ -1150,6 +1150,10 @@ class ai2las{
 
 							asd2.readFromBuffer(tempPoint);
 
+							if(!aR.inclusionRule.ask(tempPoint, p+j, true)){
+								continue;
+							}
+
 							pointFound = false;
 
 							if (j + p % 10000 == 0) {

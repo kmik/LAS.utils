@@ -3377,6 +3377,14 @@ public class ITDstatistics{
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
+
                 treeId = tempPoint.pointSourceId;
 
                 xCoord= (int) Math.floor((tempPoint.x - pointCloud.getMinX()) / resolution);
@@ -3488,6 +3496,13 @@ public class ITDstatistics{
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
 
                 treeId = tempPoint.pointSourceId;
 
