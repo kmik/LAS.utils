@@ -132,7 +132,11 @@ class ai2las{
 		int coreNumber;
 		String odir;
 
-		public multiTXT2LAS (ArrayList<String> tiedostot2, String parse2, int numberOfCores2, int coreNumber2, String odir2){
+		argumentReader aR;
+
+		public multiTXT2LAS (ArrayList<String> tiedostot2, String parse2, int numberOfCores2, int coreNumber2, String odir2, argumentReader aR){
+
+			this.aR = aR;
 
 			tiedostot = tiedostot2;
 			parse = parse2;
@@ -180,7 +184,7 @@ class ai2las{
 					File tempFile = new File(tiedostot.get(i));
 
 					File toFile = null;
-
+/*
 					if(odir.equals("asd"))
 
 						toFile = fo.createNewFileWithNewExtension(tempFile, ".las");
@@ -188,7 +192,8 @@ class ai2las{
 					if(!odir.equals("asd"))
 
 						toFile = fo.createNewFileWithNewExtension(tempFile, odir, ".las");
-
+*/
+					toFile = aR.createOutputFile(tempFile);
 					File fromFile = new File(tiedostot.get(i));
 
 					if(toFile.exists())
@@ -209,7 +214,7 @@ class ai2las{
 
 				for(int i = 0; i < tiedostot.size(); i++){
 
-					LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", " ", rule, false);
+					LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", " ", rule, false, aR);
 					to.get(i).writeBuffer2();
 					to.get(i).close();
 					proge.updateCurrent(1);
@@ -959,7 +964,7 @@ class ai2las{
 			for(int ii = 1; ii <= nCores; ii++){
 
 				proge.addThread();
-				Thread temp = new Thread(new multiTXT2LAS(tempList, iparse, nCores, ii, odir));
+				Thread temp = new Thread(new multiTXT2LAS(tempList, iparse, nCores, ii, odir, aR));
 				lista11.add(temp);
 				temp.start();
 

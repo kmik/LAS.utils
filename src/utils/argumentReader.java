@@ -2145,6 +2145,38 @@ public class argumentReader {
 
     }
 
+    public File createOutputFile(File in) throws IOException {
+
+        File tempFile = null;
+        String tempPath = this.output;
+
+        if(this.output.equals("asd"))
+            tempFile = in;
+        else
+            tempFile = new File(this.output);
+
+        if(!odir.equals("asd")) {
+
+            File diri = new File(odir);
+
+            tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
+        }
+
+        String extensionHere = tempFile.getName().substring(tempFile.getName().lastIndexOf("."));
+        if(tempFile.exists()){
+            tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
+        }
+
+        if(tempFile.exists())
+            tempFile.delete();
+
+
+        tempFile.createNewFile();
+
+        return tempFile;
+
+    }
+
     public File createOutputFile(LASReader in) throws IOException {
 
         File tempFile = null;
@@ -2163,6 +2195,38 @@ public class argumentReader {
         }
 
         String extensionHere = tempFile.getName().substring(tempFile.getName().lastIndexOf("."));
+        if(tempFile.exists()){
+            tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
+        }
+
+        if(tempFile.exists())
+            tempFile.delete();
+
+
+        tempFile.createNewFile();
+
+        return tempFile;
+
+    }
+
+    public File createOutputFile_txt(LASReader in) throws IOException {
+
+        File tempFile = null;
+        String tempPath = this.output;
+
+        if(this.output.equals("asd"))
+            tempFile = in.getFile();
+        else
+            tempFile = new File(this.output);
+
+        if(!odir.equals("asd")) {
+
+            File diri = new File(odir);
+
+            tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
+        }
+
+        String extensionHere = ".txt";
         if(tempFile.exists()){
             tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
         }
