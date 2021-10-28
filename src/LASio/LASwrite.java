@@ -544,7 +544,7 @@ public class LASwrite {
 	* 	@since 09.03.2018  
 	*/
 
-	public static void txt2las(File from, LASraf to, String parse, String softwareName, String sep, PointInclusionRule rule, boolean echoClass) throws IOException{
+	public static void txt2las(File from, LASraf to, String parse, String softwareName, String sep, PointInclusionRule rule, boolean echoClass, argumentReader aR) throws IOException{
 
 		/* First just create a placeholder header. Minimum header requirements will be updated
 			with the information inferred from the point records.
@@ -665,6 +665,10 @@ public class LASwrite {
 	        	//System.out.println("line: " + line);
 	        	String2LASpoint(tempPoint, line, parse, sep);
 	        	//System.out.println(tempPoint.z + " " + tempPoint.R + " " + tempPoint.N);
+
+				if(!aR.inclusionRule.ask(tempPoint, 1, true)){
+					continue;
+				}
 
 				tempPoint.numberOfReturns = Math.max(tempPoint.numberOfReturns, 1);
 				tempPoint.returnNumber = Math.max(tempPoint.returnNumber, 1);

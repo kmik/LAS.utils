@@ -569,9 +569,12 @@ public class RunId4pointsLAS{
         ArrayList<String> returnList = new ArrayList<String>();
         int numberOfCores;
         int coreNumber;
+        argumentReader aR;
 
-        public multiTXT2LAS (ArrayList<String> tiedostot2, String parse2, int numberOfCores2, int coreNumber2)
+        public multiTXT2LAS (ArrayList<String> tiedostot2, String parse2, int numberOfCores2, int coreNumber2, argumentReader aR)
         {
+
+            this.aR = aR;
 
             tiedostot = tiedostot2;
             parse = parse2;
@@ -628,7 +631,13 @@ public class RunId4pointsLAS{
 
                 for(int i = 0; i < tiedostot.size(); i++){
 
+                    /*
                     File toFile = fo.createNewFileWithNewExtension(tiedostot.get(i), ".las");
+
+                     */
+
+                    File toFile = aR.createOutputFile(new File(tiedostot.get(i)));
+
                     // new File(tiedostot.get(i).replaceFirst("[.][^.]+$", "") + ".las");
                     //System.out.println(toFile);
                     File fromFile = new File(tiedostot.get(i));
@@ -653,7 +662,7 @@ public class RunId4pointsLAS{
                 for(int i = 0; i < tiedostot.size(); i++){
 
                     //System.out.println("thread: " + coreNumber + " " + i);
-                    LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", " ", rule, false);
+                    LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", " ", rule, false, aR);
                     to.get(i).writeBuffer2();
                     //System.out.println(to.get(i).getFileReference().getName());
 
@@ -1062,7 +1071,7 @@ public class RunId4pointsLAS{
             for(int ii = 1; ii <= aR.cores; ii++){
 
                 proge.addThread();
-                Thread temp = new Thread(new multiTXT2LAS(tempList, aR.iparse, aR.cores, ii));
+                Thread temp = new Thread(new multiTXT2LAS(tempList, aR.iparse, aR.cores, ii, aR));
                 lista11.add(temp);
                 temp.start();
             }

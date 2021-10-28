@@ -353,25 +353,6 @@ public class GroundDetector{
 
     }
 
-    /**
-     * Returns the number of points
-     * classified as ground from
-     */
-
-    public long getN() throws IOException{
-
-        long output = 0;
-        LasPoint tempPoint = new LasPoint();
-        long n = pointCloud.getNumberOfPointRecords();
-        for(long i = 0; i < n; i++){
-            pointCloud.readRecord(i, tempPoint);
-            if(tempPoint.classification == 2)
-                output++;
-
-        }
-
-        return output;
-    }
 
     /**
      * Calculates the average slope of the TIN network.
@@ -2982,9 +2963,6 @@ public class GroundDetector{
         }
 
         else{
-
-
-            //System.out.println("HERE!!");
 
             groundPointFile = new File(groundPoints);
 
