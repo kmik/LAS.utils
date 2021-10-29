@@ -2,7 +2,9 @@
 
 
 A collection of .las file processing tools specifically designed to be used with point cloud data from forest environments. 
-Tools written in Java, executed with scripts. 
+Tools written in Java, executed with scripts. The original purpose of these tools were to 
+process point clouds for various research endeavours related to remote sensing assisted forest inventories. The code is still 
+developed and maintained with this intention.
 
 Scripts are run in the following fashion:
 
@@ -31,7 +33,7 @@ any arguments, or by giving the tool -h / -help flag.
     point detection. In short, the tool does not take the lowest
     point within the -axGrid, but rather computes a smaller grid
     within the -axGrid and only accepts points areas where standard
-    deviation of points is in acceptable range.
+    deviation of point heights is in acceptable range.
     This only affects the detection of seed points
     and has no effect on the following densification of the surface.
     

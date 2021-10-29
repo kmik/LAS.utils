@@ -705,7 +705,7 @@ public class printHelp {
                 "point detection. In short, the tool does not take the lowest\n" +
                 "point within the -axGrid, but rather computes a smaller grid\n" +
                 "within the -axGrid and only accepts points areas where standard\n" +
-                "deviation of points is in acceptable range.\n" +
+                "deviation of point heights is in acceptable range.\n" +
                 "This only affects the detection of seed points\n" +
                 "and has no effect on the following densification of the surface.\n" +
                 "\n" +
