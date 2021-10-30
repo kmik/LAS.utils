@@ -20,130 +20,6 @@ import tools.*;
 import utils.*;
 class MKid4pointsLAS{
 
-
-    public static class MKid4pointsOutput{
-
-        ArrayList<String> outputHila = new ArrayList<String>();
-        ArrayList<String> outputPlot = new ArrayList<String>();
-        int numberOfThreads = 0;
-
-        String hilaName = "hila.txt";
-        String plotName = "plot.txt";
-
-        int donet = 0;
-
-        FileWriter fwHila = null; // new FileWriter("output" + System.getProperty("file.separator") + hilaName, true);
-        BufferedWriter bwHila = null;//  new BufferedWriter(fwHila);
-        PrintWriter outHila = null;
-        FileWriter fwPlot = null;//  new FileWriter("output" + System.getProperty("file.separator") + plotName, true);
-        BufferedWriter bwPlot = null;//  = new BufferedWriter(fwPlot);
-        PrintWriter outPlot = null;
-
-
-        public MKid4pointsOutput(){
-
-            try{
-
-                FileWriter fwHila = new FileWriter("output" + System.getProperty("file.separator") + hilaName, true);
-                BufferedWriter bwHila = new BufferedWriter(fwHila);
-                PrintWriter outHila = new PrintWriter(bwHila);
-
-                FileWriter fwPlot = new FileWriter("output" + System.getProperty("file.separator") + plotName, true);
-                BufferedWriter bwPlot = new BufferedWriter(fwPlot);
-                PrintWriter outPlot = new PrintWriter(bwPlot);
-
-            }catch(IOException e) {
-                e.printStackTrace();
-            }
-
-
-        }
-
-        public MKid4pointsOutput(String plotName2, String hilaName2){
-
-            try{
-
-                FileWriter fwHila = new FileWriter("output" + System.getProperty("file.separator") + hilaName2, true);
-                BufferedWriter bwHila = new BufferedWriter(fwHila);
-                PrintWriter outHila = new PrintWriter(bwHila);
-
-                BufferedWriter bwPlot = new BufferedWriter(fwPlot);
-                PrintWriter outPlot = new PrintWriter(bwPlot);
-
-            }catch(IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        public void resetThreads(){
-
-            numberOfThreads = 0;
-
-        }
-
-        public void addDone(){
-
-            donet++;
-
-        }
-
-        public int getDone(){
-
-            return donet;
-
-        }
-
-        public void addThread(){
-
-            numberOfThreads++;
-
-        }
-
-        public synchronized void addToHila(String in){
-
-            outputHila.add(in);
-
-        }
-
-        public synchronized void addToPlot(String in){
-
-            outputPlot.add(in);
-
-        }
-
-
-        public synchronized void writeLineHila(String line){
-
-            outHila.println(line);
-
-        }
-
-        public synchronized void writeLinePlot(String line){
-
-            System.out.println(line);
-            this.outPlot.println(line);
-
-        }
-
-
-        public void close(){
-
-            outPlot.close();
-            outHila.close();
-
-        }
-
-    }
-
-
-    boolean duplicate(Collection<String> input, String dup){
-
-        return input.contains(dup);
-
-    }
-
-
     public static boolean isInside(double[] point, double[] extent, double buffer){
 
         return point[0] > (extent[0] + buffer) && point[0] < (extent[2] - buffer)
@@ -163,9 +39,6 @@ class MKid4pointsLAS{
 
             while((line = sc.readLine())!= null){
                 String[]tokens = line.split(delim);
-                //System.out.println(file.split(pathSep)[file.split(pathSep).length - 1]);
-                //System.out.println(tokens[0]);
-                //System.out.println("----------------------");
                 if(file.split(pathSep)[file.split(pathSep).length - 1].equals(tokens[0])){
 
                     output[0] = Double.parseDouble(tokens[1]);
@@ -174,8 +47,6 @@ class MKid4pointsLAS{
                     output[3] = Double.parseDouble(tokens[4]);
 
                 }
-
-
             }} catch (Exception e) {
             e.printStackTrace();
         }
@@ -190,7 +61,7 @@ class MKid4pointsLAS{
         ArrayList<String> output = new ArrayList<String>();
 
 
-        File[] files3 = new File(directory).listFiles();        //Haetaan tekstitiedostojen polut
+        File[] files3 = new File(directory).listFiles();
         Arrays.sort(files3);
         int a3 = 0;
         for(File file : files3){   //READ THE POINT CLOUD FILEPATHS
@@ -334,404 +205,6 @@ class MKid4pointsLAS{
         }
     }
 
-    public static int countLines_no_output(String filename) throws IOException {
-
-        InputStream is = new BufferedInputStream(new FileInputStream(filename));
-
-        try {
-
-            byte[] c = new byte[1024];
-            int count = 0;
-            int readChars = 0;
-            boolean empty = true;
-
-            while ((readChars = is.read(c)) != -1) {
-                empty = false;
-
-                for (int i = 0; i < readChars; ++i) {
-                    if (c[i] == '\n') {
-                        ++count;
-                    }
-                }
-            }
-            return (count == 0 && !empty) ? 1 : count;
-        } finally {
-
-            is.close();
-        }
-    }
-
-    public static void sort(String inFile,String outputti){
-
-
-        if(System.getProperty("os.name").equals("Linux")){
-
-            String a = "sort --parallel=6 -k1 ";
-            String b = " -o ";
-            String c = outputti;
-            String asd = a+inFile+b+c;
-
-            try{
-                Runtime rt = Runtime.getRuntime();
-                Process proc = rt.exec(asd);
-                proc.waitFor();
-            }catch( Exception ex ) {
-                ex.printStackTrace();
-            }
-
-
-        }
-        else{
-            //System.out.println(outputti);
-
-            String g = "sort /M 100240 ";
-            String k = inFile;
-            String h = " /o ";
-            String l = outputti;
-            String conc = g + k + h + l;
-
-            try{
-                Process p = Runtime.getRuntime().exec(conc);
-                p.waitFor();
-                //Process proc = rt.exec(conc);
-
-            }catch(Exception ex) {
-                ex.printStackTrace();
-            }
-
-        }
-
-    }
-
-    public static void indexing(String inFile, String outFile, long linet, String delim) {
-
-        String enter = "\n";
-        //System.out.println(" ");
-        //System.out.println("Tiedosto: " + inFile + " linecount: " + linet);
-        //System.out.println(" ");
-        long lineCount = linet;
-        double previous = 0.0;
-        double nexti = 0.0;
-        String tiedosto = inFile;
-
-        Path file = Paths.get(tiedosto);
-        String prev_x ="";
-        int hj=0;
-        long avain1;
-        int jaotus;
-        String[] tokens;
-        double min_y = 999999999;
-        double max_y = 0;
-        String line;
-        if(linet % 500 != 0)
-            jaotus=500;
-        else
-            jaotus = 501;
-        double increment=Math.round(lineCount/jaotus);
-        double increment_orig=Math.round(lineCount/jaotus);
-
-        Double[] cutoff = new Double[jaotus];
-        int cutoff_ind = 0;
-        long chars = 0;
-        long prev_char = 0;
-        ArrayList<String> indeksit = new ArrayList<String>();
-        boolean tsekki = false;
-
-        try {
-
-            BufferedReader sc = new BufferedReader( new FileReader(inFile));
-
-
-
-            while((line = sc.readLine())!= null){
-
-                //chars += (long)line.getBytes().length + 1;
-                chars += ((long)line.length() + enter.length());
-                tokens = line.split(delim);
-                prev_x = tokens[0];
-                tsekki = true;
-                if(Double.parseDouble(tokens[1]) > max_y) max_y = Double.parseDouble(tokens[1]);
-                if(Double.parseDouble(tokens[1]) < min_y) min_y = Double.parseDouble(tokens[1]);
-
-                if((hj >= increment || hj == 0) && cutoff_ind < 500){
-
-
-
-
-                    if(hj != 0){
-                        hj++;
-                        increment = increment + increment_orig;
-
-
-                        nexti = Double.parseDouble(tokens[0]);
-                        previous = nexti;
-
-                        while(previous == nexti){
-
-
-                            line = sc.readLine();
-                            hj++;
-                            prev_char = ((long)line.length() + enter.length());
-                            chars += ((long)line.length() + enter.length());
-                            previous = nexti;
-                            nexti = Double.parseDouble(line.split(delim)[0]);
-
-                        }
-
-                    }
-
-                    if(hj == 0){
-
-                        indeksit.add(cutoff_ind + " " + hj + " " + Double.parseDouble(tokens[0]) + " " + 0);
-                        hj++;
-                    }
-                    else{
-                        indeksit.add(cutoff_ind + " " + hj + " " + nexti + " " + (chars - prev_char));
-                    }
-                    cutoff_ind++;
-
-                } else {
-                    hj++;
-
-                }
-
-
-
-
-                //System.out.println((long)line.getBytes().length) + 1;
-
-                tokens = null;
-                line = null;
-
-            }
-
-            sc.close();
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        System.out.println(inFile);
-        System.out.println(" ");
-
-        if(indeksit.size() < 500){
-
-            int aloitus = indeksit.size() - 1;
-            //System.out.println(" ");
-            //System.out.println(Integer.toString(aloitus).length());
-            //System.out.println(" ");
-            String substringi = indeksit.get(indeksit.size() - 1).substring((Integer.toString(aloitus).length() + 1));
-            //System.out.println(substringi);
-
-            while(indeksit.size() < 500){
-
-                indeksit.add((aloitus + 1) + delim + substringi);
-                aloitus++;
-
-            }
-
-        }
-        indeksit.add(500 + " " + hj + " " + Double.parseDouble(prev_x) + " " + (-9999999));
-        indeksit.add(min_y + " " + max_y + " " + -1 + " " + -1);
-
-        if(!tsekki) System.out.println("Reading failed!!!!!!! " + "hj: " + hj + " linet: " + linet + " linecount: " + lineCount);
-
-        outFile=outFile;
-        int size=indeksit.size();
-        String line2;
-        try{
-            FileOutputStream fos = new FileOutputStream(outFile);
-
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-
-            for (int g = 0; g < size; g++) {
-                line2=indeksit.get(g);
-                bw.write(line2);
-                bw.newLine();
-            }
-
-            bw.close();
-        }
-        catch( IOException ioException ) {
-            ioException.printStackTrace();
-        }
-
-    }
-
-    public static void indexingTHEindexes(String pathi, ArrayList<String> tiedostot_indeksi, int indexCount){
-
-        String line;
-        int tiedostojen_maara_indeksi = tiedostot_indeksi.size();
-        String all_index = "" + pathi + "/sorted/all.in_dex";
-        try{
-            FileOutputStream fos = new FileOutputStream(all_index);
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-
-            for(int ok = 0; ok <= tiedostojen_maara_indeksi-1; ok++){    // LOOP EACH INDEX FILE AND PRINT X Y EXTENT ALONGSIDE THE FILENAME
-                double min_y = 999999999;
-                double max_y = 0;
-
-                int laskuuri = 0;
-                String all_index_input = "";
-
-                try {
-
-                    BufferedReader sc = new BufferedReader( new FileReader(tiedostot_indeksi.get(ok)));
-                    //System.out.println(tiedostot_indeksi.get(ok));
-                    all_index_input += tiedostot_indeksi.get(ok).split("sorted")[1].split(".index")[0] + ".txt";
-                    all_index_input = all_index_input.substring(1);
-                    //System.out.println(all_index_input);
-                    while((line = sc.readLine())!= null){
-
-                        String[] tokens = line.split(" ");
-                        if(laskuuri == 0){
-                            all_index_input += " " + tokens[2];
-                        }
-
-                        if(laskuuri == indexCount){
-                            all_index_input += " " + tokens[2];
-                        }
-
-                        if(laskuuri == (indexCount+1)){
-                            all_index_input += " " + tokens[0] + " " + tokens[1];
-                        }
-
-                        laskuuri++;
-                    }
-                    bw.write(all_index_input);
-                    bw.newLine();
-                    sc.close();
-                } catch( IOException ioException ) {
-                    ioException.printStackTrace();
-                }
-
-
-                //System.out.println("ADSASDASDASD");
-            }
-            bw.close();
-        } catch( IOException ioException ) {
-            ioException.printStackTrace();
-        }
-
-
-    }
-
-    public static double[] percentile(ArrayList<String> points){
-
-        double cutoff = 2.0;
-        ArrayList<Double> zets = new ArrayList<Double>();
-        ArrayList<Double> intensity = new ArrayList<Double>();
-        double[] peet = new double[38];
-        Iterator<String> it = points.iterator();
-        double sum = 0;
-        String temp;
-        while(it.hasNext()){
-            temp=it.next();
-            if(Double.parseDouble(temp.split(" ")[2]) >= cutoff){
-
-                sum = sum + Double.parseDouble(temp.split(" ")[2]);
-                zets.add(Double.parseDouble(temp.split(" ")[2]));
-                intensity.add(Double.parseDouble(temp.split(" ")[3]));
-            }
-        }
-
-        if(zets.size() != 0){
-            Collections.sort(zets);
-            Collections.sort(intensity);
-            double min = zets.get(0);
-            double max = zets.get(zets.size()-1);
-            int quantile = 5;
-            int quantile_int = 5;
-            double size = zets.size();
-            double value = 0.0;
-            double sum2 = 0.0;
-            int peelaskuri = 0;
-            int peelaskuri_int = 19;
-
-            for(int j = 0; j < size - 1; j++){
-
-                if(j > size * (quantile/100.0) && quantile != 100){
-                    peet[peelaskuri] = zets.get(j);
-                    peelaskuri++;
-                    quantile += 5;
-                }
-                if(j > size * (quantile_int/100.0) && quantile_int != 100){
-                    peet[peelaskuri_int] = intensity.get(j);
-                    peelaskuri_int++;
-                    quantile_int += 5;
-                }
-
-            }
-        }
-
-        //peet[0] = sum;                                
-
-        return peet;
-
-
-    }
-
-    public static double[] density(ArrayList<String> points){
-
-        double cutoff = 2.0;
-        ArrayList<Double> zets = new ArrayList<Double>();
-        double[] peet = new double[6];
-        peet[0] = 1;peet[1] = 1;peet[2] = 1;peet[3] = 1;peet[4] = 1;peet[5] = 1;
-        Iterator<String> it = points.iterator();
-        double sum = 0;
-        String temp;
-        while(it.hasNext()){
-            temp=it.next();
-            if(Double.parseDouble(temp.split(" ")[2]) >= cutoff){
-                sum = sum + Double.parseDouble(temp.split(" ")[2]);
-                // System.out.println(temp.split(" ")[2]);
-                zets.add(Double.parseDouble(temp.split(" ")[2]));
-            }
-        }
-        Collections.sort(zets);
-        if(zets.size() > 0){
-            double min = zets.get(0);
-            double max = zets.get(zets.size()-1);
-            double[] asd = new double[8];
-            //asd[0] = 0.5;
-            //asd[1] = 1.0;
-            asd[0] = 2.5;
-            asd[1] = 5.0;
-            asd[2] = 10.0;
-            asd[3] = 15.0;
-            asd[4] = 20.0;
-            asd[5] = 25.0;
-            double size = zets.size();
-            double value = 0.0;
-            double sum2 = 0.0;
-            int peelaskuri = 0;
-            int j = 0;
-
-            while(peelaskuri < 6){
-                if(zets.get(j) >= asd[peelaskuri] || j == size-1){
-                    //if(j==0){
-                    peet[peelaskuri] =j / (size - 1);
-                    peelaskuri++;
-                    // }
-                    //if(j > 0){
-                    //        peet[peelaskuri] = (j-1) / (size - 1);
-                    //   peelaskuri++;
-                    // }
-
-                }
-                if(j < size-1)j++;
-            }
-
-
-        }
-        //peet[0] = sum;                                
-
-        return peet;
-
-
-    }
-
     public static boolean pointInCircle(double[] point, double[] plotCenter,double radi){
 
         return Math.sqrt(Math.pow(Math.abs(point[1] - plotCenter[1]), 2.0) + Math.pow(Math.abs(point[0] - plotCenter[0]), 2.0)) <= radi;
@@ -756,167 +229,6 @@ class MKid4pointsLAS{
         return isInside;
     }
 
-    public static double[] statistics(ArrayList<String> points, double[] plotCoords, boolean treelist){
-
-
-        double cutoff = 2.0;
-        double cutoff_cover = 5.0;
-        double sum_intensity = 0.0;
-        ArrayList<Double> intensity = new ArrayList<Double>();
-        ArrayList<Double> zets = new ArrayList<Double>();
-        //ArrayList<Float> return_number = new ArrayList<Float>();
-        ArrayList<String> trees = new ArrayList<String>();
-        //ArrayList<String> interleaved = new ArrayList<String>();
-        TreeMap<Long, Double> zetsMap = new TreeMap<Long, Double>();
-        TreeMap<Long, Double> xetsMap = new TreeMap<Long, Double>();
-        TreeMap<Long, Double> yetsMap = new TreeMap<Long, Double>();
-        double tieto;
-        double[] peet = new double[15];
-        Iterator<String> it = points.iterator();
-        Set<Long> avaimet;
-
-        int cover_above = 0;
-        int cover_all = 0;
-        int intermediate = 0;
-        String temp;
-        Long avain;
-        int puuluku = 0;
-        double sum = 0;
-        while(it.hasNext()){
-            temp=it.next();
-            //System.out.println(temp);
-            tieto = Double.parseDouble(temp.split(" ")[2]);
-            //return_number.add(Float.parseFloat(temp.split(" ")[5]));
-            if(tieto >= cutoff){
-                sum = sum + tieto;
-                zets.add(tieto);
-
-                intensity.add(Double.parseDouble(temp.split(" ")[3]));
-                sum_intensity += Double.parseDouble(temp.split(" ")[3]);
-            }
-
-            if( tieto > cutoff_cover && Float.parseFloat(temp.split(" ")[5]) == 1 )
-                cover_above++;
-
-            if( Float.parseFloat(temp.split(" ")[5]) == 1 )
-                cover_all++;
-
-            if( Float.parseFloat(temp.split(" ")[4]) - Float.parseFloat(temp.split(" ")[5]) > 1 )
-                intermediate++;
-
-            if(treelist){
-                avain= Long.parseLong(interleave(Integer.toBinaryString((int)Double.parseDouble(temp.split(" ")[1])),Integer.toBinaryString((int)Double.parseDouble(temp.split(" ")[0]))), 2);
-                zetsMap.put(avain, Double.parseDouble(temp.split(" ")[2]));
-                xetsMap.put(avain, Double.parseDouble(temp.split(" ")[0]));
-                yetsMap.put(avain, Double.parseDouble(temp.split(" ")[1]));
-            }
-        }
-
-        //canopy cover
-        peet[7] = (double)cover_above / (double)cover_all;
-
-
-        if(zets.size() != 0){
-
-            //intermediate
-            peet[8] = intermediate / (double)zets.size();
-
-
-            Collections.sort(zets);
-            Collections.sort(intensity);
-            double min = zets.get(0);
-            double max = zets.get(zets.size()-1);
-
-            double size = zets.size();
-            peet[6] = puuluku;
-
-            peet[0] = sum/size;       //mean
-            double mean = peet[0];
-
-            double temp2 = 0;
-            for(double a :zets)
-                temp2 += (a-mean)*(a-mean);
-            peet[1] = temp2/size;                 //VARIANCE
-
-            peet[2] = Math.sqrt(peet[1]);              //STD
-
-            peet[9] = sum_intensity / (double)intensity.size(); //intensity mean
-
-            double temp3 = 0;
-            int count1 = 0;
-            for(double a2 :intensity){
-                temp3 += (a2-peet[9])*(a2-peet[9]);
-                count1++;
-            }
-
-            peet[10] = temp3/count1;                 //VARIANCE
-
-            peet[11] = Math.sqrt(peet[10]);  //intensity std
-
-
-
-            peet[12] = intensity.get(0);			//intensity min
-            peet[13] = intensity.get(intensity.size()-1);	//intensity max
-
-            peet[14] = max;
-
-            if (size % 2 == 0)
-            {
-                peet[3] = (zets.get(((int)size / 2) - 1) + zets.get((int)size / 2)) / 2.0;  //MEDIAN
-            }
-            else
-            {
-                peet[3] = zets.get((int)size / 2);   //MEDIAN
-            }
-
-            peet[4] = 3.0*(peet[0] - peet[3])/(double)zets.size();   // Skewness
-            double summa = 0.0;
-
-            int above = 0;
-
-
-            for(int i = 0; i < zets.size() - 1; i++){
-                summa += Math.pow(zets.get(i)-peet[0],4);
-
-                if(zets.get(i) > cutoff_cover)
-                    above++;
-            }
-            peet[5] = summa / Math.pow(peet[2],4) / (double)zets.size();    // kurtosis
-
-
-
-
-            peet[6]	= above / (double)zets.size();				// canopy density
-
-
-            //if(sum_intensity / (double)intensity.size() >= 10 && peet[3] > 10)peet[9] = 1;
-            //	else{ peet[9] = 0; }
-
-        }
-        return peet;
-    }
-
-    public static String interleave(String one, String two){
-        int pituus=one.length();
-        int pituus2=two.length();
-        String storage="";
-        String binny;
-        for(int t=0;t < pituus;t++){
-            binny=one.substring(0+t, 1+t);
-            storage += ((binny));
-            if(t < pituus2){binny=two.substring(0+t, 1+t);
-                storage += ((binny));}
-        }
-        return storage;
-
-    }
-
-
-    public static boolean testIntersection(Shape shapeA, Shape shapeB) {
-        Area areaA = new Area(shapeA);
-        areaA.intersect(new Area(shapeB));
-        return !areaA.isEmpty();
-    }
 
     public static ArrayList<double[][]> readPolygonsFromWKT(String fileName, ArrayList<Integer> plotID1){
 
@@ -927,8 +239,6 @@ class MKid4pointsLAS{
             BufferedReader sc = new BufferedReader( new FileReader(new File(fileName)));
             sc.readLine();
             while((line1 = sc.readLine())!= null){
-
-                //System.out.println(line1);
 
                 String[] tokens =  line1.split(",");
 
@@ -1020,11 +330,7 @@ class MKid4pointsLAS{
         LASReader templateCloud = new LASReader(aR.inputFiles.get(0));
 
         ArrayList<LasPointBufferCreator> outputBuffers = new ArrayList<>();
-/*
-        for(int i = 0; i < aR.pointClouds.size(); i++){
-            pointClouds.add(new LASReader(new File(aR.pointClouds.get(i).getFile().getAbsolutePath())));
-        }
-*/
+
         LasPointBufferCreator pointBuffer = null;
 
         if(aR.split){
@@ -1946,12 +1252,9 @@ class MKid4pointsLAS{
                 }
 
                 if (npoints == 0) {
-                    //nopointplots++;
+
                 }
-               // RunId4pointsLAS.proge.updateCurrent(1);
-               // RunId4pointsLAS.proge.print();
-               // RunId4pointsLAS.output.addDone();
-                //pisteet.clear();
+
 
                 System.gc();
                 System.gc();
@@ -2561,10 +1864,6 @@ class MKid4pointsLAS{
                 if (npoints == 0) {
                     //nopointplots++;
                 }
-                // RunId4pointsLAS.proge.updateCurrent(1);
-                // RunId4pointsLAS.proge.print();
-                // RunId4pointsLAS.output.addDone();
-                //pisteet.clear();
 
                 System.gc();
                 System.gc();
@@ -2589,66 +1888,6 @@ class MKid4pointsLAS{
 
     }
 
-
-    public static String concatString(LasPoint point, String oparse){
-
-        char[] array = oparse.toCharArray();
-
-        String output = "";
-
-        if(oparse.equals("all")){
-
-            output += " " + point.x;
-
-            output += " " + point.y;
-
-            output += " " + point.z;
-
-            output += " " + point.intensity;
-
-            output += " " + point.classification;
-
-            output += " " + point.gpsTime;
-
-            output += " " + point.numberOfReturns;
-
-            output += " " + point.returnNumber;
-
-        }
-
-        for(int i = 0; i < array.length; i++){
-
-            if(array[i] == ('x'))
-                output += " " + point.x;
-
-            if(array[i] == ('y'))
-                output += " " + point.y;
-
-            if(array[i] == ('z'))
-                output += " " + point.z;
-
-            if(array[i] == ('i'))
-                output += " " + point.intensity;
-
-            if(array[i] == ('c'))
-                output += " " + point.classification;
-
-            if(array[i] == ('t'))
-                output += " " + point.gpsTime;
-
-            if(array[i] == ('n'))
-                output += " " + point.numberOfReturns;
-
-            if(array[i] == ('r'))
-                output += " " + point.returnNumber;
-
-            if(array[i] == ('s'))
-                output += " " + 0;
-        }
-        return output;
-
-    }
-
     public static double[] findMinMax(double[][] in){
 
         double minX = Double.POSITIVE_INFINITY;
@@ -2656,7 +1895,6 @@ class MKid4pointsLAS{
 
         double minY = Double.POSITIVE_INFINITY;
         double maxY = 0.0;
-        //System.out.println(in.length);
         for(int i = 0; i < in.length; i++){
 
             if(in[i][0] > maxX)
@@ -2687,68 +1925,6 @@ class MKid4pointsLAS{
     public static boolean isWithin(double[] extent, double x, double y){
 
         return x >= extent[0] && x <= extent[1] && y <= extent[3] && y >= extent[2];
-
-    }
-
-    public static void sortData(String directory){
-
-        String pathSep2 = System.getProperty("file.separator");
-
-        ArrayList<String> tiedostot_pilvi = new ArrayList<String>();
-        File[] files = new File(directory).listFiles(); 		//Haetaan tekstitiedostojen polut
-        File[] files_sorted = new File("" + directory + pathSep2 + "sorted").listFiles(); 		//Haetaan tekstitiedostojen polut
-        int a = 0;
-        for(File file : files){   //READ THE POINT CLOUD FILEPATHS
-            if(file.isFile()){
-                if(file.getName().endsWith((".txt"))){
-                    tiedostot_pilvi.add(a,file.getAbsolutePath());
-                    a++;
-                }
-            }
-        }
-
-        for(File file2: files_sorted)
-            if (!file2.isDirectory())
-                file2.delete();
-        int tiedostojen_maara = tiedostot_pilvi.size();
-
-        for(int k = 0; k <= tiedostojen_maara-1; k++){
-            File uusi = new File(tiedostot_pilvi.get(k));
-            String direct = uusi.getParentFile().getName();
-            //System.out.println(direct);
-            int one = 10;
-            int two = 0;
-            System.out.print("Sorting files, progress: " + (k+1) + pathSep2 + tiedostojen_maara + "\r");
-            String inputti = tiedostot_pilvi.get(k);
-            String vali = "" + direct + pathSep2 + "sorted" + pathSep2;
-            String outputti = tiedostot_pilvi.get(k).split(direct)[0] + vali + tiedostot_pilvi.get(k).split(direct)[1];
-            //System.out.println(outputti);
-
-            sort(inputti, outputti);
-
-            try{
-                Thread.sleep(200);
-                while(one != two){
-
-                    one = countLines_no_output(inputti);
-                    two = countLines_no_output(outputti);
-
-                }
-
-
-                two = countLines_no_output(outputti);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            indexing(outputti,(outputti.split("sorted")[0] + pathSep2 + "sorted" + pathSep2 + outputti.split("sorted")[1].split(".txt")[0] + ".index"),two, " ");
-
-        }
-
-
-
-
 
     }
 

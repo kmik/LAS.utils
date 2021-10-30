@@ -247,10 +247,6 @@ public class RunId4pointsLAS{
         @Override
         public void run() {
 
-
-            //long start = System.currentTimeMillis();
-            //long end = System.currentTimeMillis();
-
             long averageTime = 0L;
             PrintWriter writer = null;
             int pointCount = 0;
@@ -270,15 +266,9 @@ public class RunId4pointsLAS{
                 while(!this.end){
 
                     System.out.println("LOOPPI!! " + threadWrote.size());
-                    //LasPoint buffer = blockingQueue.take();
-                    //take = que.take();
 
                     takeInt = threadWrote.take();
-/*
-                    if(take.length == 1){
-                        break;
-                    }
-*/
+
 
                     if(takeInt == -99)
                         break;
@@ -287,23 +277,7 @@ public class RunId4pointsLAS{
 
                     pointCount++;
                     take = null;
-/*
-                    //Check whether end of file has been reached
-                    if(buffer.z == -987654321){
-                        break;
-                    }
 
-                    if(raOutput.writePoint( buffer, rule, 0.01, 0.01, 0.01, 0, 0, 0, tempReader.pointDataRecordFormat, pointCount)){
-                        //System.out.println("POINT WROTE");
-                        pointCount++;
-                    }
-
-                    buffer = null;
-                    */
-                    //if(pointCount % 10 == 0) {
-                        //System.out.println(blockingQueue.size());
-                        //System.gc();
-                    //}
                 }
 
 
@@ -313,7 +287,6 @@ public class RunId4pointsLAS{
             } finally{
 
                 try{
-                    //raOutput.writeBuffer2();
                     raOutput.updateHeader2();
                     raOutput.close();
                 }catch(Exception e){
@@ -323,9 +296,6 @@ public class RunId4pointsLAS{
                 }
 
             }
-
-            //System.out.println()
-
 
         }
 
@@ -760,106 +730,7 @@ public class RunId4pointsLAS{
 
         String pathSep = System.getProperty("file.separator");
 
-        //if(!System.getProperty("os.name").equals("Linux"))
-          //  pathSep = "\\" + pathSep;
-
-        //System.loadLibrary("opencv_java320");
-
-        //if(!System.getProperty("os.name").equals("Linux"))
-          //  System.loadLibrary("gdal202");
-
-
-        //System.out.println(pathSep);
         String delimiter = " ";
-
-
-
-        /*
-        String pathi = args[4];
-
-
-        int tool = Integer.parseInt(args[0]);
-
-
-
-        String iparse = args[1];
-        String oparse = args[2];
-
-        String output = args[3];
-        String input = args[4];
-        //System.out.println(input);
-        boolean drop_noise = Integer.parseInt(args[5]) != 0;
-        int drop_classification = Integer.parseInt(args[6]);
-
-        boolean first_only = Integer.parseInt(args[7]) != 0;
-        boolean keep_first = Integer.parseInt(args[8]) != 0;
-        boolean drop_first = Integer.parseInt(args[9]) != 0;
-
-        boolean last_only = Integer.parseInt(args[10]) != 0;
-        boolean keep_last = Integer.parseInt(args[11]) != 0;
-        boolean drop_last = Integer.parseInt(args[12]) != 0;
-
-        boolean drop_first_of_many = Integer.parseInt(args[13]) != 0;
-        boolean drop_last_of_many = Integer.parseInt(args[14]) != 0;
-
-        boolean keep_middle = Integer.parseInt(args[15]) != 0;
-        boolean drop_middle = Integer.parseInt(args[16]) != 0;
-
-        boolean keep_single = Integer.parseInt(args[17]) != 0;
-        boolean drop_single = Integer.parseInt(args[18]) != 0;
-        boolean keep_double = Integer.parseInt(args[19]) != 0;
-        boolean drop_double = Integer.parseInt(args[20]) != 0;
-        boolean keep_triple = Integer.parseInt(args[21]) != 0;
-        boolean drop_triple = Integer.parseInt(args[22]) != 0;
-        boolean keep_quadruple = Integer.parseInt(args[23]) != 0;
-        boolean drop_quadruple = Integer.parseInt(args[24]) != 0;
-        boolean keep_quintuple = Integer.parseInt(args[25]) != 0;
-        boolean drop_quintuple = Integer.parseInt(args[26]) != 0;
-
-        boolean drop_synthetic = Integer.parseInt(args[27]) != 0;
-        int drop_user_data = Integer.parseInt(args[28]);
-        int keep_user_data = Integer.parseInt(args[29]);
-
-        int set_classification = Integer.parseInt(args[30]);
-        int set_user_data = Integer.parseInt(args[31]);
-        double drop_z_below = Double.parseDouble(args[32]);
-        double drop_z_above = Double.parseDouble(args[33]);
-
-        double buffer = Double.parseDouble(args[34]);
-
-        String odir = args[35];
-
-        int few = Integer.parseInt(args[36]);
-
-        double step = Double.parseDouble(args[37]);
-
-        cellSize = args[37];
-
-        int ground_class = Integer.parseInt(args[38]);
-
-        String method = args[39];
-
-        String sep = args[40];
-
-        int numberOfCores = Integer.parseInt(args[41]);
-
-        String otype = args[42];
-
-        int splitInt = Integer.parseInt(args[43]);
-
-        double numarg2 = Double.parseDouble(args[44]);
-        double numarg3 = Double.parseDouble(args[45]);
-        String groundPoints = args[46]; // NUMARG4
-
-
-        int br = Integer.parseInt(args[47]);
-
-
-
-        String koealat = args[48];
-
-
-         */
 
         String koealat = aR.poly;
 
@@ -877,8 +748,6 @@ public class RunId4pointsLAS{
 
         int checkShp = 0;
 
-
-
         try{
 
 
@@ -892,9 +761,9 @@ public class RunId4pointsLAS{
 
             checkShp = 1;
             DataSource ds = ogr.Open( koealat );
-            //System.out.println("Layer count: " + ds.GetLayerCount());
+
             Layer layeri = ds.GetLayer(0);
-            //System.out.println("Feature count: " + layeri.GetFeatureCount());
+
 
             try{
                 fout = new File("tempWKT.csv");
@@ -913,7 +782,6 @@ public class RunId4pointsLAS{
                 for(long i = 0; i < layeri.GetFeatureCount(); i++ ){
 
                     Feature tempF = layeri.GetFeature(i);
-                    //System.out.println(layeri.GetFeatureCount());
                     Geometry tempG = tempF.GetGeometryRef();
 
                     if(tempG == null)
@@ -947,89 +815,11 @@ public class RunId4pointsLAS{
         else
             shapeType = detectShapeType(koealat);
 
-
-        /*
-        if(drop_noise)
-            rule.dropNoise();
-        if(drop_classification != -999)
-            rule.dropClassification(drop_classification);
-        if(drop_classification != -999)
-            rule.dropClassification(drop_classification);
-        if(first_only)
-            rule.firstOnly();
-        if(keep_first)
-            rule.keepFirst();
-        if(drop_first)
-            rule.dropFirst();
-        if(last_only)
-            rule.lastOnly();
-        if(keep_last)
-            rule.keepLast();
-        if(drop_last)
-            rule.dropLast();
-        if(drop_first_of_many)
-            rule.dropFirstOfMany();
-        if(drop_last_of_many)
-            rule.dropLastOfMany();
-        if(keep_middle)
-            rule.keepMiddle();
-        if(drop_middle)
-            rule.dropMiddle();
-        if(keep_single)
-            rule.keepSingle();
-        if(drop_single)
-            rule.dropSingle();
-        if(keep_double)
-            rule.keepDouble();
-        if(drop_double)
-            rule.dropDouble();
-        if(keep_triple)
-            rule.keepTriple();
-        if(drop_triple)
-            rule.dropTriple();
-        if(keep_quadruple)
-            rule.keepQuadruple();
-        if(drop_quadruple)
-            rule.dropQuadruple();
-        if(keep_quintuple)
-            rule.keepQuintuple();
-        if(drop_quintuple)
-            rule.dropQuintuple();
-        if(drop_synthetic)
-            rule.dropSynthetic();
-        if(drop_user_data != -999)
-            rule.dropUserData(drop_user_data);
-        if(keep_user_data != -999)
-            rule.keepUserData(keep_user_data);
-        if(set_classification != -999)
-            rule.setClassification(set_classification);
-        if(set_user_data != -999)
-            rule.setUserData(set_user_data);
-        if(drop_z_below != -999)
-            rule.dropZBelow(drop_z_below);
-        if(drop_z_above != -999)
-            rule.dropZAbove(drop_z_above);
-
-        */
-        // cellSize = step;
-
-        //System.out.println(pathi.split(pathSep)[(pathi.split(pathSep)).length - 1].split("\\.")[1]);
-
-        //boolean lasFormat = pathi.split(pathSep)[(pathi.split(pathSep)).length - 1].split("\\.")[1].equals("las");
-
-        //boolean txtFormat = pathi.split(pathSep)[(pathi.split( pathSep)).length - 1].split("\\.")[1].equals("txt");
-
-        //boolean wildCard = pathi.split(pathSep)[(pathi.split(pathSep)).length - 1].split("\\.")[0].equals("*");
-
         boolean lasFormat;// = aR.files[0].split("\\.")[1].equals("las");
         boolean txtFormat;// = aR.files[0].split("\\.")[1].equals("txt");
 
         lasFormat = new File(aR.files[0]).getName().split("\\.")[1].equals("las");
-        //lasFormat = aR.files[0].split("\\.")[1].equals("las");
         txtFormat = new File(aR.files[0]).getName().split("\\.")[1].equals("txt");
-
-        //System.out.println(pathi.split(pathSep)[(pathi.split(pathSep)).length - 1]);
-        //System.out.println(wildCard + " " + txtFormat);
 
         MKid4pointsLAS homma = new MKid4pointsLAS();
 
@@ -1046,25 +836,12 @@ public class RunId4pointsLAS{
 
             ArrayList<String> tempList = new ArrayList<String>();
 
-            /*
-            if(wildCard){
-                //System.out.println(pathi.split("\\*")[0]);
-                tempList = homma.listFiles(pathi.split("\\*")[0], ".txt");
-                //System.out.println(tempList);
-            }
-            *
-             */
             tempList.addAll(Arrays.asList(aR.files));
-
-            //tempList.add(pathi);
-
 
             proge.setEnd(tempList.size());
 
             if(aR.cores > tempList.size())
                 aR.cores = tempList.size();
-
-            //System.out.println("Number of cores: " + numberOfCores);
 
             ArrayList<Thread> lista11 = new ArrayList<Thread>();
 
@@ -1085,92 +862,30 @@ public class RunId4pointsLAS{
                     e.printStackTrace();
                 }
             }
-          
-
-          /*
-          ArrayList<File> from = new ArrayList<File>();
-          ArrayList<LASraf> to = new ArrayList<LASraf>();
-
-          for(int i = 0; i < tempList.size(); i++){
-
-            File toFile = new File(tempList.get(i).replaceFirst("[.][^.]+$", "") + ".las");
-            //System.out.println(toFile);
-            File fromFile = new File(tempList.get(i));
-
-            if(toFile.exists())
-              toFile.delete();
-
-            toFile.createNewFile();
-
-            //System.out.println(toFile);
-            from.add(fromFile);
-
-            to.add(new LASraf(toFile));
-            //System.exit(0);
-            tiedostot_sorted.add(tempList.get(i).replaceFirst("[.][^.]+$", "") + ".las");
-            
-          }
-
-          // omp parallel for
-          for (int i = 0; i < 10; i++) {
-            System.out.print(i);
-          }
-          System.out.println("");
-
-          // omp parallel for
-          for(int i = 0; i < tempList.size(); i++){
-            System.out.println("thread: " + i);
-            LASwrite.txt2las(from.get(i), to.get(i), iparse, "txt2las", " ", rule);
-            to.get(i).writeBuffer2();
-            //System.out.println(to.get(i).getFileReference().getName());
-          
-          }
-          */
 
             for(int h = 0; h < tiedostoLista.files.size(); h++)
                 pointClouds.add(new LASReader(new File(tiedostoLista.files.get(h))));
 
             tiedostot_sorted = tiedostoLista.files;
 
-
-            //tiedostot_sorted = convertTxt2Las(tempList, iparse);
-
         }
 
 
 
         if(lasFormat){
-/*
-            if(wildCard){
-                tiedostot_indeksi = homma.listFiles(pathi.split("\\*")[0], ".lasx");
-                tiedostot_sorted = homma.listFiles(pathi.split("\\*")[0], ".las");
-            }
-*/
-            //else{
+
 
 
 
             for(String f : aR.files) {
                 inputFiles.add(new File(f));
-                //pointClouds.add(new LASReader(new File(f)));
 
                 tiedostot_sorted.add(f);
                 File indeksi = fo.createNewFileWithNewExtension(f, ".lasx");
                 if(indeksi.exists())
                     tiedostot_indeksi.add( indeksi.getAbsolutePath());
             }
-                //tiedostot_sorted.add(pathi);
-        /*
-                File indeksi = fo.createNewFileWithNewExtension(pathi, ".lasx");
-                // new File(pathi.replaceFirst("[.][^.]+$", "") + ".lasx");
 
-                if(indeksi.exists())
-                    tiedostot_indeksi.add( fo.createNewFileWithNewExtension(pathi, ".lasx").getAbsolutePath());
-
-         */
-                    //pathi.replaceFirst("[.][^.]+$", "") + ".lasx");
-                //System.out.println(tiedostot_sorted);
-            //}
         }
 
 
@@ -1178,64 +893,18 @@ public class RunId4pointsLAS{
         aR.setInputFiles(inputFiles);
         proge.reset();
 
-        /*
-        File dir = new File("" + pathi + pathSep + "sorted");
-
-        dir.delete();
-        dir.mkdir();
-
-        File dir2 = new File("output");
-        dir2.delete();
-        dir2.mkdir();
-
-
-        File[] outputFiles = new File("output").listFiles();
-
-        if(outputFiles.length > 0)
-            for(File file2: outputFiles)
-                if (!file2.isDirectory()) {
-                    if(plotsORnot == 1 && (file2.getName().equals("plotFile.txt")))
-                        file2.delete();
-                    if(hilaORnot == 1 && (file2.getName().equals("hilaFile.txt")))
-                        file2.delete();
-                    if(aR.cores > 0 && plotsORnot == 1 && (file2.getName().equals("plotFile_moniajo.txt")))
-                        file2.delete();
-                }
-
-
-
-        if(sortORnot == 1)
-            homma.sortData(pathi);
-
-         */
-
         String indeksi_pathi_all = "";//pathi.split(pathSep)[pathi.split(pathSep).length - 2] + pathSep + "all.lasxALL";
-        //String[] tokens = aR.files[0].split(pathSep);
 
         indeksi_pathi_all = new File(aR.files[0]).getParent();
-
-        //for(int i = 0; i < tokens.length - 1; i++)
-           // indeksi_pathi_all += (tokens[i] + pathSep);
 
         String workingDir = indeksi_pathi_all;
 
         indeksi_pathi_all += pathSep + "all.lasxALL";
-        //System.out.println(indeksi_pathi_all);
         File allFile = new File(indeksi_pathi_all);
 
         allFile.delete();
-        //if(!allFile.exists())
         allFile.createNewFile();
 
-        /*
-        if(wildCard && lasFormat)
-            origo = LASindex.indexAll3(tiedostot_sorted, indeksi_pathi_all);
-
-        if(!wildCard && lasFormat)
-            origo = LASindex.indexAll3(tiedostot_sorted, indeksi_pathi_all);
-
-        if(txtFormat)
-        */
 
         origo = LASindex.indexAll3(aR.inputFiles, indeksi_pathi_all);
 
@@ -1329,39 +998,13 @@ public class RunId4pointsLAS{
         }
         else if(aR.otype.equals("las")){
 
-            //queueLAS = new LinkedBlockingQueue<LasPoint>(aR.cores * 100000 * 10);
-            //writerLAS = new WriterThreadLAS(queueLAS, merged, rule, tempReader, que, qu, threadWrote);
-
-            //writerLAS.start();
-            //writerT =  new Thread(writerLAS);
-            //writerT.start();
-
         }
         else{
             System.out.println("Otype not recognized! : " + aR.otype);
             System.exit(0);
         }
 
-        //System.exit(1);
-        /*
-        File outputtiFileTesti = new File("testia.las");
 
-        if(outputtiFileTesti.exists())
-            outputtiFileTesti.delete();
-
-        outputtiFileTesti.createNewFile();
-
-        try{
-            Thread.sleep(1000);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        LASraf asdi = new LASraf(outputtiFileTesti);
-
-        asdi.writeHeader("testiajo", 1, 2, tempReader.pointDataRecordFormat, tempReader.pointDataRecordLength);
-
-        aR.setOutputFile(asdi);
-        */
 
         aR.p_update.lasclip_empty = aR.buffer;
         aR.p_update.lasclip_clippedPoints = 0;
@@ -1413,34 +1056,12 @@ public class RunId4pointsLAS{
 
                 }
 
-                //try{
-                    //LasPoint POISON_PILL = new LasPoint();
-                    //POISON_PILL.z = -987654321;
-
-                    //if(aR.otype.equals("txt"))
-                      //  queue.put("EOF");
-
-                    //if(aR.otype.equals("las"))
-                      //  queueLAS.put(POISON_PILL);
-
-                    //writerLAS.end();
-                    //que.put(new byte[]{0});
-                    //threadWrote.put(-99);
-                    //writerLAS.join();
-
-                //}catch(InterruptedException e){}
             }
-
-            //mergeOutput.writeBuffer2();
-            //mergeOutput.updateHeader2();
-            //aR.outputFile.writeBuffer2();
-            //aR.outputFile.updateHeader2();
 
         }
 
         if(aR.split){
             for(int i = 0; i < outputFiles.size(); i++){
-                //outputFiles.get(i).close();
                 outputFiles.get(i).close(aR);
             }
         }
@@ -1514,13 +1135,6 @@ public class RunId4pointsLAS{
 
 
         }
-
-
-
-        //System.out.println("");
-        //System.out.println("Processing complete");
-
-        //System.out.println(time.elapsed());
 
         System.exit(1);
     }

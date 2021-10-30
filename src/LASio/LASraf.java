@@ -586,54 +586,21 @@ public class LASraf implements Closeable {
   }
 
   public synchronized void writeUnsignedByte(byte in) throws IOException {
-    //buffer.clear();
 
     int unsignedValue = in&0x000000ff;
     byte unsignedValueB = (byte) unsignedValue;
-    /*
-    //unsignedByteArray = buffer2.allocate(1).put(unsignedValueB).array();
-    writeBuffer_unsignedByte.position(0);
-    writeBuffer_unsignedByte.put(unsignedValueB);
-    writeBuffer_unsignedByte.position(0);
-    raFile.seek(raFile.length());
-    fileChannel.write(writeBuffer_unsignedByte);
-    //System.out.println();
 
-    if(true)
-      return;
-    */
     unsignedByteArray[0] = unsignedValueB;
-    //array[0] = unsignedValueB;
-    /*
-    buffer.wrap(array);
-    buffer.flip();
-    fileChannel.write(buffer);
-    */
-
-    //fileChannel.position(fileChannel.size());
-    //  System.out.println(Arrays.toString(array));
-    //fileChannel.write(ByteBuffer.wrap(array));
-
-    //allArray = concatenateByteArrays(allArray, array);
-
-
 
     if(allArray2Index + unsignedByteArray.length >= allArray2.length) {
-      //writeBuffer2();
       writeBuffer3(unsignedByteArray);
       return;
     }
-    //for(int i = 0; i < unsignedByteArray.length; i++){
-    //writeBuffer.put(unsignedByteArray);
+
       allArray2[allArray2Index] = unsignedByteArray[0];
       allArray2Index++;
 
-    //}
-    //unsignedByteArray = null;
-
   }
-
-
 
   /**
    * Reads 4 bytes given in little-endian order and and returns
@@ -649,7 +616,7 @@ public class LASraf implements Closeable {
   }
 
   public synchronized void writeUnsignedInt(int in) throws IOException {
-    //buffer.clear();
+
     int unsignedValue = in&0xffff;
 
       intArray[3] = (byte)(unsignedValue >>> 24);
@@ -657,48 +624,21 @@ public class LASraf implements Closeable {
       intArray[2] = (byte)(unsignedValue >>> 16);
       intArray[1] = (byte)(unsignedValue >>> 8);
       intArray[0] = (byte)unsignedValue;
-    /*
-    writeBuffer_int.position(0);
-    writeBuffer_int.put(intArray);
-    writeBuffer_int.position(0);
-    raFile.seek(raFile.length());
-    fileChannel.write(writeBuffer_int);
-
-    if(true)
-      return;
-
-     */
-    //intArray = intToByteArray(in);
-    //byte[] array = buffer.allocate(4).putInt(unsignedValue).array();
-    /*
-    buffer.wrap(array);
-    buffer.flip();
-    fileChannel.write(buffer);
-    */
-    //fileChannel.position(fileChannel.size());
-    //fileChannel.write(ByteBuffer.wrap(array));
-    //allArray = concatenateByteArrays(allArray, array);
-
-
 
     if(allArray2Index + intArray.length >= allArray2.length) {
-      //writeBuffer2();
+
       writeBuffer3(intArray);
       return;
     }
-    //for(int i = 0; i < intArray.length; i++){
-    //writeBuffer.put(intArray);
-      allArray2[allArray2Index] = intArray[0];
-      allArray2Index++;
+
+    allArray2[allArray2Index] = intArray[0];
+    allArray2Index++;
     allArray2[allArray2Index] = intArray[1];
     allArray2Index++;
     allArray2[allArray2Index] = intArray[2];
     allArray2Index++;
     allArray2[allArray2Index] = intArray[3];
     allArray2Index++;
-
-    //}
-    //intArray = null;
 
   }
 
@@ -715,48 +655,20 @@ public class LASraf implements Closeable {
   }
 
   public synchronized void writeUnsignedShort(int in) throws IOException {   // POSSIBLY WRONG!!!!!
-    //buffer.clear();
-    //int unsignedValue = in&0xffff;
-    //short unsignedValueS = (short)unsignedValue;
-    //unsignedShortArray = new byte[2];//buffer.allocate(2).putShort(unsignedValueS).array();
 
     unsignedShortArray[0] = (byte)(in & 0xff);
     unsignedShortArray[1] = (byte)((in >> 8) & 0xff);
-    //System.out.println(unsignedValueS);
-    /*
-    buffer.wrap(array);
-    buffer.flip();
-    fileChannel.write(buffer);
-    */
-    //fileChannel.position(fileChannel.size());
-    //System.out.println(array.length);
-    //fileChannel.write(ByteBuffer.wrap(array));
-    //allArray = concatenateByteArrays(allArray, array);
-    /*
-    writeBuffer_unsignedShort.position(0);
-    writeBuffer_unsignedShort.put(unsignedShortArray);
-    writeBuffer_unsignedShort.position(0);
-    raFile.seek(raFile.length());
-    fileChannel.write(writeBuffer_unsignedShort);
 
-    if(true)
-      return;
-
-
-     */
     if(allArray2Index + unsignedShortArray.length >= allArray2.length) {
-      //writeBuffer2();
       writeBuffer3(unsignedShortArray);
       return;
     }
-    //for(int i = 0; i < unsignedShortArray.length; i++){
 
-    //writeBuffer.put(unsignedShortArray);
-      allArray2[allArray2Index] = unsignedShortArray[0];
-      allArray2Index++;
+    allArray2[allArray2Index] = unsignedShortArray[0];
+    allArray2Index++;
     allArray2[allArray2Index] = unsignedShortArray[1];
     allArray2Index++;
-    //}
+
 
   }
 
@@ -772,55 +684,20 @@ public class LASraf implements Closeable {
   }
 
   public synchronized void writeInt(int in) throws IOException {
-    //buffer.clear();
 
-    //intArray = intToByteArray(in);
       intArray[3] = (byte)(in >>> 24);
 
       intArray[2] = (byte)(in >>> 16);
       intArray[1] = (byte)(in >>> 8);
       intArray[0] = (byte)in;
-   // byte[] array = buffer.allocate(4).putInt(in).array();
-    //buffer.allocate(4);
-   // buffer.wrap(array);
-    //buffer.flip();
-    /*
-    buffer.wrap(array);
-    buffer.flip();
-    fileChannel.write(buffer);
-    */
-    //fileChannel.position(fileChannel.size());
-    //fileChannel.write(buffer);
-    //System.out.println(Arrays.toString(array));
-    //System.out.println(fileOuputStream)
-    //fileChannel.write(ByteBuffer.wrap(array));
-
-    //allArray = concatenateByteArrays(allArray, array);
-        /*
-    writeBuffer_int.position(0);
-    writeBuffer_int.put(intArray);
-    writeBuffer_int.position(0);
-    raFile.seek(raFile.length());
-    fileChannel.write(writeBuffer_int);
-
-    if(true)
-      return;
-
-
-         */
 
     if(allArray2Index + intArray.length >= allArray2.length) {
-      //writeBuffer2();
       writeBuffer3(intArray);
       return;
     }
 
-    //System.out.println("bif: " + bufferSize + " " + allArray2Index + " " + intArray.length + " " + writeBuffer.position() + " " + allArray2Index);
-    //writeBuffer.put(intArray);
-    //for(int i = 0; i < intArray.length; i++){
-
-      allArray2[allArray2Index] = intArray[0];
-      allArray2Index++;
+    allArray2[allArray2Index] = intArray[0];
+    allArray2Index++;
     allArray2[allArray2Index] = intArray[1];
     allArray2Index++;
     allArray2[allArray2Index] = intArray[2];
@@ -828,13 +705,6 @@ public class LASraf implements Closeable {
     allArray2[allArray2Index] = intArray[3];
     allArray2Index++;
 
-   // }
-/*
-
-
- */
-    //intArray = null;
-    //fileOuputStream.write(array);
   }
   public static synchronized byte[] intToByteArray(int value) {
     return new byte[] {
@@ -845,14 +715,7 @@ public class LASraf implements Closeable {
   }
 
   public static synchronized byte[] doubleToByteArray(double value) {
-/*
-    byte[] output = new byte[8];
-    long lng = Double.doubleToLongBits(value);
-    for(int i = 0; i < 8; i++) output[i] = (byte)((lng >> ((7 - i) * 8)) & 0xff);
 
-    return output;
-
- */
     return ByteBuffer.allocate(8).putDouble(value).array();
   }
 
@@ -917,9 +780,8 @@ public class LASraf implements Closeable {
   }
 
   public synchronized void writeDouble(double in) throws IOException {
-    //buffer.clear();
+
     long v = Double.doubleToLongBits(in);
-    //doubleArray = new byte[8];// buffer.allocate(8).putDouble(in).array();
 
     doubleArray[0] = (byte)(v);
     doubleArray[1] = (byte)(v>>>8);
@@ -929,26 +791,12 @@ public class LASraf implements Closeable {
     doubleArray[5] = (byte)(v>>>40);
     doubleArray[6] = (byte)(v>>>48);
     doubleArray[7] = (byte)(v>>>56);
-    /*
-    //allArray = concatenateByteArrays(allArray, array);
-    writeBuffer_double.position(0);
-    writeBuffer_double.put(doubleArray);
-    writeBuffer_double.position(0);
-    raFile.seek(raFile.length());
-    fileChannel.write(writeBuffer_double);
 
-    if(true)
-      return;
-
-     */
 
     if(allArray2Index + doubleArray.length >= allArray2.length) {
-      //writeBuffer2();
       writeBuffer3(doubleArray);
       return;
     }
-    //writeBuffer.put(doubleArray);
-    //for(int i = 0; i < doubleArray.length; i++){
 
     allArray2[allArray2Index] = doubleArray[0];
     allArray2Index++;
@@ -967,8 +815,6 @@ public class LASraf implements Closeable {
     allArray2[allArray2Index] = doubleArray[7];
     allArray2Index++;
 
-    //}
-
   }
 
   /**
@@ -983,7 +829,6 @@ public class LASraf implements Closeable {
   }
 
   public synchronized void writeFloat(float in) throws IOException {
-    //buffer.clear();
 
     int bits = Float.floatToIntBits(in);
     //byte[] array = new byte[4];
@@ -992,39 +837,14 @@ public class LASraf implements Closeable {
     floatArray[2] = (byte)((bits >> 16) & 0xff);
     floatArray[3] = (byte)((bits >> 24) & 0xff);
 
-    //byte[] array = ByteBuffer.allocate(4).putFloat(in).array();
-    /*
-    buffer.wrap(array);
-    buffer.flip();
-    fileChannel.write(buffer);
-    */
-    //fileChannel.position(fileChannel.size());
-    //fileChannel.write(ByteBuffer.wrap(array));
-    //allArray = concatenateByteArrays(allArray, array);
-        /*
-    writeBuffer_float.position(0);
-    writeBuffer_float.put(floatArray);
-    writeBuffer_float.position(0);
-    raFile.seek(raFile.length());
-    fileChannel.write(writeBuffer_float);
-
-    if(true)
-      return;
-
-         */
-
-
     if(allArray2Index + floatArray.length >= allArray2.length) {
-      //writeBuffer2();
       writeBuffer3(floatArray);
       return;
 
     }
-    //for(int i = 0; i < floatArray.length; i++){
-    //writeBuffer.put(floatArray);
 
-      allArray2[allArray2Index] = floatArray[0];
-      allArray2Index++;
+    allArray2[allArray2Index] = floatArray[0];
+    allArray2Index++;
     allArray2[allArray2Index] = floatArray[1];
     allArray2Index++;
     allArray2[allArray2Index] = floatArray[2];
@@ -1032,8 +852,6 @@ public class LASraf implements Closeable {
     allArray2[allArray2Index] = floatArray[3];
     allArray2Index++;
 
-    //}
-    //floatArray = null;
   }
 
   /**
@@ -1048,9 +866,7 @@ public class LASraf implements Closeable {
   }
 
   public synchronized void writeLong(long in) throws IOException {
-        //prepareBufferForRead(8);
-    //buffer.clear();
-    //byte[] array =  new byte[8];// ByteBuffer.allocate(8).putLong(in).array();
+
     longArray[7] = (byte)(in >>> 56);
     longArray[6] = (byte)(in >>> 48);
     longArray[5] = (byte)(in >>> 40);
@@ -1060,37 +876,14 @@ public class LASraf implements Closeable {
     longArray[1] = (byte)(in >>>  8);
     longArray[0] = (byte)(in >>>  0);
 
-    /*
-    buffer.wrap(array);
-    buffer.flip();
-    fileChannel.write(buffer);
-    */
-    //fileChannel.position(fileChannel.size());
-    //fileChannel.write(ByteBuffer.wrap(array));
-    //allArray = concatenateByteArrays(allArray, array);
-        /*
-    writeBuffer_long.position(0);
-    writeBuffer_long.put(longArray);
-    writeBuffer_long.position(0);
-    raFile.seek(raFile.length());
-    fileChannel.write(writeBuffer_long);
-
-    if(true)
-      return;
-
-
-         */
 
     if(allArray2Index + longArray.length >= allArray2.length) {
-      //writeBuffer2();
       writeBuffer3(longArray);
       return;
     }
-    //writeBuffer.put(longArray);
-    //for(int i = 0; i < longArray.length; i++){
 
-      allArray2[allArray2Index] = longArray[0];
-      allArray2Index++;
+    allArray2[allArray2Index] = longArray[0];
+    allArray2Index++;
     allArray2[allArray2Index] = longArray[1];
     allArray2Index++;
     allArray2[allArray2Index] = longArray[2];
@@ -1106,9 +899,6 @@ public class LASraf implements Closeable {
     allArray2[allArray2Index] = longArray[7];
     allArray2Index++;
 
-    //}
-
-    //return buffer.getLong();
   }
 
   /**
@@ -1124,46 +914,20 @@ public class LASraf implements Closeable {
   }
 
   public synchronized void writeShort(short in) throws IOException {
-     //prepareBufferForRead(2);
-    //buffer.clear();
-    //byte[] array = new byte[2];
+
     shortArray[0] = (byte) in;
     shortArray[1] = (byte) (in >> 8);
-    //writeBuffer.putShort(in);
-    /*
-    buffer.wrap(array);
-    buffer.flip();
-    fileChannel.write(buffer);
-    */
-    //fileChannel.position(fileChannel.size());
-    //allArray = concatenateByteArrays(allArray, array);
-    /*
-    writeBuffer.allocate(2).put(shortArray);
-    writeBuffer.position(0);
-    raFile.seek(raFile.length());
-    fileChannel.write(writeBuffer);
 
-    if(true)
-      return;
-
-
-     */
     if(allArray2Index + shortArray.length >= allArray2.length) {
-      //writeBuffer2();
       writeBuffer3(shortArray);
       return;
     }
-    //for(int i = 0; i < shortArray.length; i++){
-   // writeBuffer.put(shortArray);
-      allArray2[allArray2Index] = shortArray[0];
-      allArray2Index++;
+
+    allArray2[allArray2Index] = shortArray[0];
+    allArray2Index++;
     allArray2[allArray2Index] = shortArray[1];
     allArray2Index++;
 
-    //}
-
-    //fileChannel.write(ByteBuffer.wrap(array));
-    //return buffer.getShort();
   }
 
   /**
@@ -1213,48 +977,19 @@ public class LASraf implements Closeable {
     buffer.clear();
     raFilePos = position;
   }
-  /*
-  public synchronized void writeBuffer() throws IOException{
 
-
-    //System.out.println(buffer);
-    //byte[] arr = buffer.array();
-    //fileChannel.write(buffer);
-    //buffer.wrap(allArray);
-    fileChannel.write(ByteBuffer.wrap(allArray));
-    allArray = new byte[0];
-
-  }
-   */
   public synchronized void writeBuffer2() throws IOException{
-
-    //System.out.println("AHOY!");
-    //System.out.println(buffer);
-    //byte[] arr = buffer.array();
-
-    //System.out.println("HKFJAFKLSDF");
 
     byte[] temp = new byte[allArray2Index];
 
     for(int i = 0; i < allArray2Index; i++)
       temp[i] = allArray2[i];
 
-    //fileChannel.write(buffer);
-    //buffer.wrap(allArray);
-      //System.out.println(temp.length);
-
     raFile.seek(raFile.length());
     raFile.write(temp);
 
-    //fileChannel.write(writeBuffer);
-    //writeBuffer = ByteBuffer.allocate(bufferSize);
-    //writeBuffer.order(ByteOrder.LITTLE_ENDIAN);
-
-    //fileChannel.write(ByteBuffer.wrap(temp));
-
     allArray2 = new byte[bufferSize];
 
-    //allArray = new byte[0];
     allArray2Index = 0;
 
   }
@@ -1265,7 +1000,6 @@ public class LASraf implements Closeable {
 
     for(int i = allArray2Index; i < allArray2.length; i++) {
       allArray2[i] = leftOvers[count];
-      //writeBuffer.put(leftOvers[count]);
       count++;
     }
 
@@ -1275,7 +1009,6 @@ public class LASraf implements Closeable {
 
     for(int i = count; i < (leftOvers.length); i++) {
       allArray2[allArray2Index] = leftOvers[i];
-      //writeBuffer.put(leftOvers[i]);
       allArray2Index++;
     }
 
@@ -1295,8 +1028,6 @@ public class LASraf implements Closeable {
   }
 
   public synchronized void writePointCount(long in)throws IOException{
-
-    //buffer.position(107);
 
     byte[] array = intToByteArray((int)in);
 
@@ -1560,7 +1291,7 @@ public class LASraf implements Closeable {
 
   /**
    * Makes an attempt to advance the virtual file position by <code>n</code>
-   * bytes in order to match the functionality of the DataInput interface.
+   * bytes.
    *
    * @param n The number of bytes byte which to advance the file position
    * @return the number of bytes skipped.
@@ -1696,7 +1427,6 @@ public class LASraf implements Closeable {
       this.writeUnsignedInt(0);
       this.writeLong(0);
 
-      //numberOfPointsByReturn = new long[15];
       for (int i = 0; i < 15; i++) {
         this.writeLong(0);
       }
@@ -1735,20 +1465,6 @@ public class LASraf implements Closeable {
 
     this.writeMinMax(min_x, max_x, min_y, max_y, max_z, min_z);
     this.writePByReturn(pointsByReturn);
-
-
-
-/*
-    System.out.println("");
-    System.out.println("");
-    System.out.println("");
-    System.out.println("");
-    System.out.println("");
-    System.out.println("");
-    System.out.println(minX + " " + minY + " " + this.writtenPoints);
-    System.out.println(minX + " " + minY + " " + this.writtenPoints);
-    System.out.println(minX + " " + minY + " " + this.writtenPoints);
-*/
 
   }
 
@@ -1808,11 +1524,8 @@ public class LASraf implements Closeable {
     this.writePointCount(n);
 
     LASReader file = new LASReader(this.file);
-    //System.out.println(file.getNumberOfPointRecords());
 
     n = file.getNumberOfPointRecords();
-
-    //
 
     LasPoint tempPoint = new LasPoint();
     long[] pointsByReturn = new long[5];
@@ -1840,15 +1553,12 @@ public class LASraf implements Closeable {
       } catch (Exception e) {
         e.printStackTrace();
       }
-      //pointCloud.braf.buffer.position(0);
 
       for (int j = 0; j < maxi; j++) {
 
         file.readFromBuffer(tempPoint);
 
         pointCount++;
-
-        //System.out.println(tempPoint.x + " " + tempPoint.y + " " + tempPoint.z);
 
         int returnNumberi = tempPoint.returnNumber;
 
@@ -1877,46 +1587,7 @@ public class LASraf implements Closeable {
           maxY = y;
       }
     }
-/*
-    {
-      for (long i = 0; i < n; i++) {
 
-        file.readRecord(i, tempPoint);
-        pointCount++;
-
-        //System.out.println(tempPoint.x + " " + tempPoint.y + " " + tempPoint.z);
-
-        int returnNumberi = tempPoint.returnNumber;
-
-        if (returnNumberi < 1)
-          returnNumberi = 1;
-
-        pointsByReturn[returnNumberi - 1]++;
-
-        double x = tempPoint.x;
-        double y = tempPoint.y;
-        double z = tempPoint.z;
-
-        if (z < minZ)
-          minZ = z;
-        if (x < minX)
-          minX = x;
-        if (y < minY)
-          minY = y;
-
-        if (z > maxZ)
-          maxZ = z;
-        if (x > maxX)
-          maxX = x;
-        if (y > maxY)
-          maxY = y;
-        //System.out.println((int)((x - from.xOffset) / from.xScaleFactor));
-
-      }
-
-    }
-
- */
 
 
     this.writeMinMax(minX, maxX, minY, maxY, maxZ, minZ);

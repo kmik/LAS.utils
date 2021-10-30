@@ -49,12 +49,10 @@ public class LASReader {
   public HashMap<Integer, ArrayList<int[]>> indexMap2 = new HashMap<>();
   public TLongArrayList queriedIndexes = new TLongArrayList();
   public ArrayList<int[]> queriedIndexes2 = new ArrayList<>();
-  public ArrayList<Integer> queriedIndexes3 = new ArrayList<>();
 
   public HashSet<Integer> queried_set_of_point_indexes = new HashSet<>();
 
   int spacing;
-  int[] extentti;
 
   /**
    * these are variables related to reading form indexes
@@ -154,7 +152,7 @@ public class LASReader {
 
       System.out.println("POINT DATA RECORD LENGTH IS NOT STANDARD. SOMEONE ADDED SOME BYTES TO THE POINTS!!");
       System.out.println(this.pointDataRecordFormat + " " + this.pointDataRecordLength);
-      //System.exit(1);
+
 
       this.extraBytesInPoint = this.pointDataRecordLength - sanityCheckPointRecordLength.get(this.pointDataRecordFormat);
       readExtra = new byte[this.extraBytesInPoint];
@@ -243,8 +241,6 @@ public class LASReader {
       int parts = (int) Math.ceil((double) n1 / 20000.0);
       int jako = (int) Math.ceil((double) n1 / (double) parts);
 
-      int ero;
-
       for (int c = 1; c <= parts; c++) {
 
         if (c != parts) {
@@ -257,8 +253,6 @@ public class LASReader {
 
         pienin = pienin + this.queriedIndexes2.get(u)[0];
         suurin = suurin + this.queriedIndexes2.get(u)[0];
-
-        ero = suurin - pienin + 1;
 
         indexMinMax.add(new int[]{pienin, suurin});
       }
@@ -273,19 +267,6 @@ public class LASReader {
     }
 
     this.index_p = indexMinMax.get(index_u)[0];
-
-  }
-
-  public void readRecNoRa(){
-
-
-    try {
-      this.readRecord_noRAF(this.index_minIndex, this.index_points_in_buffer);
-    } catch (Exception e) {
-      e.printStackTrace();
-      System.exit(1);
-
-    }
 
   }
 
@@ -340,8 +321,8 @@ public class LASReader {
 
   /**
    *	Indexes a .las file to enable faster spatial queries.
-   *	Creates a .lasx file with the same filename as the point
-   *	cloud.
+   *	Creates a .lasx file with the same filename as the input
+   *    .las file.
 
    *	@param spacing 			The square size of the index grid.
    *							Optimal size depends on the point
@@ -353,9 +334,6 @@ public class LASReader {
     int minYindex = 0;
 
     double minYi = Double.POSITIVE_INFINITY;
-
-    double xSpacing = (this.maxX - this.minX) / (double)spacing;
-    double ySpacing = (this.maxY - this.minY) / (double)spacing;
 
     String parent = this.getFile().getParent();
 
@@ -434,7 +412,6 @@ public class LASReader {
     temppiLista.add(0L);
     temppiLista.add((long)spacing);
     temppiLista.add((long)minYindex);
-    //save2.put(homma.pair(asdi[0], asdi[1]), temppiLista);
 
     save2.put(-1, new ArrayList<>());
     save2.get(-1).add(new int[]{spacing});
@@ -516,9 +493,6 @@ public class LASReader {
         }
 
       }
-
-    //this.queriedIndexes2 = queriedIndexes;
-
 
     return true;
   }

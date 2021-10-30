@@ -110,7 +110,7 @@ public class LasPoint implements Cloneable {
         this.R = another.R;
         this.G = another.G;
         this.B = another.B;
-
+        this.N = another.N;
     }
 
     public Object clone() throws CloneNotSupportedException{
