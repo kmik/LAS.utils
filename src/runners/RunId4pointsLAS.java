@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.ArrayList;
 
 
+import err.argumentException;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
 
@@ -1000,16 +1001,14 @@ public class RunId4pointsLAS{
 
         }
         else{
-            System.out.println("Otype not recognized! : " + aR.otype);
-            System.exit(0);
+            throw new argumentException("-otype " + aR.otype + " not recognized");
         }
-
-
 
         aR.p_update.lasclip_empty = aR.buffer;
         aR.p_update.lasclip_clippedPoints = 0;
 
 
+        /* Clip by polygons */
         if(plotsORnot == 0){
 
             long tStart = System.currentTimeMillis();
@@ -1111,8 +1110,6 @@ public class RunId4pointsLAS{
                     }
                 });
 
-
-               // merged = new File((output + pathSep + outName));
                 merged = new File(("ASD" + pathSep + outName));
 
 
@@ -1129,14 +1126,10 @@ public class RunId4pointsLAS{
             }
 
             else{
-
                 MKid4pointsLAS.hilaJako(tiedostot_sorted, indeksi_pathi_all, origo, Double.parseDouble(cellSize), (aR.output + pathSep + outName), Integer.parseInt(karttaLehtiKoko), 0,0, aR.buffer, aR.oparse, aR.output);
             }
-
-
         }
 
-        System.exit(1);
     }
 
 

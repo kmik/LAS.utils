@@ -1693,6 +1693,9 @@ public class argumentReader {
 
                 this.otype = cmd.getOptionValue("otype");
 
+                if(!this.otype.equals("las") && !this.otype.equals("txt")){
+                    throw new argumentException("-otype " + this.otype + " not recognized!");
+                }
             }
 
             if (cmd.hasOption("o_dz")) {
