@@ -264,7 +264,7 @@ public class printHelp {
 
     public static void stemDetector(){
         System.out.println("----------------------------------------------\n" +
-                " lasLayer -- LASutils build $line\n" +
+                " lasStem -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
                 " University of Eastern Finland\n" +
