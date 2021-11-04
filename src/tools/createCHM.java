@@ -4470,7 +4470,7 @@ public class createCHM{
 
         float[][] original = null;
 
-        String outputFileName;
+        public String outputFileName;
 
         argumentReader aR;
 

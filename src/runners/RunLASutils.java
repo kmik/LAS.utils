@@ -1322,6 +1322,29 @@ public class RunLASutils {
             bw2.close();
         }
 
+        if (aR.tool == 30){
+
+
+            try {
+
+                for (int i = 0; i < aR.inputFiles.size(); i++) {
+
+
+                    LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+                    createCHM.chm testi = new createCHM.chm(temp, "y", 1, aR, 1);
+                    las2solar_photogrammetry l2s = new las2solar_photogrammetry(testi.outputFileName, aR);
+
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+
+        }
+
     }
 
     public static void readTrunkFile(File trunkFile, HashMap<Integer, double[]> fil) throws Exception {
