@@ -7,6 +7,8 @@ import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.Driver;
 import org.gdal.gdal.gdal;
+import org.gdal.gdalconst.gdalconst;
+import org.gdal.ogr.ogr;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
 import utils.argumentReader;
@@ -16,11 +18,17 @@ import java.util.*;
 
 public class las2solar_photogrammetry {
 
+    private static int solarradiation = 1366;
+
     Band chm_values;
     float[][] chm_values_f;
 
 
     public las2solar_photogrammetry(String chm_name, argumentReader aR){
+
+        ogr.RegisterAll(); //Registering all the formats..
+
+        gdal.AllRegister();
 
 
         Dataset dataset = null;
@@ -29,7 +37,14 @@ public class las2solar_photogrammetry {
         driver.Register();
         Band band2=null;
 
+
+
         Dataset chm = gdal.Open(chm_name);
+
+        dataset = driver.Create("testi.tif", chm.GetRasterXSize(), chm.GetRasterYSize(), 1, gdalconst.GDT_Float32);
+        dataset.SetGeoTransform(chm.GetGeoTransform());
+        dataset.SetProjection(chm.GetProjection());
+        band2 = dataset.GetRasterBand(1);    // writable band
 
 
         SpatialReference src = new SpatialReference();
@@ -76,6 +91,8 @@ public class las2solar_photogrammetry {
             }
         }
 
+        double[] blockArray = new double[]{0.0,0.0};
+
         for(int y = 0; y < y_size; y++){
 
             //chm_values.ReadRaster(0,y, x_size, 1, raster_read);
@@ -95,38 +112,69 @@ public class las2solar_photogrammetry {
                 double stupid_irradiance_sum = 0.0;
                 int sunriseSunsetcounter = 0;
 
+                double dailyAverageInsolation = 0;
+
+
                 for(int month : calendar_month){
-                    for(int day = 1; day <= n_date_in_month[month]; day++){
+                    for(int day = 1; day <= n_date_in_month[month]; day += 2){
 
                         int sunrise = sunriseAndSunset.get(sunriseSunsetcounter)[0];
                         int sunset = sunriseAndSunset.get(sunriseSunsetcounter++)[1];
 
-                        // TODO get sunrise and sunset somehow
-                        for(int hour = sunrise; hour <= sunset; hour += 2){
+                        for(int hour = sunrise; hour <= sunset; hour += 1){
 
                             time.set(2020, month, day, hour, 00, 00);
+                            double hourAngle = HourToHourAngle((double)hour);
+                            double declination = SolarDeclinaton(day);
 
-                                AzimuthZenithAngle result = PSA.calculateSolarPosition(time, point_transformed[0], point_transformed[1]);
-                                /*
-                                If the sun ray is not blocked by any CHM pixel
-                                 */
-                                if(!isBlocked(x, y, value, aR.step,(result.getZenithAngle()), Math.tan(Math.toRadians(90.0-result.getZenithAngle())), (float) (result.getAzimuth()))){
-                                    stupid_irradiance_sum += result.getZenithAngle();
+                            AzimuthZenithAngle result = PSA.calculateSolarPosition(time, point_transformed[0], point_transformed[1]);
+
+                            /*
+                            Only account for when sun is visible, i.e. time between sunrise and sunset
+                             */
+                            if(result.getZenithAngle() > 90.0)
+                                continue;
+
+                            double insolation = solarradiation * Math.cos(Math.toRadians(result.getZenithAngle()));
+
+                            //System.out.println("insolation: " + insolation + " w/m2 " + month + " " + result.getZenithAngle());
+
+                            blockArray = isBlocked(x, y, value, aR.step,(result.getZenithAngle()), Math.tan(Math.toRadians(90.0-result.getZenithAngle())), (float) (result.getAzimuth()));
+
+                            if(blockArray[0] > 0){
+
+                                stupid_irradiance_sum += 1.0 / (blockArray[0] / blockArray[1]);
+
+                                /* If the average obstructed depth is less than one meter */
+                                if((blockArray[0] / blockArray[1]) < 1.0){
+                                    dailyAverageInsolation = (dailyAverageInsolation + insolation) / 2.0;
+
                                 }
+                            }else{
+                                dailyAverageInsolation = (dailyAverageInsolation + insolation) / 2.0;
+                            }
+
+                            /* This means there is nothing blocking the sunray */
+                            if(blockArray[0] == 0){
+                            }
                         }
                     }
                 }
 
-                raster_read[0] = (float)stupid_irradiance_sum / 1000.0f;
+                raster_read[0] = (float)dailyAverageInsolation;
+                band2.WriteRaster(x, y, 1, 1, raster_read);
+                //System.out.println("Daily average insolation: " + dailyAverageInsolation + " w/m2");
 
-                chm_values.WriteRaster(x, y, 1, 1, raster_read);
             }
 
-
             System.out.println("one row of size: " + aR.step + "m took: " + (System.currentTimeMillis()-start) + " ms " + y + "/" + y_size);
+
         }
 
+        dataset.FlushCache();
+        //dataset.delete();
         chm.FlushCache();
+
     }
 
     /**
@@ -143,14 +191,19 @@ public class las2solar_photogrammetry {
      * @param direction_angle
      * @return
      */
-    public boolean isBlocked(int x, int y, float z, double resolution, double zenith_angle, double slope, float direction_angle){
 
+    public double[] isBlocked(int x, int y, float z, double resolution, double zenith_angle, double slope, float direction_angle){
+
+        double[] output = new double[]{0.0d, 0.0d};
         double increment_in_meters = resolution * 0.5;
         double current_distance_from_point = 0;
 
-
         double center_of_pixel_x = (double)x + 0.5 * resolution;
         double center_of_pixel_y = (double)y - 0.5 * resolution;
+
+        double x_prev = center_of_pixel_x;
+        double y_prev = center_of_pixel_y;
+
 
         double x_ = center_of_pixel_x,y_ = center_of_pixel_y;
 
@@ -160,7 +213,10 @@ public class las2solar_photogrammetry {
 
         float[] readFromRaster = new float[1];
 
-        while(sun_vector_z <= start_z + 10){
+        double sum_obstructed_depth = 0.0;
+        double sum_obstructed_length = 0.0;
+
+        while(sun_vector_z <= start_z + 30){
 
             current_distance_from_point += increment_in_meters;
 
@@ -168,36 +224,32 @@ public class las2solar_photogrammetry {
             x_ = x_ + current_distance_from_point * cos(direction_angle);
             y_ = y_ + current_distance_from_point * sin(direction_angle);
 
-            if(x_ >= chm_values.getXSize() || x_ < 0 || y_ < 0 || y_ >= chm_values.getYSize())
-                return true;
-
-            //this.chm_values.ReadRaster((int) x_, (int) y_, 1, 1, readFromRaster);
-
-            //double new_z = readFromRaster[0];
-            double new_z = chm_values_f[(int)x_][(int)y_];
+            if(x_ == x_prev && y_ == y_prev){
+                continue;
+            }
 
             double z_sun_ray = start_z + current_distance_from_point * slope;
 
-            if(new_z > z_sun_ray)
-                return false;
+            sun_vector_z = z_sun_ray;
+
+            if(x_ >= chm_values.getXSize() || x_ < 0 || y_ < 0 || y_ >= chm_values.getYSize())
+                break;
+
+            double new_z = chm_values_f[(int)x_][(int)y_];
+
+            if(new_z > z_sun_ray){
+                output[0] += (new_z - z_sun_ray);
+                output[1] += increment_in_meters;
+            }
+
+            x_prev = x_;
+            y_prev = y_;
 
         }
 
-
-        return false;
-    }
-
-    public double getAverageSunIrradiance(int x, int y, Band chm){
-
-        double output = 0.0;
-
-
         return output;
 
-
     }
-
-
 
     public float[][] chm_to_array(Band chm) {
 
@@ -244,6 +296,30 @@ public class las2solar_photogrammetry {
     public static float cos(float a) {
         return sinLookup((int)((a+90f) * precision + 0.5f));
     }
+
+
+    //HOUR TO HOUR ANGLE
+    // given an hour (midnight = 0, 12 = midday), calculate the hour angle at 15 degrees per hour.
+    // returns radians rotated at this hour
+
+    public double HourToHourAngle(double hourFromMidnight){
+
+        double hourAngle = Math.toRadians(15*(hourFromMidnight - 12));
+        return hourAngle;
+
+    }
+
+    //DETERMINE SOLAR DECLILANATION
+    // given a day of the year, determine the solar declination.
+
+    //By Jack Williams, n5736153
+    public double SolarDeclinaton(int dayOfYear){
+
+        double declination = Math.toRadians(23.45) * (Math.sin((Math.toRadians(360)/365)*(dayOfYear)));
+        return declination;
+
+    }
+
 
 }
 
