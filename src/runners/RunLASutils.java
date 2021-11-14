@@ -352,6 +352,8 @@ public class RunLASutils {
                     lista11.add(temp);
                     temp.start();
 
+
+
                 }
 
                 for (int i = 0; i < lista11.size(); i++) {
@@ -1702,8 +1704,6 @@ public class RunLASutils {
                             System.exit(1);
                         }
                     }
-
-
                 }
 
                 if (aR.tool == 5) {
@@ -1722,7 +1722,6 @@ public class RunLASutils {
                         GroundDetector det = new GroundDetector(temp, false, aR.output, aR.odir, aR.getInclusionRule(), aR.angle, aR.numarg1, aR.axgrid, aR, nCore);
 
                         det.oparse(aR.oparse);
-                        System.out.println(aR.groundPoints);
 
                         if (aR.mem_efficient) {
                             det.normalizeZ_mem_eff(aR.output, aR.getInclusionRule(), aR.otype);
@@ -1742,10 +1741,7 @@ public class RunLASutils {
                             det.normalizeZ(aR.ground_class, aR.output, aR.getInclusionRule(), aR.otype, aR.groundPoints);
 
                         }
-
-
                     }
-
                 }
 
                 if (aR.tool == 6) {
@@ -1802,7 +1798,6 @@ public class RunLASutils {
                         Boundary bound = new Boundary(temp, aR.odir, aR.output, false, aR, nCore);
 
                     }
-
                 }
 
                 if (aR.tool == 10) {
@@ -1822,7 +1817,6 @@ public class RunLASutils {
                         Boundary bound = new Boundary(temp, aR.odir, aR.output, false, aR, nCore);
 
                     }
-
                 }
 
                 if (aR.tool == 11) {

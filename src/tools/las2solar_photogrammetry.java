@@ -1,6 +1,7 @@
 package tools;
 
 import LASio.LASReader;
+import err.toolException;
 import net.e175.klaus.solarpositioning.AzimuthZenithAngle;
 import net.e175.klaus.solarpositioning.PSA;
 import org.ejml.data.DMatrixRMaj;
@@ -19,6 +20,8 @@ import utils.rasterManipulator;
 
 
 import java.util.*;
+
+import static net.e175.klaus.solarpositioning.PSA.calculateSolarPosition;
 
 public class las2solar_photogrammetry {
 
@@ -42,14 +45,20 @@ public class las2solar_photogrammetry {
         driver.Register();
         Band band2=null;
 
-
-
         Dataset chm = gdal.Open(chm_name);
 
         dataset = driver.Create("testi.tif", chm.GetRasterXSize(), chm.GetRasterYSize(), 1, gdalconst.GDT_Float32);
         dataset.SetGeoTransform(chm.GetGeoTransform());
         dataset.SetProjection(chm.GetProjection());
         band2 = dataset.GetRasterBand(1);    // writable band
+
+
+        int steppi = 100;
+
+        int x_res = (int)Math.ceil((double)chm.getRasterXSize() / (double)steppi);
+        int y_res = (int)Math.ceil((double)chm.getRasterYSize() / (double)steppi);
+
+        float[][][][][][] precomputed = new float[x_res][y_res][12][32][24][2];
 
 
         SpatialReference src = new SpatialReference();
@@ -88,7 +97,6 @@ public class las2solar_photogrammetry {
         /*
         Prepare sunrise and sunsets
          */
-
         ArrayList<int[]> sunriseAndSunset = new ArrayList<>();
         for(int month : calendar_month){
             for(int day = 1; day <= n_date_in_month[month]; day++) {
@@ -107,7 +115,47 @@ public class las2solar_photogrammetry {
         Thread[] threads = new Thread[aR.cores];
         int n_funk_per_thread = (int)Math.ceil((double)y_size / (double)aR.cores);
 
+
+
+
+        for(int x = 0; x < x_res; x++){
+            for(int y = 0; y < y_res; y++){
+
+                int precompute_x = (int)((double)steppi * (double)x + (double)steppi / 2.0); // x_size / 2;
+                int precompute_y = (int)((double)steppi * (double)y + (double)steppi / 2.0); // x_size / 2;
+
+                point[0] = gt[0] + precompute_x * gt[1] + precompute_y * gt[2];
+                point[1] = gt[3] + precompute_x * gt[4] + precompute_y * gt[5];
+                point[2] = value;
+                point_transformed = ct.TransformPoint(point[0], point[1]);
+
+
+                for(int month : calendar_month) {
+                    for (int day = 0; day <= n_date_in_month[month]; day += 1) {
+
+                        int sunriseSunsetcounter = 0;
+
+                        int sunrise = sunriseAndSunset.get(sunriseSunsetcounter)[0];
+                        int sunset = sunriseAndSunset.get(sunriseSunsetcounter++)[1];
+
+                        for (int hour = sunrise; hour <= sunset; hour += 1) {
+
+                            time.set(2020, month, day, hour, 00, 00);
+
+                            AzimuthZenithAngle result = calculateSolarPosition(time, point_transformed[0], point_transformed[1]);
+
+                            precomputed[x][y][month][day][hour][0] = (float)result.getZenithAngle();
+                            precomputed[x][y][month][day][hour][1] = (float)result.getAzimuth();
+
+                        }
+                    }
+                }
+
+            }
+        }
+
         long start = System.currentTimeMillis();
+
 
 
         for (int i = 0; i < aR.cores; i++) {
@@ -115,7 +163,7 @@ public class las2solar_photogrammetry {
             int mini = i * n_funk_per_thread;
             int maxi = Math.min(y_size, mini + n_funk_per_thread);
 
-            threads[i] = (new solarParallel(mini, maxi, x_size,y_size, rM, sunriseAndSunset, gt, ct, aR, chm_values_f, chm_output_f));
+            threads[i] = (new solarParallel(mini, maxi, x_size,y_size, rM, sunriseAndSunset, gt, ct, aR, chm_values_f, chm_output_f, precomputed, steppi));
             threads[i].start();
 
         }
@@ -131,12 +179,9 @@ public class las2solar_photogrammetry {
 
         System.out.println("processing took: " + (System.currentTimeMillis()-start) + " ms with " + aR.cores + " threads");
 
-        //array_to_chm(chm_output_f, band2);
-
         if(false)
         for(int y = 0; y < y_size; y++){
 
-            //chm_values.ReadRaster(0,y, x_size, 1, raster_read);
             start = System.currentTimeMillis();
 
             for(int x = 0; x < x_size; x++) {
@@ -153,12 +198,12 @@ public class las2solar_photogrammetry {
 
                 point_transformed = ct.TransformPoint(point[0], point[1]);
 
-                double stupid_irradiance_sum = 0.0;
                 int sunriseSunsetcounter = 0;
 
                 double dailyAverageInsolation = 0;
 
                 for(int month : calendar_month){
+
                     for(int day = 1; day <= n_date_in_month[month]; day += 2){
 
                         int sunrise = sunriseAndSunset.get(sunriseSunsetcounter)[0];
@@ -167,10 +212,8 @@ public class las2solar_photogrammetry {
                         for(int hour = sunrise; hour <= sunset; hour += 1){
 
                             time.set(2020, month, day, hour, 00, 00);
-                            double hourAngle = HourToHourAngle((double)hour);
-                            double declination = SolarDeclinaton(day);
 
-                            AzimuthZenithAngle result = PSA.calculateSolarPosition(time, point_transformed[0], point_transformed[1]);
+                            AzimuthZenithAngle result = calculateSolarPosition(time, point_transformed[0], point_transformed[1]);
 
                             /*
                             Only account for when sun is visible, i.e. time between sunrise and sunset
@@ -180,13 +223,13 @@ public class las2solar_photogrammetry {
 
                             double insolation = (double)solarradiation * Math.cos(Math.toRadians(result.getZenithAngle()));
 
-                            //System.out.println("insolation: " + insolation + " w/m2 " + month + " " + result.getZenithAngle());
+                            if(insolation < 0.0){
+                                throw new toolException("Negative insolation is impossible!");
+                            }
 
                             blockArray = isBlocked(x, y, value, aR.step,(result.getZenithAngle()), Math.tan(Math.toRadians(90.0-result.getZenithAngle())), (float) (result.getAzimuth()));
 
                             if(blockArray[0] > 0){
-
-                                //stupid_irradiance_sum += 1.0 / (blockArray[0] / blockArray[1]);
 
                                 /* If the average obstructed depth is less than one meter */
                                 if((blockArray[0] / blockArray[1]) < 1.0){
@@ -207,7 +250,6 @@ public class las2solar_photogrammetry {
 
                 raster_read[0] = (float)dailyAverageInsolation;
                 band2.WriteRaster(x, y, 1, 1, raster_read);
-                //System.out.println("Daily average insolation: " + dailyAverageInsolation + " w/m2");
 
             }
 
@@ -399,10 +441,15 @@ class solarParallel extends Thread {
     CoordinateTransformation ct;
     argumentReader aR;
 
+    float[][][][][][] precomputed;
+    int precomputed_resolution;
 
     public solarParallel(int min, int max, int x_size, int y_size, rasterManipulator rM, ArrayList<int[]> sunriseAndSunset,
-                         double[] gt, CoordinateTransformation ct, argumentReader aR, float[][] chm, float[][] chm_output) {
+                         double[] gt, CoordinateTransformation ct, argumentReader aR, float[][] chm, float[][] chm_output,
+                         float[][][][][][] precomputed, int precomputed_resolution) {
 
+        this.precomputed_resolution = precomputed_resolution;
+        this.precomputed = precomputed;
         this.chm_output = chm_output;
         this.chm = chm;
 
@@ -430,14 +477,14 @@ class solarParallel extends Thread {
 
         int[] n_date_in_month = new int[]{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 , 31};
 
-        GregorianCalendar time = new GregorianCalendar(new SimpleTimeZone(-7 * 60 * 60 * 1000, "LST"));
-
         int solarradiation = 1366;
-
 
         for (int y = min; y < this.max; y++) {
 
             for (int x = 0; x < x_size; x++) {
+
+                int precomputed_x = (int)Math.floor((double)x / (double)precomputed_resolution);
+                int precomputed_y = (int)Math.floor((double)y / (double)precomputed_resolution);
 
                 value = chm[x][y];
 
@@ -457,32 +504,39 @@ class solarParallel extends Thread {
 
                 for(int month : calendar_month){
 
-                    for(int day = 1; day <= n_date_in_month[month]; day += 2){
+                    for(int day = 1; day <= n_date_in_month[month]; day += 1){
 
                         int sunrise = sunriseAndSunset.get(sunriseSunsetcounter)[0];
                         int sunset = sunriseAndSunset.get(sunriseSunsetcounter++)[1];
 
                         for(int hour = sunrise; hour <= sunset; hour += 1){
 
-                            time.set(2020, month, day, hour, 00, 00);
+                            //long start = System.nanoTime();
+                            //time.set(2020, month, day, hour, 00, 00);
 
-                            AzimuthZenithAngle result = PSA.calculateSolarPosition(time, point_transformed[0], point_transformed[1]);
+                            //AzimuthZenithAngle result = PSA.calculateSolarPosition(time, point_transformed[0], point_transformed[1]);
+                            float[] precomp = precomputed[precomputed_x][precomputed_y][month][day][hour];
+
+                            //precomp[0] = (float)result.getZenithAngle();
+                            //precomp[1] = (float)result.getAzimuth();
 
                             /*
                             Only account for when sun is visible, i.e. time between sunrise and sunset
                              */
-                            if(result.getZenithAngle() > 90.0)
+                            //if(result.getZenithAngle() > 90.0)
+                            if(precomp[0] > 90.0f)
                                 continue;
 
-                            double insolation = (double)solarradiation * Math.cos(Math.toRadians(result.getZenithAngle()));
+                            //double insolation = (double)solarradiation * Math.cos(Math.toRadians(result.getZenithAngle()));
+                            //double insolation = (double)solarradiation * Math.cos(Math.toRadians(precomp[0]));
+                            double insolation = (double)solarradiation * Math.cos(Math.toRadians(precomp[0]));
 
                             //System.out.println("insolation: " + insolation + " w/m2 " + month + " " + result.getZenithAngle());
 
-                            double[] blockArray = isBlocked(x, y, value, aR.step,(result.getZenithAngle()), Math.tan(Math.toRadians(90.0-result.getZenithAngle())), (float) (result.getAzimuth()));
+                            //double[] blockArray = isBlocked(x, y, value, aR.step,(result.getZenithAngle()), Math.tan(Math.toRadians(90.0-result.getZenithAngle())), (float) (result.getAzimuth()));
+                            double[] blockArray = isBlocked(x, y, value, aR.step,(precomp[0]), Math.tan(Math.toRadians(90.0-precomp[0])), (float) (precomp[1]));
 
                             if(blockArray[0] > 0){
-
-                                //stupid_irradiance_sum += 1.0 / (blockArray[0] / blockArray[1]);
 
                                 /* If the average obstructed depth is less than one meter */
                                 if((blockArray[0] / blockArray[1]) < 1.0){
@@ -490,6 +544,7 @@ class solarParallel extends Thread {
                                     dailyAverageInsolation = (dailyAverageInsolation + insolation) / 2.0;
 
                                 }
+
                             }else{
                                 dailyAverageInsolation = (dailyAverageInsolation + insolation) / 2.0;
                             }
@@ -500,14 +555,11 @@ class solarParallel extends Thread {
                         }
                     }
                 }
-
                 //chm_output[x][y] = (float)dailyAverageInsolation;
                 rM.setValue(x,y,(float)dailyAverageInsolation);
 
             }
-            //System.out.println(this.getName() + " completed row: " + y);
         }
-
     }
 
     public double[] isBlocked(int x, int y, float z, double resolution, double zenith_angle, double slope, float direction_angle){
@@ -533,13 +585,19 @@ class solarParallel extends Thread {
         //double sum_obstructed_depth = 0.0;
         //double sum_obstructed_length = 0.0;
 
+        float cosAngle = (float)cos(direction_angle);
+        float sinAngle = (float)sin(direction_angle);
+
         while(sun_vector_z <= start_z + 30){
 
             current_distance_from_point += increment_in_meters;
 
             /** These are fast cos and fast sin. Not super accurate, but will do for now */
-            x_ = x_ + current_distance_from_point * cos(direction_angle);
-            y_ = y_ + current_distance_from_point * sin(direction_angle);
+            //x_ = x_ + current_distance_from_point * cos(direction_angle);
+            //y_ = y_ + current_distance_from_point * sin(direction_angle);
+
+            x_ = x_ + current_distance_from_point * cosAngle;
+            y_ = y_ + current_distance_from_point * sinAngle;
 
             if(x_ == x_prev && y_ == y_prev){
                 continue;

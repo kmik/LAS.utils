@@ -1100,25 +1100,20 @@ class MKid4pointsLAS{
                                 for (int s = 0; s < maxi; s++) {
                                     //Sstem.out.println(j);
 
-                                    if(!doneIndexes.contains(p+s)) {
+                                    //if(!doneIndexes.contains(p+s)) {
 
                                         asd.readFromBuffer(tempPoint);
 
                                         if(!aR.inclusionRule.ask(tempPoint, p+s, true)){
                                             continue;
                                         }
-                                    //System.out.println((p+s) + " " + va);
-
-
-
-
 
                                         haku[0] = tempPoint.x;
                                         haku[1] = tempPoint.y;
 
                                         if (pointInPolygon(haku, tempPolygon)) {
 
-                                            doneIndexes.add( (p + s));
+                                            //doneIndexes.add( (p + s));
 
                                             if (otype.equals("las")) {
 
@@ -1218,9 +1213,9 @@ class MKid4pointsLAS{
                                             i++;
                                             //}
                                         }
-                                    }else{
-                                        asd.skipPointInBuffer();
-                                    }
+                                   // }else{
+                                     //   asd.skipPointInBuffer();
+                                    //}
                                 }
                             }
                         } catch (Exception e) {

@@ -59,10 +59,10 @@ public class lasGridStats {
         this.pointCloud = pointCloud;
 
         if(!pointCloud.isIndexed){
-
+            pointCloud.index((int)aR.res);
         }
 
-        pointCloud.index(15);
+
 
 
         this.aR = aR;
@@ -116,6 +116,9 @@ public class lasGridStats {
 
         ArrayList<ArrayList<Double>> gridPoints_z_i = new ArrayList<>();
         ArrayList<ArrayList<Integer>> gridPoints_i_i = new ArrayList<>();
+
+        ArrayList<ArrayList<int[]>> gridPoints_RGB_f = new ArrayList<>();
+
 /*
         PriorityQueue<Double> que_gridPoints_z_a = new PriorityQueue<>();
         PriorityQueue<Integer> que_gridPoints_i_a = new PriorityQueue<>();
@@ -139,6 +142,13 @@ public class lasGridStats {
         ArrayList<Double> sum_z_i = new ArrayList<>();
         ArrayList<Double> sum_i_i = new ArrayList<>();
 
+
+
+
+
+
+
+
         int raf_location_a = 0;
         int raf_location_f = 0;
         int raf_location_l = 0;
@@ -151,6 +161,7 @@ public class lasGridStats {
 
 
         int doubles_per_cell = 0;
+        int doubles_per_cell_rgb = 0;
 
         pointCloudMetrics pCM = new pointCloudMetrics(this.aR);
 
@@ -200,6 +211,8 @@ public class lasGridStats {
 
                 gridPoints_z_f.clear();
                 gridPoints_i_f.clear();
+
+                gridPoints_RGB_f.clear();
 
                 gridPoints_z_l.clear();
                 gridPoints_i_l.clear();
@@ -268,9 +281,11 @@ public class lasGridStats {
                                 if (tempPoint.z <= z_cutoff)
                                     continue;
 */
-                        if(false)
+                        //if(false)
                                 if (tempPoint.x >= (orig_x + resolution * x) && tempPoint.x < (orig_x + resolution * x + resolution) &&
                                         tempPoint.y <= (orig_y - resolution * y) && tempPoint.y > (orig_y - resolution * y - resolution)) {
+
+
 
                                     if(!foundStands.contains(tempPoint.pointSourceId)) {
 
@@ -283,6 +298,8 @@ public class lasGridStats {
                                         gridPoints_i_a.add(new ArrayList<>());
 
                                         gridPoints_z_f.add(new ArrayList<>());
+                                        gridPoints_RGB_f.add(new ArrayList<>());
+
                                         gridPoints_i_f.add(new ArrayList<>());
 
                                         gridPoints_z_l.add(new ArrayList<>());
@@ -356,6 +373,9 @@ public class lasGridStats {
 
                                          */
                                         gridPoints_z_f.get(order.get(tempPoint.pointSourceId)).add(tempPoint.z);
+
+                                        gridPoints_RGB_f.get(order.get(tempPoint.pointSourceId)).add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B});
+
                                         gridPoints_i_f.get(order.get(tempPoint.pointSourceId)).add(tempPoint.intensity);
 
                                         sum_z_f.set(order.get(tempPoint.pointSourceId), sum_z_f.get(order.get(tempPoint.pointSourceId)) + tempPoint.z);
@@ -464,7 +484,7 @@ public class lasGridStats {
                         bin_a.writeDouble(x_coord);
                         bin_a.writeDouble(y_coord);
 
-                        if(divided == 0 && areas.get(ii) <= (resolution*resolution/2.0) && !addedBecauseTooSmall){
+                        if(divided == 0 && areas.get(ii) <= (resolution * resolution * 0.66) && !addedBecauseTooSmall){
                             addedBecauseTooSmall = true;
                             do_overs.add( x * grid_y_size + y );
                         }
@@ -484,7 +504,7 @@ public class lasGridStats {
 
                     if(gridPoints_z_f.get(ii).size() > aR.min_points) {
 
-                        metrics = pCM.calc(gridPoints_z_f.get(ii), gridPoints_i_f.get(ii), sum_z_f.get(ii), sum_i_f.get(ii), "_f", colnames);
+                        metrics = pCM.calc_with_RGB(gridPoints_z_f.get(ii), gridPoints_i_f.get(ii), sum_z_f.get(ii), sum_i_f.get(ii), "_f", colnames, gridPoints_RGB_f.get(ii));
 
                         if(colnames_metrics_f.size() == 0)
                             colnames_metrics_f = (ArrayList<String>)colnames.clone();
@@ -503,8 +523,14 @@ public class lasGridStats {
 
                         gridLocationInRaf_f.get(x).get(y).add(raf_location_f);
                         raf_location_f++;
+
+                        if(doubles_per_cell_rgb == 0)
+                            doubles_per_cell_rgb = 7 + metrics.size();
+
                     }
                 }
+
+
 
                 for(int ii = 0; ii < gridPoints_z_l.size(); ii++) {
 
@@ -631,7 +657,9 @@ public class lasGridStats {
             for(int j = 0; j < siz; j++){
 
                 int pos = gridLocationInRaf_a.get(x).get(y).get(j);
+
                 System.out.println("pos: " + pos);
+
                 if(neighborhoods.containsKey(pos)) {
                     System.out.println("Pos: " + pos + " containedd");
                     continue;
@@ -897,11 +925,19 @@ public class lasGridStats {
         for(int i = 0; i < colnames_metrics_a.size(); i++){
 
             writer_a.write(colnames_metrics_a.get(i) + "\t");
-            writer_f.write(colnames_metrics_f.get(i) + "\t");
+
             writer_l.write(colnames_metrics_l.get(i) + "\t");
-            writer_i.write(colnames_metrics_i.get(i) + "\t");
+            writer_i.write(colnames_metrics_a.get(i) + "\t");
 
         }
+
+        /* First and only contain RGB, so we need to do it separately */
+        for(int i = 0; i < colnames_metrics_f.size(); i++) {
+            writer_f.write(colnames_metrics_f.get(i) + "\t");
+
+        }
+
+
         writer_a.write("\n");
         writer_f.write("\n");
         writer_l.write("\n");
@@ -933,7 +969,7 @@ public class lasGridStats {
                                     Arrays.toString(neighborhoods.get(gridLocationInRaf_a.get(x).get(y).get(i)).toArray()));
                             all2.addAll(neighborhoods.get(gridLocationInRaf_a.get(x).get(y).get(i)));
 
-                            double[] newMetrics = redoMetrics(neighborhoods.get(gridLocationInRaf_a.get(x).get(y).get(i)), doubles_per_cell);
+                            double[] newMetrics = redoMetrics(neighborhoods.get(gridLocationInRaf_a.get(x).get(y).get(i)), doubles_per_cell, doubles_per_cell_rgb);
 
                         } else {
 
@@ -961,15 +997,15 @@ public class lasGridStats {
 
 
                     if(siz_f > 0) {
-                        bin_f.readLine(doubles_per_cell * 8, gridLocationInRaf_f.get(x).get(y).get(0) * (doubles_per_cell * 8));
-                        for (int i_ = 0; i_ < doubles_per_cell; i_++) {
+                        bin_f.readLine(doubles_per_cell_rgb * 8, gridLocationInRaf_f.get(x).get(y).get(0) * (doubles_per_cell_rgb * 8));
+                        for (int i_ = 0; i_ < doubles_per_cell_rgb; i_++) {
                             value = bin_f.buffer.getDouble();
                             //System.out.print(value + " ");
                             writer_f.write(value + "\t");
                         }
                         writer_f.write("\n");
                     }else{
-                        for (int i_ = 0; i_ < doubles_per_cell; i_++) {
+                        for (int i_ = 0; i_ < doubles_per_cell_rgb; i_++) {
 
                             writer_f.write(emptyArrayList.get(i_) + "\t");
                         }
@@ -1028,7 +1064,7 @@ public class lasGridStats {
         bin_i.close();
     }
 
-    public double[] redoMetrics(HashSet<Integer> pos, int doubles_per_cell) throws Exception{
+    public double[] redoMetrics(HashSet<Integer> pos, int doubles_per_cell, int doubles_per_cell_rgb) throws Exception{
 
         ArrayList<String> colnames = new ArrayList<>();
         pointCloudMetrics pCM = new pointCloudMetrics(this.aR);
@@ -1061,6 +1097,8 @@ public class lasGridStats {
 
         ArrayList<Double> gridPoints_z_i = new ArrayList<>();
         ArrayList<Integer> gridPoints_i_i = new ArrayList<>();
+
+        ArrayList<int[]> gridPoints_rgb = new ArrayList<>();
 
         double sum_z_a = 0.0;
         double sum_i_a = 0.0;
@@ -1192,6 +1230,8 @@ public class lasGridStats {
                                     gridPoints_z_f.add(tempPoint.z);
                                     gridPoints_i_f.add(tempPoint.intensity);
 
+                                    gridPoints_rgb.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B});
+
                                     sum_z_f += tempPoint.z;
                                     sum_i_f += tempPoint.intensity;
                                 }
@@ -1219,10 +1259,10 @@ public class lasGridStats {
             }
         }
 
-        ArrayList<Double> emptyArrayList = new ArrayList<>();
+        ArrayList<String> colnames_f = new ArrayList<>();
 
         ArrayList<Double> metrics_a = pCM.calc(gridPoints_z_a, gridPoints_i_a, sum_z_a, sum_i_a, "_a", colnames);
-        ArrayList<Double> metrics_f = pCM.calc(gridPoints_z_f, gridPoints_i_f, sum_z_f, sum_i_f, "_f", colnames);
+        ArrayList<Double> metrics_f = pCM.calc_with_RGB(gridPoints_z_f, gridPoints_i_f, sum_z_f, sum_i_f, "_f", colnames_f, gridPoints_rgb);
         ArrayList<Double> metrics_l = pCM.calc(gridPoints_z_l, gridPoints_i_l, sum_z_l, sum_i_l, "_l", colnames);
         ArrayList<Double> metrics_i = pCM.calc(gridPoints_z_i, gridPoints_i_i, sum_z_i, sum_i_i, "_i", colnames);
 
@@ -1241,11 +1281,6 @@ public class lasGridStats {
             else
                 writer_a.write(Double.NaN + "\t");
 
-            if(gridPoints_z_f.size() > aR.min_points)
-                writer_f.write(metrics_f.get(i) + "\t");
-            else
-                writer_f.write(Double.NaN + "\t");
-
             if(gridPoints_z_l.size() > aR.min_points)
                 writer_l.write(metrics_l.get(i) + "\t");
             else
@@ -1255,6 +1290,16 @@ public class lasGridStats {
                 writer_i.write(metrics_i.get(i) + "\t");
             else
                 writer_i.write(Double.NaN + "\t");
+        }
+
+        for(int i = 0; i < colnames_f.size(); i++){
+
+
+            if(gridPoints_z_f.size() > aR.min_points)
+                writer_f.write(metrics_f.get(i) + "\t");
+            else
+                writer_f.write(Double.NaN + "\t");
+
         }
 
         writer_a.write("\n");

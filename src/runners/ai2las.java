@@ -1109,7 +1109,7 @@ class ai2las{
 
 				double[] temp;
 
-				int n_threads = 4;
+				int n_threads = 1;
 
 				pointDistributor pdis = new pointDistributor();
 

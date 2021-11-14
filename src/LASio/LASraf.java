@@ -1508,7 +1508,7 @@ public class LASraf implements Closeable {
     this.write_n_points_1_4(this.writtenPoints);
     this.writePByReturn_1_4(pointsByReturn_1_4);
 
-    System.out.println(Arrays.toString(pointsByReturn_1_4));
+    //System.out.println(Arrays.toString(pointsByReturn_1_4));
 
 
   }

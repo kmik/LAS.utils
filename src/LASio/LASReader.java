@@ -4,6 +4,7 @@ import err.lasFormatException;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.set.hash.TIntHashSet;
+import gnu.trove.set.hash.TLongHashSet;
 import org.tinfour.utils.LinearUnits;
 import tools.Cantor;
 import utils.fileOperations;
@@ -62,7 +63,8 @@ public class LASReader {
   int index_minIndex = 0;
   public boolean index_read_terminated = false;
   int index_points_in_buffer = 0;
-  TIntHashSet doneIndexes = new TIntHashSet();
+  //TIntHashSet doneIndexes = new TIntHashSet();
+  TLongHashSet doneIndexes = new TLongHashSet();
 
   ArrayList<int[]> indexMinMax = new ArrayList<>();
 
