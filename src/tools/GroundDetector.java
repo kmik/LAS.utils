@@ -1999,6 +1999,13 @@ public class GroundDetector{
         indexes.clear();
         //indexes.stream().mapToInt(i -> i).toArray();
 
+        statistics = null;
+        statisticsBig = null;
+        statisticsTemp = null;
+
+        System.gc();
+        System.gc();
+        System.gc();
         System.gc();
 
         this.axelssonGridSize = origAxGrid;
@@ -2963,6 +2970,9 @@ public class GroundDetector{
         }
 
         else{
+
+
+            //System.out.println("HERE!!");
 
             groundPointFile = new File(groundPoints);
 

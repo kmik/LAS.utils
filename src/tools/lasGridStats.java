@@ -631,6 +631,7 @@ public class lasGridStats {
 
         double optimalSize = resolution * resolution;
 
+        //if(false)
         for(int i : do_overs){
 
             System.out.println("-----------------------------");

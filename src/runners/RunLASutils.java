@@ -1347,6 +1347,32 @@ public class RunLASutils {
 
         }
 
+        if (aR.tool == 31){
+
+            double averageDensity_pulse = 0.0;
+            double averageDensity_points = 0.0;
+
+            try {
+
+                for (int i = 0; i < aR.inputFiles.size(); i++) {
+
+                    LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+                    lasStat stat = new lasStat(temp, aR);
+                    averageDensity_pulse += stat.getPulsePerUnit();
+                    averageDensity_points += stat.getPointsPerUnit();
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            System.out.println("Average pulse density across all .las files: " + (averageDensity_pulse / (double)aR.inputFiles.size()));
+            System.out.println("Average point density across all .las files: " + (averageDensity_points / (double)aR.inputFiles.size()));
+
+        }
+
+
     }
 
     public static void readTrunkFile(File trunkFile, HashMap<Integer, double[]> fil) throws Exception {

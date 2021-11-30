@@ -1,8 +1,12 @@
 package utils;
 
 import err.toolException;
+import org.apache.commons.lang3.SystemUtils;
 
 public class printHelp {
+
+    boolean isLinux = true;
+
 
     public printHelp(){
 
@@ -10,7 +14,12 @@ public class printHelp {
 
     public printHelp(int tool_id){
 
+        if(!SystemUtils.IS_OS_LINUX){
+            isLinux = false;
+        }
+
         this.print(tool_id);
+
 
     }
 
@@ -129,18 +138,22 @@ public class printHelp {
         }
     }
 
-    public static void ai2las(){
+    public void ai2las(){
+
+        String extension = isLinux ? ".sh" : ".bat";
+
         System.out.println("----------------------------------------------\n" +
                 " runners.ai2las (LASutils version 0.1)\n" +
+                "\n" +
+                " Problems? Contact mikko.kukkonen@luke.fi\n" +
                 "----------------------------------------------\n" +
                 "\n" +
-                "Assigns a DN value for each point in .las (or .txt) point\n" +
+                "Assigns a DN value for each point in .las point\n" +
                 "cloud file. Output column order is defined with -oparse flag.\n" +
                 "\n" +
                 "Requires external and internal orientation files. Algorithm\n" +
                 "calculates the mean value for each band from each image that \n" +
-                "has observed the point. Last columns of the output file are thus\n" +
-                "band_1, band_2, ... , band_n.\n" +
+                "has observed the point. \n" +
                 "\n" +
                 "Internal orientation (tab delimited):\n" +
                 "\n" +
@@ -188,10 +201,26 @@ public class printHelp {
                 "________________________+__|______________\t\n" +
                 "Usage:\n" +
                 "\n" +
+                "\t-i\t\t\tInput .las file\n" +
+                "\t-o\t\t\tOutput .las (or .txt) file\n" +
                 "\t-exterior\t\tInput orientation file\n" +
                 "\t-interior\t\tInput interior orientation file\n" +
-                "\t-oparse\n" +
-                "\t-iparse\n" +
+                "\t-olas\t\t\tOutput is .las format.\n" +
+                "\t-otxt\t\t\tOutput is .txt format.\n" +
+                "\t-seq\t\t\tIf output is .las format,\n" +
+                "\t\t\t\tthen this is the band order.\n" +
+                "\t\t\t\t(e.g. -seq 1,2,3 means \n" +
+                "\t\t\t\tband 1 is assigned to R,\n" +
+                "\t\t\t\tband 2 is assigned to G,\n" +
+                "\t\t\t\tband 3 is assigned to B\n" +
+                "\t\t\t\tof each .las point.\n" +
+                "\n" +
+                "Optional arguments:\n" +
+                "\n" +
+                "\t-input_in_radians\tInput angles are radians.\n" +
+                "\t-oparse\t\t\tOutput .txt file column order.\n" +
+                "\t\t\t\tSpectral DN values are appended to\n" +
+                "\t\t\t\tthis ordering automatically.\n" +
                 "\t-edges\t\t\tPercentage of \"no-go-zone\" from\n" +
                 "\t\t\t\tthe edges of the images. Floating\n" +
                 "\t\t\t\tpoint 0.0 - 1.0. Example 0.2 means\n" +
@@ -199,11 +228,10 @@ public class printHelp {
                 "\t\t\t\tit is 0.2 x width from either the \n" +
                 "\t\t\t\tleft or right side of the image.\n" +
                 "\t\t\t\tSame goes for top and bottom.\n" +
-                "\t\n" +
+                "\t\t\t\t\n" +
+                "Example:\n" +
                 "\n" +
-                "Optional arguments:\n" +
-                "\n" +
-                "\tRefer to manual");
+                " ./ai2las" + extension + " -i input.las -interior interior.txt -exterior exterior.txt -edges 0.05 -olas -seq 3,4,5 -o output.las\t\t\n");
     }
 
 

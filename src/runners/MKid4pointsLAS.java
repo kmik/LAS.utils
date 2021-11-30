@@ -234,6 +234,7 @@ class MKid4pointsLAS{
 
         ArrayList<double[][]> output = new ArrayList<>();
         String line1;
+        int id_number = 1;
 
         try{
             BufferedReader sc = new BufferedReader( new FileReader(new File(fileName)));
@@ -241,10 +242,28 @@ class MKid4pointsLAS{
             while((line1 = sc.readLine())!= null){
 
                 String[] tokens =  line1.split(",");
+                //System.out.println(Arrays.toString(tokens));
+                //if(tokens[tokens.length - 1] != -999){
 
-                if(Double.parseDouble(tokens[tokens.length - 1]) != -999){
+                    try {
+                        plotID1.add(Integer.parseInt(tokens[tokens.length - 1]));
+                    }catch (NumberFormatException e){
 
-                    plotID1.add(Integer.parseInt(tokens[tokens.length - 1]));
+                        //Not directly comvertable to a number
+
+                        String str = tokens[tokens.length - 1].replaceAll("\\D+","");
+
+                        try {
+                            plotID1.add(Integer.parseInt(str));
+                        }catch (Exception ee){
+
+                            //Still no numbers, let's make our own then I guess
+
+                            plotID1.add(id_number++);
+
+                        }
+
+                    }
 
                     double[][] tempPoly = new double[tokens.length - 1][2];
                     int n = (tokens.length) - 2;
@@ -276,7 +295,7 @@ class MKid4pointsLAS{
 
                     if(!breikki)
                         output.add(tempPoly);
-                }
+                //}
 
             }
 

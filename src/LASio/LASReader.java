@@ -1268,7 +1268,6 @@ public class LASReader {
         p.y_t = braf.readFloat();
         p.z_t = braf.readFloat();
 
-
       }
 
     }
