@@ -241,6 +241,7 @@ public class LevenbergMarquardt {
         function.compute(param, residuals);
 
         computeNumericalJacobian(param,jacobian);
+
         CommonOps_DDRM.multTransA(jacobian, residuals, g);
 
         CommonOps_DDRM.multTransA(jacobian, jacobian,  H);

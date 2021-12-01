@@ -1372,6 +1372,27 @@ public class RunLASutils {
 
         }
 
+        if (aR.tool == 32){
+
+            double averageDensity_pulse = 0.0;
+            double averageDensity_points = 0.0;
+
+            try {
+
+                for (int i = 0; i < aR.inputFiles.size(); i++) {
+
+                    LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+                    lasStandDelineator delineator = new lasStandDelineator(temp, aR);
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+
 
     }
 
