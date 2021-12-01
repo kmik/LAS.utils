@@ -5,8 +5,8 @@ package tools;
  * 
  */
 public class Point implements Comparable<Point> {
-	double x;
-	double y;
+	public double x;
+	public double y;
 	private Point comparatorPoint = null;
 
 	public Point(double x, double y) {

@@ -7,11 +7,13 @@ import org.tinfour.standard.IncrementalTin;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import org.tinfour.utils.Polyside;
 import utils.*;
 
 import static org.tinfour.utils.Polyside.isPointInPolygon;
+import static tools.cellStats.polygonArea;
 
 public class lasGridStats {
 
@@ -94,6 +96,10 @@ public class lasGridStats {
 
     public void start() throws Exception{
 
+
+        long tStart = System.currentTimeMillis();
+
+
         aR.output_statistics = true;
 
         this.grid_x_size = (int)Math.ceil((pointCloud.maxX - orig_x) / resolution);
@@ -144,7 +150,7 @@ public class lasGridStats {
 
 
 
-
+        ArrayList<ArrayList<Point>> points = new ArrayList<>();
 
 
 
@@ -213,6 +219,8 @@ public class lasGridStats {
                 gridPoints_i_f.clear();
 
                 gridPoints_RGB_f.clear();
+
+                points.clear();
 
                 gridPoints_z_l.clear();
                 gridPoints_i_l.clear();
@@ -289,10 +297,12 @@ public class lasGridStats {
 
                                     if(!foundStands.contains(tempPoint.pointSourceId)) {
 
-                                        tins.add(new IncrementalTin());
-                                        tin_perimeters.add(null);
+                                        //tins.add(new IncrementalTin());
+                                       // tin_perimeters.add(null);
 
                                         ids.add(tempPoint.pointSourceId);
+
+                                        points.add(new ArrayList<>());
 
                                         gridPoints_z_a.add(new ArrayList<>());
                                         gridPoints_i_a.add(new ArrayList<>());
@@ -329,6 +339,7 @@ public class lasGridStats {
                                       we only need the bounday of the tin.
                                      */
                                     //if(!tins.get(order.get(tempPoint.pointSourceId)).isPointInsideTin(tempPoint.x, tempPoint.y)){
+                                    /*
                                     if(tins.get(order.get(tempPoint.pointSourceId)).isBootstrapped()) {
 
                                         if(tin_perimeters.get(order.get(tempPoint.pointSourceId)) == null){
@@ -351,6 +362,8 @@ public class lasGridStats {
                                         tins.get(order.get(tempPoint.pointSourceId)).add(tempV);
 
                                     }
+
+                                     */
 /*
                                     que_gridPoints_z_a.add(tempPoint.z);
                                     que_gridPoints_i_a.add(tempPoint.intensity);
@@ -360,6 +373,8 @@ public class lasGridStats {
 
                                     sum_z_a.set(order.get(tempPoint.pointSourceId), sum_z_a.get(order.get(tempPoint.pointSourceId)) + tempPoint.z);
                                     sum_i_a.set(order.get(tempPoint.pointSourceId), sum_i_a.get(order.get(tempPoint.pointSourceId)) + tempPoint.intensity);
+
+                                    points.get(order.get(tempPoint.pointSourceId)).add(new Point(tempPoint.x, tempPoint.y));
 
                                     //System.out.println("intensity" + tempPoint.intensity);
 
@@ -445,8 +460,8 @@ public class lasGridStats {
 
                 }
 
-                double grid_cell_id = x * grid_y_size + y;
-
+                double grid_cell_id = y * grid_x_size + x;
+/*
                 for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
 
                     areas.add(tins.get(ii).countTriangles().getAreaSum());
@@ -457,6 +472,22 @@ public class lasGridStats {
 
                 }
                 System.gc();
+
+ */
+
+                for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
+                    QuickHull qh = new QuickHull();
+                    ArrayList<Point> p = null;
+
+                    if (points.get(ii).size() > 3) {
+                        p = qh.quickHull(points.get(ii));
+                        areas.add(polygonArea(p));
+                    } else {
+                        areas.add(-99.9);
+                    }
+                }
+
+
 
                 double x_coord = orig_x + resolution * x;
                 double y_coord = orig_y - resolution * y;
@@ -499,6 +530,8 @@ public class lasGridStats {
 
                 if(doubles_per_cell == 0)
                     doubles_per_cell = 7 + metrics.size();
+
+                long start_time = System.currentTimeMillis();
 
                 for(int ii = 0; ii < gridPoints_z_f.size(); ii++) {
 
@@ -589,6 +622,10 @@ public class lasGridStats {
                     }
                 }
 
+                long endTime = System.currentTimeMillis();
+
+                //System.out.println("METRICS TOOK: " + (endTime-start_time));
+
                 if(foundStands.size() > 1) {
                     for(int i = 0; i < areas.size(); i++){
 
@@ -599,12 +636,12 @@ public class lasGridStats {
                 }
 
                 foundStands.clear();
-                tin.clear();
+                //tin.clear();
 
 
                 gridCounter++;
 
-                if(gridCounter % 1000 == 0){
+                if(gridCounter % 15 == 0){
                     System.gc();
                     System.gc();
                     System.gc();
@@ -631,7 +668,7 @@ public class lasGridStats {
 
         double optimalSize = resolution * resolution;
 
-        //if(false)
+        if(false)
         for(int i : do_overs){
 
             System.out.println("-----------------------------");
@@ -786,8 +823,6 @@ public class lasGridStats {
                     /* IF BOTH ARE IN NEIGHBORHOODS! */
                     else if(neighborhoods.containsKey(pair) && neighborhoods.containsKey(pos)){
 
-
-
                         ArrayList<Integer> modThese_pair = new ArrayList<>(neighborhoods.get(pair));
                         ArrayList<Integer> modThese_pos = new ArrayList<>(neighborhoods.get(pos));
 
@@ -928,7 +963,7 @@ public class lasGridStats {
             writer_a.write(colnames_metrics_a.get(i) + "\t");
 
             writer_l.write(colnames_metrics_l.get(i) + "\t");
-            writer_i.write(colnames_metrics_a.get(i) + "\t");
+            writer_i.write(colnames_metrics_i.get(i) + "\t");
 
         }
 
@@ -944,6 +979,8 @@ public class lasGridStats {
         writer_l.write("\n");
         writer_i.write("\n");
 
+        /* This is for if we want to do the merging thingy */
+        if(false)
         for(int x = 0; x < grid_x_size; x++) {
             for (int y = 0; y < grid_y_size; y++) {
 
@@ -1049,6 +1086,125 @@ public class lasGridStats {
             }
         }
 
+        for(int x = 0; x < grid_x_size; x++) {
+            for (int y = 0; y < grid_y_size; y++) {
+
+                /* this means no points in that grid cell */
+                if(gridLocationInRaf_a.get(x).get(y).size() == 0)
+                    continue;
+
+                int siz_a = gridLocationInRaf_a.get(x).get(y).size();
+                int siz_f = gridLocationInRaf_f.get(x).get(y).size();
+                int siz_l = gridLocationInRaf_l.get(x).get(y).size();
+                int siz_i = gridLocationInRaf_i.get(x).get(y).size();
+
+                /* This means that we want to merge  NOT HERE*/
+                if (grid_ids_merged.contains(x * grid_y_size + y) && false) {
+
+                    for (int i = 0; i < siz_a; i++) {
+
+                        if (!all.contains(gridLocationInRaf_a.get(x).get(y).get(i)))
+                            continue;
+
+                        if (!all2.contains(gridLocationInRaf_a.get(x).get(y).get(i))) {
+                            System.out.println("THIS: " + gridLocationInRaf_a.get(x).get(y).get(i));
+                            System.out.println("Merging " + gridLocationInRaf_a.get(x).get(y).get(i) + " with " +
+                                    Arrays.toString(neighborhoods.get(gridLocationInRaf_a.get(x).get(y).get(i)).toArray()));
+                            all2.addAll(neighborhoods.get(gridLocationInRaf_a.get(x).get(y).get(i)));
+
+                            double[] newMetrics = redoMetrics(neighborhoods.get(gridLocationInRaf_a.get(x).get(y).get(i)), doubles_per_cell, doubles_per_cell_rgb);
+
+                        } else {
+
+                        }
+                    }
+                    continue;
+                } else {
+
+                    double value = 0.0;
+                    ArrayList<Double> emptyArrayList = new ArrayList<>();
+
+                    for(int p = 0; p < gridLocationInRaf_a.get(x).get(y).size(); p++) {
+
+
+
+                        bin_a.readLine(doubles_per_cell * 8, gridLocationInRaf_a.get(x).get(y).get(p) * (doubles_per_cell * 8));
+                        for (int i_ = 0; i_ < doubles_per_cell; i_++) {
+                            value = bin_a.buffer.getDouble();
+                            //System.out.print(value + " ");
+                            writer_a.write(value + "\t");
+
+                            if (i_ < 7) {
+                                emptyArrayList.add(value);
+                            } else {
+                                emptyArrayList.add(Double.NaN);
+                            }
+                        }
+                        writer_a.write("\n");
+                    }
+
+                    for(int p = 0; p < gridLocationInRaf_f.get(x).get(y).size(); p++) {
+
+
+                        if (siz_f > 0) {
+                            bin_f.readLine(doubles_per_cell_rgb * 8, gridLocationInRaf_f.get(x).get(y).get(p) * (doubles_per_cell_rgb * 8));
+                            for (int i_ = 0; i_ < doubles_per_cell_rgb; i_++) {
+                                value = bin_f.buffer.getDouble();
+                                //System.out.print(value + " ");
+                                writer_f.write(value + "\t");
+                            }
+                            writer_f.write("\n");
+                        } else {
+                            for (int i_ = 0; i_ < doubles_per_cell_rgb; i_++) {
+
+                                writer_f.write(emptyArrayList.get(i_) + "\t");
+                            }
+                            writer_f.write("\n");
+                        }
+                    }
+
+                    for(int p = 0; p < gridLocationInRaf_l.get(x).get(y).size(); p++) {
+                        if (siz_l > 0) {
+                            bin_l.readLine(doubles_per_cell * 8, gridLocationInRaf_l.get(x).get(y).get(p) * (doubles_per_cell * 8));
+                            for (int i_ = 0; i_ < doubles_per_cell; i_++) {
+                                value = bin_l.buffer.getDouble();
+                                //System.out.print(value + " ");
+                                writer_l.write(value + "\t");
+                            }
+
+                            writer_l.write("\n");
+                        } else {
+                            for (int i_ = 0; i_ < doubles_per_cell; i_++) {
+
+                                writer_l.write(emptyArrayList.get(i_) + "\t");
+                            }
+                            writer_l.write("\n");
+                        }
+                    }
+                    for(int p = 0; p < gridLocationInRaf_i.get(x).get(y).size(); p++) {
+                        if (siz_i > 0) {
+                            bin_i.readLine(doubles_per_cell * 8, gridLocationInRaf_i.get(x).get(y).get(p) * (doubles_per_cell * 8));
+                            for (int i_ = 0; i_ < doubles_per_cell; i_++) {
+                                value = bin_i.buffer.getDouble();
+                                //System.out.print(value + " ");
+                                writer_i.write(value + "\t");
+                            }
+
+                            writer_i.write("\n");
+                        } else {
+                            for (int i_ = 0; i_ < doubles_per_cell; i_++) {
+
+                                writer_i.write(emptyArrayList.get(i_) + "\t");
+                            }
+                            writer_i.write("\n");
+                        }
+                    }
+
+                }
+            }
+        }
+
+
         writer_a.close();
         writer_f.close();
         writer_l.close();
@@ -1063,6 +1219,14 @@ public class lasGridStats {
         bin_f.close();
         bin_l.close();
         bin_i.close();
+
+        long tEnd = System.currentTimeMillis();
+        long tDelta = tEnd - tStart;
+
+        long minutes = (tDelta / 1000)  / 60;
+        int seconds = (int)((tDelta / 1000) % 60);
+
+        System.out.println("TOOK: " + minutes + " min " + seconds + " sec");
     }
 
     public double[] redoMetrics(HashSet<Integer> pos, int doubles_per_cell, int doubles_per_cell_rgb) throws Exception{
@@ -1327,22 +1491,13 @@ public class lasGridStats {
     }
 
 
-    public static class calcAndWrite extends Thread{
+    public static class computeMetrics extends Thread{
 
-        ArrayList<Double> zets;
-        ArrayList<Double> zets_sum;
-        ArrayList<Integer> intensities;
-        ArrayList<Integer> intensities_sum;
-        gridRAF binFile;
 
-        public calcAndWrite(ArrayList<Double> zets, ArrayList<Double> zets_sum, ArrayList<Integer> intensities, ArrayList<Integer> intensities_sum, gridRAF binFile){
 
-            this.zets = zets;
-            this.zets_sum = zets_sum;
-            this.intensities = intensities;
-            this.intensities_sum = intensities_sum;
+        public computeMetrics(){
 
-            this.binFile = binFile;
+
 
         }
 
@@ -1356,4 +1511,24 @@ public class lasGridStats {
     }
 
 
+    public class threadInput{
+
+        ArrayList<Double> z;
+        ArrayList<Integer> intensity;
+        double sum_z;
+        double sum_i;
+        String suffix;
+        ArrayList<String> colnames;
+
+        public threadInput(ArrayList<Double> z, ArrayList<Integer> intensity, double sum_z, double sum_i, String suffix, ArrayList<String> colnames){
+
+            this.z = z;
+            this.intensity = intensity;
+            this.sum_i = sum_i;
+            this.suffix = suffix;
+            this.sum_z = sum_z;
+            this.colnames = colnames;
+
+        }
+    }
 }

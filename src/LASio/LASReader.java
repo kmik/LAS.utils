@@ -261,12 +261,20 @@ public class LASReader {
     }
 
 
+    /* IF NO MIN MAX FOUND */
+
+    if(indexMinMax.size() == 0){
+      return;
+    }
+
     this.index_u = 0;
     try {
       readRecord_noRAF(indexMinMax.get(index_u)[0], indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1);
     }catch (Exception e){
       e.printStackTrace();
     }
+
+    //System.out.println(index_u);
 
     this.index_p = indexMinMax.get(index_u)[0];
 
