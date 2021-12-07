@@ -3,16 +3,24 @@ package tools;
 
 import LASio.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.math3.linear.ArrayRealVector;
+import org.apache.commons.math3.linear.RealVector;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconstConstants;
 import org.gdal.ogr.*;
 import org.gdal.osr.SpatialReference;
+import org.nd4j.linalg.api.ops.impl.transforms.custom.Max;
 import org.opencv.core.Mat;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
+
+import org.tinfour.common.IQuadEdge;
+import org.tinfour.common.SimpleTriangle;
 import org.tinfour.interpolation.TriangularFacetInterpolator;
+import org.tinfour.standard.IncrementalTin;
 import utils.*;
 import org.tinfour.common.Vertex;
 
@@ -588,19 +596,36 @@ public class createCHM{
         File copyFile = new File(filename);
 
         File newFile = new File("tempFilter_" + id + ".tif");
+        File newFile_2 = new File("tempFilter_r1_" + id + ".tif");
+        File newFile_3 = new File("tempFilter_r2_" + id + ".tif");
+        File newFile_4 = new File("tempFilter_r3_" + id + ".tif");
 
         try {
             FileUtils.copyFile(copyFile, newFile);
+            FileUtils.copyFile(copyFile, newFile_2);
+            FileUtils.copyFile(copyFile, newFile_3);
+            FileUtils.copyFile(copyFile, newFile_4);
         }catch (IOException e){
             e.printStackTrace();
         }
 
 
         Dataset temppi = gdalE.hei("tempFilter_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
-
         copyRaster(input, temppi, "tempFilter_" + id + ".tif");
-
         temppi = gdalE.hei("tempFilter_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
+
+
+        Dataset temppi_right2 = gdalE.hei("tempFilter_r1_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
+        copyRaster(input, temppi_right2, "tempFilter_r1_" + id + ".tif");
+        temppi_right2 = gdalE.hei("tempFilter_r1_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
+
+        Dataset temppi_right3 = gdalE.hei("tempFilter_r2_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
+        copyRaster(input, temppi_right3, "tempFilter_r2_" + id + ".tif");
+        temppi_right3 = gdalE.hei("tempFilter_r2_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
+
+        Dataset temppi_right4 = gdalE.hei("tempFilter_r3_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
+        copyRaster(input, temppi_right4, "tempFilter_r3_" + id + ".tif");
+        temppi_right4 = gdalE.hei("tempFilter_r3_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
 
         //System.exit(0);
         //Dataset temppi = gdal.Open(newFile.getAbsolutePath());
@@ -608,9 +633,15 @@ public class createCHM{
         //if(true)
           //  return;
         Band temppi_band = temppi.GetRasterBand(1);
+        Band temppi_r2_band = temppi_right2.GetRasterBand(1);
+        Band temppi_r3_band = temppi_right3.GetRasterBand(1);
+        Band temppi_r4_band = temppi_right4.GetRasterBand(1);
         Band input_band = input.GetRasterBand(1);
 
         copyRasterContents(input_band, temppi_band);
+        copyRasterContents(input_band, temppi_r2_band);
+        copyRasterContents(input_band, temppi_r3_band);
+        copyRasterContents(input_band, temppi_r4_band);
         //float[][] temppi = arrayCopy(input);
 
         int height = temppi.getRasterYSize();
@@ -628,273 +659,942 @@ public class createCHM{
 
         //System.out.println("height " + height);
 
-        if(nan)
-        for(int i = n; i < (height - n); i++){
+        HashMap<Integer, Float> correctionMap = new HashMap<>();
+        HashMap<Integer, Float> correctionMap_r = new HashMap<>();
+        TreeSet<Integer> leftOvers_2_left = new TreeSet<>();
+        TreeSet<Integer> leftOvers_2_right = new TreeSet<>();
+/*
+        if(false) {
 
-            for(int j = n; j < (width - n); j++){
+            if (nan)
+                for (int i = n; i < (height - n); i++) {
 
-                //if(input[j][i] > 2.0)
-                  //  zets.add(input[j][i]);
+                    for (int j = n; j < (width - n); j++) {
 
-                if(count3++ % 10000 == 0){
+                        //if(input[j][i] > 2.0)
+                        //  zets.add(input[j][i]);
 
-                    //System.out.print("\033[2K"); // Erase line content
-                    //System.out.print(count3 + "|" + (height * width) + " " + " NaNs found: " + leftOvers.size() + "\r");
+                        if (count3++ % 10000 == 0) {
+
+                            //System.out.print("\033[2K"); // Erase line content
+                            //System.out.print(count3 + "|" + (height * width) + " " + " NaNs found: " + leftOvers.size() + "\r");
+                        }
+
+                        int minX = j - n;
+                        int maxX = j + n;
+                        int minY = i - n;
+                        int maxY = i + n;
+
+
+                        //Mat submat = input.submat(minY, maxY + 1, minX, maxX + 1);
+
+                        int sum = 0;
+
+                        //double[] array = new double[(n * 2 + 1) * (n * 2 + 1)];
+                        ArrayList<Float> list = new ArrayList<Float>();
+                        int count = 0;
+                        int count2 = 0;
+
+
+                        tempF = new float[2];
+
+                        for (int h = minX; h <= maxX; h++) {
+                            for (int u = minY; u <= maxY; u++) {
+
+                                x = h;
+                                y = u;
+
+                                if (x < 0)
+                                    x = 0;
+                                if (y < 0)
+                                    y = 0;
+                                if (x > (width - 1))
+                                    x = width - 1;
+                                if (y > (height - 1))
+                                    y = height - 1;
+
+                                temppi_band.ReadRaster(x, y, 1, 1, floatArray);
+
+                                //if(!Float.isNaN(floatArray2[0]))
+                                //System.out.println(floatArray2[0]);
+
+
+                                if (!Float.isNaN(floatArray[0])) { // (x != j || y != i) &&
+
+                                    tempF[0] += floatArray[0];
+                                    tempF[1]++;
+                                    //list.add(temppi[h][u]);
+
+                                }
+
+                            }
+
+                            float median = Float.NaN;
+
+                            if (tempF[1] > 0)
+                                median = tempF[0] / tempF[1];
+
+
+                            //temppi_band.ReadRaster(j, i, 1, 1, floatArray);
+                            temppi_band.ReadRaster(j, i, 1, 1, floatArray);
+                            Double[] nodata = new Double[1];
+                            temppi_band.GetNoDataValue(nodata);
+
+
+                            //System.out.println(floatArray[0] + " " + floatArray2[0]);
+
+                            //if(true)
+                            // continue;
+
+                            if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
+                                floatArray[0] = median;
+                                temppi_band.WriteRaster(j, i, 1, 1, floatArray);
+                                //input[j][i] = median;
+                            }
+
+
+                            //else if((temppi[j][i]) > (median * 1.2) || temppi[j][i] < (median * 0.8)){
+                            //  input[j][i] = median;
+                            //}
+
+                            temppi_band.ReadRaster(j, i, 1, 1, floatArray);
+                            //input[j][i] = median;
+
+                            if (Float.isNaN(floatArray[0])) {
+
+                                //correctionMap.put(i * width + j, median);
+
+                                leftOvers_2_left.add(i * width + j);
+
+                                //int[] leftOver = new int[2];
+
+                                //leftOver[0] = j;
+                                //leftOver[1] = i;
+
+                                //leftOvers.add(leftOver);
+
+                            } else {
+                                correctionMap.put(i * width + j, floatArray[0]);
+                            }
+                            counter++;
+                        }
+                        //progebar(paatos, counter, nimi);
+                    }
                 }
 
-                int minX = j - n;
-                int maxX = j + n;
-                int minY = i - n;
-                int maxY = i + n;
 
-                /*
-                if(minX < 0)
-                    minX = 0;
+            if (nan) {
+                //for(int i = n; i < (height - n); i++) {
+                for (int i = ((height - n) - 1); i >= n; i--) {
+                    //for (int j = n; j < (width - n); j++) {
+                    for (int j = ((width - n) - 1); j >= n; j--) {
 
-                if(minY < 0)
-                    minY = 0;
+                        //if(input[j][i] > 2.0)
+                        //  zets.add(input[j][i]);
 
-                if(maxX > (width - 1))
-                    maxX = width - 1;
+                        if (count3++ % 10000 == 0) {
 
-                if(maxY > (height - 1))
-                    maxY = height - 1;
-                */
-                //Mat submat = input.submat(minY, maxY + 1, minX, maxX + 1);
+                            //System.out.print("\033[2K"); // Erase line content
+                            //System.out.print(count3 + "|" + (height * width) + " " + " NaNs found: " + leftOvers.size() + "\r");
+                        }
 
-                int sum = 0;
+                        int minX = j - n;
+                        int maxX = j + n;
+                        int minY = i - n;
+                        int maxY = i + n;
 
-                //double[] array = new double[(n * 2 + 1) * (n * 2 + 1)];
-                ArrayList<Float> list = new ArrayList<Float>();
-                int count = 0;
-                int count2 = 0;
+                        //Mat submat = input.submat(minY, maxY + 1, minX, maxX + 1);
 
+                        int sum = 0;
 
-                tempF = new float[2];
-
-                for(int h = minX; h <= maxX; h++){
-                    for(int u = minY; u <= maxY; u++){
-
-                        x = h;
-                        y = u;
-
-                        if(x < 0)
-                            x = 0;
-                        if(y < 0)
-                            y = 0;
-                        if(x > (width - 1))
-                            x = width - 1;
-                        if(y > (height - 1))
-                            y = height - 1;
-
-                        input_band.ReadRaster(x, y, 1, 1, floatArray);
-
-                        //if(!Float.isNaN(floatArray2[0]))
-                        //System.out.println(floatArray2[0]);
+                        //double[] array = new double[(n * 2 + 1) * (n * 2 + 1)];
+                        ArrayList<Float> list = new ArrayList<Float>();
+                        int count = 0;
+                        int count2 = 0;
 
 
+                        tempF = new float[2];
 
-                        if(!Float.isNaN(floatArray[0])){ // (x != j || y != i) &&
+                        for (int h = minX; h <= maxX; h++) {
+                            for (int u = minY; u <= maxY; u++) {
 
-                            tempF[0] += floatArray[0];
-                            tempF[1]++;
-                            //list.add(temppi[h][u]);
+                                x = h;
+                                y = u;
+
+                                if (x < 0)
+                                    x = 0;
+                                if (y < 0)
+                                    y = 0;
+                                if (x > (width - 1))
+                                    x = width - 1;
+                                if (y > (height - 1))
+                                    y = height - 1;
+
+                                temppi_r_band.ReadRaster(x, y, 1, 1, floatArray);
+
+                                if (!Float.isNaN(floatArray[0])) { // (x != j || y != i) &&
+
+                                    tempF[0] += floatArray[0];
+                                    tempF[1]++;
+                                    //list.add(temppi[h][u]);
+
+                                }
+
+                            }
+
+                            float median = Float.NaN;
+
+                            if (tempF[1] > 0)
+                                median = tempF[0] / tempF[1];
+
+                            //temppi_band.ReadRaster(j, i, 1, 1, floatArray);
+                            temppi_r_band.ReadRaster(j, i, 1, 1, floatArray);
+                            Double[] nodata = new Double[1];
+                            temppi_r_band.GetNoDataValue(nodata);
+
+                            if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
+                                floatArray[0] = median;
+                                temppi_r_band.WriteRaster(j, i, 1, 1, floatArray);
+                                //input[j][i] = median;
+                            }
+
+                            temppi_r_band.ReadRaster(j, i, 1, 1, floatArray);
+
+
+                            if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
+
+                                //float previous_median = correctionMap.get(i * width + j);
+
+                                //System.out.println("prev: " + previous_median + " sec: " + median + " " + n);
+                                // median = (median + previous_median) / 2.0f;
+
+                                leftOvers_2_right.add(i * width + j);
+
+                                //floatArray[0] = median;
+                                //temppi_r_band.WriteRaster(j, i, 1, 1, floatArray);
+                                //input[j][i] = median;
+                            } else {
+                                correctionMap_r.put(i * width + j, floatArray[0]);
+                            }
+
+
+                            //else if((temppi[j][i]) > (median * 1.2) || temppi[j][i] < (median * 0.8)){
+                            //  input[j][i] = median;
+                            //}
+
+                            counter++;
+                        }
+                        //progebar(paatos, counter, nimi);
+
+
+                    }
+
+                }
+            }
+
+            //System.out.println("leftOvers.size(): " + leftOvers_2_left.size() + " and " + leftOvers_2_right.size());
+            int leftOverCount = 0;
+
+            if (false)
+                for (int key : correctionMap.keySet()) {
+
+                    int y_ = (key / width);
+                    int x_ = key - y_ * width;
+
+                    //System.out.println("key: " + key + " x_ " + x_ + " y_ " + y_ + " " + (y_ * width + x_));
+                    floatArray[0] = correctionMap.get(key);
+                    input_band.WriteRaster(x_, y_, 1, 1, floatArray);
+
+                }
+
+            //System.exit(1);
+            ArrayList<int[]> leftOvers2;
+
+            if (nan && false) {
+
+                while (leftOvers_2_right.size() > 0 && leftOvers_2_left.size() > 0) {
+
+                    //correctionMap.clear();
+
+                    Iterator<Integer> iterator_ascending = leftOvers_2_left.iterator();
+                    Iterator<Integer> iterator_descending = leftOvers_2_right.descendingIterator();
+
+                    while (iterator_ascending.hasNext()) {
+
+                        int value = iterator_ascending.next();
+
+                        int y_ = (value / width);
+                        int x_ = value - y_ * width;
+
+                        int minX = x_ - n;
+                        int maxX = x_ + n;
+                        int minY = x_ - n;
+                        int maxY = x_ + n;
+
+
+                        ArrayList<Float> list = new ArrayList<Float>();
+
+                        tempF = new float[2];
+
+                        for (int h = minX; h <= maxX; h++) {
+                            for (int u = minY; u <= maxY; u++) {
+
+                                x = h;
+                                y = u;
+
+                                if (x < 0)
+                                    x = 0;
+                                if (y < 0)
+                                    y = 0;
+                                if (x > (width - 1))
+                                    x = width - 1;
+                                if (y > (height - 1))
+                                    y = height - 1;
+
+                                temppi_band.ReadRaster(x, y, 1, 1, floatArray);
+
+                                if (!Float.isNaN(floatArray[0])) { // (x != leftOvers2.get(i)[0] || y != leftOvers2.get(i)[1]) &&
+
+                                    tempF[0] += floatArray[0];
+                                    tempF[1]++;
+
+                                }
+                            }
+                        }
+
+                        float median = Float.NaN;
+
+                        if (tempF[1] > 0)
+                            median = tempF[0] / tempF[1];
+
+                        temppi_band.ReadRaster(x_, y_, 1, 1, floatArray);
+
+                        Double[] nodata = new Double[1];
+                        //temppi_r1_band.GetNoDataValue(nodata);
+
+                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
+                            floatArray[0] = median;
+                            temppi_band.WriteRaster(x_, y_, 1, 1, floatArray);
+                            //input[j][i] = median;
+                        }
+
+                        temppi_band.ReadRaster(x_, y_, 1, 1, floatArray);
+
+                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
+
+                        } else {
+                            iterator_ascending.remove();
+                            correctionMap.put(y_ * width + x_, floatArray[0]);
+                        }
+                    }
+                }
+            }
+
+            if (nan) {
+                System.out.println("l: " + leftOvers_2_left.size() + " r: " + leftOvers_2_right.size());
+                while (leftOvers_2_right.size() > 0 || leftOvers_2_left.size() > 0) {
+
+                    //correctionMap.clear();
+
+                    Iterator<Integer> iterator_ascending = leftOvers_2_left.iterator();
+                    Iterator<Integer> iterator_descending = leftOvers_2_right.descendingIterator();
+                    System.out.println("l: " + leftOvers_2_left.size() + " r: " + leftOvers_2_right.size());
+
+                    while (iterator_ascending.hasNext()) {
+
+                        int value = iterator_ascending.next();
+                        int y_ = (value / width);
+                        int x_ = value - y_ * width;
+
+                        int minX = x_ - n;
+                        int maxX = x_ + n;
+                        int minY = x_ - n;
+                        int maxY = x_ + n;
+
+
+                        ArrayList<Float> list = new ArrayList<Float>();
+
+                        tempF = new float[2];
+
+                        for (int h = minX; h <= maxX; h++) {
+                            for (int u = minY; u <= maxY; u++) {
+
+                                x = h;
+                                y = u;
+
+                                if (x < 0)
+                                    x = 0;
+                                if (y < 0)
+                                    y = 0;
+                                if (x > (width - 1))
+                                    x = width - 1;
+                                if (y > (height - 1))
+                                    y = height - 1;
+
+                                temppi_band.ReadRaster(x, y, 1, 1, floatArray);
+
+                                if (!Float.isNaN(floatArray[0])) { // (x != leftOvers2.get(i)[0] || y != leftOvers2.get(i)[1]) &&
+
+                                    tempF[0] += floatArray[0];
+                                    tempF[1]++;
+
+                                }
+                            }
+                        }
+
+                        float median = Float.NaN;
+
+                        if (tempF[1] > 0)
+                            median = tempF[0] / tempF[1];
+
+                        temppi_band.ReadRaster(x_, y_, 1, 1, floatArray);
+
+                        Double[] nodata = new Double[1];
+                        temppi_r_band.GetNoDataValue(nodata);
+
+                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
+                            floatArray[0] = median;
+                            temppi_band.WriteRaster(x_, y_, 1, 1, floatArray);
+                        }
+
+                        temppi_band.ReadRaster(x_, y_, 1, 1, floatArray);
+
+                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
+
+                        } else {
+                            iterator_ascending.remove();
+                            correctionMap.put(y_ * width + x_, floatArray[0]);
+                        }
+                    }
+
+                    while (iterator_descending.hasNext()) {
+
+                        int value = iterator_descending.next();
+
+                        int y_ = (value / width);
+                        int x_ = value - y_ * width;
+
+                        int minX = x_ - n;
+                        int maxX = x_ + n;
+                        int minY = x_ - n;
+                        int maxY = x_ + n;
+
+
+                        ArrayList<Float> list = new ArrayList<Float>();
+
+                        tempF = new float[2];
+
+                        for (int h = minX; h <= maxX; h++) {
+                            for (int u = minY; u <= maxY; u++) {
+
+                                x = h;
+                                y = u;
+
+                                if (x < 0)
+                                    x = 0;
+                                if (y < 0)
+                                    y = 0;
+                                if (x > (width - 1))
+                                    x = width - 1;
+                                if (y > (height - 1))
+                                    y = height - 1;
+
+                                temppi_r_band.ReadRaster(x, y, 1, 1, floatArray);
+
+                                if (!Float.isNaN(floatArray[0])) { // (x != leftOvers2.get(i)[0] || y != leftOvers2.get(i)[1]) &&
+
+                                    tempF[0] += floatArray[0];
+                                    tempF[1]++;
+
+                                }
+                            }
+                        }
+
+                        float median = Float.NaN;
+
+                        if (tempF[1] > 0)
+                            median = tempF[0] / tempF[1];
+
+                        temppi_r_band.ReadRaster(x_, y_, 1, 1, floatArray);
+
+                        Double[] nodata = new Double[1];
+                        temppi_r_band.GetNoDataValue(nodata);
+
+                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
+
+                            floatArray[0] = median;
+                            temppi_r_band.WriteRaster(x_, y_, 1, 1, floatArray);
+                            //input[j][i] = median;
+                        }
+
+                        temppi_r_band.ReadRaster(x_, y_, 1, 1, floatArray);
+
+                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
+
+                        } else {
+                            iterator_descending.remove();
+                            correctionMap_r.put(y_ * width + x_, floatArray[0]);
+                        }
+                    }
+
+                }
+            }
+
+            System.out.println(correctionMap.size() + " " + correctionMap_r.size());
+
+            for (int key : correctionMap.keySet()) {
+
+
+                int y_ = (key / width);
+                int x_ = key - y_ * width;
+
+                temppi_r_band.ReadRaster(x_, y_, 1, 1, floatArray);
+
+                float right = floatArray[0];
+
+                temppi_band.ReadRaster(x_, y_, 1, 1, floatArray);
+
+                float left = floatArray[0];
+
+                //System.out.println("left: " + left + " right: " + right);
+
+                floatArray[0] = (right + left) / 2.0f;
+
+                input_band.WriteRaster(x_, y_, 1, 1, floatArray);
+
+
+            }
+
+            System.exit(1);
+
+            if (nan && false)
+                while (leftOvers.size() > 0) {
+
+                    //temppi = arrayCopy(input);
+                    //copyRaster(input, temppi);
+                    //temppi = gdal.Open(newFile.getAbsolutePath());
+                    //temppi_band = temppi.GetRasterBand(1);
+
+                    Collections.shuffle(leftOvers);
+
+                    leftOvers2 = (ArrayList<int[]>) leftOvers.clone();
+                    leftOvers.clear();
+
+                    leftOverCount++;
+
+                    for (int i = 0; i < leftOvers2.size(); i++) {
+
+                        int minX = leftOvers2.get(i)[0] - n;
+                        int maxX = leftOvers2.get(i)[0] + n;
+                        int minY = leftOvers2.get(i)[1] - n;
+                        int maxY = leftOvers2.get(i)[1] + n;
+
+
+                        ArrayList<Float> list = new ArrayList<Float>();
+
+                        tempF = new float[2];
+
+                        for (int h = minX; h <= maxX; h++) {
+                            for (int u = minY; u <= maxY; u++) {
+
+                                x = h;
+                                y = u;
+
+                                if (x < 0)
+                                    x = 0;
+                                if (y < 0)
+                                    y = 0;
+                                if (x > (width - 1))
+                                    x = width - 1;
+                                if (y > (height - 1))
+                                    y = height - 1;
+
+                                input_band.ReadRaster(x, y, 1, 1, floatArray);
+
+                                if (!Float.isNaN(floatArray[0])) { // (x != leftOvers2.get(i)[0] || y != leftOvers2.get(i)[1]) &&
+
+                                    tempF[0] += floatArray[0];
+                                    tempF[1]++;
+                                    //list.add(temppi[h][u]);
+
+                                }
+
+
+                                //else if(Double.isNaN(input[h][u]))
+                                //array[count] = temppi[h][u];
+                                //count++;
+                            }
+
+                        }
+
+                        //stat.setDataF(list);
+
+                        float median = Float.NaN;
+
+                        if (tempF[1] > 0)
+                            median = tempF[0] / tempF[1];
+
+                        //if(list.size() > 0)
+                        //  median = (float)stat.getMeanFromList();
+
+                        int x1 = leftOvers2.get(i)[0];
+                        int y1 = leftOvers2.get(i)[1];
+
+                        input_band.ReadRaster(x1, y1, 1, 1, floatArray);
+
+                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
+
+                            //if(!Float.isNaN(median))
+                            //System.out.println("here! 1 " + median);
+                            floatArray[0] = median;
+                            input_band.WriteRaster(x1, y1, 1, 1, floatArray);
+                            //input[leftOvers2.get(i)[0]][leftOvers2.get(i)[1]] = median;
+                        } else if (median > (floatArray[0] + 2.0) || (median + 2.0) < floatArray[0]) {
+                            floatArray[0] = median;
+                            input_band.WriteRaster(x1, y1, 1, 1, floatArray);
+                            //input[leftOvers2.get(i)[0]][leftOvers2.get(i)[1]] = median;
+                        }
+                        //input[leftOvers.get(i)[0]][leftOvers.get(i)[1]] = median;
+
+                        x1 = leftOvers2.get(i)[0];
+                        y1 = leftOvers2.get(i)[1];
+
+                        input_band.ReadRaster(x1, y1, 1, 1, floatArray);
+
+                        if (Float.isNaN(floatArray[0])) {
+
+                            //System.out.println("here! 2");
+
+                            int[] leftOver = new int[2];
+
+                            leftOver[0] = leftOvers2.get(i)[0];
+                            leftOver[1] = leftOvers2.get(i)[1];
+
+                            leftOvers.add(leftOver);
 
                         }
 
                     }
 
-                    float median = Float.NaN;
 
-                    if(tempF[1] > 0)
-                        median = tempF[0] / tempF[1];
+                    System.out.print("\033[2K"); // Erase line content
+                    System.out.print("Iteration: " + leftOverCount + " NaNs left: " + leftOvers.size() + "\r");
 
+                    if (leftOverCount > 100)
+                        leftOvers.clear();
 
-                    //temppi_band.ReadRaster(j, i, 1, 1, floatArray);
-                    input_band.ReadRaster(j, i, 1, 1, floatArray);
-                    Double[] nodata = new Double[1];
-                    input_band.GetNoDataValue(nodata);
-
-
-
-
-
-                    //System.out.println(floatArray[0] + " " + floatArray2[0]);
-
-                    if(Float.isNaN(floatArray[0])){ //  || floatArray[0] < median / 2.0f
-                        floatArray[0] = median;
-                        input_band.WriteRaster(j, i, 1, 1, floatArray);
-                        //input[j][i] = median;
-                    }
-
-
-
-                    //else if((temppi[j][i]) > (median * 1.2) || temppi[j][i] < (median * 0.8)){
-                    //  input[j][i] = median;
-                    //}
-
-                    input_band.ReadRaster(j, i, 1, 1, floatArray);
-                    //input[j][i] = median;
-
-                    if(Float.isNaN(floatArray[0])){
-
-                        int[] leftOver = new int[2];
-
-                        leftOver[0] = j;
-                        leftOver[1] = i;
-
-                        leftOvers.add(leftOver);
-
-                    }
-                    counter++;
                 }
-                //progebar(paatos, counter, nimi);
-            }
-
-
 
         }
+*/
 
-        //System.out.println("leftOvers.size(): " + leftOvers.size());
-        int leftOverCount = 0;
+        int remaining_1 = 1;
+        int remaining_2 = 1;
+        int remaining_3 = 1;
+        int remaining_4 = 1;
+
+        float[] data_input = new float[width];
+        float[] data_top_left = new float[width];
+        float[] data_top_right = new float[width];
+        float[] data_bottom_left = new float[width];
+        float[] data_bottom_right = new float[width];
+
+        HashSet<Integer> nan_coordinates = new HashSet<>();
+        int counter1 = 0;
+
+        boolean done1 = false;
+        boolean done2 = false;
+        boolean done3 = false;
+        boolean done4 = false;
+
+        if(nan && false)
+        while(remaining_1 > 0 || remaining_2 > 0 || remaining_3 > 0 || remaining_4 > 0){
 
 
-        ArrayList<int[]> leftOvers2;
+            if(remaining_1 == 0)
+                done1 = true;
+            if(remaining_2 == 0)
+                done2 = true;
+            if(remaining_3 == 0)
+                done3 = true;
+            if(remaining_4 == 0)
+                done4 = true;
 
-        if(nan)
-        while(leftOvers.size() > 0){
+            System.out.println("rem: " + remaining_1 + " " + remaining_2 + " " + remaining_3 + " " + remaining_4);
+            remaining_1 = 0;
+            remaining_2 = 0;
+            remaining_3 = 0;
+            remaining_4 = 0;
 
-            //temppi = arrayCopy(input);
-            //copyRaster(input, temppi);
-            //temppi = gdal.Open(newFile.getAbsolutePath());
-            //temppi_band = temppi.GetRasterBand(1);
+            System.out.println(counter1++);
 
-            Collections.shuffle(leftOvers);
+            for(int y_ = n; y_ < (height - n); y_++){
 
-            leftOvers2 = (ArrayList<int[]>)leftOvers.clone();
-            leftOvers.clear();
+                int top_y = y_;
+                int bottom_y = height - n - y_;
 
-            leftOverCount++;
+                //System.out.println(top_y + "   " + bottom_y);
+                //temppi_band.ReadRaster(0, top_y, width, 1, data_top_left);
+                //temppi_r2_band.ReadRaster(0, top_y, width, 1, data_top_right);
+                //temppi_r3_band.ReadRaster(0, bottom_y, width, 1, data_bottom_right);
+                //temppi_r4_band.ReadRaster(0, bottom_y, width, 1, data_bottom_left);
 
-            for(int i = 0; i < leftOvers2.size(); i++){
+                for(int x_ = n; x_ < (width-n); x_++){
 
-                int minX = leftOvers2.get(i)[0] - n;
-                int maxX = leftOvers2.get(i)[0] + n;
-                int minY = leftOvers2.get(i)[1] - n;
-                int maxY = leftOvers2.get(i)[1] + n;
+                    int left_x = x_;
+                    int right_x = width-x_;
 
-                /*
-                if(minX < 0)
-                    minX = 0;
+                    /* TOP LEFT */
 
-                if(minY < 0)
-                    minY = 0;
 
-                if(maxX > (width - 1))
-                    maxX = width - 1;
+                    temppi_band.ReadRaster(left_x, top_y, 1, 1, floatArray);
 
-                if(maxY > (height - 1))
-                    maxY = height - 1;
-                */
+                    if(Float.isNaN(floatArray[0]) && !done1) {
 
-                ArrayList<Float> list = new ArrayList<Float>();
+                        int minX = left_x - n;
+                        int maxX = left_x + n;
+                        int minY = top_y - n;
+                        int maxY = top_y + n;
 
-                tempF = new float[2];
+                        tempF = new float[2];
 
-                for(int h = minX; h <= maxX; h++){
-                    for(int u = minY; u <= maxY; u++){
+                        for (int h = minX; h <= maxX; h++) {
+                            for (int u = minY; u <= maxY; u++) {
 
-                        x = h;
-                        y = u;
+                                x = h;
+                                y = u;
 
-                        if(x < 0)
-                            x = 0;
-                        if(y < 0)
-                            y = 0;
-                        if(x > (width - 1))
-                            x = width - 1;
-                        if(y > (height - 1))
-                            y = height - 1;
+                                if (x < 0)
+                                    x = 0;
+                                if (y < 0)
+                                    y = 0;
+                                if (x > (width - 1))
+                                    x = width - 1;
+                                if (y > (height - 1))
+                                    y = height - 1;
 
-                        input_band.ReadRaster(x, y, 1, 1, floatArray);
+                                temppi_band.ReadRaster(x, y, 1, 1, floatArray);
 
-                        if(!Float.isNaN(floatArray[0])){ // (x != leftOvers2.get(i)[0] || y != leftOvers2.get(i)[1]) &&
+                                if (!Float.isNaN(floatArray[0])) {
 
-                            tempF[0] += floatArray[0];
-                            tempF[1]++;
-                            //list.add(temppi[h][u]);
+                                    tempF[0] += floatArray[0];
+                                    tempF[1]++;
+
+                                }
+
+                            }
+
+                            float median = Float.NaN;
+
+                            if (tempF[1] > 0)
+                                median = tempF[0] / tempF[1];
+
+                            //System.out.println("median: " + median);
+                            if(Float.isNaN(median)){
+                                remaining_1++;
+                            }else{
+                                floatArray[0] = median;
+                                temppi_band.WriteRaster(left_x, top_y, 1, 1, floatArray);
+                            }
 
                         }
-
-
-                        //else if(Double.isNaN(input[h][u]))
-                        //array[count] = temppi[h][u];
-                        //count++;
                     }
 
+                    /* TOP RIGHT */
+
+                    temppi_r2_band.ReadRaster(right_x, top_y, 1, 1, floatArray);
+
+                    if(Float.isNaN(floatArray[0]) && !done2) {
+
+                        int minX = right_x - n;
+                        int maxX = right_x + n;
+                        int minY = top_y - n;
+                        int maxY = top_y + n;
+
+                        tempF = new float[2];
+
+                        for (int h = minX; h <= maxX; h++) {
+                            for (int u = minY; u <= maxY; u++) {
+
+                                x = h;
+                                y = u;
+
+                                if (x < 0)
+                                    x = 0;
+                                if (y < 0)
+                                    y = 0;
+                                if (x > (width - 1))
+                                    x = width - 1;
+                                if (y > (height - 1))
+                                    y = height - 1;
+
+                                temppi_r2_band.ReadRaster(x, y, 1, 1, floatArray);
+
+                                if (!Float.isNaN(floatArray[0])) {
+
+                                    tempF[0] += floatArray[0];
+                                    tempF[1]++;
+
+                                }
+
+                            }
+
+                            float median = Float.NaN;
+
+                            if (tempF[1] > 0)
+                                median = tempF[0] / tempF[1];
+
+                            if(Float.isNaN(median)){
+                                remaining_2++;
+                            }else{
+                                floatArray[0] = median;
+                                temppi_r2_band.WriteRaster(right_x, top_y, 1, 1, floatArray);
+                            }
+
+                        }
+                    }
+
+                    /* BOTTOM RIGHT */
+
+                    temppi_r3_band.ReadRaster(right_x, bottom_y, 1, 1, floatArray);
+
+                    if(Float.isNaN(floatArray[0]) && !done3) {
+
+                        int minX = right_x - n;
+                        int maxX = right_x + n;
+                        int minY = bottom_y - n;
+                        int maxY = bottom_y + n;
+
+                        tempF = new float[2];
+
+                        for (int h = minX; h <= maxX; h++) {
+                            for (int u = minY; u <= maxY; u++) {
+
+                                x = h;
+                                y = u;
+
+                                if (x < 0)
+                                    x = 0;
+                                if (y < 0)
+                                    y = 0;
+                                if (x > (width - 1))
+                                    x = width - 1;
+                                if (y > (height - 1))
+                                    y = height - 1;
+
+                                temppi_r3_band.ReadRaster(x, y, 1, 1, floatArray);
+
+                                if (!Float.isNaN(floatArray[0])) {
+
+                                    tempF[0] += floatArray[0];
+                                    tempF[1]++;
+
+                                }
+
+                            }
+
+                            float median = Float.NaN;
+
+                            if (tempF[1] > 0)
+                                median = tempF[0] / tempF[1];
+
+                            if(Float.isNaN(median)){
+                                remaining_3++;
+                            }else{
+                                floatArray[0] = median;
+                                temppi_r3_band.WriteRaster(right_x, bottom_y, 1, 1, floatArray);
+                            }
+
+                        }
+                    }
+
+                    /* BOTTOM LEFT */
+
+                    temppi_r4_band.ReadRaster(left_x, bottom_y, 1, 1, floatArray);
+
+                    if(Float.isNaN(floatArray[0]) && !done4) {
+
+                        int minX = left_x - n;
+                        int maxX = left_x + n;
+                        int minY = bottom_y - n;
+                        int maxY = bottom_y + n;
+
+                        tempF = new float[2];
+
+                        for (int h = minX; h <= maxX; h++) {
+                            for (int u = minY; u <= maxY; u++) {
+
+                                x = h;
+                                y = u;
+
+                                if (x < 0)
+                                    x = 0;
+                                if (y < 0)
+                                    y = 0;
+                                if (x > (width - 1))
+                                    x = width - 1;
+                                if (y > (height - 1))
+                                    y = height - 1;
+
+                                temppi_r4_band.ReadRaster(x, y, 1, 1, floatArray);
+
+                                if (!Float.isNaN(floatArray[0])) {
+
+                                    tempF[0] += floatArray[0];
+                                    tempF[1]++;
+
+                                }
+
+                            }
+
+                            float median = Float.NaN;
+
+                            if (tempF[1] > 0)
+                                median = tempF[0] / tempF[1];
+
+                            if(Float.isNaN(median)){
+                                remaining_4++;
+                            }else{
+                                floatArray[0] = median;
+                                temppi_r4_band.WriteRaster(left_x, bottom_y, 1, 1, floatArray);
+                            }
+
+                        }
+                    }
                 }
+            }
+        }
 
-                //stat.setDataF(list);
+        if(nan && false)
+        for(int y_ = n; y_ < (height - n); y_++) {
 
-                float median = Float.NaN;
+            int top_y = y_;
+            int bottom_y = height - n - y_;
 
-                if(tempF[1] > 0)
-                    median = tempF[0] / tempF[1];
+            input_band.ReadRaster(0, top_y, width, 1, data_input);
+            temppi_band.ReadRaster(0, top_y, width, 1, data_top_left);
+            temppi_r2_band.ReadRaster(0, top_y, width, 1, data_top_right);
+            temppi_r3_band.ReadRaster(0, bottom_y, width, 1, data_bottom_right);
+            temppi_r4_band.ReadRaster(0, bottom_y, width, 1, data_bottom_left);
 
-                //if(list.size() > 0)
-                //  median = (float)stat.getMeanFromList();
+            for (int x_ = n; x_ < (width - n); x_++) {
 
-                int x1 = leftOvers2.get(i)[0];
-                int y1 = leftOvers2.get(i)[1];
+                if(Float.isNaN(data_input[x_])){
 
-                input_band.ReadRaster(x1, y1, 1, 1, floatArray);
-
-                if(Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
-
-                    //if(!Float.isNaN(median))
-                    //System.out.println("here! 1 " + median);
-                    floatArray[0] = median;
-                    input_band.WriteRaster(x1, y1, 1, 1, floatArray);
-                    //input[leftOvers2.get(i)[0]][leftOvers2.get(i)[1]] = median;
-                }
-
-
-                else if(median > (floatArray[0] + 2.0) || (median + 2.0) < floatArray[0] ){
-                    floatArray[0] = median;
-                    input_band.WriteRaster(x1, y1, 1, 1, floatArray);
-                    //input[leftOvers2.get(i)[0]][leftOvers2.get(i)[1]] = median;
-                }
-                //input[leftOvers.get(i)[0]][leftOvers.get(i)[1]] = median;
-
-                x1 = leftOvers2.get(i)[0];
-                y1 = leftOvers2.get(i)[1];
-
-                input_band.ReadRaster(x1, y1, 1, 1, floatArray);
-
-                if(Float.isNaN(floatArray[0])){
-
-                    //System.out.println("here! 2");
-
-                    int[] leftOver = new int[2];
-
-                    leftOver[0] = leftOvers2.get(i)[0];
-                    leftOver[1] = leftOvers2.get(i)[1];
-
-                    leftOvers.add(leftOver);
+                    data_input[x_] = (data_top_left[x_] + data_top_right[x_] + data_bottom_left[x_] + data_bottom_right[x_]) / 4.0f;
 
                 }
 
             }
 
+            input_band.WriteRaster(0, top_y, width, 1, data_input);
 
-            System.out.print("\033[2K"); // Erase line content
-            System.out.print("Iteration: " + leftOverCount + " NaNs left: " + leftOvers.size() + "\r");
-
-            if(leftOverCount > 100)
-                leftOvers.clear();
 
         }
 
+
+        //System.out.println("SUCCESS!");
+        //System.exit(1);
         count3 = 0;
 
         //System.loadLibrary("opencv_java320");
@@ -948,7 +1648,7 @@ public class createCHM{
 
 
             //double[][] smoothed = null;
-
+/*
             double[][] matti = new double[input.getRasterXSize()][input.getRasterYSize()];
             double[][] matti_smooth = new double[input.getRasterXSize()][input.getRasterYSize()];
 
@@ -965,19 +1665,27 @@ public class createCHM{
 
 
 
-            matti_smooth = GaussianSmooth.smooth(matti, cols, rows, kernel, theta);
+               matti_smooth = GaussianSmooth.smooth(matti, cols, rows, kernel, theta);
 
             for(int x_ = 0; x_ < input.getRasterXSize(); x_++){
                 for(int y_ = 0; y_ < input.getRasterYSize(); y_++){
 
 
-                    floatArray[0] = (float)matti_smooth[x_][y_] ;
+                    //floatArray[0] = (float)matti_smooth[x_][y_] ;
+                    floatArray[0] = (float)matti[x_][y_];
 
                     temppi_band.WriteRaster(x_, y_, 1, 1, floatArray);
 
 
                 }
             }
+
+*/
+            GaussianSmooth.smooth_tif(input, temppi, cols, rows, kernel, theta);  // THIS IS GOOD!!!! :)
+
+
+
+
 
             //if(p80 > 20)
             //  smoothed = GaussianSmooth.smooth(temppi2, rows, cols, 3, 1.0);  // THIS IS GOOD!!!! :)
@@ -986,8 +1694,11 @@ public class createCHM{
 
             //smoothed = GaussianSmooth.smooth(input, rows, cols, kernel, theta);  // THIS IS GOOD!!!! :)
 
-            //GaussianSmooth.smooth_tif(input, temppi, cols, rows, kernel, theta);  // THIS IS GOOD!!!! :)
 
+            //for(int y_ = 0; y_ < height; y_++){
+               // temppi_band.ReadRaster(0, y_, width, 1, data_input);
+               // input_band.WriteRaster(0, y_, width, 1, data_input);
+            //}
             //copyRaster(temppi, input);
 
             //newFile.delete();
@@ -4411,6 +5122,10 @@ public class createCHM{
 	public static class chm{
 
         public Dataset cehoam;
+
+        public ArrayList<Dataset> cehoam_pit_free = new ArrayList<>();
+        public ArrayList<Band> cehoam_pit_free_band = new ArrayList<>();
+
         public Band band = null;
 
         public Dataset filtered = null;
@@ -4554,7 +5269,8 @@ public class createCHM{
             aR.p_update.updateProgressDSM();
             //interpolation = false;
 
-			establish();
+            establish();
+			//establish_pit_free();
 
 
             aR.kernel = (int)( 2.0 * Math.ceil( 3.0 * aR.theta) + 1.0);
@@ -4602,33 +5318,14 @@ public class createCHM{
 
             this.resolution_m = (maxX - minX) / numberOfPixelsX;
 
-			//output = new Mat(numberOfPixelsY, numberOfPixelsX, CvType.CV_64FC1);
-
-            //output2 = new float[numberOfPixelsX][numberOfPixelsY];
-
-            //bank = new float[numberOfPixelsX * numberOfPixelsY][3];
-
-/*
-            if(layers > 1){
-
-                bankR = new float[numberOfPixelsX * numberOfPixelsY][3];
-                bankG = new float[numberOfPixelsX * numberOfPixelsY][3];
-                bankB = new float[numberOfPixelsX * numberOfPixelsY][3];
-
-                output2R = new float[numberOfPixelsX][numberOfPixelsY];
-                output2G = new float[numberOfPixelsX][numberOfPixelsY];
-                output2B = new float[numberOfPixelsX][numberOfPixelsY];
-            }
-*/
 			double tempx = minX;
 			double tempy = maxY;
 
-			long countx = 0;
-			long county = 0;
-			int count2 = 0;
-
             long n = pointCloud.getNumberOfPointRecords();
             LasPoint tempPoint = new LasPoint();
+
+
+
             if(dz_on_the_fly) {
 
                 for (int i = 0; i < n; i += 10000) {
@@ -4683,11 +5380,9 @@ public class createCHM{
 			long count = 0;
 			long[] temppi = new long[2];
 
-            int counti = 0;
+            long tStart = System.currentTimeMillis();
 
-
-            int counter = 0;
-
+            MaxSizeHashMap<Integer, Float> map = new MaxSizeHashMap<>(100000);
 
             for(int i = 0; i < n; i += 10000) {
 
@@ -4698,11 +5393,9 @@ public class createCHM{
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-                //pointCloud.braf.buffer.position(0);
 
                 for (int j = 0; j < maxi; j++) {
-                    //Sstem.out.println(j);
-                    //count++;
+
                     pointCloud.readFromBuffer(tempPoint);
 
                     /* Reading, so ask if this point is ok, or if
@@ -4736,7 +5429,14 @@ public class createCHM{
                     temppi[0] = Math.max((long)Math.floor((tempPoint.x - minX) / resolution), 0);   //X INDEX
                     temppi[1] = Math.max((long)Math.floor((maxY - tempPoint.y) / resolution), 0);
 
-                    band.ReadRaster((int)temppi[0], (int)temppi[1], 1, 1, floatArray);
+                    int key = (int) (temppi[1] * numberOfPixelsX + temppi[0]);
+
+                    if(!map.containsKey(key)) {
+                        band.ReadRaster((int) temppi[0], (int) temppi[1], 1, 1, floatArray);
+                        map.put(key, floatArray[0]);
+                    }
+                    else
+                        floatArray[0] = map.get(key);
 
                     //imgRaf.read((int)temppi[0], (int)temppi[1]);
 
@@ -4770,6 +5470,10 @@ public class createCHM{
 
                     if(tempPoint.z > floatArray[0] || Float.isNaN(floatArray[0])){
                         floatArray[0] = (float)tempPoint.z;
+
+                        if(map.containsKey(key))
+                            map.put(key, floatArray[0]);
+
                         band.WriteRaster((int)temppi[0], (int)temppi[1], 1, 1, floatArray);
 
                         //imgRaf.writePixel((int)temppi[0], (int)temppi[1], floatArray[0]);
@@ -4822,13 +5526,18 @@ public class createCHM{
 
                     count++;
 
-                    //if(count % 100000 == 0){
-                      //  System.out.println(count + " | " + n);
-                    //}
                 }
-                //}
+
 			}
-            //System.out.println("counti: " + counti);
+
+            long tEnd = System.currentTimeMillis();
+            long tDelta = tEnd - tStart;
+
+            long minutes = (tDelta / 1000)  / 60;
+            int seconds = (int)((tDelta / 1000) % 60);
+
+            System.out.println("TOOK: " + minutes + " min " + seconds + " sec");
+
 
             if(aR.lasrelate){
 
@@ -4882,7 +5591,756 @@ public class createCHM{
 
             }
 
+            int num_iter = 3;
+
+            HashMap<Integer, Float> chauvenets = new HashMap<>();
+
+            chauvenets.put(3, 1.383f);
+            chauvenets.put(4, 1.534f);
+            chauvenets.put(5, 1.645f);
+            chauvenets.put(6, 1.732f);
+            chauvenets.put(7, 1.803f);
+            chauvenets.put(8, 1.863f);
+            chauvenets.put(9, 1.915f);
+
+            float maxDifference = 2.0f;
+
+            for(int iter = 0; iter < num_iter; iter++){
+
+                ArrayList<int[]> indexes_to_set_nan = new ArrayList<>();
+
+                int height = band.getYSize();
+                int width = band.getXSize();
+
+                int n_ = 1;
+
+                TreeSet<Float> ts_f = new TreeSet<>();
+                //ArrayList<Float> ts_f_surroundings = new ArrayList<>();
+
+                int x_, y_;
+
+                int count_x = 0, count_y = 0;
+
+                for (int y = n_; y < (height - n_); y++) {
+                    for (int x = n_; x < (width - n_); x++) {
+
+                        int minX = x - n_;
+                        int maxX = x + n_;
+                        int minY = y - n_;
+                        int maxY = y + n_;
+
+                        ArrayList<Float> list = new ArrayList<Float>();
+
+                        ts_f.clear();
+
+                        count_x = 0;
+                        count_y = 0;
+
+                        int[] kernel_indexes = new int[9];
+                        float[] ke = new float[9];
+                        ArrayList<Float> numarray = new ArrayList<>();
+                        ArrayList<Float> numarray_surroundings = new ArrayList<>();
+
+                        for (int h = minX; h <= maxX; h++) {
+                            //count_x++;
+                            for (int u = minY; u <= maxY; u++) {
+
+                                count_y++;
+
+                                x_ = h;
+                                y_ = u;
+
+                                if (x_ < 0)
+                                    x_ = 0;
+                                if (y_ < 0)
+                                    y_ = 0;
+                                if (x_ > (width - 1))
+                                    x_ = width - 1;
+                                if (y_ > (height - 1))
+                                    y_ = height - 1;
+
+                                band.ReadRaster(x_, y_, 1, 1, floatArray);
+
+                                //System.out.println("count_y: " + count_y);
+                                ke[count_y - 1] = floatArray[0];
+
+                                if (!Float.isNaN(floatArray[0])) { // (x != j || y != i) &&
+
+                                    kernel_indexes[ts_f.size()] = count_y;
+
+                                    ts_f.add(floatArray[0]);
+
+                                    if(count_y != 5){
+                                        numarray_surroundings.add(floatArray[0]);
+                                    }
+
+                                    numarray.add(floatArray[0]);
+
+                                }
+                            }
+                        }
+
+                        if(Float.isNaN(ke[4]) || numarray_surroundings.size() < 3) {
+                            continue;
+                        }
+
+                       // Arrays.sort(ke);
+
+                        Collections.sort(numarray_surroundings);
+
+                        double median_surroundings;
+
+                        if (numarray_surroundings.size() % 2 == 0)
+                            median_surroundings = ((double)numarray_surroundings.get(numarray_surroundings.size()/2) + (double)numarray_surroundings.get(numarray_surroundings.size()/2 - 1))/2;
+                        else
+                            median_surroundings = (double) numarray_surroundings.get(numarray_surroundings.size()/2);
+
+
+                        Collections.sort(numarray);
+                        double median;
+                       /*
+                        if (ke.length % 2 == 0)
+                            median = ((double)ke[ke.length/2] + (double)ke[ke.length/2 - 1])/2;
+                        else
+                            median = (double) ke[ke.length/2];
+*/
+                        if (numarray.size() % 2 == 0)
+                            median = ((double)numarray.get(numarray.size()/2) + (double)numarray.get(numarray.size()/2 - 1))/2;
+                        else
+                            median = (double) numarray.get(numarray.size()/2);
+
+
+
+                        //float[] ke2 = new float[ke.length];
+
+
+
+                        ArrayList<Float> numarray2 = new ArrayList<>();
+
+                        for(int i = 0; i < numarray.size(); i++){
+
+                            numarray2.add((float)Math.abs(numarray.get(i) - median));
+
+                        }
+
+
+                        //Arrays.sort(ke2);
+                        Collections.sort(numarray2);
+
+                        double MAD;
+                        /*
+                        if (ke2.length % 2 == 0)
+                            MAD = ((double)ke2[ke2.length/2] + (double)ke2[ke2.length/2 - 1])/2;
+                        else
+                            MAD = (double) ke2[ke2.length/2];
+*/
+                        if (numarray2.size() % 2 == 0)
+                            MAD = ((double)numarray2.get(numarray2.size()/2) + (double)numarray2.get(numarray2.size()/2 - 1))/2;
+                        else
+                            MAD = (double) numarray2.get(numarray2.size()/2);
+
+
+
+                        int n_outliers = 0;
+                        boolean center_outlier = false;
+                        int counter3 = 0;
+
+                        float sum_f = 0.0f;
+                        int counter_f = 0;
+
+
+                        if(median == 0.0f || MAD == 0.0f)
+                            continue;
+
+                        for(float f : ke){
+
+                            counter3++;
+
+                            if(!Float.isNaN(f)){
+
+                                if(counter3 != 5) {
+                                    sum_f += f;
+                                    counter_f++;
+                                }
+
+
+                                /* the following idea by Iglewicz and Hoaglin (1993): Use modified 𝑍-scores 𝑀 such that:*/
+                                float stuff = (float)Math.abs(.6745f * (f - median) / MAD);
+
+                                //System.out.println(stuff + " " + f + " " + median + " " + MAD);
+
+
+
+                                if( stuff > aR.filter_intensity){  // aR.filter_intensity defaults to 1.75
+
+                                    n_outliers++;
+
+                                    if(counter3 == 5){
+                                        center_outlier = true;
+                                    }
+
+                                }
+                            }
+
+                        }
+
+                        float mean_surroundings = sum_f / (float)counter_f;
+
+                        /*
+
+                        for(int i = 0; i < ke.length; i++){
+
+                            if(i == 4)
+                                continue;
+
+                            if(Math.abs(ke[4] - ke[i]) < maxDifference)
+                                ke[i] = Float.NaN;
+
+                        }
+
+
+                         */
+
+                        /*
+                        float sum = 0;
+                        float sq_sum = 0;
+                        int valid_cells = 0;
+
+                        for(float f : ke){
+
+                            if(!Float.isNaN(f)){
+
+                                sum += f;
+                                sq_sum += f * f;
+                                valid_cells++;
+
+                            }
+
+                        }
+
+                        float mean = sum / (float)valid_cells;
+                        float variance = sq_sum / (float)valid_cells - mean * mean;
+                        float sd = (float)Math.sqrt(variance);
+
+                        int n_outliers = 0;
+                        boolean center_outlier = false;
+                        int counter3 = 0;
+
+                        if(valid_cells < 3)
+                            continue;
+
+                        for(float f : ke){
+
+                            counter3++;
+
+                            if(!Float.isNaN(f)){
+
+                                if((mean - f) > (chauvenets.get(valid_cells) * sd)){  // aR.filter_intensity defaults to 1.75
+
+                                    n_outliers++;
+
+                                    if(counter3 == 5){
+                                        center_outlier = true;
+                                    }
+
+                                }
+                            }
+
+                        }
+*/
+                        if(n_outliers <= 4 && center_outlier && median > 2){
+
+                            indexes_to_set_nan.add(new int[]{x,y});
+
+                        }else if(n_outliers > 4 && center_outlier){
+
+                            /* This probably means that the surrounding stuff is VERY flat*/
+                            if((median_surroundings - ke[4]) > 5.0)
+                                indexes_to_set_nan.add(new int[]{x,y});
+
+                        }
+
+                    /*
+
+                    boolean[] grubb = grubbsTest(ts_f);
+                    int index_offset = 0;
+
+                    boolean center_outlier = false;
+
+                    while(grubb[0] == true){
+
+                        int index = kernel_indexes[index_offset];
+
+                        if(index == 5)
+                            center_outlier = true;
+
+                        index_offset++;
+                        ts_f.pollFirst();
+
+                        grubb = grubbsTest(ts_f);
+
+                    }
+
+                    //System.out.println(index_offset + " " + center_outlier);
+
+                    if(index_offset <= 2 && center_outlier){
+                        floatArray[0] = Float.NaN;
+
+                        indexes_to_set_nan.add(new int[]{x,y});
+                        System.out.println(Arrays.toString(ke));
+
+                    }
+
+                     */
+                    }
+                }
+
+                floatArray[0] = Float.NaN;
+
+                for(int[] i : indexes_to_set_nan){
+                    band.WriteRaster(i[0], i[1], 1, 1, floatArray);
+                }
+                //scehoam.FlushCache();
+                band.FlushCache();
+
+                //System.exit(1);
+            }
+
+
+
 		}
+
+        public boolean[] grubbsTest(TreeSet<Float> values){
+
+            if(values.size() == 0)
+                return new boolean[]{false, false};
+
+            boolean[] output = new boolean[2];
+
+            float sum = 0;
+            float sq_sum = 0;
+
+            for(float f : values){
+
+                sum += f;
+                sq_sum += f * f;
+
+            }
+
+            float mean = sum / (float)values.size();
+            float variance = sq_sum / (float)values.size() - mean * mean;
+            float sd = (float)Math.sqrt(variance);
+
+            float critical_value = 0;
+
+            switch (values.size()){
+
+                case 3:
+                    critical_value = 1.15f;
+                    break;
+
+                case 4:
+                    critical_value = 1.49f;
+                    break;
+
+                case 5:
+                    critical_value = 1.75f;
+                    break;
+
+                case 6:
+                    critical_value = 1.94f;
+                    break;
+
+                case 7:
+                    critical_value = 2.1f;
+                    break;
+
+                case 8:
+                    critical_value = 2.22f;
+                    break;
+
+                case 9:
+                    critical_value = 2.32f;
+                    break;
+
+            }
+
+            float t_min = (mean - values.first()) / sd;
+
+            if(t_min > critical_value)
+                output[0] = true;
+
+            float t_max = (values.last() - mean) / sd;
+
+            if(t_max > critical_value)
+                output[1] = true;
+            
+
+            return output;
+
+        }
+
+        public void establish_pit_free() throws IOException{
+
+            double rasterization_threshold = 0.5;
+
+            rasterization_threshold = 1.1;
+
+            minX = pointCloud.getMinX();
+            maxX = pointCloud.getMaxX();
+            minY = pointCloud.getMinY();
+            maxY = pointCloud.getMaxY();
+
+            numberOfPixelsX = (int)Math.ceil((maxX - minX) / resolution);
+            numberOfPixelsY = (int)Math.ceil((maxY - minY) / resolution);
+
+            float[][] groundLevel = new float[1][1];
+            short[][] groundLevel_count = new short[1][1];
+
+            if(aR.lasrelate) {
+                groundLevel = new float[numberOfPixelsX][numberOfPixelsY];
+                groundLevel_count = new short[numberOfPixelsX][numberOfPixelsY];
+            }
+
+            cehoam = gdalE.hei(this.outputFileName, numberOfPixelsY, numberOfPixelsX, Float.NaN);
+
+            band = cehoam.GetRasterBand(1);
+
+            this.resolution_m = (maxX - minX) / numberOfPixelsX;
+
+            long n = pointCloud.getNumberOfPointRecords();
+            LasPoint tempPoint = new LasPoint();
+
+
+            if(dz_on_the_fly) {
+
+                for (int i = 0; i < n; i += 10000) {
+
+                    int maxi = (int) Math.min(10000, Math.abs(n - i));
+
+                    try {
+                        pointCloud.readRecord_noRAF(i, tempPoint, 10000);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    //pointCloud.braf.buffer.position(0);
+
+                    for (int j = 0; j < maxi; j++) {
+                        //Sstem.out.println(j);
+                        //count++;
+                        pointCloud.readFromBuffer(tempPoint);
+
+                        /* Reading, so ask if this point is ok, or if
+                        it should be modified.
+                         */
+                        if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                            continue;
+                        }
+
+                        if(tempPoint.classification == 2){
+
+                            tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+
+                        }
+                    }
+
+                }
+
+            }
+
+            polator.resetForChangeToTin();
+
+
+
+
+
+
+            aR.p_update.threadEnd[coreNumber-1] = (int)n;
+            aR.p_update.threadProgress[coreNumber-1]++;
+            aR.p_update.threadFile[coreNumber-1] = "CHM - first pass";
+            aR.p_update.updateProgressDSM();
+
+
+            if(!aR.p_update.las2dsm_print)
+                aR.p_update.updateProgressITD();
+
+            long count = 0;
+            long[] temppi = new long[2];
+
+            int counti = 0;
+
+
+            int counter = 0;
+
+            int[] thresholds = new int[]{2,5,10,15,20};
+            ArrayList<float[]> floatArrays = new ArrayList<>();
+
+            ArrayList<IncrementalTin> tins = new ArrayList<>();
+
+            ArrayList<TriangularFacetInterpolator> polators  = new ArrayList<>();
+
+
+            for(int i = 0; i < thresholds.length; i++){
+
+                String of = "_pitFree_" + thresholds[i] + ".tif";
+                String o_tmp = fo.createNewFileWithNewExtension(pointCloud.getFile(), of).getAbsolutePath();
+                cehoam_pit_free.add(gdalE.hei(o_tmp, numberOfPixelsY, numberOfPixelsX, Float.NaN));
+                cehoam_pit_free_band.add(cehoam_pit_free.get(cehoam_pit_free.size()-1).GetRasterBand(1));
+                floatArrays.add(new float[]{0.0f});
+
+                tins.add(new IncrementalTin());
+                polators.add(new TriangularFacetInterpolator(tins.get(tins.size()-1)));
+
+            }
+
+            for(int i = 0; i < n; i += 10000) {
+
+                int maxi = (int) Math.min(10000, Math.abs(n - i));
+
+                try {
+                    pointCloud.readRecord_noRAF(i, tempPoint, 10000);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                //pointCloud.braf.buffer.position(0);
+
+                for (int j = 0; j < maxi; j++) {
+                    //Sstem.out.println(j);
+                    //count++;
+                    pointCloud.readFromBuffer(tempPoint);
+
+                    /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                    if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                        continue;
+                    }
+
+                    if(dz_on_the_fly){
+
+                        double interpolatedZ = polator.interpolate(tempPoint.x, tempPoint.y, valuator);
+
+                        tempPoint.z -= interpolatedZ;
+
+                    }
+/*
+			for(long i = 0; i < n; i++){
+
+				count++;
+
+
+                if(i % 10000 == 0){
+
+                    //System.out.print("\033[2K"); // Erase line content
+                    //System.out.print(i + "\r");
+
+                }
+*/
+                    //pointCloud.readRecord(i, tempPoint);
+                    //System.out.println(tempPoint.z);
+                    temppi[0] = Math.max((long)Math.floor((tempPoint.x - minX) / resolution), 0);   //X INDEX
+                    temppi[1] = Math.max((long)Math.floor((maxY - tempPoint.y) / resolution), 0);
+
+                    if(temppi[0] >= numberOfPixelsX)
+                        temppi[0] = numberOfPixelsX - 1;
+                    if(temppi[1] >= numberOfPixelsY)
+                        temppi[1] = numberOfPixelsY - 1;
+
+                    band.ReadRaster((int)temppi[0], (int)temppi[1], 1, 1, floatArray);
+
+                    int whichRaster = -1;
+
+                    for(int i_ = thresholds.length-1; i_ >= 0; i_--){
+
+                        if(tempPoint.z > thresholds[i_]){
+
+                            cehoam_pit_free_band.get(i_).ReadRaster((int)temppi[0], (int)temppi[1], 1, 1, floatArrays.get(i_));
+
+                            if(tempPoint.z > floatArrays.get(i_)[0] || Float.isNaN(floatArrays.get(i_)[0])){
+
+                                floatArrays.get(i_)[0] = (float)tempPoint.z;
+
+                                cehoam_pit_free_band.get(i_).WriteRaster((int)temppi[0], (int)temppi[1], 1, 1, floatArrays.get(i_));
+
+                            }
+                        }
+                    }
+
+                    if(aR.lasrelate){
+                        if(tempPoint.classification == 2){
+
+                            groundLevel_count[(int)temppi[0]][(int)temppi[1]]++;
+
+                            float newAverage = groundLevel[(int)temppi[0]][(int)temppi[1]] * ((float)groundLevel_count[(int)temppi[0]][(int)temppi[1]]-1.0f) / (float)groundLevel_count[(int)temppi[0]][(int)temppi[1]]
+                                    + (float)tempPoint.z / (float)groundLevel_count[(int)temppi[0]][(int)temppi[1]];
+
+                            groundLevel[(int)temppi[0]][(int)temppi[1]] = newAverage;
+
+                        }
+                    }
+
+                    if(tempPoint.z > floatArray[0] || Float.isNaN(floatArray[0])){
+                        floatArray[0] = (float)tempPoint.z;
+                        band.WriteRaster((int)temppi[0], (int)temppi[1], 1, 1, floatArray);
+
+                    }
+
+                    aR.p_update.threadProgress[coreNumber-1]++;
+
+                    if(aR.p_update.threadProgress[coreNumber-1] % 100000 == 0) {
+
+                        aR.p_update.updateProgressDSM();
+
+                        if(!aR.p_update.las2dsm_print)
+                            aR.p_update.updateProgressITD();
+                    }
+
+                    count++;
+
+                }
+                //}
+            }
+
+            float[] data = new float[numberOfPixelsX];
+
+            for(int y = 0; y < numberOfPixelsY; y++) {
+                for(int i = 0; i < thresholds.length; i++){
+                    cehoam_pit_free_band.get(i).ReadRaster(0, y, numberOfPixelsX, 1, data);
+                    for(int x = 0; x < data.length; x++){
+                        if(data[x] > 0){
+                            tins.get(i).add(new Vertex(x,y,data[x]));
+                        }
+                    }
+                }
+            }
+
+            for(int i = 0; i < thresholds.length; i++){
+                polators.get(i).resetForChangeToTin();
+            }
+
+            RealVector p1 = new ArrayRealVector(3);
+            RealVector p2 = new ArrayRealVector(3);
+            RealVector p3 = new ArrayRealVector(3);
+            RealVector p4 = new ArrayRealVector(3);
+
+            for(int y = 0; y < numberOfPixelsY; y++) {
+
+                band.ReadRaster(0, y, numberOfPixelsX, 1, data);
+                boolean changed = false;
+
+                for (int x = 0; x < numberOfPixelsX; x++) {
+
+                    for(int i = 0; i < tins.size(); i++) {
+
+                        if (tins.get(i).isBootstrapped()) {
+
+                            IQuadEdge e = tins.get(i).getNeighborEdgeLocator().getNeigborEdge(x, y); // getNeighborhoodPointsCollector().collectNeighboringVertices(tempPoint.x, tempPoint.y, 0, 0);
+
+                            Vertex a = e.getA();
+                            Vertex b = e.getB();
+
+                            //System.out.println("HA " + e.getLength() + " " + a.getDistance(b));
+
+                            if(e.getLength() < rasterization_threshold){
+
+                                double value = polators.get(i).interpolate(x, y, valuator);
+
+                                //System.out.println(value + " " + data[x]);
+                                if((float)value > data[x]){
+                                    data[x] = (float)value;
+                                    changed = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if(changed){
+                    band.WriteRaster(0, y, numberOfPixelsX, 1, data);
+                }
+
+            }
+
+            if(false)
+            for(int i = 0; i < tins.size(); i++){
+
+                if(tins.get(i).isBootstrapped()){
+
+                    for(SimpleTriangle st : tins.get(i).triangles()){
+
+                        if(st.getEdgeA().getLength() > rasterization_threshold &&
+                                st.getEdgeB().getLength() > rasterization_threshold &&
+                                st.getEdgeC().getLength() > rasterization_threshold){
+
+
+                            System.out.println("BADD");
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+
+
+
+            //System.out.println("SUCCESS!!");
+            //System.exit(1);
+            if(aR.lasrelate){
+
+
+                float rasterValue = 0;
+                float groundValue = 0;
+
+
+
+                for(int x = 0; x < numberOfPixelsX; x++){
+                    for(int y = 0; y < numberOfPixelsY; y++){
+
+                        if(groundLevel[x][y] != 0.0f){
+                            tin.add(new Vertex(x, y, groundLevel[x][y]));
+                        }
+
+                    }
+                }
+                polator.resetForChangeToTin();
+
+                if(false)
+
+                    for(int x = 0; x < numberOfPixelsX; x++){
+                        for(int y = 0; y < numberOfPixelsY; y++){
+
+                            band.ReadRaster(x, y, 1, 1, floatArray);
+
+                            if(Float.isNaN(floatArray[0]) || floatArray[0] == 0)
+                                continue;
+
+                            double interpolatedZ = polator.interpolate(x + resolution / 2.0, y + resolution / 2.0, valuator);
+
+                            //System.out.println("interpolatedZ "  + interpolatedZ);
+
+                            if(Double.isNaN(interpolatedZ)){
+                                floatArray[0] = Float.NaN;
+                                band.WriteRaster(x, y, 1, 1, floatArray);
+                            }else{
+
+                                double delta_z = tempPoint.z - interpolatedZ;
+
+                                floatArray[0] = (float)delta_z;
+                                band.WriteRaster(x, y, 1, 1, floatArray);
+
+
+
+                            }
+                        }
+                    }
+
+
+            }
+
+        }
 
 		public void make() throws IOException{
 
@@ -5324,12 +6782,14 @@ public class createCHM{
          */
         public boolean isTreeTop(Band input, int x, int y){
 
-            band.ReadRaster(x, y, 1, 1, floatArray);
+            band_filterd.ReadRaster(x, y, 1, 1, floatArray);
+
 
             float zMiddle = floatArray[0];
 
             if(zMiddle < 4.0f || Double.isNaN(zMiddle))
                 return false;
+
             double kernel_size_meters = 1.1 + 0.002 * (zMiddle*zMiddle);
             int kernelSize = (int)Math.round(kernel_size_meters / this.resolution);
 
@@ -5354,11 +6814,7 @@ public class createCHM{
 
             if(kernelSize < 1)
                 kernelSize = 1;
-            //System.out.println("------------------------");
 
-
-            //System.out.println(zMiddle + " < 2.0f? " +  (zMiddle < 2.0f));
-            band_filterd.ReadRaster(x, y, 1, 1, floatArray);
 
             zMiddle = floatArray[0];
 
@@ -5368,24 +6824,68 @@ public class createCHM{
             if(Float.isNaN(zMiddle))
                 return false;
 
-            //ArrayList<float[]> circle = drawCircle(x, y, kernelSize, input);
 
-            int count = 0;
             ArrayList<Float> bank = new ArrayList<>();
-
-            double value = 0.0;
-
-            //System.out.println(circle.size());
-
-            int valuesBelow = 0;
-
-            int valuesAbove = 0;
 
             ArrayList<int[]> valuesAboveLocations = new ArrayList<int[]>();
 
-            band_filterd.ReadRaster(x - kernelSize, y - kernelSize, kernelSize * 2 + 1, kernelSize * 2 + 1, treeKernel);
+            //band_filterd.ReadRaster(x - kernelSize, y - kernelSize, kernelSize * 2 + 1, kernelSize * 2 + 1, treeKernel);
 
 
+            int minX = x - kernelSize;
+            int maxX = x + kernelSize;
+            int minY = y - kernelSize;
+            int maxY = y + kernelSize;
+
+            //Mat submat = input.submat(minY, maxY + 1, minX, maxX + 1);
+
+            int sum = 0;
+
+            //double[] array = new double[(n * 2 + 1) * (n * 2 + 1)];
+            ArrayList<Float> list = new ArrayList<Float>();
+            int count = 0;
+            int count2 = 0;
+
+            //tempF = new float[2];
+
+            for (int h = minX; h <= maxX; h++) {
+                for (int u = minY; u <= maxY; u++) {
+
+                    int x_ = h;
+                    int y_ = u;
+
+                    if (x_ < 0)
+                        x_ = 0;
+                    if (y_ < 0)
+                        y_ = 0;
+                    if (x_ > (band.getXSize() - 1))
+                        x_ = band.getXSize()  - 1;
+                    if (y_ > (band.getYSize()  - 1))
+                        y_ = band.getYSize()  - 1;
+
+                    band_filterd.ReadRaster(x_, y_, 1, 1, floatArray);
+
+                    if(count++ != (int)((kernelSize * 2 + 1) * (kernelSize * 2 + 1) / 2) && !Float.isNaN(floatArray[0])){
+
+                        int[] temp = new int[2];
+
+                        temp[0] = x_;
+                        temp[1] = y_;
+
+                        //if(treeTopBank.contains(Cantor.pair(i, j))){
+                        if(treeTopBank.contains((long)(x_ * this.maxY + y_))){
+                            return false;
+                        }
+
+
+                        if(floatArray[0] > zMiddle)
+                            return false;
+
+                    }
+
+                }
+            }
+                    /*
             int x_count = 0;
             int y_count = 0;
 
@@ -5399,15 +6899,16 @@ public class createCHM{
                     if(((i != x) || (j != y)) && !Float.isNaN(treeKernel[index])){
 
                         int[] temp = new int[2];
+
                         temp[0] = i;
                         temp[1] = j;
 
-                        if(treeTopBank.contains(Cantor.pair(i, j))){
-                            //System.out.println("GOT HERE");
+                        //if(treeTopBank.contains(Cantor.pair(i, j))){
+                        if(treeTopBank.contains((long)(i * maxY + j))){
+
                             return false;
                         }
 
-                        //System.out.println(index + " " + y_count + " " + x_count + " " + treeKernel.length);
 
                         if(treeKernel[index] > zMiddle)
                             return false;
@@ -5418,6 +6919,8 @@ public class createCHM{
                 y_count = 0;
                 x_count++;
             }
+
+                     */
 /*
             for(int i = (x - kernelSize); i <= (x + kernelSize); i++){
                 for(int j = (y - kernelSize); j <= (y + kernelSize); j++){
@@ -5509,6 +7012,8 @@ public class createCHM{
 				outShpFeat.SetGeometryDirectly(outShpGeom);
 				outShpLayer.CreateFeature(outShpFeat);
     		}
+
+              outShp.FlushCache();
 		}
 
         public void deleteOutliers(){
@@ -5565,7 +7070,8 @@ public class createCHM{
 						//temp[2] = output.get(j, i)[0];
 						String tempString = temp[0] + " " + temp[1];
 
-						treeTopBank.add(Cantor.pair(i, j));
+						//treeTopBank.add(Cantor.pair(i, j));
+						treeTopBank.add((long)(i * this.maxY + j));
 						treeTops.add(temp);
 
 						aR.p_update.threadProgress[coreNumber-1]++;
@@ -5578,6 +7084,11 @@ public class createCHM{
 					}
 
 				}
+
+                System.out.println("ROW:  " + i + " " + endX);
+                System.out.println("ROW:  " + i + " " + endX);
+                System.out.println("ROW:  " + i + " " + endX);
+                System.out.println("ROW:  " + i + " " + endX);
 			}
 			//System.out.println(treeTopBank.size());
 			writeTrees();
@@ -5853,6 +7364,20 @@ public class createCHM{
 		//WaterShed fill = new WaterShed(testi.treeTops, 0.2, testi.output2, testi);
 
 	}
+
+    public static class MaxSizeHashMap<K, V> extends LinkedHashMap<K, V> {
+
+        private final int maxSize;
+
+        public MaxSizeHashMap(int maxSize) {
+            this.maxSize = maxSize;
+        }
+
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+            return size() > maxSize;
+        }
+    }
 
 }
 

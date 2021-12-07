@@ -24,9 +24,13 @@ public class Convolution extends Thread {
    * Default no-arg constructor.
    */
   public Convolution() {
+
+
+
   }
 
   public Convolution(int kernelSiz){
+
       floatArrayRow = new float[kernelSiz * kernelSiz];
 
   }
@@ -60,6 +64,35 @@ public class Convolution extends Thread {
     }
     return output;
   }
+
+    public static double singlePixelConvolution_nan_tolerant(double [][] input,
+                                                int x, int y,
+                                                double [][] k,
+                                                int kernelWidth,
+                                                int kernelHeight){
+        double output = 0;
+        double output_2 = 0;
+
+        for(int i=0;i<kernelWidth;++i){
+            for(int j=0;j<kernelHeight;++j){
+
+                if(Double.isNaN(input[x+i][y+j])){
+
+                    output = output + (0.0 * k[i][j]);
+                    output_2 = output_2 + (0.0 * k[i][j]);
+
+                }else{
+                    output_2 = output_2 + (1.0 * k[i][j]);
+                    //System.out.println(" i: " + i + " j: " + j + " x: " + x + " y: " + y + " width: " + kernelWidth + " col: " + input.length + " row: " + input[0].length);
+                    output = output + (input[x+i][y+j] * k[i][j]);
+                }
+
+            }
+        }
+
+        //System.out.println("o: " + (output/output_2));
+        return output / output_2;
+    }
 
     public static double singlePixelConvolution_tif(Band input,
                                                 int x, int y,
@@ -99,16 +132,10 @@ public class Convolution extends Thread {
                                                     int kernelWidth,
                                                     int kernelHeight){
         double output = 0;
-
+        double output_2 = 0;
         int count = 0;
-        //
-
         int index;
-
         float value;
-
-        //if(Float.isNaN(input[Math.ceil(input.length/2)))
-          //  return Float.NaN;
 
         for(int y = 0; y < kernelHeight; y++){
             for(int x1 = 0; x1 < kernelWidth; x1++) {
@@ -117,25 +144,51 @@ public class Convolution extends Thread {
 
                 value = input[index];
 
-                //System.out.println(y + " " + x1 + " " + index + " " + input.length);
-
-
-
-                if(Float.isNaN(value)){
-                    value = 0.0f;
-                }
-
-
+                //if(Float.isNaN(value)){
+                //    value = 0.0f;
+                //}
 
                 output = output + (value * k[x1][y]);
 
-                //System.out.println(output);
             }
         }
 
         //  }
         //}
         return output;
+    }
+
+    public static double singlePixelConvolution_tif_array_nan_tolerant(float[] input,
+                                                          int x,
+                                                          double [][] k,
+                                                          int kernelWidth,
+                                                          int kernelHeight){
+        double output = 0;
+        double output_2 = 0;
+        int count = 0;
+        int index;
+        float value;
+
+        for(int y = 0; y < kernelHeight; y++){
+            for(int x1 = 0; x1 < kernelWidth; x1++) {
+
+                index = floatArrayRowFull.length * y + (x + x1);
+
+                value = input[index];
+
+                if(Float.isNaN(value)){
+                    output = output + 0.0 * k[x1][y];
+                    output_2 = output_2 + 0.0 * k[x1][y];
+                }else{
+                    output_2 = output_2 + 1.0 * k[x1][y];
+                    output = output + (value * k[x1][y]);
+                }
+            }
+        }
+
+        //  }
+        //}
+        return output / output_2;
     }
   /**
    * Takes an image (grey-levels) and a kernel and a position,
@@ -197,43 +250,85 @@ public class Convolution extends Thread {
     return output;
   }
 
-  /**
-   * Takes a 2D array of grey-levels and a kernel and applies the convolution
-   * over the area of the image specified by width and height.
-   *
-   * @param input the 2D double array representing the image
-   * @param width the width of the image
-   * @param height the height of the image
-   * @param kernel the 2D array representing the kernel
-   * @param kernelWidth the width of the kernel
-   * @param kernelHeight the height of the kernel
-   * @return the 2D array representing the new image
-   */
-  public static double [][] convolution2D(double [][] input,
-					      int width, int height,
-					      double [][] kernel,
-					      int kernelWidth,
-					      int kernelHeight){
 
-    int smallWidth = width - kernelWidth + 1;
-    int smallHeight = height - kernelHeight + 1;
+    public static double [][] convolution2DPadded(double [][] input,
+                                                  int width, int height,
+                                                  double [][] kernel,
+                                                  int kernelWidth,
+                                                  int kernelHeight){
 
-    double [][] output = new double [smallWidth][smallHeight];
+        int smallWidth = width - kernelWidth + 1;
+        int smallHeight = height - kernelHeight + 1;
 
-    for(int i=0;i<smallWidth;++i){
-      for(int j=0;j<smallHeight;++j){
-	       output[i][j]=0;
-      }
+        int top = kernelHeight/2;
+        int left = kernelWidth/2;
+
+        double[][] small  = new double [smallWidth][smallHeight];
+
+        small = convolution2D(input,width,height,kernel,kernelWidth,kernelHeight);
+
+        double[][] large  = new double [width][height];
+
+        for(int j = 0; j < height; ++j){
+            for(int i = 0; i < width; ++i){
+                large[i][j] = 0;
+            }
+        }
+        for(int j = 0; j < smallHeight; ++j){
+            for(int i = 0; i < smallWidth; ++i){
+                //if (i+left==32 && j+top==100) System.out.println("Convolve2DP: "+small[i][j]);
+                large[i+left][j+top] = small[i][j];
+            }
+        }
+
+        return large;
     }
-    for(int i=0;i<smallWidth;++i){
-      for(int j=0;j<smallHeight;++j){
-	       output[i][j] = singlePixelConvolution(input,i,j,kernel,
-					kernelWidth,kernelHeight);
+
+
+    /**
+     * Takes a 2D array of grey-levels and a kernel and applies the convolution
+     * over the area of the image specified by width and height.
+     *
+     * @param input the 2D double array representing the image
+     * @param width the width of the image
+     * @param height the height of the image
+     * @param kernel the 2D array representing the kernel
+     * @param kernelWidth the width of the kernel
+     * @param kernelHeight the height of the kernel
+     * @return the 2D array representing the new image
+     */
+    public static double [][] convolution2D(double [][] input,
+                                            int width, int height,
+                                            double [][] kernel,
+                                            int kernelWidth,
+                                            int kernelHeight){
+
+        int smallWidth = width - kernelWidth + 1;
+        int smallHeight = height - kernelHeight + 1;
+
+        double [][] output = new double [smallWidth][smallHeight];
+
+        for(int i=0;i<smallWidth;++i){
+            for(int j=0;j<smallHeight;++j){
+                output[i][j]=0;
+            }
+        }
+        for(int i=0;i<smallWidth;++i){
+            for(int j=0;j<smallHeight;++j){
+
+                output[i][j] = singlePixelConvolution(input,i,j,kernel,
+                        kernelWidth,kernelHeight);
+                if(Double.isNaN(output[i][j])){
+                    output[i][j] = singlePixelConvolution_nan_tolerant(input,i,j,kernel,
+                            kernelWidth,kernelHeight);
+
+                }
 //if (i==32- kernelWidth + 1 && j==100- kernelHeight + 1) System.out.println("Convolve2D: "+output[i][j]);
-      }
+            }
+        }
+        return output;
     }
-    return output;
-  }
+
 
     public static void convolution2DPadded_tif(Dataset input, Dataset output,
                                                   int width, int height,
@@ -245,15 +340,12 @@ public class Convolution extends Thread {
         //floatArrayColumn = new float[height];
         int smallWidth = width - kernelWidth + 1;
         int smallHeight = height - kernelHeight + 1;
-/*
-        if(smallHeight-  kernelHeight <= 0)
-            return;
-        if(smallWidth-  kernelWidth <= 0)
-            return;
-*/
 
-        floatArrayColumn = new float[smallHeight-kernelHeight];
-        floatArrayRow = new float[smallWidth-kernelWidth];
+
+        floatArrayColumn = new float[smallHeight];
+        //floatArrayColumn = new float[smallHeight-kernelHeight];
+        //floatArrayRow = new float[smallWidth-kernelWidth];
+        floatArrayRow = new float[smallWidth];
         floatArrayRowFull = new float[input.getRasterXSize()];
 
         floatArrayKS = new float[kernelWidth * kernelHeight];
@@ -263,33 +355,8 @@ public class Convolution extends Thread {
         int top = kernelHeight/2;
         int left = kernelWidth/2;
 
-        //double small [][] = new double [smallWidth][smallHeight];
-
         Band inBand = input.GetRasterBand(1);
         Band outBand = output.GetRasterBand(1);
-
-        //small = convolution2D_tif(inBand, outBand, width,height,kernel,kernelWidth,kernelHeight);
-        //convolution2D_tif(inBand, outBand, width,height,kernel,kernelWidth,kernelHeight);
-/*
-        double large [][] = new double [width][height];
-
-        for(int j = 0; j < height; ++j){
-            for(int i = 0; i < width; ++i){
-                large[i][j] = 0;
-            }
-        }
-
-        Band out_band = output.GetRasterBand(1);
-
-        for(int j = 0; j < smallHeight; ++j){
-            for(int i = 0; i < smallWidth; ++i){
-                //if (i+left==32 && j+top==100) System.out.println("Convolve2DP: "+small[i][j]);
-                large[i+left][j+top] = small[i][j];
-            }
-        }
-
-
-*/
 
         int startY = kernelHeight/2;
         int startX = kernelWidth/2;
@@ -297,52 +364,36 @@ public class Convolution extends Thread {
         double convolutionValue = 0d;
 
         int counter = 0;
-/*
-        for(int y = 0; y < smallHeight-kernelHeight; y++){
-            for(int x = 0; x < smallWidth-kernelWidth; x++){
 
+        for(int x = 0; x < floatArrayRowFull.length; x++)
+            floatArrayRowFull[x] = 0;
 
-                inBand.ReadRaster(0, y, (smallWidth-kernelWidth), kernelHeight, floatArrayLarge);
+        for(int y = 0; y < height; y++) {
 
-                //System.out.println(x + " kernel: " + kernelHeight + " " + (smallWidth-kernelWidth));
-                convolutionValue = singlePixelConvolution_tif(inBand,x,y,kernel,
-                        kernelWidth,kernelHeight);
-                floatArray[0] = (float)convolutionValue;
+            outBand.WriteRaster(0,y,width,1, floatArrayRowFull);
 
-                //outBand.WriteRaster(x + left, y + top, 1, 1, floatArray);
-
-                counter ++;
-                if(counter % 10000 == 0)
-                    System.out.println(counter + " | " + (smallWidth * smallHeight));
-
-                floatArrayRow[x] = floatArray[0];
-
-            }
-
-            outBand.WriteRaster(left, y + top, floatArrayRow.length, 1,  floatArrayRow);
         }
 
- */
-
-        for(int y = 0; y < smallHeight-kernelHeight; y++){
+            //for(int y = 0; y < smallHeight-kernelHeight; y++){
+        for(int y = 0; y < smallHeight; y++){
 
             inBand.ReadRaster(0, y, floatArrayRowFull.length, kernelHeight, floatArrayLarge);
 
+            //for(int x = 0; x < floatArrayRow.length; x++) {
             for(int x = 0; x < floatArrayRow.length; x++) {
-
-
-                    //System.out.println(x + " kernel: " + kernelHeight + " " + (smallWidth-kernelWidth));
 
                     convolutionValue = singlePixelConvolution_tif_array(floatArrayLarge, x, kernel,
                             kernelWidth, kernelHeight);
 
+                if(Double.isNaN(convolutionValue)){
+
+                    convolutionValue = singlePixelConvolution_tif_array_nan_tolerant(floatArrayLarge, x, kernel,
+                            kernelWidth, kernelHeight);
+                }
+
                 floatArray[0] = (float) convolutionValue;
 
-                //outBand.WriteRaster(x + left, y + top, 1, 1, floatArray);
-
                 counter++;
-                //if (counter % 10000 == 0)
-                  //  System.out.println(counter + " | " + (smallWidth * smallHeight));
 
                 floatArrayRow[x] = floatArray[0];
 
@@ -434,39 +485,6 @@ public class Convolution extends Thread {
    * @param kernelHeight the height of the kernel
    * @return the 2D array representing the new image
    */
-  public static double [][] convolution2DPadded(double [][] input,
-						int width, int height,
-						double [][] kernel,
-						int kernelWidth,
-						int kernelHeight){
-
-    int smallWidth = width - kernelWidth + 1;
-    int smallHeight = height - kernelHeight + 1;
-
-    int top = kernelHeight/2;
-    int left = kernelWidth/2;
-
-    double[][] small  = new double [smallWidth][smallHeight];
-
-    small = convolution2D(input,width,height,kernel,kernelWidth,kernelHeight);
-
-    double[][] large  = new double [width][height];
-
-    for(int j = 0; j < height; ++j){
-      for(int i = 0; i < width; ++i){
-	       large[i][j] = 0;
-      }
-    }
-    for(int j = 0; j < smallHeight; ++j){
-      for(int i = 0; i < smallWidth; ++i){
-      //if (i+left==32 && j+top==100) System.out.println("Convolve2DP: "+small[i][j]);
-      	large[i+left][j+top] = small[i][j];
-      }
-    }
-
-    return large;
-  }
-
 
 
   /**

@@ -240,7 +240,7 @@ public class printHelp {
                 " lasGridStats -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Computes echo-class specific statistics from the \n" +
@@ -295,7 +295,7 @@ public class printHelp {
                 " lasStem -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Attempts to delineate an understory tree layer \n" +
@@ -315,7 +315,7 @@ public class printHelp {
                 " lasLayer -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Attempts to delineate an understory tree layer \n" +
@@ -334,7 +334,7 @@ public class printHelp {
                 " lasITDstats -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Computes tree-wise statistics from crown segmented (lasITD.sh)\n" +
@@ -363,7 +363,7 @@ public class printHelp {
                 " lasCheck -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Checks that the contents of the .las file are \n" +
@@ -383,7 +383,7 @@ public class printHelp {
                 " lasSplit -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "A tool to split a LAS file under various criterion \n" +
@@ -407,7 +407,7 @@ public class printHelp {
                 " lasSort -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Sorts the points in a .las file. Can either be \n" +
@@ -436,7 +436,7 @@ public class printHelp {
                 " lasIndex -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Spatially indexes a .las file for faster spatial queries.\n" +
@@ -463,7 +463,7 @@ public class printHelp {
                 " lasITD -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Segments individual trees from point cloud data. The\n" +
@@ -513,7 +513,7 @@ public class printHelp {
                 " lasStrip -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Aligns the flight lines of LiDAR data. Flight lines\n" +
@@ -540,7 +540,7 @@ public class printHelp {
                 " lasclip -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Clips .las files. The output can be either a las\n" +
@@ -570,7 +570,7 @@ public class printHelp {
                 " las2las -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Converts .las file to another .las file\n" +
@@ -589,7 +589,7 @@ public class printHelp {
                 " las2txt -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Converts a .las file into a .txt file. Output column\n" +
@@ -617,7 +617,7 @@ public class printHelp {
                 " las2shp -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Converts a .las file to ESRI shapefile where each \n" +
@@ -634,7 +634,7 @@ public class printHelp {
                 " lasborder -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Creates an ESRI shapefile representing the spatial extent\n" +
@@ -652,7 +652,7 @@ public class printHelp {
                 " txt2las -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Converts .txt files into .las files. The order\n" +
@@ -677,7 +677,7 @@ public class printHelp {
                 " lasheight -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Subtracts every point from a TIN surface based\n" +
@@ -700,7 +700,7 @@ public class printHelp {
                 " las2dsm -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Creates a Digital Surface Model (DSM) from .las file.\n" +
@@ -709,12 +709,20 @@ public class printHelp {
                 "filter. Gaussian kernel is computed automatically using the  \n" +
                 "provided -theta parameter. \n" +
                 "\n" +
+                "Data gaps are detected in the algorithm from a 3x3 kernel\n" +
+                "using the outlier detection idea by Iglewicz and Hoaglin (1993). \n" +
+                "These gaps are then interpolated via the gaussian filter. The \n" +
+                "intensity of the Iglewicz and Hoaglin (1993) can be adjusted with \n" +
+                "-filter_intensity parameter. This parameter defaults to 2.5, \n" +
+                "which has been observed to work well with ~5 pulses per square \n" +
+                "meter LiDAR data. Commonly used value in literature appear to be ~3.5.\n" +
+                "\n" +
                 "Usage:\n" +
                 "\n" +
                 "\t-i\t\tInput file(s)\n" +
                 "\t-o\t\tOutput file\n" +
                 "\t-step\t\tDSM resolution (in meters)\n" +
-                "\t-theta\t\tGaussian theta (default 1.0)\n");
+                "\t-theta\t\tGaussian theta (default 1.0)");
     }
 
 
@@ -723,7 +731,7 @@ public class printHelp {
                 " lasground -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Detects ground points from .las file. Based on Axelsson\n" +
@@ -753,7 +761,7 @@ public class printHelp {
                 " lasnoise -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Detects outliers in .las file and either classifies\n" +
@@ -773,7 +781,7 @@ public class printHelp {
                 " lasmerge -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Merges multiple .las files into one. \n" +
@@ -789,7 +797,7 @@ public class printHelp {
                 " lasthin -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institure Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Thins a .las point cloud. -step specifies the\n" +
@@ -811,7 +819,7 @@ public class printHelp {
                 " lastile -- LASutils build $line\n" +
                 "\n" +
                 " (c) M.Kukkonen\n" +
-                " University of Eastern Finland\n" +
+                " Natural Resources Institute Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
                 "Splits many .las files into convenient sized square\n" +

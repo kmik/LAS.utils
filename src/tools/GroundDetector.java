@@ -2268,7 +2268,8 @@ public class GroundDetector{
 
             for(SimpleTriangle triangle : tin.triangles()){
 
-                 Circumcircle cc = triangle.getCircumcircle();
+
+                Circumcircle cc = triangle.getCircumcircle();
 
                 double dist_x = Math.min(cc.getX() - inside_x, inside_x + aR.step - cc.getX());
                 double dist_y = Math.min(cc.getY() - (inside_y-aR.step), inside_y - cc.getY());

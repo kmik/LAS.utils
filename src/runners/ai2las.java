@@ -1,6 +1,10 @@
 package runners;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.ShortBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -15,7 +19,11 @@ import org.gdal.gdal.Band;
 
 import LASio.*;
 
+import tools.createCHM;
 import utils.*;
+
+import static org.gdal.gdalconst.gdalconstConstants.*;
+
 class ai2las{
 	public static listOfFiles tiedostoLista = new listOfFiles();
 	public static ThreadProgressBar proge = new ThreadProgressBar();
@@ -299,6 +307,7 @@ class ai2las{
 					flyingHeight = aR.altitude;
 
 				double gsd = ((sensorSize / 1000.0 * flyingHeight) / (focalLength_millimeters / 1000.0 * (double)tempDataset.GetRasterXSize())) * 100.0;
+				double gsd_m = gsd / 100.0;
 
 
 				System.out.println("img altitude: " + flyingHeight + " gsd: " + gsd + " cm");
@@ -319,11 +328,11 @@ class ai2las{
 				Math.max((double)tempDataset.GetRasterXSize() / 2.0, temp[0]);
 
 
-				extentsThis[0] = eoTemp[0] - ((double) tempDataset.GetRasterXSize() * gsd);
-				extentsThis[1] = eoTemp[0] + ((double) tempDataset.GetRasterXSize() * gsd);
+				extentsThis[0] = eoTemp[0] - ((double) tempDataset.GetRasterXSize() * gsd_m);
+				extentsThis[1] = eoTemp[0] + ((double) tempDataset.GetRasterXSize() * gsd_m);
 
-				extentsThis[2] = eoTemp[1] - ((double) tempDataset.GetRasterYSize() * gsd);
-				extentsThis[3] = eoTemp[1] + ((double) tempDataset.GetRasterYSize() * gsd);
+				extentsThis[2] = eoTemp[1] - ((double) tempDataset.GetRasterYSize() * gsd_m);
+				extentsThis[3] = eoTemp[1] + ((double) tempDataset.GetRasterYSize() * gsd_m);
 
 				extents.add(extentsThis.clone());
 
@@ -627,6 +636,12 @@ class ai2las{
 		//ArrayList<Integer> channelValues = new ArrayList<Integer>();
 
 		//double[] channelValues = new double[];
+		int n_bands = 0;
+		int[] band_list;
+		ByteBuffer bb;
+
+		int data_type;
+		byte n_bytes;
 
 		public pointAI(){
 
@@ -634,10 +649,19 @@ class ai2las{
 
 		}
 
-		public pointAI(int n_bands){
+		public pointAI(int n_bands, int n_bytes, int data_type){
 
 			poison = true;
 			channelMeans = new double[n_bands];
+			this.n_bands = n_bands;
+			band_list = new int[this.n_bands];
+
+			for(int i = 1; i <= n_bands; i++)
+				band_list[i-1] = i;
+
+			this.n_bytes = (byte)n_bytes;
+
+			this.data_type = data_type;
 
 		}
 
@@ -662,6 +686,70 @@ class ai2las{
 
 			imagesVisible.add(imageId);
 
+			imagesVisible.add(imageId);
+
+			bb = ByteBuffer.allocateDirect( n_bytes * n_bands );
+			bb.order(ByteOrder.nativeOrder());
+
+			//System.out.println(Arrays.toString(band_list));
+			//System.exit(1);
+			image.ReadRaster_Direct((int)x, (int)y, 1, 1, 1, 1, data_type, bb, band_list);
+/*
+			System.out.println("this: " + temp1.GetRasterDataType());
+			System.out.println("byte: " + GDT_Byte);
+			System.out.println("int_16: " + GDT_Int16);
+			System.out.println("uint_16: " + GDT_UInt16);
+			System.out.println("float_32: " + GDT_Float32);
+			System.out.println("float_64: " + GDT_Float64);
+
+			System.exit(1);
+
+*/
+			int[] val1 = new int[n_bands];
+
+			for(int i = 0; i < image.GetRasterCount(); i++){
+
+				int value = 0;
+				//System.out.println(temp1.GetRasterDataType());
+
+				switch(data_type){
+
+					case 1:
+						value = bb.get();
+						break;
+
+					case 2:
+						//System.out.println("READING: " + Arrays.toString(band_list));
+						value = getUnsignedShort(bb);
+						//System.out.println(value);
+						break;
+
+					case 3:
+						value = bb.getShort();
+						break;
+
+					case 6:
+						value = (int)bb.getFloat();
+						break;
+
+					case 7:
+						value = (int)bb.getDouble();
+						break;
+
+					default:
+						break;
+
+				}
+
+
+				//int value = getUnsignedShort(bb);
+				channelMeans[i] += value;
+				//val1[i] = value;
+
+			}
+
+			//int[] val2 = new int[n_bands];
+
 			for(int i = 1; i <= image.GetRasterCount(); i++){
 
 				Band temp = image.GetRasterBand(i);
@@ -673,10 +761,109 @@ class ai2las{
 						array1);
 
 				channelMeans[i - 1] += array1[0];
+				//val2[i-1] = array1[0];
+
+			}
+
+			//System.out.println(Arrays.toString(val1));
+			//System.out.println(Arrays.toString(val2));
+			//System.out.println("-------------");
+
+		}
+
+		public synchronized float[] addObservation_return_array(Dataset image, int imageId, double x, double y){
+
+			float[] output = new float[image.GetRasterCount()];
+			Band temp1 = image.GetRasterBand(1);
+			imagesVisible.add(imageId);
+			ByteBuffer bb = ByteBuffer.allocateDirect(2*5);
+			bb.order(ByteOrder.nativeOrder());
+
+
+			int[] band_list = new int[]{1,2,3,4,5};
+			image.ReadRaster_Direct((int)x, (int)y, 1, 1, 1, 1, 2, bb, band_list);
+
+
+			for(int i = 0; i < image.GetRasterCount(); i++){
+
+				int value = getUnsignedShort(bb);
+				channelMeans[i] += value;
+				output[i] = value;
+			}
+
+
+			if(false)
+			for(int i = 1; i <= image.GetRasterCount(); i++){
+
+				Band temp = image.GetRasterBand(i);
+
+/*
+				ByteBuffer bb = temp.ReadRaster_Direct((int)x,
+						(int)y,
+						1,
+						1,
+						temp.getDataType());
+
+				int dataType = temp.getDataType();
+
+
+				int value = getUnsignedShort(bb);
+*/
+				int a = temp.ReadRaster((int)x,
+						(int)y,
+						1,
+						1,
+						array1);
+
+				//System.out.println(value + " ?? " + array1[0]);
+
+				channelMeans[i - 1] += array1[0];
+
+				//System.out.println(array1[0]);
+				output[i-1] = array1[0];
+
+			}
+			//System.out.println("##################");
+			return output;
+		}
+
+		public static int getUnsignedShort(ByteBuffer buffer) {
+			int pos = buffer.position();
+			int rtn = getUnsignedShort(buffer, pos);
+			buffer.position(pos + 2);
+			return rtn;
+		}
+
+		/**
+		 * Read an unsigned short from a buffer
+		 * @param buffer Buffer containing the short
+		 * @param offset Offset at which to read the short
+		 * @return The unsigned short as an int
+		 */
+		public static int getUnsignedShort(ByteBuffer buffer, int offset) {
+			return asUnsignedShort(buffer.getShort(offset));
+		}
+
+		/**
+		 * @return the short value converted to an unsigned int value
+		 */
+		public static int asUnsignedShort(short s) {
+			return s & 0xFFFF;
+		}
+
+		public synchronized void addObservation_from_array(Dataset image, float[] data, int imageId){
+
+			imagesVisible.add(imageId);
+
+			for(int i = 1; i <= image.GetRasterCount(); i++){
+
+				channelMeans[i - 1] += data[i - 1];
+
 
 			}
 
 		}
+
 
 		public synchronized void threadDone(){
 
@@ -873,6 +1060,7 @@ class ai2las{
 		boolean wildCard = false;
 
 		ArrayList<String> filesList = new ArrayList<String>();
+
 		String input = "";
 		String iparse = "xyz";
 		String oparse = iparse;
@@ -902,9 +1090,11 @@ class ai2las{
 		gdal.AllRegister();
 
 		System.out.println("max cache: " + gdal.GetCacheMax());
-		gdal.SetCacheMax(413375897 * 2);
-		System.out.println("max cache: " + gdal.GetCacheMax());
+		//gdal.SetCacheMax(413375897 * 4);
+		gdal.SetCacheMax((int)(aR.gdal_cache_gb * 1073741824));
 
+		System.out.println("max cache: " + gdal.GetCacheMax() + " " + aR.gdal_cache_gb);
+		//System.exit(1);
 
 		nCores = aR.cores;
 		iparse = aR.iparse;
@@ -1005,7 +1195,7 @@ class ai2las{
 
 		ArrayList<Integer> imageIDs = new ArrayList<Integer>();
 
-		ArrayList<String> tempList = filesList;// runners.MKid4pointsLAS.listFiles("/media/koomikko/B8C80A93C80A4FD41/id4points/LASutils/ai2las_test/noDupe/forTest/", ".las");
+		ArrayList<String> tempList = filesList;
 
 		double minZ = findMaxZ(tempList);
 
@@ -1047,7 +1237,40 @@ class ai2las{
 			odir = "";
 
 
-		pointAI tempP = new pointAI(n_bands);
+		int n_bytes = 0;
+
+		switch(datasets.get(0).GetRasterBand(1).getDataType()){
+
+			case 1:
+				n_bytes = 1;
+				break;
+
+			case 2:
+				//System.out.println("READING: " + Arrays.toString(band_list));
+				n_bytes = 2;
+				//System.out.println(value);
+				break;
+
+			case 3:
+				n_bytes = 2;
+				break;
+
+			case 6:
+				n_bytes = 4;
+				break;
+
+			case 7:
+				n_bytes = 8;
+				break;
+
+			default:
+				break;
+
+		}
+
+		int data_type = datasets.get(0).GetRasterBand(1).getDataType();
+
+		pointAI tempP = new pointAI(n_bands, n_bytes, data_type);
 
 		double x_s = datasets.get(0).getRasterXSize();
 		double y_s = datasets.get(0).getRasterYSize();
@@ -1057,11 +1280,19 @@ class ai2las{
 		int pix_threshold_x = (int) ((double)datasets.get(0).getRasterXSize() * aR.edges);
 		int pix_threshold_y = (int) ((double)datasets.get(0).getRasterYSize() * aR.edges);
 
+		ArrayList<createCHM.MaxSizeHashMap<Integer, float[]>> maps = new ArrayList<>();
+
+
 		for(int i = 0; i < datasets.size(); i++){
+
+			maps.add(new createCHM.MaxSizeHashMap(10000));
 
 			rotationMatrices.add(makeRotationMatrix(interior, exteriors.get(i)));
 
 		}
+
+
+
 
 		if(!aR.debug) {
 
@@ -1070,6 +1301,8 @@ class ai2las{
 				int outsidePoint = 0;
 
 				File tempFile = new File(tempList.get(t));
+
+				//System.out.println(tempFile.getAbsolutePath());
 
 				File ofile2 = aR.createOutputFileWithExtension(tempFile, "_ai.txt");
 
@@ -1109,7 +1342,7 @@ class ai2las{
 
 				double[] temp;
 
-				int n_threads = 1;
+				int n_threads = 0;
 
 				pointDistributor pdis = new pointDistributor();
 
@@ -1118,7 +1351,7 @@ class ai2las{
 				int n_img_per_thread = (int)Math.ceil((double)datasets.size() / (double)n_threads);
 
 				ArrayList<PriorityBlockingQueue<double[]>> thread_point_que = new ArrayList<>();
-
+/*
 				for (int i = 0; i < n_threads; i++) {
 
 					thread_point_que.add(new PriorityBlockingQueue<>());
@@ -1129,7 +1362,8 @@ class ai2las{
 							x_s, y_s, pix_threshold_x, pix_threshold_y, imageIDs, extents);
 					threads[i].start();
 				}
-
+*/
+				int x_size = datasets.get(0).getRasterXSize();
 
 				try {
 
@@ -1198,22 +1432,33 @@ class ai2las{
  */
 							/* CAN THIS BE PARALLELIZED?*/
 							//if(true)
+							int found = 0;
 
-							AtomicInteger inti = new AtomicInteger(0);
-
-							inti.addAndGet(1);
-
+							//long time_start = System.currentTimeMillis();
 
 							for (int j_ = 0; j_ < datasets.size(); j_++) {
 
+								//System.out.println(Arrays.toString(extents.get(j_)));
 								if (tempPoint.x >= extents.get(j_)[0] && tempPoint.x <= extents.get(j_)[1] && tempPoint.y >= extents.get(j_)[2] && tempPoint.y <= extents.get(j_)[3]) {
+
 
 									temp = collinearStuff2(tempPoint, interior, exteriors.get(j_), rotationMatrices.get(j_), x_s, y_s);
 
 									if (temp[0] > pix_threshold_x && temp[0] < (x_s - pix_threshold_x)
 											&& temp[1] > pix_threshold_y && temp[1] < (y_s - pix_threshold_y)) {
 
-										tempP.addObservation(datasets.get(j_), imageIDs.get(j_), temp[0], temp[1]);
+										found++;
+
+										int key = (int)(temp[1] * x_size + temp[0]);
+
+										//if(!maps.get(j_).containsKey(key)) {
+											tempP.addObservation(datasets.get(j_), imageIDs.get(j_), temp[0], temp[1]);
+											//maps.get(j_).put(key, tempP.addObservation_return_array(datasets.get(j_), imageIDs.get(j_), temp[0], temp[1]));
+
+										//}else{
+											//System.out.println("OBS FROM ARRAY");
+											//tempP.addObservation_from_array(datasets.get(j_), maps.get(j_).get(key), imageIDs.get(j_));
+										//}
 
 										pointFound = true;
 
@@ -1221,6 +1466,9 @@ class ai2las{
 								}
 							}
 
+							//long time_end = System.currentTimeMillis();
+
+							//System.out.println("TOOK: " + (time_end-time_start) + " ms " + found	);
 
 							valmiit.clear();
 

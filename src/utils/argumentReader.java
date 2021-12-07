@@ -33,6 +33,7 @@ public class argumentReader {
 
     public boolean input_in_radians = false;
 
+    public double filter_intensity = 2.5;
 
     public boolean olas = false;
 
@@ -70,6 +71,8 @@ public class argumentReader {
 
     public double orig_x = -1;
     public double orig_y = -1;
+
+    public double gdal_cache_gb = 2.5;
 
     public boolean interpolate = true;
 
@@ -475,6 +478,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("gdal_cache_gb")
+                .hasArg(true)
+                .desc("gdal cache in gb")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("input_in_radians")
                 .hasArg(false)
                 .desc("Input angles are in radians")
@@ -561,6 +571,13 @@ public class argumentReader {
 
         options.addOption(Option.builder()
                 .longOpt("dist")
+                .hasArg(true)
+                .desc("Dist")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("filter_intensity")
                 .hasArg(true)
                 .desc("Dist")
                 .required(false)
@@ -1440,12 +1457,23 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("filter_intensity")) {
+
+                this.filter_intensity = Double.parseDouble(cmd.getOptionValue("filter_intensity"));
+
+            }
+
             if (cmd.hasOption("delta")) {
 
                 this.delta = Double.parseDouble(cmd.getOptionValue("delta"));
 
             }
 
+            if (cmd.hasOption("gdal_cache_gb")) {
+
+                this.gdal_cache_gb = Double.parseDouble(cmd.getOptionValue("gdal_cache_gb"));
+
+            }
 
             if (cmd.hasOption("set_classification")) {
 
@@ -2283,6 +2311,7 @@ public class argumentReader {
         }
 
         String extensionHere = tempFile.getName().substring(tempFile.getName().lastIndexOf("."));
+
         if(tempFile.exists()){
             tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
         }
@@ -2403,6 +2432,7 @@ public class argumentReader {
         else
             tempFile = new File(this.output);
 
+        System.out.println(tempFile.getAbsolutePath() + " " + this.output.equals("asd") + " " + this.output);
         if(!odir.equals("asd")) {
 
             File diri = new File(odir);
@@ -2412,7 +2442,11 @@ public class argumentReader {
 
         if(tempFile.exists()){
 
-            tempFile = fo.createNewFileWithNewExtension(tempFile, extension);
+            //tempFile.delete();
+            //tempFile.createNewFile();
+            System.out.println(tempFile.getAbsolutePath());
+            System.out.println(in.getAbsolutePath());
+            tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extension);
         }
 
         if(tempFile.exists())

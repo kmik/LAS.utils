@@ -1273,11 +1273,13 @@ public class ITDstatistics{
     /** TESTING CONVOLUTION INPUT */
     public void profile(double[] treeTop, TDoubleArrayList p2, int treeId) throws IOException{
 
-        //System.out.println("HERE! " + treeTop.length + " " + p2.size());
+        //System.out.println("START!");
+
         if(treeTop == null || p2.size() == 0){
 
             return;
         }
+
 
         //System.out.println("SUCCESS! " + Arrays.toString(glcm.features));
         //System.exit(1);
@@ -1335,6 +1337,7 @@ public class ITDstatistics{
         if(!inSideAPolygon && polygons.size() > 0)
             return;
 
+
         double[][] poly = null;
 
         if(polygons.size() > 0)
@@ -1367,7 +1370,7 @@ public class ITDstatistics{
         double[] mu = new double[x_ * y_ * z_];
         double[] sum = new double[x_ * y_ * z_];
 
-        double minZ = maxZ * 0.50;  //Math.min(maxPointZ - minPointZ, 2.0);
+        double minZ = maxZ * 0.25;  //Math.min(maxPointZ - minPointZ, 2.0);
 
         ArrayList<WritableRaster> textureLayers = new ArrayList<>();
         ColorModel cm = null;
@@ -1481,6 +1484,8 @@ public class ITDstatistics{
             //System.out.println("HERE! " + tempPoint.z + " mi: " + minZ + " ma: " + maxZ);
 
             //if(tempPoint.z > minZ && tempPoint.z < maxZ){ //  && goodIndexes.contains(i)
+            //System.out.println(tempPointArray[2] + " " + maxZ + " " + minZ);
+
             if(tempPointArray[2] > minZ && tempPointArray[2] <= maxZ){ //  && goodIndexes.contains(i)
 
                 if(tempPointArray[0] > maxx)
@@ -1524,6 +1529,7 @@ public class ITDstatistics{
                     hullMaxZ = tempPointArray[2];
 
                 hullPointCounter++;
+
                 /* TODO: 	Make sure that the point is valid, i.e make sure the point
                  is the furthest from the mid point in that height.
                  */
@@ -1887,10 +1893,11 @@ public class ITDstatistics{
                 densities[i] = 0;
         }
 
-
+        //System.out.println("HERE!! " + finalHullPoints.length + "  " + p2.size());
 
 
         if(finalHullPoints.length > 10){
+
 
             quickhull3d.QuickHull3D hull = null;
             try {
@@ -1898,6 +1905,11 @@ public class ITDstatistics{
             }catch (Exception e){
                 return;
             }
+
+
+
+
+
             double[] volume2 =  calcVolume3d(hull);
 
             hull = null;
@@ -2098,46 +2110,6 @@ public class ITDstatistics{
                     // We're done
                     writer.endWriteSequence();
                 }
-
-                /*
-                band = dataset.GetRasterBand(i + 1);
-                band.SetColorInterpretation(gdalconst.GCI_GrayIndex);
-                band.SetNoDataValue(0);
-
-                for(int _x_ = 0; _x_ < 100; _x_++){
-                    for(int _y_ = 0; _y_ < 100; _y_++){
-
-                        textureLayers.get(i).getPixel(_x_, _y_, pixVal);
-                        band.WriteRaster(_x_, _y_, 1, 1, pixVal);
-
-                    }
-                }
-                */
-
-
-            //System.exit(1);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             double areaInside = 0.0;
 

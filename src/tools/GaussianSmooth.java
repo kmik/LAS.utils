@@ -116,7 +116,6 @@ public class GaussianSmooth extends Thread {
     //double [][] output = new double [width][height];
     gaussianKernel = gaussian2D(theta,ks);
 
-
     Convolution.convolution2DPadded_tif(input, output, width,height,
             gaussianKernel,ks,ks);
 
