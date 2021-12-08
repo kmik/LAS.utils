@@ -1344,7 +1344,6 @@ class ai2las{
 
 				int n_threads = 0;
 
-				pointDistributor pdis = new pointDistributor();
 
 				Thread[] threads = new Thread[n_threads];
 

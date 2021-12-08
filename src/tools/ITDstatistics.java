@@ -80,7 +80,7 @@ public class ITDstatistics{
 
     ArrayList<float[]> labelTree = new ArrayList<float[]>();
 
-    ArrayList<String> output = new ArrayList<String>();
+    public ArrayList<String> output = new ArrayList<String>();
     ArrayList<String> output_underStorey = new ArrayList<>();
 
     public File outFile = null;
@@ -154,7 +154,7 @@ public class ITDstatistics{
     public KdTree kd_tree1 = new KdTree();
     public KdTree kd_tree2 = new KdTree();
 
-
+    HashSet<Integer> pointSourceSubset = null;
 
     public ITDstatistics(){
 
@@ -168,6 +168,11 @@ public class ITDstatistics{
 
     }
 
+    public void pointSourceSubset(HashSet<Integer> in){
+
+        this.pointSourceSubset = in;
+
+    }
 
 
     public void setData(ArrayList<LasPoint> in){
@@ -1853,11 +1858,11 @@ public class ITDstatistics{
             GLCM glcm_temp = new GLCM();
             glcm_temp.setHaralickDist(1);
 
-            GLCM.imageArray = new byte[]{};
-            GLCM.imageArray = ((DataBufferByte)(textureLayers.get(i).getDataBuffer())).getData();
+            glcm_temp.imageArray = new byte[]{};
+            glcm_temp.imageArray = ((DataBufferByte)(textureLayers.get(i).getDataBuffer())).getData();
 
             //System.out.println(Arrays.toString(glcm_temp.imageArray));
-
+            //System.out.println("Texturesize: : " + textureLayers.size());
             glcm_temp.process(textureLayers.get(i));
 
             glcm_temp.data = new ArrayList<>(1);
@@ -2086,7 +2091,7 @@ public class ITDstatistics{
 
             ImageWriter writer = ImageIO.getImageWritersByFormatName("TIFF").next();
 
-
+/*
                 try (ImageOutputStream output = ImageIO.createImageOutputStream(outFile)) {
 
                     writer.setOutput(output);
@@ -2110,7 +2115,7 @@ public class ITDstatistics{
                     // We're done
                     writer.endWriteSequence();
                 }
-
+*/
             double areaInside = 0.0;
 
             if(polygons.size() > 0)
@@ -3347,6 +3352,12 @@ public class ITDstatistics{
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
+
+                if(pointSourceSubset != null){
+                    if(!pointSourceSubset.contains((int)tempPoint.pointSourceId)){
+                        continue;
+                    }
+                }
 
                 /* Reading, so ask if this point is ok, or if
                 it should be modified.

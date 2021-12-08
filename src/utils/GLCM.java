@@ -10,7 +10,7 @@ import java.util.List;
  * Computes hararick features
  */
 public class GLCM {
-    static int totalPixels=0;
+    public static int totalPixels=0;
     /**
      * The number of gray values for the textures
      */
@@ -67,7 +67,7 @@ public class GLCM {
     public List<double[]> data;
     public int haralickDist;
     public double[] features = null;
-    public static byte[] imageArray;
+    public byte[] imageArray;
 
 
     public void addData(double[] data) {
@@ -77,11 +77,12 @@ public class GLCM {
     public List<double[]> getFeatures() {
         return data;
     }
+
     public void process(WritableRaster b) {
 
         features = new double[14];
 
-        Coocurrence coocurrence = new Coocurrence(b, NUM_GRAY_VALUES, this.haralickDist);
+        Coocurrence coocurrence = new Coocurrence(b, NUM_GRAY_VALUES, this.haralickDist, imageArray);
         coocurrence.calculate();
         double[][] cooccurrenceMatrix = coocurrence.getCooccurrenceMatrix();
         double meanGrayValue = coocurrence.getMeanGrayValue();
@@ -310,9 +311,12 @@ public class GLCM {
          */
         private final int HARALICK_DIST;
         private final WritableRaster image;
+
+        byte[] imageArray;
         //private final short[][] image_short;
 
-        public Coocurrence(WritableRaster b, int numGrayValues, int haralickDist) {
+        public Coocurrence(WritableRaster b, int numGrayValues, int haralickDist, byte[] imageArray) {
+            this.imageArray = imageArray;
             this.NUM_GRAY_VALUES = numGrayValues;
             this.HARALICK_DIST = haralickDist;
             this.cooccurrenceMatrices = new double[NUM_GRAY_VALUES][NUM_GRAY_VALUES];

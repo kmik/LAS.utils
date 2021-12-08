@@ -7,16 +7,14 @@ import LASio.PointInclusionRule;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
 import tools.*;
-import utils.argumentReader;
-import utils.fileDistributor;
-import utils.fileOperations;
-import utils.neuralNetworkTools;
+import utils.*;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.BlockingQueue;
 
 import static runners.MKid4pointsLAS.clipPlots_singleLASfile;
 import static runners.MKid4pointsLAS.readPolygonsFromWKT;
@@ -145,6 +143,8 @@ public class RunLASutils {
     }
 
     public static void main(String[] args) throws Exception {
+
+        long tStart = System.currentTimeMillis();
 
         argumentReader aR = new argumentReader(args);
         aR.setExecDir(System.getProperty("user.dir"));
@@ -970,57 +970,163 @@ public class RunLASutils {
         /* Compute ITD statistics */
         if (aR.tool == 20) {
 
-            File trees = aR.measured_trees;
+            if(aR.cores <= 1) {
 
-            int plotSize = (int) aR.step;
+                File trees = aR.measured_trees;
 
-            ITDstatistics stats = new ITDstatistics(aR);
+                int plotSize = (int) aR.step;
 
-            if (aR.measured_trees != null)
-                stats.readMeasuredTrees(trees);
+                ITDstatistics stats = new ITDstatistics(aR);
 
-            File o_file = null;
+                if (aR.measured_trees != null)
+                    stats.readMeasuredTrees(trees);
 
-            if(aR.output.equals("asd")){
-                aR.output = "default_lasITD_output.txt";
+                File o_file = null;
 
+                if (aR.output.equals("asd")) {
+
+                    aR.output = "default_lasITD_output.txt";
+
+                }
+
+                o_file = new File(aR.output);
+
+                if (o_file.exists())
+                    o_file.createNewFile();
+
+                stats.setOutput(new File(aR.output));
+
+                int index = stats.outFile.getName().lastIndexOf(".");
+
+                String ext = stats.outFile.getName().substring(0, index);
+
+                String parent = stats.outFile.getParent() == null ? "" : stats.outFile.getParent() + "/";
+
+                /* These output files are only for UAV LiDAR data that has been trunk segmented with lasStem.sh */
+                stats.setStemOutput(new File(parent + ext + "_stem.txt"));
+                stats.setStemOutput2(new File(parent + ext + "_stem_2.txt"));
+                stats.setStemOutput3(new File(parent + ext + "_stem_3.txt"));
+
+                /* Not required. Will only segment trees within the polygon boundaries */
+                stats.readFieldPlots(new File(aR.poly));
+
+                for (int i = 0; i < aR.inputFiles.size(); i++) {
+
+                    LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+                    stats.setPointCloud(temp);
+                    stats.processPointCloud(temp);
+
+                }
+
+                if (aR.measured_trees != null)
+                    stats.labelTrees();
+
+                stats.printOutput();
+
+                stats.closeFile();
+            }else{
+
+                File trees = aR.measured_trees;
+
+                int plotSize = (int) aR.step;
+
+                ITDstatistics stats_base = new ITDstatistics(aR);
+
+                if (aR.measured_trees != null)
+                    stats_base.readMeasuredTrees(trees);
+
+                File o_file = null;
+
+                if (aR.output.equals("asd")) {
+
+                    aR.output = "default_lasITD_output.txt";
+
+                }
+
+                o_file = new File(aR.output);
+
+                if (o_file.exists())
+                    o_file.createNewFile();
+
+                stats_base.setOutput(new File(aR.output));
+
+                int index = stats_base.outFile.getName().lastIndexOf(".");
+
+                String ext = stats_base.outFile.getName().substring(0, index);
+
+                String parent = stats_base.outFile.getParent() == null ? "" : stats_base.outFile.getParent() + "/";
+
+                /* These output files are only for UAV LiDAR data that has been trunk segmented with lasStem.sh */
+                stats_base.setStemOutput(new File(parent + ext + "_stem.txt"));
+                stats_base.setStemOutput2(new File(parent + ext + "_stem_2.txt"));
+                stats_base.setStemOutput3(new File(parent + ext + "_stem_3.txt"));
+
+                /* Not required. Will only segment trees within the polygon boundaries */
+                stats_base.readFieldPlots(new File(aR.poly));
+
+                threadOutputs to = new threadOutputs(aR.cores);
+
+                for (int i = 0; i < aR.inputFiles.size(); i++) {
+
+                    ArrayList<String> output_all = new ArrayList<>();
+
+                    LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+                    ArrayList<HashSet<Integer>> threadWorkLoad = new ArrayList<>();
+
+                    for (int c = 0; c < aR.cores; c++)
+                        threadWorkLoad.add(new HashSet<>());
+
+                    ArrayList<File> files = new ArrayList<>();
+                    pointDistributor pd = new pointDistributor(temp, threadWorkLoad, aR, files);
+
+                    ArrayList<Thread> lista11 = new ArrayList<Thread>();
+
+
+                    for (int c = 0; c < aR.cores; c++) {
+
+                        LASReader temp_2 = new LASReader(files.get(c));
+
+                        System.out.println("FILE: " + temp_2.getFile().getAbsolutePath());
+
+                        ITDstatistics stats_tmp = new ITDstatistics(aR);
+
+                        stats_tmp.pointSourceSubset(threadWorkLoad.get(c));
+
+                        if (aR.measured_trees != null)
+                            stats_tmp.readMeasuredTrees(trees);
+
+                        Thread thr = new Thread(new multiThreadITDstats(stats_tmp, to, temp_2));
+                        lista11.add(thr);
+                        thr.start();
+
+                    }
+                    for (int i_ = 0; i_ < lista11.size(); i_++) {
+
+                        try {
+
+                            lista11.get(i_).join();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    for(i = 0; i < to.outputs.size(); i++)
+                        output_all.addAll(to.outputs.get(i));
+
+
+                    stats_base.output.addAll(output_all);
+
+                    /* Delete temporary files */
+                    for(File f : files){
+                        f.delete();
+                    }
+                }
+
+                stats_base.printOutput();
+                stats_base.closeFile();
             }
-            o_file = new File(aR.output);
-
-            if(o_file.exists())
-                o_file.createNewFile();
-
-            stats.setOutput(new File(aR.output));
-
-            int index = stats.outFile.getName().lastIndexOf(".");
-
-            String ext = stats.outFile.getName().substring(0, index);
-
-            String parent = stats.outFile.getParent() == null ? "" : stats.outFile.getParent() + "/";
-
-            /* These output files are only for UAV LiDAR data that has been trunk segmented with lasStem.sh */
-            stats.setStemOutput(new File(parent + ext + "_stem.txt"));
-            stats.setStemOutput2(new File(parent + ext + "_stem_2.txt"));
-            stats.setStemOutput3(new File(parent + ext + "_stem_3.txt"));
-
-            /* Not required. Will only segment trees within the polygon boundaries */
-            stats.readFieldPlots(new File(aR.poly));
-
-            for (int i = 0; i < aR.inputFiles.size(); i++) {
-
-                LASReader temp = new LASReader(aR.inputFiles.get(i));
-
-                stats.setPointCloud(temp);
-                stats.processPointCloud(temp);
-
-            }
-
-            if (aR.measured_trees != null)
-                stats.labelTrees();
-
-            stats.printOutput();
-
-            stats.closeFile();
 
 
         }
@@ -1392,7 +1498,13 @@ public class RunLASutils {
 
         }
 
+        long tEnd = System.currentTimeMillis();
+        long tDelta = tEnd - tStart;
 
+        long minutes = (tDelta / 1000)  / 60;
+        int seconds = (int)((tDelta / 1000) % 60);
+
+        System.out.println("TOOK: " + minutes + " min " + seconds + " sec");
 
     }
 
@@ -2014,5 +2126,64 @@ public class RunLASutils {
         }
     }
 
+
+
+
+    static class multiThreadITDstats implements Runnable {
+
+        ITDstatistics stats;
+        threadOutputs to;
+        LASReader pointCloud;
+
+        public multiThreadITDstats(ITDstatistics stats, threadOutputs to, LASReader pointCloud){
+
+            this.stats = stats;
+            this.to = to;
+            this.pointCloud = pointCloud;
+        }
+
+        public void run() {
+
+            try {
+
+                stats.setPointCloud(pointCloud);
+                stats.processPointCloud(pointCloud);
+
+            }catch (Exception e){
+
+                e.printStackTrace();
+
+            }
+
+            to.addData(stats.output);
+
+        }
+
+    }
+
+
+    static class threadOutputs{
+
+        int n_threads;
+
+        ArrayList<ArrayList<String>> outputs = new ArrayList<>();
+
+        int adds = 0;
+        int removes = 0;
+
+        public threadOutputs(int n_threads){
+
+            this.n_threads = n_threads;
+
+        }
+
+        public synchronized void addData(ArrayList<String> in){
+
+            outputs.add(in);
+            adds++;
+
+        }
+
+    }
 }
 
