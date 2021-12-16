@@ -15,6 +15,7 @@ import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
 import org.tinfour.common.IQuadEdge;
 import org.tinfour.interpolation.NaturalNeighborInterpolator;
+import org.tinfour.interpolation.TriangularFacetInterpolator;
 import org.tinfour.interpolation.VertexValuatorDefault;
 import org.tinfour.utils.Polyside;
 import utils.GLCM;
@@ -46,7 +47,7 @@ import static org.tinfour.utils.Polyside.isPointInPolygon;
 
 public class ITDstatistics{
 
-
+    ArrayList<String> colnames = new ArrayList<>();
 
     Statistics statsConst = new Statistics();
 
@@ -469,7 +470,7 @@ public class ITDstatistics{
         }
 
         org.tinfour.standard.IncrementalTin tin = new org.tinfour.standard.IncrementalTin();
-        NaturalNeighborInterpolator nni = new NaturalNeighborInterpolator(tin);
+        TriangularFacetInterpolator nni = new TriangularFacetInterpolator(tin);
         VertexValuatorDefault valuator = new VertexValuatorDefault();
 
         int label = -1;
@@ -1280,6 +1281,8 @@ public class ITDstatistics{
 
         //System.out.println("START!");
 
+        ArrayList<String> colnames = new ArrayList<>();
+
         if(treeTop == null || p2.size() == 0){
 
             return;
@@ -1290,7 +1293,7 @@ public class ITDstatistics{
         //System.exit(1);
 
         org.tinfour.standard.IncrementalTin tin = new org.tinfour.standard.IncrementalTin();
-        NaturalNeighborInterpolator nni = new NaturalNeighborInterpolator(tin);
+        TriangularFacetInterpolator nni = new TriangularFacetInterpolator(tin);
         VertexValuatorDefault valuator = new VertexValuatorDefault();
 
         int label = -1;
@@ -1752,10 +1755,6 @@ public class ITDstatistics{
                     textureLayers.get(z_coor_tex).setPixel(x_coor_tex, y_coor_tex, valu);
 
                     int[] getValu = new int[]{0};
-                    //textureLayers.get(z_coor_tex).getPixel(x_coor_tex, y_coor_tex, getValu);
-                    //System.out.println("Getting: " + getValu[0]);
-                    //System.out.println(y_dist_to_center + " " + densities_size_y + " " + ((maxy - y_value) / densities_size_y));
-                    //System.out.prin   tln(x_coor + " " + y_coor + " " + z_coor);
 
                     densities[locatio] += intens;
                     densities_count[locatio]++;
@@ -1897,9 +1896,6 @@ public class ITDstatistics{
             else
                 densities[i] = 0;
         }
-
-        //System.out.println("HERE!! " + finalHullPoints.length + "  " + p2.size());
-
 
         if(finalHullPoints.length > 10){
 
@@ -2127,39 +2123,63 @@ public class ITDstatistics{
             if((isIsolated)){ // && label < 3){ //  && plotId_major == plotId_major2 && plotId_minor == plotId_minor2)
 
                 printti = printti.concat(std_z + "\t");
+                colnames.add("std_z");
                 printti = printti.concat(mean_z + "\t");
+                colnames.add("mean_z");
                 printti = printti.concat(maxZ + "\t");
+                colnames.add("max_z");
                 printti = printti.concat(std_euc_dist_z_2d + "\t");
+                colnames.add("std_euc_dist_z_2d");
                 printti = printti.concat(hullRatio + "\t");
+                colnames.add("hull_ratio");
                 printti = printti.concat(volume + "\t");
+                colnames.add("volume");
                 printti = printti.concat(area + "\t");
+                colnames.add("area");
                 printti = printti.concat(statsConst.skewness(z, mean_z, std_z) + "\t");
+                colnames.add("skewness_z");
                 printti = printti.concat(statsConst.kurtosis(z, mean_z, std_z) + "\t");
+                colnames.add("kurtosis_z");
 
                 for(int i = 0; i < (int)steps; i++){
 
                     printti += profile[i]; //profileDistanceMax[i];
+                    colnames.add("profile_" + i);
                     printti += "\t";
 
                 }
 
                 printti += "-999\t";
+                colnames.add("-999");
+                for(int i = 0; i < zPercentiles.length; i++){
 
-                for(double d : zPercentiles){
+
+                    double d = zPercentiles[i];
+                    //for(double d : zPercentiles){
 
                     printti += d;
+                    colnames.add("p_z_" + i);
                     printti += "\t";
 
                 }
                 printti += "-999\t";
+                colnames.add("-999");
 
                 printti += "-666\t";
+                colnames.add("-666");
 
-                for(double d : densities){
+                //for(double d : densities){
+                for(int i = 0; i < densities.length; i++){
+
+                    double d = densities[i];
                     printti += d;
+                    colnames.add("v_i_" + i);
+
                     printti += "\t";
+
                 }
 
+                /* These are the haralick features */
                 if(true)
                 for(int i = 0; i < textureFeatures.size(); i++){
 /*
@@ -2175,8 +2195,11 @@ public class ITDstatistics{
                     for(int j_ = 0; j_ < textureFeatures.get(i).length; j_++){
                         if(j_ <= 10) {
                             if(!obsoleteFeatures.contains(j_)){
+
                                 printti += textureFeatures.get(i)[j_];
+                                colnames.add("haralick_" + i + "_" + j_);
                                 printti += "\t";
+
                             }
 
                         }
@@ -2188,6 +2211,7 @@ public class ITDstatistics{
 
                 StringBuilder sb = new StringBuilder();
 
+                /* These are the gray values of the texture images */
                 if(false)
                     for(int i = 0; i < textureLayers.size(); i++) {
 
@@ -2219,6 +2243,8 @@ public class ITDstatistics{
                 printti += sb.toString();
 
                 printti += "-666\t";
+                colnames.add("-666");
+
 
                 //printti += mean(zPercentiles) + "\t";
                 //printti += skewness(zPercentiles) + "\t";
@@ -2257,13 +2283,17 @@ public class ITDstatistics{
                 }
 */
                 stdR = Math.sqrt(stdR / ((double)z.length-1));
+                colnames.add("std_R");
+
                 stdG = Math.sqrt(stdG / ((double)z.length-1));
+                colnames.add("std_G");
+
                 stdB = Math.sqrt(stdB / ((double)z.length-1));
+                colnames.add("std_B");
 
                 stdVARI = Math.sqrt(stdVARI / ((double)z.length-1));
                 stdTGI = Math.sqrt(stdTGI / ((double)z.length-1));
                 stdGRVI = Math.sqrt(stdGRVI / ((double)z.length-1));
-
                 //printti += ((maxZ - minZ) / maxDistance) + "\t";
 
                 //printti += tinArea + "\t";
@@ -2277,35 +2307,57 @@ public class ITDstatistics{
                 //meanB = meanB / (meanR + meanG + meanB);
 
                 printti += meanR + "\t";
+                colnames.add("mean_R");
                 printti += meanG + "\t";
+                colnames.add("mean_G");
                 printti += meanB + "\t";
+                colnames.add("mean_B");
 
-
-                System.out.println(meanR + " " + meanG + " " + meanB);
+                //System.out.println(meanR + " " + meanG + " " + meanB);
 
                 printti += stdVARI + "\t";
+                colnames.add("std_VARI");
+
                 printti += stdTGI + "\t";
+                colnames.add("std_TGI");
+
                 printti += stdGRVI + "\t";
+                colnames.add("std_GRVI");
 
                 printti += meanVARI + "\t";
+                colnames.add("mean_VARI");
                 printti += meanTGI + "\t";
+                colnames.add("mean_TGI");
                 printti += meanGRVI + "\t";
+                colnames.add("mean_GRVI");
 
                 printti += statsConst.skewness(VARIArray, meanVARI, stdVARI) + "\t";
+                colnames.add("skewness_VARI");
                 printti += statsConst.skewness(TGIArray, meanTGI, stdTGI) + "\t";
+                colnames.add("skewness_TGI");
                 printti += statsConst.skewness(GRVIArray, meanGRVI, stdGRVI) + "\t";
-
+                colnames.add("skewness_GRVI" +
+                        "");
                 printti += statsConst.kurtosis(VARIArray, meanVARI, stdVARI) + "\t";
+                colnames.add("kurtosis_VARI");
                 printti += statsConst.kurtosis(TGIArray, meanTGI, stdTGI) + "\t";
+                colnames.add("kurtosis_TGI");
                 printti += statsConst.kurtosis(GRVIArray, meanGRVI, stdGRVI) + "\t";
+                colnames.add("kurtosis_GRVI");
 
                 printti += statsConst.skewness(red, meanR, stdR) + "\t";
                 printti += statsConst.skewness(green, meanG, stdG) + "\t";
                 printti += statsConst.skewness(blue, meanB, stdB) + "\t";
+                colnames.add("skewness_R");
+                colnames.add("skewness_G");
+                colnames.add("skewness_B");
 
                 printti += statsConst.kurtosis(red, meanR, stdR) + "\t";
                 printti += statsConst.kurtosis(green, meanG, stdG) + "\t";
                 printti += statsConst.kurtosis(blue, meanB, stdB) + "\t";
+                colnames.add("kurtosis_R");
+                colnames.add("kurtosis_G");
+                colnames.add("kurtosis_B");
 /*
                 printti += mean(redProp) + "\t";
                 printti += mean(greenProp) + "\t";
@@ -2323,7 +2375,9 @@ public class ITDstatistics{
                 printti += stdR + "\t";
                 printti += stdG + "\t";
                 printti += stdB + "\t";
-
+                colnames.add("std_R");
+                colnames.add("std_G");
+                colnames.add("std_B");
 
                 //printti += RGd + "\t";
                 //printti += RBd + "\t";
@@ -2381,6 +2435,9 @@ public class ITDstatistics{
                 printti += treeId + "\t";
                 printti += tinArea + "\t";
                 printti += areaInside + "\t";
+                colnames.add("tree_id");
+                colnames.add("tin_area");
+                colnames.add("crown_area_inside");
 
 /*
                 printti += treeTopIndex + "\t";
@@ -2390,11 +2447,17 @@ public class ITDstatistics{
                 printti += treeTop[0] + "\t";
                 printti += treeTop[1] + "\t";
                 printti += treeTop[2] + "\t";
+                colnames.add("treetop_x");
+                colnames.add("treetop_y");
+                colnames.add("treetop_z");
 
                 int isInside = inSideAPolygon ? 1 : 0;
 
                 printti += isInside + "\t";
                 printti += this.plotId + "\t";
+
+                colnames.add("tree_inside_plot");
+                colnames.add("plot_id");
 
                 KdTree.XYZPoint tempTreePoint = new KdTree.XYZPoint(treeTop[0], treeTop[1], treeTop[2]);
                 tempTreePoint.setIndex(output.size());
@@ -2431,6 +2494,9 @@ public class ITDstatistics{
                 //}
 
                 //printLine(printti);
+
+                if(this.colnames.size() == 0)
+                    this.colnames = (ArrayList<String>) colnames.clone();
 
                 output.add(printti);
                 //System.out.println(printti);

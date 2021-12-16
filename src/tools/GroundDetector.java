@@ -4,10 +4,12 @@ import LASio.*;
 //import jdk.jfr.events.ExceptionThrownEvent;
 import err.toolException;
 import gnu.trove.list.array.TIntArrayList;
+import math.fast.SpeedyMath;
 import org.tinfour.common.*;
 
 import org.tinfour.common.Vertex;
 import org.tinfour.interpolation.NaturalNeighborInterpolator;
+import org.tinfour.interpolation.TriangularFacetInterpolator;
 import org.tinfour.interpolation.VertexValuatorDefault;
 import org.tinfour.standard.IncrementalTin;
 import org.tinfour.utils.Polyside;
@@ -692,7 +694,10 @@ public class GroundDetector{
 
         List<IQuadEdge> perimeter = tin.getPerimeter();
 
-        NaturalNeighborInterpolator polator = new NaturalNeighborInterpolator(tin);
+        //NaturalNeighborInterpolator polator = new NaturalNeighborInterpolator(tin);
+        TriangularFacetInterpolator polator = new TriangularFacetInterpolator(tin);
+
+        INeighborhoodPointsCollector closest_points = tin.getNeighborhoodPointsCollector();
 
         for(int loo = 0; loo < 3; loo++) {
 
@@ -721,14 +726,13 @@ public class GroundDetector{
                 }
                 //}
 
-
-
                 for (int j = 0; j < maxi; j++) {
 
                     pointCloud.readFromBuffer(tempPoint);
 
                     if(!rule.ask(tempPoint, p+j, true)){
-                        doneIndexes.add(p+j);
+                        //doneIndexes.add(p+j);
+
                         continue;
                     }
 
@@ -747,12 +751,21 @@ public class GroundDetector{
 
 
                         //if(!tin.isPointInsideTin(tempPoint.x, tempPoint.y))
-                        if(isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Outside)
-                            //continue;
-                        //if(Double.isNaN(interpolatedZ))
-                            continue;
                         //try {
+                        List<org.tinfour.common.Vertex> closest = closest_points.collectNeighboringVertices(tempPoint.x, tempPoint.y, 0, 0);
+
+                        if (closest_points.wasTargetExteriorToTin())
+                        //if (isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Outside)
+                                continue;
+                        //}catch (Exception e){
+                           // e.printStackTrace();
+
+                           // System.out.println(tempPoint.y + " " + tempPoint.x);
+
+                            //continue;
+                        //}
                         interpolatedZ = polator.interpolate(tempPoint.x, tempPoint.y, valuator);
+
                         //}catch(Exception e){
                          //   continue;
                         //}
@@ -768,7 +781,7 @@ public class GroundDetector{
 
                         distance = Math.abs(distanceSigned);
 
-                            List<org.tinfour.common.Vertex> closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(tempPoint.x, tempPoint.y, 0, 0);
+                            //List<org.tinfour.common.Vertex> closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(tempPoint.x, tempPoint.y, 0, 0);
 
                                 if (closest.size() >= 3) {
 
@@ -812,19 +825,22 @@ public class GroundDetector{
                                             double angle = Math.abs(angleHypo_sine(distance3d, distance));
                                             meanAngle += angle;
 
-                                            if ((angle < angleThreshold))
-                                                fullfilledCriteria++;
-
                                             if(angle > maxAngle)
                                                 maxAngle = angle;
+
+
+                                            if ((angle < angleThreshold))
+                                                fullfilledCriteria++;
+                                            else
+                                                break;
 
                                             if(distance2 < miniDist)
                                                 miniDist = distance2;
 
                                         }
 
-                                        if(meanAngle / 3.0 < angleThreshold){
-                                        //if(maxAngle < angleThreshold){
+                                        //if(meanAngle / 3.0 < angleThreshold){
+                                        if(maxAngle < angleThreshold){
                                         //if (fullfilledCriteria > 0) {
 
                                             counter++;
@@ -842,7 +858,7 @@ public class GroundDetector{
                                             //verticeBank_iteration.add(tempVertex);
 
                                             //if(rand.nextDouble() > 0.8)
-                                            if(miniDist > 0.5) {
+                                            if(miniDist > 1.0) {
 
 
                                                 org.tinfour.common.Vertex tempVertex = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z);
@@ -852,6 +868,7 @@ public class GroundDetector{
 
                                                 tin.add(tempVertex);
                                                 polator.resetForChangeToTin();
+                                                closest_points.resetForChangeToTin();
 
                                             }
 
@@ -1040,7 +1057,8 @@ public class GroundDetector{
                     continue;
                 }
 
-                if (!doneIndexes.contains((p+j))) {
+                //if (!doneIndexes.contains((p+j))) {
+                if (!doneInd[p+j]) {
 
                     //pointCloud.readRecord((p+j), tempPoint);
 
@@ -1338,8 +1356,8 @@ public class GroundDetector{
      */
 
     public static double angleHypo_sine(double hypotenuse, double opposite) {
-
-        return Math.toDegrees(Math.asin(opposite / hypotenuse));
+        //System.out.println(Math.toDegrees(SpeedyMath.asin(opposite / hypotenuse)) + " == " + Math.toDegrees(Math.asin(opposite / hypotenuse)));
+        return Math.toDegrees(SpeedyMath.asin(opposite / hypotenuse));
 
     }
 
@@ -1564,7 +1582,7 @@ public class GroundDetector{
          area as follows:
          [0] = number of observations
          [1] = sum of z values
-         [2] = min z
+         [2      = min z
          [3] = max Z
          [4] = M
          [5] = S
@@ -2709,7 +2727,7 @@ public class GroundDetector{
         }
 
 
-        org.tinfour.interpolation.NaturalNeighborInterpolator polator = new org.tinfour.interpolation.NaturalNeighborInterpolator(tin);
+        org.tinfour.interpolation.TriangularFacetInterpolator polator = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);
 
         //File outputFile = this.outWriteFile;// = new File(outputFileName);
 
@@ -2866,7 +2884,7 @@ public class GroundDetector{
 
             }
 
-            org.tinfour.interpolation.NaturalNeighborInterpolator polator = new org.tinfour.interpolation.NaturalNeighborInterpolator(tin);
+            org.tinfour.interpolation.TriangularFacetInterpolator polator = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);
 
             long n = pointCloud.getNumberOfPointRecords();
 
@@ -2987,7 +3005,7 @@ public class GroundDetector{
                 return;
             }
 
-            org.tinfour.interpolation.NaturalNeighborInterpolator polator = new org.tinfour.interpolation.NaturalNeighborInterpolator(tin);
+            org.tinfour.interpolation.TriangularFacetInterpolator polator = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);
 
             File outputFile = this.outWriteFile;// new File(outputFileName);
 

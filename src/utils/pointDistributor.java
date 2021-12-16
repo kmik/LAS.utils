@@ -104,7 +104,8 @@ public class pointDistributor {
             }
         }
 
-
+        if(true)
+            return;
 
         ArrayList<pointWriterMultiThread> pw = new ArrayList<>();
         ArrayList<LasPointBufferCreator> buf = new ArrayList<>();

@@ -4,6 +4,7 @@ import LASio.LASReader;
 import LASio.LASraf;
 import LASio.LASwrite;
 import LASio.PointInclusionRule;
+import err.toolException;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
 import tools.*;
@@ -1025,6 +1026,7 @@ public class RunLASutils {
                 stats.printOutput();
 
                 stats.closeFile();
+
             }else{
 
                 File trees = aR.measured_trees;
@@ -1086,7 +1088,8 @@ public class RunLASutils {
 
                     for (int c = 0; c < aR.cores; c++) {
 
-                        LASReader temp_2 = new LASReader(files.get(c));
+                        //LASReader temp_2 = new LASReader(files.get(c));
+                        LASReader temp_2 = new LASReader(aR.inputFiles.get(i));
 
                         System.out.println("FILE: " + temp_2.getFile().getAbsolutePath());
 
@@ -1192,7 +1195,7 @@ public class RunLASutils {
 
             if (aR.inputFiles.size() != 2) {
                 System.out.println("No 2 input files, exiting!");
-                System.exit(1);
+                throw new toolException("Ground match requires two inputs!");
             }
 
             try {
@@ -1432,24 +1435,35 @@ public class RunLASutils {
 
         if (aR.tool == 30){
 
-
-            try {
-
+            if(aR.mode_3d){
                 for (int i = 0; i < aR.inputFiles.size(); i++) {
-
-
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
-
                     createCHM.chm testi = new createCHM.chm(temp, "y", 1, aR, 1);
-                    las2solar_photogrammetry l2s = new las2solar_photogrammetry(testi.outputFileName, aR);
 
+                    las2solar_photogrammetry l2s = new las2solar_photogrammetry(testi.outputFileName, aR, temp, false);
                 }
 
-            } catch (Exception e) {
-                e.printStackTrace();
+
+
+
+            }else {
+                try {
+
+                    for (int i = 0; i < aR.inputFiles.size(); i++) {
+
+
+                        LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+                        createCHM.chm testi = new createCHM.chm(temp, "y", 1, aR, 1);
+                        las2solar_photogrammetry l2s = new las2solar_photogrammetry(testi.outputFileName, aR, temp);
+
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
             }
-
-
 
         }
 
@@ -1498,13 +1512,40 @@ public class RunLASutils {
 
         }
 
+        if (aR.tool == 33){
+
+            double averageDensity_pulse = 0.0;
+            double averageDensity_points = 0.0;
+
+            try {
+
+                for (int i = 0; i < aR.inputFiles.size(); i++) {
+
+                    LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+                    lasCC cc = new lasCC(temp, aR);
+
+                    cc.canopy_cover_points();
+
+                    createCHM.chm testi = new createCHM.chm(temp, "y", 1, aR, 1);
+
+                    cc.canopy_cover_chm(testi.filtered);
+
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
         long tEnd = System.currentTimeMillis();
         long tDelta = tEnd - tStart;
 
         long minutes = (tDelta / 1000)  / 60;
         int seconds = (int)((tDelta / 1000) % 60);
 
-        System.out.println("TOOK: " + minutes + " min " + seconds + " sec");
+        System.out.println("Processing took: " + minutes + " min " + seconds + " sec");
 
     }
 

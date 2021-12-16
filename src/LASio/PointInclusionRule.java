@@ -41,7 +41,7 @@ import java.util.HashSet;
 public class PointInclusionRule{
 
 
-	boolean applyWhenReading = false;
+	boolean applyWhenReading = true;
 
 	LasPoint tempPoint = new LasPoint();
 
@@ -128,6 +128,9 @@ public class PointInclusionRule{
 	boolean remove_buffer = false;
 
 	int changePointFormat = -999;
+
+	int drop_scan_angle_below = -999;
+	int drop_scan_angle_above = -999;
 
 
 	/*
@@ -232,6 +235,17 @@ public class PointInclusionRule{
 		this.have_drop_rule = true;
 	}
 
+	public void drop_scan_angle_below(int in){
+
+		drop_scan_angle_below = in;
+		this.have_drop_rule = true;
+	}
+
+	public void drop_scan_angle_above(int in){
+
+		drop_scan_angle_above = in;
+		this.have_drop_rule = true;
+	}
 
 	public void scaleFactor(double in){
 
@@ -487,6 +501,13 @@ public class PointInclusionRule{
 
 			 */
 
+			if(drop_scan_angle_above != -999)
+				if(Math.abs(tempPoint.scanAngleRank) > drop_scan_angle_above)
+					return false;
+
+			if(drop_scan_angle_below != -999)
+				if(Math.abs(tempPoint.scanAngleRank) < drop_scan_angle_below)
+					return false;
 
 			if(drop_first)
 				if(tempPoint.returnNumber == 1)

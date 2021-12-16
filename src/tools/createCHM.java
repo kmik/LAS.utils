@@ -5536,7 +5536,7 @@ public class createCHM{
             long minutes = (tDelta / 1000)  / 60;
             int seconds = (int)((tDelta / 1000) % 60);
 
-            System.out.println("TOOK: " + minutes + " min " + seconds + " sec");
+            //System.out.println("TOOK: " + minutes + " min " + seconds + " sec");
 
 
             if(aR.lasrelate){

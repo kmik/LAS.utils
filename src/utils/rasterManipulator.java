@@ -13,10 +13,10 @@ public class rasterManipulator {
 
     }
 
-    public synchronized void setValue(int x, int y, float value){
+    public synchronized void setValue(int y, float[] value){
 
-        raster_write[0] = value;
-        raster.WriteRaster(x, y, 1, 1, raster_write);
+        //raster_write[0] = value;
+        raster.WriteRaster(0, y, value.length, 1, value);
 
     }
 

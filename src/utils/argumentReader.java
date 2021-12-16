@@ -44,8 +44,12 @@ public class argumentReader {
 
     public File measured_trees = null;
 
+    public boolean mode_3d = false;
+
     public int field = 0;
 
+    public int drop_scan_angle_below = -1;
+    public int drop_scan_angle_above = -1;
 
     public String execDir;
     public File execDir_file;
@@ -84,8 +88,8 @@ public class argumentReader {
 
     public String neural_mode = "merged";
 
-    public boolean rule_when_reading = false;
-    public boolean rule_when_writing = true;
+    public boolean rule_when_reading = true;
+    public boolean rule_when_writing = false;
 
     public String[] args;
     public PointInclusionRule inclusionRule;
@@ -287,6 +291,22 @@ public class argumentReader {
                 .desc("Drop z below threshold")
                 .required(false)
                 .build());
+
+        options.addOption(Option.builder()
+                .longOpt("drop_scan_angle_below")
+                .hasArg(true)
+                .desc("Drop scan angle below threshold")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("drop_scan_angle_above")
+                .hasArg(true)
+                .desc("Drop scan angle above threshold")
+                .required(false)
+                .build());
+
+
         options.addOption(Option.builder()
                 .longOpt("drop_z_above")
                 .hasArg(true)
@@ -462,6 +482,15 @@ public class argumentReader {
                 .desc("Keep lowest point in lasthin")
                 .required(false)
                 .build());
+
+        options.addOption(Option.builder()
+                .longOpt("mode_3d")
+                .hasArg(false)
+                .desc("Use 3d solar")
+                .required(false)
+                .build());
+
+
 
         options.addOption(Option.builder()
                 .longOpt("alt")
@@ -1594,6 +1623,14 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("mode_3d")){
+
+                this.mode_3d = true;
+
+            }
+
+
+
             if (cmd.hasOption("write_rules")){
 
                 this.rule_when_writing = true;
@@ -1668,6 +1705,17 @@ public class argumentReader {
             if (cmd.hasOption("drop_z_above")){
 
                 this.inclusionRule.dropZAbove(Double.parseDouble(cmd.getOptionValue("drop_z_above")));
+
+            }
+
+            if (cmd.hasOption("drop_scan_angle_below")){
+
+                this.inclusionRule.drop_scan_angle_below(Integer.parseInt(cmd.getOptionValue("drop_scan_angle_below")));
+
+            }
+            if (cmd.hasOption("drop_scan_angle_above")){
+
+                this.inclusionRule.drop_scan_angle_above(Integer.parseInt(cmd.getOptionValue("drop_scan_angle_above")));
 
             }
 

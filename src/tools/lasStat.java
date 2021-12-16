@@ -105,24 +105,25 @@ public class lasStat {
                     continue;
                 }
 
+                //System.out.println(tempPoint.scanAngleRank);
+
                 int x_coord = (int) Math.floor((tempPoint.x - minx) /  cell_size);   //X INDEX
                 int y_coord = (int) Math.floor((maxy - tempPoint.y) / cell_size);
-
 
                 if (tempPoint.returnNumber == tempPoint.numberOfReturns) {
                     number_of_last_returns++;
                     stats_pulse[x_coord][y_coord]++;
                 }
 
-                    number_of_all_returns++;
-                    stats_points[x_coord][y_coord]++;
+                number_of_all_returns++;
+                stats_points[x_coord][y_coord]++;
 
             }
         }
 
-
         double approx_area_pulse = 0.0;
         double approx_area_points = 0.0;
+
         int counter_pulse = 0;
         int counter_points = 0;
 
@@ -137,7 +138,6 @@ public class lasStat {
                     approx_area_points += stats_points[x][y] / (cell_size*cell_size);
                     counter_points++;
                 }
-
             }
         }
 
