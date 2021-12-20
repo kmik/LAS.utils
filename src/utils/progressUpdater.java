@@ -166,11 +166,11 @@ public class progressUpdater {
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K");
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "\t\t\t---Thread progress---");
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K");
-        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "%-8s" + "%-25s" + "%-12s" + "%-12s" + "%-12s", "thread", "file", "ground p", "angle", "seed");
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "%-8s" + "%-25s" + "%-12s" + "%-12s" + "%-12s", "thread", "file", "n_ground", "angle", "iter");
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "-------------------------------------------------------------------");
 
         for(int i = 0; i < aR.cores; i++) {
-            System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "%-8d" + "%-25s" + "%-12d" + "%-12.2f" + "%-12d", i+1, StringUtils.abbreviate(threadFile[i], 25), threadProgress[i], threadDouble[i], threadEnd[i]);
+            System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "%-8d" + "%-25s" + "%-12d" + "%-12.2f" + "%-12d", i+1, StringUtils.abbreviate(threadFile[i], 25), threadProgress[i], threadDouble[i], threadInt[i]);
         }
 
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K");

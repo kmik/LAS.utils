@@ -5,6 +5,7 @@ import LASio.*;
 import err.toolException;
 import gnu.trove.list.array.TIntArrayList;
 import math.fast.SpeedyMath;
+import org.apache.commons.math3.util.FastMath;
 import org.tinfour.common.*;
 
 import org.tinfour.common.Vertex;
@@ -39,6 +40,19 @@ import static org.tinfour.utils.Polyside.isPointInPolygon;
 
 
 public class GroundDetector{
+
+
+    boolean dynamic_angle_threshold = true;
+
+    int count_rolling_stats = 0;
+    double average_rolling_stats = 0;
+    double pwrSumAvg_rolling_stats = 0;
+    double stdDev_rolling_stats = 0; // Math.sqrt((pwrSumAvg * count - count * average * average) / (count - 1));
+    double max_rolling_stats = Double.NEGATIVE_INFINITY;
+    double min_rolling_stats = Double.POSITIVE_INFINITY;
+
+
+
 
     int condition2 = 0;
     org.tinfour.common.Circumcircle CC = new Circumcircle();
@@ -168,6 +182,7 @@ public class GroundDetector{
         this.odir = odir2;
 
         doneInd = new boolean[(int)pointCloud.getNumberOfPointRecords()];
+        badInd = new boolean[(int)pointCloud.getNumberOfPointRecords()];
 
 
 
@@ -182,8 +197,11 @@ public class GroundDetector{
         if(axelssonGridSize1 != -999)
             axelssonGridSize =(int) axelssonGridSize1;
 
-        if(angleThreshold1 != -999)
+        if(aR.angle != -999) {
             this.angleThreshold = angleThreshold1;
+            this.dynamic_angle_threshold = false;
+
+        }
         if(aR.dist != -999){
             this.distanceThreshold = this.aR.dist;
         }
@@ -372,9 +390,9 @@ public class GroundDetector{
 
         Random rng = new Random();
 
-        NaturalNeighborInterpolator polator = new NaturalNeighborInterpolator(tin);
+        TriangularFacetInterpolator polator = new TriangularFacetInterpolator(tin);
 
-        NaturalNeighborInterpolator polator2 = new NaturalNeighborInterpolator(tin);
+        TriangularFacetInterpolator polator2 = new TriangularFacetInterpolator(tin);
 
         polator.resetForChangeToTin();
         polator2.resetForChangeToTin();
@@ -408,6 +426,17 @@ public class GroundDetector{
         double[] a;
         double[] b;
         double[] c;
+
+        int count = 0;
+        double difBefore = 0.0;
+
+        double stdDev = 0.0;
+        double average = 0.0;
+        double pwrSumAvg = 0.0;
+
+        double distiSigned = 0.0;
+
+
 
         double[] tempCross;
         double interpolatedValue = 0;
@@ -443,6 +472,26 @@ public class GroundDetector{
                     //beta = polator2.getCoefficients();
                     double[] normal = polator2.getSurfaceNormal();
 
+                    if(normal.length > 0) {
+                        double norm_angle = 90.0d - Math.abs(Math.toDegrees(FastMath.atan(normal[2] / Math.sqrt(normal[0] * normal[0] + normal[1] * normal[1]))));
+
+                        rolling_stats_add(norm_angle);
+                        /*
+                        count2++;
+                        sum += norm_angle;
+
+
+                        count++;
+                        average += (norm_angle - average) / count;
+                        pwrSumAvg += (norm_angle * norm_angle - pwrSumAvg) / count;
+                        stdDev = Math.sqrt((pwrSumAvg * count - count * average * average) / (count - 1));
+
+*/
+                    }
+                    //System.out.println(norm_angle);
+
+                    if(true)
+                        continue;
                     //predictionInterval = polator2.getPredictionInterval(0.05);
 
 
@@ -532,6 +581,8 @@ public class GroundDetector{
         }
 
         //System.out.println("Sum: " + sum + " count " + count2  + " " + surfaceNormalPoints.size() + " " + sum / (double)count2);
+        //System.out.println("Sum: " + sum + " count " + count2  + " " + surfaceNormalPoints.size() + " " + sum / (double)count2 + " ave: " + average + " sd: " + stdDev);
+        //System.out.println("Sum: " + sum + " count " + count2  + " " + surfaceNormalPoints.size() + " " + sum / (double)count2 + " ave: " + this.get_rolling_mean() + " sd: " + this.get_rolling_std());
 
         polator = null;
 
@@ -540,6 +591,55 @@ public class GroundDetector{
         return Math.min(sum / (double)count2, 15.0);
         //return (sum / (double)count2);
         //return maxAngle;
+
+    }
+
+    public void rolling_stats_add(double val){
+
+        if(val > max_rolling_stats)
+            max_rolling_stats = val;
+
+        if(val < min_rolling_stats)
+            min_rolling_stats = val;
+
+        count_rolling_stats++;
+        average_rolling_stats += (val - average_rolling_stats) / count_rolling_stats;
+        pwrSumAvg_rolling_stats += (val * val - pwrSumAvg_rolling_stats) / count_rolling_stats;
+        stdDev_rolling_stats = Math.sqrt((pwrSumAvg_rolling_stats * count_rolling_stats - count_rolling_stats * average_rolling_stats * average_rolling_stats) / (count_rolling_stats - 1));
+    }
+
+    public double get_rolling_mean(){
+        return this.average_rolling_stats;
+    }
+
+    public double get_rolling_std(){
+        return this.stdDev_rolling_stats;
+    }
+
+    public void rolling_stats_reset(){
+
+        this.count_rolling_stats = 0;
+        this.average_rolling_stats = 0;
+        this.pwrSumAvg_rolling_stats = 0;
+        this.stdDev_rolling_stats = 0;
+        this.max_rolling_stats = Double.NEGATIVE_INFINITY;
+        this.min_rolling_stats = Double.POSITIVE_INFINITY;
+    }
+
+    public boolean reject_as_outlier(double val){
+
+        if(!dynamic_angle_threshold){
+            if(val > this.angleThreshold)
+                return true;
+        }
+
+        if(val < this.average_rolling_stats)
+            return false;
+
+        if( (val - average_rolling_stats) > (this.stdDev_rolling_stats * 2) )
+            return true;
+
+        return false;
 
     }
 
@@ -699,8 +799,11 @@ public class GroundDetector{
 
         INeighborhoodPointsCollector closest_points = tin.getNeighborhoodPointsCollector();
 
-        for(int loo = 0; loo < 3; loo++) {
+        int counter_this_iteration = 0;
 
+        for(int loo = 0; loo < aR.num_iter; loo++) {
+
+            counter_this_iteration = 0;
             distances.clear();
             angles.clear();
 
@@ -730,32 +833,19 @@ public class GroundDetector{
 
                     pointCloud.readFromBuffer(tempPoint);
 
-                    if(!rule.ask(tempPoint, p+j, true)){
-                        //doneIndexes.add(p+j);
-
+                    if(!rule.ask(tempPoint, p+j, true) || badInd[p+j]){
                         continue;
                     }
-
-
-                    outside = false;
-
-                    fullfilledCriteria = 0;
-
-
-                    addFlag = 0;
 
                     if (!doneInd[p+j]) {
 
                         double distance2 = Double.POSITIVE_INFINITY;
                         double distance = Double.POSITIVE_INFINITY;
 
-
-                        //if(!tin.isPointInsideTin(tempPoint.x, tempPoint.y))
-                        //try {
                         List<org.tinfour.common.Vertex> closest = closest_points.collectNeighboringVertices(tempPoint.x, tempPoint.y, 0, 0);
 
-                        if (closest_points.wasTargetExteriorToTin())
-                        //if (isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Outside)
+                        //if (closest_points.wasTargetExteriorToTin())
+                        if (isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Outside)
                                 continue;
                         //}catch (Exception e){
                            // e.printStackTrace();
@@ -777,17 +867,16 @@ public class GroundDetector{
                         if(normal.length == 3)
                             distanceSigned = (normal[0] * tempPoint.x + normal[1] * tempPoint.y + normal[2] * tempPoint.z -
                                     (normal[0] * tempPoint.x + normal[1] * tempPoint.y + normal[2] * (tempPoint.z - distanceSigned))) /
-                                    Math.sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
+                                    squareRoot(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
 
-                        distance = Math.abs(distanceSigned);
-
-                            //List<org.tinfour.common.Vertex> closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(tempPoint.x, tempPoint.y, 0, 0);
+                        distance = FastMath.abs(distanceSigned);
 
                                 if (closest.size() >= 3) {
 
                                     fullfilledCriteria = 0;
 
-                                    if (distance == Double.POSITIVE_INFINITY || distance < distanceThreshold) {
+                                    //if (distance == Double.POSITIVE_INFINITY || distance < distanceThreshold) {
+                                    if (true) {
 
                                         double miniDist = Double.POSITIVE_INFINITY;
 
@@ -818,6 +907,7 @@ public class GroundDetector{
 
                                             double distance3d = euclideanDistance_3d(tempPoint.x, tempPoint.y, tempPoint.z,
                                                                                         key.x, key.y, key.getZ());
+
                                             etumerkki = key.getZ() < interpolatedZ ? -1 : 1;
 
                                             //double angle = angle(Math.abs(key.getZ() - tempPoint.z), distance2) + etumerkki * (angle(Math.abs(key.getZ() - interpolatedZ), distance2));
@@ -828,20 +918,33 @@ public class GroundDetector{
                                             if(angle > maxAngle)
                                                 maxAngle = angle;
 
-
+/*
                                             if ((angle < angleThreshold))
                                                 fullfilledCriteria++;
                                             else
                                                 break;
 
+
+ */
                                             if(distance2 < miniDist)
                                                 miniDist = distance2;
 
                                         }
 
+                                        if(maxAngle > 20.0 || true){
+
+                                        }
+
+
+                                        if(!reject_as_outlier(maxAngle) && !Double.isNaN(maxAngle) && distance < distanceThreshold){
                                         //if(meanAngle / 3.0 < angleThreshold){
-                                        if(maxAngle < angleThreshold){
+                                        //if(maxAngle < angleThreshold){
                                         //if (fullfilledCriteria > 0) {
+                                            if(this.dynamic_angle_threshold)
+                                                rolling_stats_add(maxAngle);
+                                            //System.out.println(maxAngle);
+                                            //System.out.println(this.average_rolling_stats + " " + this.stdDev_rolling_stats);
+                                            counter_this_iteration++;
 
                                             counter++;
                                             anglesum += meanAngle / 3.0;
@@ -858,7 +961,7 @@ public class GroundDetector{
                                             //verticeBank_iteration.add(tempVertex);
 
                                             //if(rand.nextDouble() > 0.8)
-                                            if(miniDist > 1.0) {
+                                            if(miniDist > 2.0) {
 
 
                                                 org.tinfour.common.Vertex tempVertex = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z);
@@ -895,6 +998,13 @@ public class GroundDetector{
                                             addFlag = 1;
                                             //break;
                                         }
+                                        else{
+
+                                            if(maxAngle > angleThreshold * 4){
+                                                badInd[p+j] = true;
+                                            }
+
+                                        }
                                     } else {
 
                                         //System.out.println("!!!!");
@@ -916,23 +1026,24 @@ public class GroundDetector{
 
 
 
-                        if(false)
+                        if(this.dynamic_angle_threshold)
                             //this.angleThreshold = calcSurfaceNormal();
-                            this.angleThreshold = (anglesum / (double)counter) * 1.5;
+                            this.angleThreshold = this.average_rolling_stats + this.stdDev_rolling_stats * 2.0;
                         //if(!fixedAngle)
                         //this.angleThreshold = calcSurfaceNormal();
                         // this.angleThreshold = (anglesum / (double)counter) * 1.5;
 
                         this.aR.p_update.lasground_vertices = this.tin.getVertices().size();
                         this.aR.p_update.lasground_doneIndexes = (int)foundGroundPoints;
-                        this.aR.p_update.lasground_doneIndexes = p+j;
+                        //this.aR.p_update.lasground_doneIndexes = p+j;
                         //this.aR.p_update.lasground_angleThreshold = this.angleThreshold;
 
                         this.aR.p_update.threadDouble[coreNumber-1] = this.angleThreshold;
                         //this.aR.p_update.threadDouble[coreNumber-1] = loo;
 
-                        //this.aR.p_update.threadProgress[coreNumber-1] = (int)foundGroundPoints;
-                        this.aR.p_update.threadProgress[coreNumber-1] = counter2;
+                        this.aR.p_update.threadProgress[coreNumber-1] = (int)foundGroundPoints;
+                        this.aR.p_update.threadInt[coreNumber-1] = (int)loo+1;
+                        //this.aR.p_update.threadProgress[coreNumber-1] = counter2;
                         //this.aR.p_update.threadProgress[coreNumber-1] = p+j;
                         //this.aR.p_update.threadEnd[coreNumber-1] = this.tin.getVertices().size() * 244;
 
@@ -977,7 +1088,9 @@ public class GroundDetector{
         //System.gc();
         //System.gc();
 
-
+            if((double)counter_this_iteration / (double)foundGroundPoints * 100.0 < 1.0){
+                break;
+            }
 
         }
 
@@ -1197,6 +1310,42 @@ public class GroundDetector{
 
     }
 
+    static float squareRoot(float n)
+    {
+
+        /*We are using n itself as
+        initial approximation This
+        can definitely be improved */
+        float x = n;
+        float y = 1;
+
+        // e decides the accuracy level
+        double e = 0.001;
+        while (x - y > e) {
+            x = (x + y) / 2;
+            y = n / x;
+        }
+        return x;
+    }
+
+    static double squareRoot(double n)
+    {
+
+        /*We are using n itself as
+        initial approximation This
+        can definitely be improved */
+        double x = n;
+        double y = 1;
+
+        // e decides the accuracy level
+        double e = 0.001;
+        while (x - y > e) {
+            x = (x + y) / 2;
+            y = n / x;
+        }
+        return x;
+    }
+
     public double interpolate(double v1_x, double v1_y, double v1_z, double v2_x, double v2_y, double v2_z, double v3_x, double v3_y, double v3_z, double x, double y, double z){
 
         double d1 = Math.sqrt((v1_x - x)*(v1_x - x) + (v1_y - y)*(v1_y - y) + (v1_z - z)*(v1_z - z));
@@ -1357,7 +1506,7 @@ public class GroundDetector{
 
     public static double angleHypo_sine(double hypotenuse, double opposite) {
         //System.out.println(Math.toDegrees(SpeedyMath.asin(opposite / hypotenuse)) + " == " + Math.toDegrees(Math.asin(opposite / hypotenuse)));
-        return Math.toDegrees(SpeedyMath.asin(opposite / hypotenuse));
+        return FastMath.toDegrees(FastMath.asin(opposite / hypotenuse));
 
     }
 
@@ -1380,7 +1529,7 @@ public class GroundDetector{
     public static double euclideanDistance_3d(double x1, double y1, double z1, double x2, double y2, double z2){
 
 
-        return Math.sqrt( ( x1 - x2) * ( x1 - x2) + ( y1 - y2) * ( y1 - y2) + ( z1 - z2) * ( z1 - z2) );
+        return squareRoot( ( x1 - x2) * ( x1 - x2) + ( y1 - y2) * ( y1 - y2) + ( z1 - z2) * ( z1 - z2) );
 
     }
 
@@ -2009,6 +2158,10 @@ public class GroundDetector{
             threshold += 0.1f;
             threshold_std += 0.1f;
         }
+
+        calcSurfaceNormal();
+
+
 
         int[] result = new int[indexes.size()];
         for(int i = 0; i < result.length; i++){

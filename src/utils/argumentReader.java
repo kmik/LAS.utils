@@ -33,6 +33,8 @@ public class argumentReader {
 
     public boolean input_in_radians = false;
 
+    public int num_iter = 3;
+
     public double filter_intensity = 2.5;
 
     public boolean olas = false;
@@ -136,7 +138,7 @@ public class argumentReader {
     public String otype = "las";
 
     public double numarg1;
-    public double angle = 7.5;
+    public double angle = -999;
     public double axgrid = 20;
     public String groundPoints = "-999";
 
@@ -459,6 +461,13 @@ public class argumentReader {
                 .longOpt("field")
                 .hasArg(true)
                 .desc("field")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("num_iter")
+                .hasArg(true)
+                .desc("number of iterations")
                 .required(false)
                 .build());
 
@@ -1469,7 +1478,11 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("num_iter")) {
 
+                this.num_iter = Integer.parseInt(cmd.getOptionValue("num_iter"));
+
+            }
 
             if (cmd.hasOption("measured_trees")) {
 

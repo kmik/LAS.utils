@@ -760,7 +760,7 @@ public class printHelp {
                 "\n" +
                 "Detects ground points from .las file. Based on Axelsson\n" +
                 "(2000) algorithm. For photogrammetric data (usually characterized\n" +
-                "by excessive noise in certain flat areas) the user can use \n" +
+                "by excessive noise/\"waves\" in certain flat areas) the user can use \n" +
                 "-photogrammetry argument that improves the accuracy of seed\n" +
                 "point detection. In short, the tool does not take the lowest\n" +
                 "point within the -axGrid, but rather computes a smaller grid\n" +
@@ -769,15 +769,31 @@ public class printHelp {
                 "This only affects the detection of seed points\n" +
                 "and has no effect on the following densification of the surface.\n" +
                 "\n" +
+                "If -angle is not given, this parameter will be inferred from\n" +
+                "the distribution of triangle normal angles from the initial TIN\n" +
+                "created from the seed points. The angle threshold is then:\n" +
+                "\n" +
+                "average_angle + std_angles * 2.0\n" +
+                "\n" +
+                "This threshold (i.e. average and std) is then dynamically\n" +
+                "adjusted as points are included in the TIN.\n" +
+                "\n" +
+                "-num_iter is used to limit the number of \"densification\" passes\n" +
+                "through the point cloud. By default this is 3, which is often \n" +
+                "enough. Iterations are automatically terminated if there were\n" +
+                "less than 1% more ground points in the latest iteration.\n" +
+                "\n" +
                 "Usage:\n" +
                 "\n" +
                 "\t-i\t\tInput file(s)\n" +
                 "\t-o\t\tOutput file\n" +
                 "\t-odir\t\tOutput directory\n" +
-                "\t-distance\tDistance threshold (default 1.0 m)\n" +
+                "\t-dist\t\tDistance threshold (default 1.0 m)\n" +
                 "\t-angle\t\tAngle threshold (default 10.0 degrees)\n" +
                 "\t-axGrid\t\tSize of the kernel for seed point search\n" +
-                "\t       \t\t(default 20.0 m)");
+                "\t       \t\t(default 20.0 m)\n" +
+                "\t       \t\t\n" +
+                "\t-num_iter\tNumber of iterations");
     }
 
     public void noise(){
