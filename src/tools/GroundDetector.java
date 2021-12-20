@@ -843,22 +843,13 @@ public class GroundDetector{
                         double distance = Double.POSITIVE_INFINITY;
 
                         List<org.tinfour.common.Vertex> closest = closest_points.collectNeighboringVertices(tempPoint.x, tempPoint.y, 0, 0);
-
+                        Polyside.Result a = isPointInPolygon(perimeter, tempPoint.x, tempPoint.y);
                         //if (closest_points.wasTargetExteriorToTin())
-                        if (isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Outside)
+                        if (a != Polyside.Result.Inside)
                                 continue;
-                        //}catch (Exception e){
-                           // e.printStackTrace();
 
-                           // System.out.println(tempPoint.y + " " + tempPoint.x);
-
-                            //continue;
-                        //}
                         interpolatedZ = polator.interpolate(tempPoint.x, tempPoint.y, valuator);
 
-                        //}catch(Exception e){
-                         //   continue;
-                        //}
                         distanceSigned = (interpolatedZ - tempPoint.z);
 
 
@@ -910,8 +901,6 @@ public class GroundDetector{
 
                                             etumerkki = key.getZ() < interpolatedZ ? -1 : 1;
 
-                                            //double angle = angle(Math.abs(key.getZ() - tempPoint.z), distance2) + etumerkki * (angle(Math.abs(key.getZ() - interpolatedZ), distance2));
-                                            //double angle = (angle(Math.abs(key.getZ() - tempPoint.z), distance2) + etumerkki * (angle(Math.abs(key.getZ() - interpolatedZ), distance2)));
                                             double angle = Math.abs(angleHypo_sine(distance3d, distance));
                                             meanAngle += angle;
 
@@ -935,68 +924,31 @@ public class GroundDetector{
 
                                         }
 
-
                                         if(!reject_as_outlier(maxAngle) && !Double.isNaN(maxAngle) && distance < distanceThreshold){
-                                        //if(meanAngle / 3.0 < angleThreshold){
-                                        //if(maxAngle < angleThreshold){
-                                        //if (fullfilledCriteria > 0) {
+
                                             if(this.dynamic_angle_threshold)
                                                 rolling_stats_add(maxAngle);
-                                            //System.out.println(maxAngle);
-                                            //System.out.println(this.average_rolling_stats + " " + this.stdDev_rolling_stats);
+
                                             counter_this_iteration++;
 
                                             counter++;
                                             anglesum += meanAngle / 3.0;
 
-
-                                            //if(!fixedAngle)
-                                            angles.add(maxAngle);
-                                            distances.add(distance);
-
                                             rateOfChange++;
                                             foundGroundPoints++;
 
-                                            //verticeBank.add(tempVertex);
-                                            //verticeBank_iteration.add(tempVertex);
-
-                                            //if(rand.nextDouble() > 0.8)
                                             if(miniDist > 2.0) {
 
-
                                                 org.tinfour.common.Vertex tempVertex = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z);
-                                                //tempVertices.add(tempVertex);
-
                                                 tempVertex.setIndex((p+j));
-
                                                 tin.add(tempVertex);
                                                 polator.resetForChangeToTin();
                                                 closest_points.resetForChangeToTin();
 
                                             }
 
-
-
-                                            //tempVertices.add(tempVertex);
-
-                                            //
-
-                                            //doneIndexes.add((p+j));
                                             doneInd[p+j] = true;
 
-
-
-                                            //tempPoint.classification = 2;
-                                                    /*
-                                                    if(write){
-                                                        if(LASwrite.writePoint(asd2, tempPoint, rule, 0.01, 0.01, 0.01, 0, 0, 0, 1, i))
-                                                            pointCount++;
-                                                    }
-                                                    */
-                                            //indexes.add(i);
-                                            //dtmPoints.add(tempPoint);
-                                            addFlag = 1;
-                                            //break;
                                         }
                                         else{
 
@@ -1006,8 +958,6 @@ public class GroundDetector{
 
                                         }
                                     } else {
-
-                                        //System.out.println("!!!!");
 
                                     }
                                 }
@@ -1020,7 +970,6 @@ public class GroundDetector{
                         fullfilledCriteria = 0;
 
                     }
-                    //System.out.println(p+j);
 
                     if(counter2++ % 100000 == 0){
 

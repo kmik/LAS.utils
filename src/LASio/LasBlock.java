@@ -991,6 +991,7 @@ public class LasBlock {
             for (org.tinfour.common.Vertex v : tempTin_2.getVertices()) {
 
                 //if (tempTin_1.isPointInsideTin(v.x, v.y)) {
+
                 if (isPointInPolygon(perimeter, v.x, v.y) == Polyside.Result.Inside) {
 
                     double interpolatedValue = polator_1.interpolate(v.x, v.y, valuator);
