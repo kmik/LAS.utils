@@ -31,6 +31,10 @@ public class argumentReader {
 
     public File debug_file = null;
 
+    public boolean classify = false;
+
+    public int EPSG = 3067;
+
     public boolean input_in_radians = false;
 
     public int num_iter = 3;
@@ -643,6 +647,24 @@ public class argumentReader {
                 .numberOfArgs(1)
                 .required(false)
                 .build());
+
+        options.addOption(Option.builder()
+                .longOpt("EPSG")
+                .hasArg(true)
+                .desc("Coordinate reference system")
+                .numberOfArgs(1)
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("epsg")
+                .hasArg(true)
+                .desc("Coordinate reference system")
+                .numberOfArgs(1)
+                .required(false)
+                .build());
+
+
         options.addOption(Option.builder()
                 .longOpt("buffer")
                 .hasArg(true)
@@ -650,6 +672,15 @@ public class argumentReader {
                 .numberOfArgs(1)
                 .required(false)
                 .build());
+
+        options.addOption(Option.builder()
+                .longOpt("classify")
+                .hasArg(false)
+                .desc("Classify noise points")
+                .numberOfArgs(1)
+                .required(false)
+                .build());
+
 
         options.addOption(Option.builder()
                 .longOpt("debug_file")
@@ -1384,12 +1415,22 @@ public class argumentReader {
 
             }
 
-
-
             if (cmd.hasOption("iparse")) {
 
                 this.iparse = cmd.getOptionValue("iparse");
             }
+
+            if (cmd.hasOption("EPSG")) {
+
+                this.EPSG = Integer.parseInt(cmd.getOptionValue("EPSG"));
+            }
+
+            if (cmd.hasOption("epsg")) {
+
+                this.EPSG = Integer.parseInt(cmd.getOptionValue("epsg"));
+            }
+
+
 
             if (cmd.hasOption("oparse")) {
 
@@ -1541,6 +1582,12 @@ public class argumentReader {
             if (cmd.hasOption("thin3d")) {
 
                 this.thin3d = true;
+
+            }
+
+            if (cmd.hasOption("classify")) {
+
+                this.classify = true;
 
             }
 

@@ -1437,6 +1437,7 @@ public class RunLASutils {
 
             if(aR.mode_3d){
                 for (int i = 0; i < aR.inputFiles.size(); i++) {
+
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
                     createCHM.chm testi = new createCHM.chm(temp, "y", 1, aR, 1);
 
@@ -1538,6 +1539,54 @@ public class RunLASutils {
             }
 
         }
+
+
+        if (aR.tool == 34){
+
+            if (aR.cores > 1) {
+                proge.setEnd(aR.inputFiles.size());
+
+                if (aR.cores > aR.inputFiles.size())
+                    aR.cores = aR.inputFiles.size();
+
+                ArrayList<Thread> lista11 = new ArrayList<Thread>();
+
+                for (int ii = 1; ii <= aR.cores; ii++) {
+
+                    proge.addThread();
+                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
+                    lista11.add(temp);
+                    temp.start();
+
+                }
+
+                for (int i = 0; i < lista11.size(); i++) {
+
+                    try {
+
+                        lista11.get(i).join();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            } else {
+                try {
+
+                    for (int i = 0; i < aR.inputFiles.size(); i++) {
+
+                        LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+                        ground2raster g2r = new ground2raster(temp, aR);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
 
         long tEnd = System.currentTimeMillis();
         long tDelta = tEnd - tStart;
@@ -2158,6 +2207,31 @@ public class RunLASutils {
                             e.printStackTrace();
                         }
                     }
+                }
+
+                if(aR.tool == 34){
+
+                    while (true) {
+
+                        if (fD.isEmpty())
+                            break;
+
+                        File f = fD.getFile();
+
+                        if (f == null)
+                            continue;
+
+                        LASReader temp = new LASReader(f);
+                        try {
+                            ground2raster g2r = new ground2raster(temp, aR);
+                            //sort.sortByZCount();
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+
                 }
 
 

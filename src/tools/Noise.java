@@ -293,19 +293,31 @@ public class Noise{
                 int y = (int)((tempPoint.y - minY) / step);
                 int z = (int)((tempPoint.z - minZ) / step);
 
+                if(aR.classify){
 
-                if(!noisePoints.contains(combine(x, y, z))){
-                   // if(asd2.writePoint( tempPoint, rule, pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
-                            //pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, p+j)){
-                        pointCount++;
+                    if(noisePoints.contains(combine(x, y, z))){
+                        tempPoint.classification = 7;
+                    }
+
+                    pointCount++;
                     aR.pfac.writePoint(tempPoint, p + j, thread_n);
-                        //System.out.println("!!!");
-                    //}
+
                 }else{
-                    aR.p_update.lasnoise_removed++;
-                    noisePointCount++;
-                    aR.p_update.threadInt[coreNumber-1] = noisePointCount;
+                    if(!noisePoints.contains(combine(x, y, z))){
+                        // if(asd2.writePoint( tempPoint, rule, pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
+                        //pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, p+j)){
+                        pointCount++;
+                        aR.pfac.writePoint(tempPoint, p + j, thread_n);
+                        //System.out.println("!!!");
+                        //}
+                    }else{
+                        aR.p_update.lasnoise_removed++;
+                        noisePointCount++;
+                        aR.p_update.threadInt[coreNumber-1] = noisePointCount;
+                    }
+
                 }
+
 
                 aR.p_update.threadProgress[coreNumber-1]++;
 

@@ -593,39 +593,11 @@ public class createCHM{
 
         org.gdal.gdal.Driver driver = gdal.GetDriverByName("GTiff");
 
-        File copyFile = new File(filename);
-
-        File newFile = new File("tempFilter_" + id + ".tif");
-        File newFile_2 = new File("tempFilter_r1_" + id + ".tif");
-        File newFile_3 = new File("tempFilter_r2_" + id + ".tif");
-        File newFile_4 = new File("tempFilter_r3_" + id + ".tif");
-
-        try {
-            FileUtils.copyFile(copyFile, newFile);
-            FileUtils.copyFile(copyFile, newFile_2);
-            FileUtils.copyFile(copyFile, newFile_3);
-            FileUtils.copyFile(copyFile, newFile_4);
-        }catch (IOException e){
-            e.printStackTrace();
-        }
 
 
         Dataset temppi = gdalE.hei("tempFilter_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
         copyRaster(input, temppi, "tempFilter_" + id + ".tif");
         temppi = gdalE.hei("tempFilter_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
-
-
-        Dataset temppi_right2 = gdalE.hei("tempFilter_r1_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
-        copyRaster(input, temppi_right2, "tempFilter_r1_" + id + ".tif");
-        temppi_right2 = gdalE.hei("tempFilter_r1_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
-
-        Dataset temppi_right3 = gdalE.hei("tempFilter_r2_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
-        copyRaster(input, temppi_right3, "tempFilter_r2_" + id + ".tif");
-        temppi_right3 = gdalE.hei("tempFilter_r2_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
-
-        Dataset temppi_right4 = gdalE.hei("tempFilter_r3_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
-        copyRaster(input, temppi_right4, "tempFilter_r3_" + id + ".tif");
-        temppi_right4 = gdalE.hei("tempFilter_r3_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
 
         //System.exit(0);
         //Dataset temppi = gdal.Open(newFile.getAbsolutePath());
@@ -633,19 +605,15 @@ public class createCHM{
         //if(true)
           //  return;
         Band temppi_band = temppi.GetRasterBand(1);
-        Band temppi_r2_band = temppi_right2.GetRasterBand(1);
-        Band temppi_r3_band = temppi_right3.GetRasterBand(1);
-        Band temppi_r4_band = temppi_right4.GetRasterBand(1);
         Band input_band = input.GetRasterBand(1);
 
         copyRasterContents(input_band, temppi_band);
-        copyRasterContents(input_band, temppi_r2_band);
-        copyRasterContents(input_band, temppi_r3_band);
-        copyRasterContents(input_band, temppi_r4_band);
         //float[][] temppi = arrayCopy(input);
 
         int height = temppi.getRasterYSize();
         int width = temppi.getRasterXSize();
+
+
         int counter = 0;
         int paatos = (height - n) * (width - n);
 
@@ -653,16 +621,6 @@ public class createCHM{
 
         float[] tempF;
 
-        ArrayList<int[]> leftOvers = new ArrayList<int[]>();
-
-        //TreeSet<Float> zets = new TreeSet<Float>();
-
-        //System.out.println("height " + height);
-
-        HashMap<Integer, Float> correctionMap = new HashMap<>();
-        HashMap<Integer, Float> correctionMap_r = new HashMap<>();
-        TreeSet<Integer> leftOvers_2_left = new TreeSet<>();
-        TreeSet<Integer> leftOvers_2_right = new TreeSet<>();
 /*
         if(false) {
 
@@ -1402,7 +1360,7 @@ public class createCHM{
 
                     /* TOP RIGHT */
 
-                    temppi_r2_band.ReadRaster(right_x, top_y, 1, 1, floatArray);
+                    //temppi_r2_band.ReadRaster(right_x, top_y, 1, 1, floatArray);
 
                     if(Float.isNaN(floatArray[0]) && !done2) {
 
@@ -1428,7 +1386,7 @@ public class createCHM{
                                 if (y > (height - 1))
                                     y = height - 1;
 
-                                temppi_r2_band.ReadRaster(x, y, 1, 1, floatArray);
+                                //temppi_r2_band.ReadRaster(x, y, 1, 1, floatArray);
 
                                 if (!Float.isNaN(floatArray[0])) {
 
@@ -1448,7 +1406,7 @@ public class createCHM{
                                 remaining_2++;
                             }else{
                                 floatArray[0] = median;
-                                temppi_r2_band.WriteRaster(right_x, top_y, 1, 1, floatArray);
+                                //temppi_r2_band.WriteRaster(right_x, top_y, 1, 1, floatArray);
                             }
 
                         }
@@ -1456,7 +1414,7 @@ public class createCHM{
 
                     /* BOTTOM RIGHT */
 
-                    temppi_r3_band.ReadRaster(right_x, bottom_y, 1, 1, floatArray);
+                    //temppi_r3_band.ReadRaster(right_x, bottom_y, 1, 1, floatArray);
 
                     if(Float.isNaN(floatArray[0]) && !done3) {
 
@@ -1482,7 +1440,7 @@ public class createCHM{
                                 if (y > (height - 1))
                                     y = height - 1;
 
-                                temppi_r3_band.ReadRaster(x, y, 1, 1, floatArray);
+                                //temppi_r3_band.ReadRaster(x, y, 1, 1, floatArray);
 
                                 if (!Float.isNaN(floatArray[0])) {
 
@@ -1502,7 +1460,7 @@ public class createCHM{
                                 remaining_3++;
                             }else{
                                 floatArray[0] = median;
-                                temppi_r3_band.WriteRaster(right_x, bottom_y, 1, 1, floatArray);
+                                //temppi_r3_band.WriteRaster(right_x, bottom_y, 1, 1, floatArray);
                             }
 
                         }
@@ -1510,7 +1468,7 @@ public class createCHM{
 
                     /* BOTTOM LEFT */
 
-                    temppi_r4_band.ReadRaster(left_x, bottom_y, 1, 1, floatArray);
+                    //temppi_r4_band.ReadRaster(left_x, bottom_y, 1, 1, floatArray);
 
                     if(Float.isNaN(floatArray[0]) && !done4) {
 
@@ -1536,7 +1494,7 @@ public class createCHM{
                                 if (y > (height - 1))
                                     y = height - 1;
 
-                                temppi_r4_band.ReadRaster(x, y, 1, 1, floatArray);
+                                //temppi_r4_band.ReadRaster(x, y, 1, 1, floatArray);
 
                                 if (!Float.isNaN(floatArray[0])) {
 
@@ -1556,7 +1514,7 @@ public class createCHM{
                                 remaining_4++;
                             }else{
                                 floatArray[0] = median;
-                                temppi_r4_band.WriteRaster(left_x, bottom_y, 1, 1, floatArray);
+                                //temppi_r4_band.WriteRaster(left_x, bottom_y, 1, 1, floatArray);
                             }
 
                         }
@@ -1573,9 +1531,6 @@ public class createCHM{
 
             input_band.ReadRaster(0, top_y, width, 1, data_input);
             temppi_band.ReadRaster(0, top_y, width, 1, data_top_left);
-            temppi_r2_band.ReadRaster(0, top_y, width, 1, data_top_right);
-            temppi_r3_band.ReadRaster(0, bottom_y, width, 1, data_bottom_right);
-            temppi_r4_band.ReadRaster(0, bottom_y, width, 1, data_bottom_left);
 
             for (int x_ = n; x_ < (width - n); x_++) {
 
@@ -4842,11 +4797,14 @@ public class createCHM{
             String tempName = "tempWater" + coreNumber + ".tif";
             String tempName2 = "tempWater2" + coreNumber + ".tif";
 
+            String epsg_code = "EPSG:" + aR.EPSG;
+
+
             Vector<String> optionsVector = new Vector<>();
             optionsVector.add("-of");
             optionsVector.add("GTiff");
             optionsVector.add("-a_srs");
-            optionsVector.add("EPSG:3067");
+            optionsVector.add(epsg_code);
             optionsVector.add("-a_ullr");
             optionsVector.add(Double.toString(canopy.minX));
             optionsVector.add(Double.toString(canopy.maxY));
@@ -5766,10 +5724,6 @@ public class createCHM{
 
                                 /* the following idea by Iglewicz and Hoaglin (1993): Use modified 𝑍-scores 𝑀 such that:*/
                                 float stuff = (float)Math.abs(.6745f * (f - median) / MAD);
-
-                                //System.out.println(stuff + " " + f + " " + median + " " + MAD);
-
-
 
                                 if( stuff > aR.filter_intensity){  // aR.filter_intensity defaults to 1.75
 
@@ -7135,20 +7089,6 @@ public class createCHM{
             if(!aR.p_update.las2dsm_print)
                 aR.p_update.updateProgressITD();
 
-			/*
-			Imgcodecs.imwrite("test.tif", output);
-			try        
-			{
-    		Thread.sleep(1000);
-			} 
-			catch(InterruptedException ex) 
-			{Thread.currentThread().interrupt();
-			}
-			//GTiff
-			*/
-
-            //ArrayList<float[][]> tempLista = new ArrayList<float[][]>();
-
             if(layers > 1){
 
                 //tempLista.add(output2R);
@@ -7167,35 +7107,44 @@ public class createCHM{
 
             if(interpolation){
 
-                //System.out.println("");
-    			//localSmoothing(output, 2, true);
-
-
-                //original = removeOutliers(output2, 0, aR.kernel, aR.theta);
-
-
                 filtered = removeOutliers_tif(cehoam, 0, aR.kernel, aR.theta, this.coreNumber, outputFileName, aR.interpolate);
+                //cehoam = removeOutliers_tif(cehoam, 0, aR.kernel, aR.theta, this.coreNumber, outputFileName, aR.interpolate);
 
                 band_filterd = filtered.GetRasterBand(1);
-                //if(layers > 1)
-                  //  tempLista = removeOutliersRGB(tempLista);
-
-                //deleteOutliers();
-                //localSmoothing(output2, 2, false);
-
-
-                //removeOutliers(output);
-
-
-                //Mat gaussian(Mat input, int kernelSize, double sigma){
-                //output = gaussian(output, 3, 0.8);
-
 
             }else{
                 filtered = cehoam;
                 band_filterd = cehoam.GetRasterBand(1);
             }
 
+            /*
+            double[] geoTransform = new double[]{pointCloud.minX, aR.step, 0.0, pointCloud.maxY, 0.0, -aR.step};
+
+            SpatialReference sr = new SpatialReference();
+
+            //cehoam = filtered;
+            sr.ImportFromEPSG(aR.EPSG);
+
+            //filtered.SetProjection(sr.ExportToWkt());
+            cehoam.SetProjection(sr.ExportToWkt());
+            //filtered.SetGeoTransform(geoTransform);
+            cehoam.SetGeoTransform(geoTransform);
+
+            //filtered.FlushCache();
+            cehoam.FlushCache();
+            band.FlushCache();
+
+            if(aR.p_update.las2dsm_print) {
+                aR.p_update.fileProgress++;
+                aR.p_update.updateProgressDSM();
+            }
+
+            if(!aR.p_update.las2dsm_print)
+                aR.p_update.updateProgressITD();
+
+            if(true)
+                return;
+*/
 
             //if(aR.lasrelate){
             if(false){
@@ -7234,7 +7183,6 @@ public class createCHM{
             }
 
             band_filterd.SetNoDataValue(Double.NaN);
-            //String tempName = "temp" + coreNumber + ".tif";
 
             String tempName = "tempFilter_" + coreNumber + ".tif";
             String tempName2 = "tempFilter2_" + coreNumber + ".tif";
@@ -7270,11 +7218,13 @@ public class createCHM{
 
             */
 
+            String epsg_code = "EPSG:" + aR.EPSG;
+
             Vector<String> optionsVector = new Vector<>();
             optionsVector.add("-of");
             optionsVector.add("GTiff");
             optionsVector.add("-a_srs");
-            optionsVector.add("EPSG:3067");
+            optionsVector.add(epsg_code);
             optionsVector.add("-a_ullr");
             optionsVector.add(Double.toString(this.minX));
             optionsVector.add(Double.toString(this.maxY));
@@ -7285,6 +7235,8 @@ public class createCHM{
             //Dataset inputdata = gdal.Open(tempName, gdalconstConstants.GA_ReadOnly);
 
             Dataset outti = gdaltranslate(outputFileName, filtered, optit); //gdal.Translate(name, inputdata, optit);
+
+            //System.out.println(Arrays.toString(outti.GetGeoTransform()));
 
             outti.FlushCache();
 
@@ -7297,13 +7249,7 @@ public class createCHM{
 
             //temp.delete();
 
-            if(aR.p_update.las2dsm_print) {
-                aR.p_update.fileProgress++;
-                aR.p_update.updateProgressDSM();
-            }
 
-            if(!aR.p_update.las2dsm_print)
-                aR.p_update.updateProgressITD();
 
             /*
 
@@ -7348,6 +7294,7 @@ public class createCHM{
 
 	public static synchronized Dataset gdaltranslate(String name, Dataset inputdata, org.gdal.gdal.TranslateOptions optit){
         return gdal.Translate(name, inputdata, optit);
+
     }
 
 	public static void main(String[] args) throws IOException {

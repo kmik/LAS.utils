@@ -171,6 +171,9 @@ public class las2solar_photogrammetry {
         dataset = driver.Create("testi.tif", chm.GetRasterXSize(), chm.GetRasterYSize(), 1, gdalconst.GDT_Float32);
         dataset.SetGeoTransform(chm.GetGeoTransform());
         dataset.SetProjection(chm.GetProjection());
+
+        System.out.println(chm.GetProjection());
+        System.exit(1);
         band2 = dataset.GetRasterBand(1);    // writable band
 
 
@@ -254,32 +257,8 @@ public class las2solar_photogrammetry {
                 for(int month : calendar_month) {
                     for (int day = 1; day <= n_date_in_month[month]; day += 1) {
 
-                        int sunriseSunsetcounter = 0;
-
-                        // int sunrise = sunriseAndSunset.get(sunriseSunsetcounter)[0];
-                        // int sunset = sunriseAndSunset.get(sunriseSunsetcounter++)[1];
-
                         time.set(2020, month, day, 12, 00, 00);
 
-                        //Calendar[] sunriseSunset = ca.rmen.sunrisesunset.SunriseSunset.getSunriseSunset(time, point_transformed[1], point_transformed[0]);
-
-                        // GregorianCalendar[] res = SPA.calculateSunriseTransitSet(
-                        //      time,
-                        //       70.978056, // latitude
-                        //       25.974722, // longitude
-                        //       68); // delta T
-                        //System.out.println(sunrise + " ?? " + sunriseSunset[0].getTime().getHours());
-                        //System.out.println(sunset + " ?? " + sunriseSunset[1].getTime().getHours());
-
-                        /* TODO: These are not highly accurate, considere trying to just test all
-                        hours and check which are < 90 degrees
-                         */
-                        //int sunrise = sunriseSunset[0].getTime().getHours();
-                        //int sunset = sunriseSunset[1].getTime().getHours();
-
-                        //sunriseAndSunset.add(new int[]{sunrise, sunset});
-
-                        //for (int hour = sunrise; hour <= sunset; hour += 1) {
                         for (int hour = 0; hour <= 23; hour += 1) {
 
                             for(int minute = 0; minute < minutes.length; minute++) {
@@ -302,8 +281,6 @@ public class las2solar_photogrammetry {
 
         BlockingQueue<Pair<Integer, byte[][]>> provideRow = new LinkedBlockingQueue<>();
 
-        //System.out.println(chm_values_f.length + " " + chm_values_f[0].length);
-        //System.exit(1);
         for(int y = 0; y < chm_values_f_3d.length; y++)
             provideRow.add(new Pair<>(y,chm_values_f_3d[y]));
 
@@ -358,10 +335,7 @@ public class las2solar_photogrammetry {
         }
 
         blur3D(imp, xsigma, ysigma, zsigma);
-        //imp.getImageStack().getProcessor(1).put;
-        //imp.getImageStack().getProcessor(raster_z_size);
-        //System.out.println(ip.getNChannels());
-        //System.exit(1);
+
         if(true)
         for(int z = 1; z <= raster_z_size; z++){
 

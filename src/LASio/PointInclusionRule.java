@@ -542,8 +542,10 @@ public class PointInclusionRule{
 					return false;
 
 			if(drop_noise)
-				if(tempPoint.classification == 7)
-					return false;
+				if(tempPoint.classification == 7) {
+					//System.out.println("DROP NOISE!");
+					//return false;
+				}
 
 
 			if(drop_single)

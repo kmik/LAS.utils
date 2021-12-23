@@ -773,7 +773,7 @@ public class printHelp {
                 "the distribution of triangle normal angles from the initial TIN\n" +
                 "created from the seed points. The angle threshold is then:\n" +
                 "\n" +
-                "average_angle + std_angles * 2.0\n" +
+                "average_angle + std_angles * 2.5\n" +
                 "\n" +
                 "This threshold (i.e. average and std) is then dynamically\n" +
                 "adjusted as points are included in the TIN.\n" +
