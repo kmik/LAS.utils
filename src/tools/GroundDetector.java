@@ -4,7 +4,9 @@ import LASio.*;
 //import jdk.jfr.events.ExceptionThrownEvent;
 import err.toolException;
 import gnu.trove.list.array.TIntArrayList;
+import javafx.scene.chart.ScatterChart;
 import math.fast.SpeedyMath;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.math3.util.FastMath;
 import org.gdal.ogr.Geometry;
 import org.locationtech.jts.awt.PointShapeFactory;
@@ -20,10 +22,13 @@ import org.tinfour.interpolation.VertexValuatorDefault;
 import org.tinfour.standard.IncrementalTin;
 import org.tinfour.utils.Polyside;
 import quickhull3d.Vector3d;
+import sun.java2d.pipe.SpanShapeRenderer;
 import utils.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 import static org.gdal.ogr.ogrConstants.wkbLinearRing;
 import static org.gdal.ogr.ogrConstants.wkbPolygon;
@@ -46,7 +51,9 @@ import static org.tinfour.utils.Polyside.isPointInPolygon;
 
 public class GroundDetector{
 
+
     rolling_stats rolling_statistics = new rolling_stats();
+    rolling_stats rolling_statistics_distance = new rolling_stats();
 
     boolean dynamic_angle_threshold = true;
 
@@ -65,6 +72,7 @@ public class GroundDetector{
 
     fileOperations fo = new fileOperations();
     IncrementalTin tin = new IncrementalTin();
+
     IncrementalTin tin2 = new IncrementalTin();
 
 
@@ -82,7 +90,7 @@ public class GroundDetector{
 
     int axelssonGridSize = 20;
 
-    double distanceThreshold = 1.0;
+    double distanceThreshold = 0.75;
     double angleThreshold = 10.0;
 
     long numberOfGroundPoints = 0;
@@ -206,10 +214,11 @@ public class GroundDetector{
         if(aR.angle != -999) {
             this.angleThreshold = angleThreshold1;
             this.dynamic_angle_threshold = false;
-
+            this.rolling_statistics.setManual_maximum(this.angleThreshold);
         }
         if(aR.dist != -999){
             this.distanceThreshold = this.aR.dist;
+
         }
 
         //this.dynamic_angle_threshold = true;
@@ -224,7 +233,8 @@ public class GroundDetector{
 
         this.aR.p_update.threadFile[coreNumber-1] = this.pointCloud.getFile().getName();
 
-        tin.preAllocateEdges(100000);
+        tin.preAllocateEdges((int)(pointCloud.getNumberOfPointRecords() * 0.1));
+
     }
 
     public void updateProgress(){
@@ -592,6 +602,8 @@ public class GroundDetector{
 
         }
 
+        //System.out.println(rolling_statistics_distance.average_rolling_stats + " " + rolling_statistics_distance.stdDev_rolling_stats);
+        //System.exit(1);
         //System.out.println("MAX VALUE: " + maxValue);
 
         maxValue = Double.MIN_VALUE;
@@ -965,9 +977,24 @@ public class GroundDetector{
         int counter_this_iteration = 0;
         ArrayList<Vertex> add_these_to_tin = new ArrayList<>();
 
+        rolling_stats vertex_distance_to_nearest = new rolling_stats();
+
+        TreeMap<Integer, Double> zets = new TreeMap<>();
+
+        IIncrementalTinNavigator navi = tin.getNavigator();
+
+        //closest.add(null);
+        //closest.add(null);
+        //closest.add(null);
         //if(false)
+
+        Vertex[] closest = new Vertex[3];
+
+        SimpleTriangle triang = null;
+
         for(int loo = 0; loo < aR.num_iter; loo++) {
 
+            //ArrayList<org.tinfour.common.Vertex> closest = new ArrayList<>();
             add_these_to_tin.clear();
             counter_this_iteration = 0;
             distances.clear();
@@ -982,8 +1009,11 @@ public class GroundDetector{
             polator.resetForChangeToTin();
 
             pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
+            //TreeMap<Double, double[]> pointBatch = new TreeMap<>();
+
 
             counter2 = 0;
+
             for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 10000) {
 
                 maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - (p)));
@@ -994,180 +1024,302 @@ public class GroundDetector{
                     e.printStackTrace();
                 }
                 //}
+                //pointBatch.clear();
 
                 for (int j = 0; j < maxi; j++) {
 
-                    pointCloud.readFromBuffer(tempPoint);
+                    //pointCloud.readFromBuffer(tempPoint);
+                    double[] p_ = pointCloud.readFromBuffer_concurrent();
 
-                    if(!rule.ask(tempPoint, p+j, true) || badInd[p+j]){
+
+
+                    tempPoint.x = p_[0];
+                    tempPoint.y = p_[1];
+                    tempPoint.z = p_[2];
+
+                    tempPoint.returnNumber = (int)p_[3];
+                    tempPoint.numberOfReturns = (int)p_[4];
+
+                    if (badInd[p + j] || tempPoint.numberOfReturns != tempPoint.returnNumber || doneInd[j+p]) { //!rule.ask(tempPoint, p + j, true) ||
                         continue;
                     }
+/*
+                    while(pointBatch.containsKey(tempPoint.z)){
+                        tempPoint.z += 0.000001;
+                    }
 
-                    if (!doneInd[p+j]) {
+                    if (!doneInd[p + j] && !badInd[p+j]) {
+                        pointBatch.put(tempPoint.z, new double[]{tempPoint.x, tempPoint.y, tempPoint.z, p, j});
+                    }
+
+                }
+
+                for(Double d : pointBatch.keySet()){
+
+                    double[] val = pointBatch.get(d);
+                    int j = (int)val[4];
+                    p = (int)val[3];
+
+                    tempPoint.x = val[0];
+                    tempPoint.y = val[1];
+                    tempPoint.z = val[2];
+
+*/
+                    if(true){
+
+
 
                         double distance2 = Double.POSITIVE_INFINITY;
                         double distance = Double.POSITIVE_INFINITY;
 
+                        //List<org.tinfour.common.Vertex> closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(tempPoint.x, tempPoint.y, -1, -1);
 
-                        List<org.tinfour.common.Vertex> closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(tempPoint.x, tempPoint.y, -1, -1);
+                        //if(!navi.isPointInsideTin(tempPoint.x, tempPoint.y))
+                            //continue;
+                        triang = navi.getContainingTriangle(tempPoint.x, tempPoint.y);
+
                         //Polyside.Result a = isPointInPolygon(perimeter, tempPoint.x, tempPoint.y);
+                        //if (closest_points.wasTargetExteriorToTin()) {
+                        //try {
+
+                            //if (a == Polyside.Result.Inside) {
+                            if (triang == null) {
+                                badInd[p + j] = true;
+                                //System.out.println("POINT OUTSIDE!!");
+                                //if (a != Polyside.Result.Inside)
+                                continue;
+                            }
+                        //}catch (Exception e){
+
+                        //}
+
+
+
+
+                        //System.out.println(triang.getVertexA());
+                        //closest.clear();
+                        //closest.add(triang.getVertexA());
+                        //closest.add(triang.getVertexB());
+                        //closest.add(triang.getVertexC());
+
+                        closest[0] = triang.getVertexA();
+                        closest[1] = triang.getVertexB();
+                        closest[2] = triang.getVertexC();
+
+
 
                         //System.out.println(closest.size());
 
-                        if (closest_points.wasTargetExteriorToTin()) {
-                        //if(a == Polyside.Result.Outside || a == Polyside.Result.Edge){
-                            badInd[p+j] = true;
-                            //System.out.println("POINT OUTSIDE!!");
-                            //if (a != Polyside.Result.Inside)
-                            continue;
-                        }
 
                         //if(closest.size() < 6)
-                          //  continue;
+                        //  continue;
 
                         interpolatedZ = polator.interpolate(tempPoint.x, tempPoint.y, valuator);
 
-                        if(false)
-                        if(tempPoint.x > 607000 && tempPoint.x < 607200 && tempPoint.y > 6943000 && tempPoint.y < 6943200){
-                            System.out.println("GOT HERE!");
-                        }
+                        if (false)
+                            if (tempPoint.x > 607000 && tempPoint.x < 607200 && tempPoint.y > 6943000 && tempPoint.y < 6943200) {
+                                System.out.println("GOT HERE!");
+                            }
 
-                        if(Double.isNaN(interpolatedZ))
+                        if (Double.isNaN(interpolatedZ))
                             continue;
 
                         distanceSigned = (interpolatedZ - tempPoint.z);
 
-
-
                         normal = polator.getSurfaceNormal();
 
-                        double distance_debug = 0;
-                        //System.out.println(Arrays.toString(normal));
-                        if(normal.length == 3) {
-                            distanceSigned  = (normal[0] * tempPoint.x + normal[1] * tempPoint.y + normal[2] * tempPoint.z -
-                                   (normal[0] * tempPoint.x + normal[1] * tempPoint.y + normal[2] * (tempPoint.z - distanceSigned))) /
-                                    squareRoot(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+                        if (normal.length == 3) {
+                            distanceSigned = (normal[0] * tempPoint.x + normal[1] * tempPoint.y + normal[2] * tempPoint.z -
+                                    (normal[0] * tempPoint.x + normal[1] * tempPoint.y + normal[2] * (tempPoint.z - distanceSigned))) /
+                                    Math.sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
                             /*
                             distanceSigned = Math.abs(normal[0] * tempPoint.x + normal[1] * tempPoint.y + normal[2] * tempPoint.z +
                                     (-normal[0] * closest.get(0).x - normal[1] * closest.get(0).y - normal[2] * closest.get(0).getZ())) /
                                     squareRoot(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
 
                              */
-                        }else
+                        } else
                             continue;
 
-                        double triangleAngle = 90.0d - Math.abs(Math.toDegrees(FastMath.atan(normal[2] / Math.sqrt(normal[0] * normal[0] + normal[1] * normal[1]))));
+                        double triangleAngle = 0.0; // = 90.0d - FastMath.abs(FastMath.toDegrees(FastMath.atan(normal[2] / Math.sqrt(normal[0] * normal[0] + normal[1] * normal[1]))));
                         //double norm = Math.sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
                         //System.out.println(triangleAngle + " " + rolling_statistics.reject_as_outlier_topSide(triangleAngle, 3.0));
 
-                        if(false)
-                        if(rolling_statistics.reject_as_outlier_topSide(triangleAngle, 5.0)){
+                        if (false)
+                            if (rolling_statistics.reject_as_outlier_topSide(triangleAngle, 5.0)) {
 
-                            for(Vertex v : closest){
-                                tin.remove(v);
+                                for (Vertex v : closest) {
+                                    tin.remove(v);
+                                }
+
+                                //for(SimpleTriangle t : tin.triangles()){
+
+                                //    t.
+
+                                //}
+                                System.out.println(tin.getVertices().size() + " " + triangleAngle + " " + rolling_statistics.average_rolling_stats + " " + rolling_statistics.stdDev_rolling_stats);
+                                polator.resetForChangeToTin();
+                                closest_points.resetForChangeToTin();
                             }
 
-                            //for(SimpleTriangle t : tin.triangles()){
-
-                            //    t.
-
-                            //}
-                            System.out.println(tin.getVertices().size() + " " + triangleAngle + " " + rolling_statistics.average_rolling_stats + " " + rolling_statistics.stdDev_rolling_stats  );
-                            polator.resetForChangeToTin();
-                            closest_points.resetForChangeToTin();
-                        }
-
                         distance = FastMath.abs(distanceSigned);
+
+                        if ( false )
+                            if (distance > 5) {
+                                badInd[p + j] = true;
+                                //System.out.println("POINT OUTSIDE!!");
+                                //if (a != Polyside.Result.Inside)
+                                continue;
+                            }
                         //ystem.out.println( (tempPoint.z - interpolatedZ) + " " + distance + " " + triangleAngle);
 
+                        //if (closest.size() >= 3) {
+                        //if (true) {
 
+                            //if (distance == Double.POSITIVE_INFINITY || distance < distanceThreshold) {
+                            //if (true) {
 
-                        //System.out.println(distance);
+                                double miniDist = Double.POSITIVE_INFINITY;
+/*
+                                if (Double.isNaN(distance) && false) {
 
-                                if (closest.size() >= 3) {
+                                    if(true)
+                                        continue;
 
-                                    fullfilledCriteria = 0;
+                                    interpolatedZ = 0.0;
 
-                                    //if (distance == Double.POSITIVE_INFINITY || distance < distanceThreshold) {
-                                    if (true) {
+                                    for (int u = 0; u < 3; u++) {
 
-                                        double miniDist = Double.POSITIVE_INFINITY;
+                                        interpolatedZ += closest[u].getZ();
 
-                                        if(Double.isNaN(distance)){
+                                    }
 
-                                            interpolatedZ = 0.0;
+                                    interpolatedZ /= 3.0;
 
-                                            for (int u = 0; u < 3; u++) {
+                                } else {
 
-                                                interpolatedZ += closest.get(u).getZ();
+                                    interpolatedZ = tempPoint.z + distanceSigned;
 
-                                            }
+                                }
+*/
+                                double maxAngle = Double.NEGATIVE_INFINITY;
+                                //zets.clear();
+                                int counter_angle = 0;
 
-                                            interpolatedZ /= 3.0;
+                                for (Vertex key_ : closest) {
 
-                                        }else{
+                                    //key = closest[u];
 
-                                            interpolatedZ = tempPoint.z + distanceSigned;
+                                    //zets.put(u, key.getZ());
 
-                                        }
+                                    //distance2 = key.getDistance(tempPoint.x, tempPoint.y);
+                                    distance2 = euclideanDistance(key_.x, key_.y, tempPoint.x, tempPoint.y);
+                                    double distance3d = euclideanDistance_3d(tempPoint.x, tempPoint.y, tempPoint.z,
+                                            key_.x, key_.y, key_.getZ());
 
-                                        double maxAngle = Double.NEGATIVE_INFINITY;
+                                    //etumerkki = key.getZ() < interpolatedZ ? -1 : 1;
 
-                                        for (int u = 0; u < 3; u++) {
+                                    double angle = FastMath.abs(angleHypo_sine(distance3d, distance));
 
-                                            key = closest.get(u);
-                                            distance2 = key.getDistance(tempPoint.x, tempPoint.y);
+                                    //System.out.println("angle: " + angle + " " + distance3d + " " + distance);
+                                    meanAngle += angle;
+                                    counter_angle++;
 
-                                            double distance3d = euclideanDistance_3d(tempPoint.x, tempPoint.y, tempPoint.z,
-                                                                                        key.x, key.y, key.getZ());
-
-                                            etumerkki = key.getZ() < interpolatedZ ? -1 : 1;
-
-                                            double angle = Math.abs(angleHypo_sine(distance3d, distance));
-                                            meanAngle += angle;
-
-                                            if(angle > maxAngle)
-                                                maxAngle = angle;
+                                    if (angle > maxAngle)
+                                        maxAngle = angle;
 
 /*
                                             if ((angle < angleThreshold))
                                                 fullfilledCriteria++;
                                             else
                                                 break;
-
-
  */
-                                            if(distance2 < miniDist)
-                                                miniDist = distance2;
+                                    if (distance2 < miniDist)
+                                        miniDist = distance2;
 
+                                }
+                                if (false)
+                                    if (zets.size() != 3)
+                                        continue;
+                                    /*
+                                        Map.Entry<Integer, Double> smallest_z = zets.pollFirstEntry();
+                                        Map.Entry<Integer, Double> middle_z = zets.pollFirstEntry();
+                                        Map.Entry<Integer, Double> highest_z = zets.pollLastEntry();
+
+                                        double meanDistance = Math.abs(smallest_z.getValue() - ((middle_z.getValue() + highest_z.getValue()) / 2.0));
+                                        double meanDistance_max = Math.abs(highest_z.getValue() - ((middle_z.getValue() + smallest_z.getValue()) / 2.0));
+
+                                        int whichOne = meanDistance > meanDistance_max ? 1 : 2;
+                                        double maxDif = meanDistance > meanDistance_max ? meanDistance : meanDistance_max;
+
+                                        if(loo == 0)
+                                            vertex_distance_to_nearest.add(maxDif);
+                                        else if(loo == 1){
+                                            if(vertex_distance_to_nearest.reject_as_outlier(maxDif, 2.0)){
+
+                                                switch(whichOne){
+
+                                                    case 1:
+                                                        doneInd[closest.get(smallest_z.getKey()).getIndex()] = false;
+                                                        badInd[closest.get(smallest_z.getKey()).getIndex()] = true;
+                                                        tin.remove(closest.get(smallest_z.getKey()));
+                                                        polator.resetForChangeToTin();
+                                                        break;
+
+                                                    case 2:
+
+                                                        doneInd[closest.get(highest_z.getKey()).getIndex()] = false;
+                                                        badInd[closest.get(highest_z.getKey()).getIndex()] = true;
+                                                        tin.remove(closest.get(highest_z.getKey()));
+                                                        polator.resetForChangeToTin();
+
+                                                        break;
+
+                                                    default:
+
+                                                        break;
+
+                                                }
+                                                continue;
+                                            }
                                         }
+*/
 
-                                        if(maxAngle > 20.0 || true){
+                                //if (maxAngle > 20.0 || true) {
 
-                                        }
+                                //}
 
-                                        if(!this.rolling_statistics.reject_as_outlier_topSide(maxAngle, 2.5) && !Double.isNaN(maxAngle) && distance < distanceThreshold){
+                                meanAngle /= (double) counter_angle;
 
-                                            //if(interpolatedZ > 115){
-                                                //System.out.println("HAT THE FUCK! " + interpolatedZ + " " + maxAngle + " " + distance);
-                                                //System.exit(1);
-                                            //}
-                                            //System.out.println(maxAngle);
-                                            //if(this.dynamic_angle_threshold)
-                                            this.rolling_statistics.add(maxAngle);
+                                //if(Double.isNaN(meanAngle))
+                                // continue;
 
-                                            counter_this_iteration++;
+                                //System.out.println("MEAN ANGLE: "  + meanAngle);
+                                //System.out.println("---------------------");
+                                if (!this.rolling_statistics.reject_as_outlier_topSide(maxAngle, aR.std_threshold) && !Double.isNaN(maxAngle) && distance < distanceThreshold) {
 
-                                            counter++;
-                                            anglesum += meanAngle / 3.0;
+                                    //if(interpolatedZ > 115){
+                                    //System.out.println("HAT THE FUCK! " + interpolatedZ + " " + maxAngle + " " + distance);
+                                    //System.exit(1);
+                                    //}
+                                    //System.out.println(maxAngle);
+                                    //if(this.dynamic_angle_threshold)
 
-                                            rateOfChange++;
-                                            foundGroundPoints++;
+                                    counter_this_iteration++;
 
-                                            if(miniDist > 2.0) {
+                                    counter++;
+                                    anglesum += meanAngle / 3.0;
 
-                                                org.tinfour.common.Vertex tempVertex = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z);
-                                                tempVertex.setIndex((p+j));
+                                    rateOfChange++;
+                                    foundGroundPoints++;
+
+                                    if (miniDist > 0.5) {
+
+                                        this.rolling_statistics.add(maxAngle);
+
+
+                                        org.tinfour.common.Vertex tempVertex = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z);
+                                        tempVertex.setIndex((p + j));
 
 /*
                                                 double triangleAngleOriginal = triangleAngle;
@@ -1205,32 +1357,29 @@ public class GroundDetector{
                                                 System.out.println("------------------------");
 
 */
-                                                //add_these_to_tin.add(tempVertex);
 
-                                                tin.add(tempVertex);
-                                                polator.resetForChangeToTin();
-                                                closest_points.resetForChangeToTin();
-
-
-                                            }
-
-                                            doneInd[p+j] = true;
-
-                                        }
-                                        else{
-
-                                            if(maxAngle > angleThreshold * 4){
-                                                badInd[p+j] = true;
-                                            }
-
-                                        }
-                                    } else {
+                                        tin.add(tempVertex);
+                                        polator.resetForChangeToTin();
+                                        navi.resetForChangeToTin();
+                                        doneInd[p + j] = true;
 
                                     }
+
+
+                                } else {
+
+                                    //if (maxAngle > angleThreshold * 2) {
+                                    //    badInd[p + j] = true;
+                                    //}
+
                                 }
-                            //}
-                            closest.clear();
-                                closest = null;
+                            //} else {
+
+                           // }
+                        //}
+                        //}
+                        //closest.clear();
+                        //closest = null;
                         //}
 
                         meanAngle = 0.0;
@@ -1238,27 +1387,30 @@ public class GroundDetector{
 
                     }
 
-                    if(counter2++ % 100000 == 0){
-
+                    if (counter2++ % 100000 == 0) {
 
 
                         //if(this.dynamic_angle_threshold)
-                            //this.angleThreshold = calcSurfaceNormal();
-                        this.angleThreshold = this.rolling_statistics.average_rolling_stats + this.rolling_statistics.stdDev_rolling_stats * 2.5;
+                        //this.angleThreshold = calcSurfaceNormal();
+                        if (this.dynamic_angle_threshold)
+                            this.angleThreshold = this.rolling_statistics.average_rolling_stats + this.rolling_statistics.stdDev_rolling_stats * aR.std_threshold;
+
+                        else
+                            this.angleThreshold = this.rolling_statistics.manual_maximum;
                         //if(!fixedAngle)
                         //this.angleThreshold = calcSurfaceNormal();
                         // this.angleThreshold = (anglesum / (double)counter) * 1.5;
 
                         this.aR.p_update.lasground_vertices = this.tin.getVertices().size();
-                        this.aR.p_update.lasground_doneIndexes = (int)foundGroundPoints;
+                        this.aR.p_update.lasground_doneIndexes = (int) foundGroundPoints;
                         //this.aR.p_update.lasground_doneIndexes = p+j;
                         //this.aR.p_update.lasground_angleThreshold = this.angleThreshold;
 
-                        this.aR.p_update.threadDouble[coreNumber-1] = this.angleThreshold;
+                        this.aR.p_update.threadDouble[coreNumber - 1] = this.angleThreshold;
                         //this.aR.p_update.threadDouble[coreNumber-1] = loo;
 
-                        this.aR.p_update.threadProgress[coreNumber-1] = (int)foundGroundPoints;
-                        this.aR.p_update.threadInt[coreNumber-1] = (int)loo+1;
+                        this.aR.p_update.threadProgress[coreNumber - 1] = (int) foundGroundPoints;
+                        this.aR.p_update.threadInt[coreNumber - 1] = (int) loo + 1;
                         //this.aR.p_update.threadProgress[coreNumber-1] = counter2;
                         //this.aR.p_update.threadProgress[coreNumber-1] = p+j;
                         //this.aR.p_update.threadEnd[coreNumber-1] = this.tin.getVertices().size() * 244;
@@ -1267,10 +1419,13 @@ public class GroundDetector{
                     }
 
                 }
+
+
+                //pointBatch.clear();
                 addFlag = 0;
-                if(p % 100 == 0){
+                //if(p % 100 == 0){
                     //System.gc();
-                }
+                //}
 
             } //DONEINDEXES
 
@@ -1305,7 +1460,12 @@ public class GroundDetector{
         //System.gc();
 
             /* At the end of the first iteration, we detect and remove suspicious vertexes */
-            if(loo == 0){
+            //if(loo == 0){
+
+            vertex_distance_to_nearest.reset();
+
+            if(true){
+
 
 
                 Vector3d point_a = new Vector3d(0,0,0);
@@ -1315,38 +1475,143 @@ public class GroundDetector{
                 rolling_stats stats_sidelength = new rolling_stats();
                 rolling_stats stats_triangle_angle = new rolling_stats();
 
-                rolling_stats vertex_distance_to_nearest = new rolling_stats();
-                List<Vertex> closest;
+                rolling_stats vertex_distance_to_nearest_ = new rolling_stats();
 
-                for(Vertex v : tin.getVertices()){
+                float[] mean_distance_array = new float[(int)pointCloud.getNumberOfPointRecords()];
+                int arrayCounter = 0;
 
-                    closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(v.x, v.y, 0, 0);
+                //for(SimpleTriangle t : tin.triangles()){
+                StreamSupport.stream(tin.triangles().spliterator(), false).forEach((t) -> {
+/*
+                    TreeMap<Integer, Double> zets2 = new TreeMap<>();
+
+
+
+                        zets2.put(0, t.getVertexA().getZ());
+                        zets2.put(1, t.getVertexB().getZ());
+                        zets2.put(2, t.getVertexC().getZ());
+
+
+
+
+
+                    Map.Entry<Integer, Double> smallest_z = zets2.pollFirstEntry();
+                    Map.Entry<Integer, Double> middle_z = zets2.pollFirstEntry();
+                    Map.Entry<Integer, Double> highest_z = zets2.pollLastEntry();
+
+                    double meanDistance = Math.abs(smallest_z.getValue() - ((middle_z.getValue() + highest_z.getValue()) / 2.0));
+                    double meanDistance_max = Math.abs(highest_z.getValue() - ((middle_z.getValue() + smallest_z.getValue()) / 2.0));
+
+                    int whichOne = meanDistance > meanDistance_max ? 1 : 2;
+                    double maxDif = meanDistance > meanDistance_max ? meanDistance : meanDistance_max;
+
+
+
+                    vertex_distance_to_nearest.add(maxDif);
+
+ */
+
+                    vertex_distance_to_nearest.add(Math.abs(t.getVertexA().getZ() - t.getVertexB().getZ()));
+                    vertex_distance_to_nearest.add(Math.abs(t.getVertexA().getZ() - t.getVertexC().getZ()));
+                    vertex_distance_to_nearest.add(Math.abs(t.getVertexB().getZ() - t.getVertexC().getZ()));
+
+
+                });
+
+                ArrayList<Vertex> remove_these = new ArrayList<>();
+
+                double threshold = 1.5;
+                //for(SimpleTriangle t : tin.triangles()){
+                for(SimpleTriangle t : tin.triangles()){
+
+                    double dist_a_b = Math.abs(t.getVertexA().getZ() - t.getVertexB().getZ());
+                    double dist_a_c = Math.abs(t.getVertexA().getZ() - t.getVertexC().getZ());
+
+                    double dist_b_a = Math.abs(t.getVertexB().getZ() - t.getVertexA().getZ());
+                    double dist_b_c = Math.abs(t.getVertexB().getZ() - t.getVertexC().getZ());
+
+                    double dist_c_a = Math.abs(t.getVertexC().getZ() - t.getVertexA().getZ());
+                    double dist_c_b = Math.abs(t.getVertexC().getZ() - t.getVertexB().getZ());
+
+                    if(vertex_distance_to_nearest.reject_as_outlier(dist_a_b, threshold) && vertex_distance_to_nearest.reject_as_outlier(dist_a_c, threshold)){
+                        remove_these.add(t.getVertexA());
+                        badInd[t.getVertexA().getIndex()] = true;
+                        doneInd[t.getVertexA().getIndex()] = false;
+
+                    }else if(vertex_distance_to_nearest.reject_as_outlier(dist_b_a, threshold) && vertex_distance_to_nearest.reject_as_outlier(dist_b_c, threshold)){
+                        remove_these.add(t.getVertexB());
+                        badInd[t.getVertexB().getIndex()] = true;
+                        doneInd[t.getVertexB().getIndex()] = false;
+                    }else if(vertex_distance_to_nearest.reject_as_outlier(dist_c_a, threshold) && vertex_distance_to_nearest.reject_as_outlier(dist_c_b, threshold)){
+                        remove_these.add(t.getVertexC());
+                        badInd[t.getVertexC().getIndex()] = true;
+                        doneInd[t.getVertexC().getIndex()] = false;
+                    }
+
+                }
+
+                for(Vertex v : remove_these){
+                    tin.remove(v);
+                }
+
+                vertex_distance_to_nearest.reset();
+
+                polator.resetForChangeToTin();
+                navi.resetForChangeToTin();
+                //IntStream.range(0, tin.getVertices().size()-1).parallel().forEach(i -> {
+                if(false)
+                tin.getVertices().parallelStream().forEach((v) -> {
+
+
+                //for(Vertex v : tin.getVertices()){
+                    //Vertex v = tin.getVertices().get(i);
+                    polator.interpolate(v.x, v.y, valuator);
+
+                    //List<Vertex> closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(v.x, v.y, 0, 0);
 
                     double mean_distance = 0;
 
                     //System.out.println(closest.get(0) + " " + v);
 
-                    for(int i = 1; i < 3; i++){
-                        mean_distance += Math.abs(v.getZ() - closest.get(i).getZ());
+                    for(int i_ = 1; i_ < 3; i_++){
+                        //mean_distance += Math.abs(v.getZ() - closest.get(i_).getZ());
                     }
 
                     mean_distance /= 2.0;
 
+
+
                     vertex_distance_to_nearest.add(mean_distance);
+                    mean_distance_array[v.getIndex()] = (float)mean_distance;
+
+                });
+
+
+                if(false)
+                for(Vertex v : tin.getVertices()){
+
+                    if(vertex_distance_to_nearest.reject_as_outlier(mean_distance_array[v.getIndex()], 2.0)){
+                        tin.remove(v);
+                    }
 
                 }
 
-                ArrayList<Vertex> remove_these = new ArrayList<>();
+                //mean_distance_array = null;
+
+                polator.resetForChangeToTin();
+               // ArrayList<Vertex> remove_these = new ArrayList<>();
 
 
+
+                if(false)
                 for(Vertex v : tin.getVertices()){
-                    closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(v.x, v.y, 0, 0);
+                    //List<Vertex> closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(v.x, v.y, 0, 0);
 
                     double mean_distance = 0;
 
                     for(int i = 1; i < 3; i++){
                         //mean_distance += closest.get(i).getDistance(v);
-                        mean_distance += Math.abs(v.getZ() - closest.get(i).getZ());
+                        //mean_distance += Math.abs(v.getZ() - closest.get(i).getZ());
 
                     }
 
@@ -1360,11 +1625,9 @@ public class GroundDetector{
 
                 }
 
-                for(Vertex v : remove_these){
-                    tin.remove(v);
-                }
 
-                polator.resetForChangeToTin();
+
+                //polator.resetForChangeToTin();
 
             }
 
@@ -1379,6 +1642,8 @@ public class GroundDetector{
             if((double)counter_this_iteration / (double)foundGroundPoints * 100.0 < 1.0){
                 break;
             }
+
+            System.gc();
 
         }
 
@@ -1497,10 +1762,13 @@ public class GroundDetector{
 
         //org.tinfour.interpolation.NaturalNeighborInterpolator polator = new org.tinfour.interpolation.NaturalNeighborInterpolator(tin);
         polator.resetForChangeToTin();
+
         pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
 
+
+
         /* WHAT IS THIS? */
-        if(aR.dense)
+        if(aR.dense || true)
         for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 10000) {
             //for(int i = 0; i < n; i++){
 
@@ -1512,21 +1780,29 @@ public class GroundDetector{
                 e.printStackTrace();
             }
 
-
             for (int j = 0; j < maxi; j++) {
 
                 //if((j+p) > 1600000)
 
                 //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                 pointCloud.readFromBuffer(tempPoint);
+               // double[] p_ = pointCloud.readFromBuffer_concurrent();
 
                 if(!rule.ask(tempPoint, p+j, true)){
                     continue;
                 }
 
+
                 //if (!doneIndexes.contains((p+j))) {
                 if (!doneInd[p+j]) {
+/*
+                    tempPoint.x = p_[0];
+                    tempPoint.y = p_[1];
+                    tempPoint.z = p_[2];
 
+                    tempPoint.returnNumber = (int)p_[3];
+                    tempPoint.numberOfReturns = (int)p_[4];
+                    */
                     //pointCloud.readRecord((p+j), tempPoint);
 
                     double distance2 = Double.POSITIVE_INFINITY;
@@ -1535,18 +1811,24 @@ public class GroundDetector{
                     interpolatedZ = polator.interpolate(tempPoint.x, tempPoint.y, valuator);
                     distanceSigned = (interpolatedZ - tempPoint.z);
 
-                    normal = polator.getSurfaceNormal();
+                    //normal = polator.getSurfaceNormal();
 
-                    if (normal.length == 3)
-                        distanceSigned = (normal[0] * tempPoint.x + normal[1] * tempPoint.y + normal[2] * tempPoint.z -
-                                (normal[0] * tempPoint.x + normal[1] * tempPoint.y + normal[2] * (tempPoint.z - distanceSigned))) /
-                                Math.sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+                    //if (normal.length == 3)
+                        //distanceSigned = (normal[0] * tempPoint.x + normal[1] * tempPoint.y + normal[2] * tempPoint.z -
+                          //      (normal[0] * tempPoint.x + normal[1] * tempPoint.y + normal[2] * (tempPoint.z - distanceSigned))) /
+                          //      Math.sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+
 
                     distance = Math.abs(distanceSigned);
 
-                    if(distance <= 0.05)
-                        doneInd[p+j] = true;
-                        //doneIndexes.add(p+j);
+                    if(distanceSigned > 0)
+                        if(distance <= 0.1)
+                            doneInd[p+j] = true;
+                            //doneIndexes.add(p+j);
+                    else
+                        if(distance <= 0.5)
+                            doneInd[p+j] = true;
+                    //doneIndexes.add(p+j);
 
                 }
 
@@ -1860,7 +2142,7 @@ public class GroundDetector{
 
     public static double angleHypo_sine(double hypotenuse, double opposite) {
         //System.out.println(Math.toDegrees(SpeedyMath.asin(opposite / hypotenuse)) + " == " + Math.toDegrees(Math.asin(opposite / hypotenuse)));
-        return FastMath.toDegrees(FastMath.asin(opposite / hypotenuse));
+        return FastMath.toDegrees(Math.asin(opposite / hypotenuse));
 
     }
 
@@ -1876,7 +2158,7 @@ public class GroundDetector{
     public static double euclideanDistance(double x1, double y1, double x2, double y2){
 
 
-        return Math.sqrt( Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2) );
+        return Math.sqrt(  (x1 - x2) * ( x1 - x2) + ( y1 - y2) * ( y1 - y2) );
 
     }
 
@@ -2553,6 +2835,52 @@ public class GroundDetector{
 
         calcSurfaceNormal(false);
 
+        rolling_stats sta = new rolling_stats();
+
+        StreamSupport.stream(tin.triangles().spliterator(), false).forEach((t) -> {
+
+            sta.add(Math.abs(t.getVertexA().getZ() - t.getVertexB().getZ()));
+            sta.add(Math.abs(t.getVertexA().getZ() - t.getVertexC().getZ()));
+            sta.add(Math.abs(t.getVertexB().getZ() - t.getVertexC().getZ()));
+
+        });
+
+        ArrayList<Vertex> remove_these = new ArrayList<>();
+
+
+        //for(SimpleTriangle t : tin.triangles()){
+        for(SimpleTriangle t : tin.triangles()){
+
+            double dist_a_b = Math.abs(t.getVertexA().getZ() - t.getVertexB().getZ());
+            double dist_a_c = Math.abs(t.getVertexA().getZ() - t.getVertexC().getZ());
+
+            double dist_b_a = Math.abs(t.getVertexB().getZ() - t.getVertexA().getZ());
+            double dist_b_c = Math.abs(t.getVertexB().getZ() - t.getVertexC().getZ());
+
+            double dist_c_a = Math.abs(t.getVertexC().getZ() - t.getVertexA().getZ());
+            double dist_c_b = Math.abs(t.getVertexC().getZ() - t.getVertexB().getZ());
+
+            if(sta.reject_as_outlier(dist_a_b, threshold) && sta.reject_as_outlier(dist_a_c, threshold)){
+                remove_these.add(t.getVertexA());
+                badInd[t.getVertexA().getIndex()] = true;
+                doneInd[t.getVertexA().getIndex()] = false;
+
+            }else if(sta.reject_as_outlier(dist_b_a, threshold) && sta.reject_as_outlier(dist_b_c, threshold)){
+                remove_these.add(t.getVertexB());
+                badInd[t.getVertexB().getIndex()] = true;
+                doneInd[t.getVertexB().getIndex()] = false;
+            }else if(sta.reject_as_outlier(dist_c_a, threshold) && sta.reject_as_outlier(dist_c_b, threshold)){
+                remove_these.add(t.getVertexC());
+                badInd[t.getVertexC().getIndex()] = true;
+                doneInd[t.getVertexC().getIndex()] = false;
+            }
+
+        }
+
+        for(Vertex v : remove_these){
+            tin.remove(v);
+        }
+
         Geometry outRing = new Geometry(wkbLinearRing);
 
         List<IQuadEdge> perim = new ArrayList<>();
@@ -2574,6 +2902,7 @@ public class GroundDetector{
             tree.add(new KdTree.XYZPoint(perim.get(i).getA().x, perim.get(i).getA().y, perim.get(i).getA().getZ()));
 
         }
+
         coords[coords.length-1] = new Coordinate(perim.get(perim.size()-1).getB().x, perim.get(perim.size()-1).getB().y, perim.get(perim.size()-1).getB().getZ());
 
         for(Coordinate c : coords){

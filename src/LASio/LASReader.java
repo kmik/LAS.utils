@@ -1282,7 +1282,141 @@ public class LASReader {
 
   }
 
-  public void readFromBuffer(LasPoint p){
+  public synchronized double[] readFromBuffer_concurrent(){
+
+    double[] output = new double[5];
+
+    if(pointDataRecordFormat <= 5) {
+
+      int lx = braf.buffer.getInt();
+      int ly = braf.buffer.getInt();
+      int lz = braf.buffer.getInt();
+
+
+      output[0] = lx * xScaleFactor + xOffset;
+      output[1] = ly * yScaleFactor + yOffset;
+      output[2] = lz * zScaleFactor + zOffset;
+      Short.toUnsignedInt(braf.buffer.getShort());
+
+      int mask = braf.buffer.get();
+
+      //System.out.println((byte)mask);
+      output[3] = mask & 0x07;
+      output[4] = (mask >> 3) & 0x7;
+
+/*
+      System.out.println(mask);
+      System.out.println(p.returnNumber);
+      System.out.println(p.numberOfReturns);
+      System.out.println("---------------------");
+*/
+
+      // for record types 0 to 5, the classification
+      // is packed in with some other bit-values, see Table 8
+      braf.buffer.get();
+
+      braf.buffer.get();
+      braf.buffer.get();
+      braf.buffer.getShort();
+      // we currently skip
+      //   scan angle rank  1 byte
+      //   user data        1 byte
+      //   point source ID  2 bytes
+      //braf.skipBytes(4); // scan angle rank
+
+      if (pointDataRecordFormat == 1 || pointDataRecordFormat == 3 || pointDataRecordFormat == 4 || pointDataRecordFormat == 5) {
+        braf.buffer.getDouble();
+        //System.out.println(p.gpsTime);
+        // Depending on the gpsTimeType element, the GPS time can be
+        // in one of two formats:
+        //    GPS Week Time  seconds since 12:00 a.m. Sunday
+        //    GPS Satellite Time   seconds since 12 a.m. Jan 6, 1980
+        //                         minus an offset 1.0e+9
+        //    The mapping to a Java time requires information about
+        //    the GPS time type
+
+      }
+
+      if (pointDataRecordFormat == 2 || pointDataRecordFormat == 3 || pointDataRecordFormat == 5) {
+
+        braf.buffer.getChar();
+        braf.buffer.getChar();
+        braf.buffer.getChar();
+
+      }
+
+      if (pointDataRecordFormat == 4 || pointDataRecordFormat == 5) {
+        braf.buffer.get();
+        braf.buffer.getLong();
+        braf.buffer.getInt();
+        braf.buffer.getFloat();
+
+        braf.buffer.getFloat();
+        braf.buffer.getFloat();
+        braf.buffer.getFloat();
+
+      }
+
+      //If someone has decided they want to have their OWN point data format... this is just dumb.
+      if (this.extraBytesInPoint > 0) {
+        braf.buffer.get(readExtra);
+      }
+    }else{
+
+      braf.buffer.getInt();
+      braf.buffer.getInt();
+      braf.buffer.getInt();
+
+      Short.toUnsignedInt(braf.buffer.getShort());
+
+      int mask = braf.buffer.get();
+
+
+      mask = braf.buffer.get();
+
+      int classificationFlag = mask>>4;
+
+      int lastPart = mask&15;
+
+      braf.buffer.get();
+      braf.buffer.get();
+      braf.buffer.getShort();
+      braf.buffer.getShort();
+      braf.buffer.getDouble();
+
+      if(pointDataRecordFormat >= 7 && pointDataRecordFormat != 9){
+
+        braf.buffer.getChar();
+        braf.buffer.getChar();
+        braf.buffer.getChar();
+
+        if(pointDataRecordFormat >= 8){
+          braf.buffer.getChar();
+        }
+      }
+      if(pointDataRecordFormat == 10 || pointDataRecordFormat == 9){
+
+        braf.buffer.get();
+        braf.buffer.getLong();
+        braf.buffer.getInt();
+        braf.buffer.getFloat();
+
+        braf.buffer.getFloat();
+        braf.buffer.getFloat();
+        braf.buffer.getFloat();
+
+
+      }
+
+      if (this.extraBytesInPoint > 0) {
+        braf.buffer.get(readExtra);
+      }
+
+    }
+    return output;
+  }
+
+  public synchronized void readFromBuffer(LasPoint p){
 
 
     if(pointDataRecordFormat <= 5) {

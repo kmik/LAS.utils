@@ -33,6 +33,8 @@ public class argumentReader {
 
     public boolean classify = false;
 
+    public double std_threshold = 3.0;
+
     public int EPSG = 3067;
 
     public boolean input_in_radians = false;
@@ -477,6 +479,13 @@ public class argumentReader {
 
         options.addOption(Option.builder()
                 .longOpt("interior")
+                .hasArg(true)
+                .desc("inter")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("std_threshold")
                 .hasArg(true)
                 .desc("inter")
                 .required(false)
@@ -1455,7 +1464,11 @@ public class argumentReader {
                 this.step = Double.parseDouble(cmd.getOptionValue("step"));
 
             }
+            if (cmd.hasOption("std_threshold")) {
 
+                this.std_threshold = Double.parseDouble(cmd.getOptionValue("std_threshold"));
+
+            }
             if (cmd.hasOption("alt")) {
 
                 this.altitude = Double.parseDouble(cmd.getOptionValue("alt"));

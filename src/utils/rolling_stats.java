@@ -6,13 +6,19 @@ public class rolling_stats {
             pwrSumAvg_rolling_stats, stdDev_rolling_stats,
             max_rolling_stats, min_rolling_stats;
 
+    public double manual_maximum = -1;
+
     public rolling_stats(){
 
         this.reset();
 
     }
 
-    public void add(double val){
+    public void setManual_maximum(double val){
+        this.manual_maximum = val;
+    }
+
+    public synchronized void add(double val){
 
 
         if(val > max_rolling_stats)
@@ -53,6 +59,14 @@ public class rolling_stats {
 
     public boolean reject_as_outlier_topSide(double val, double threshold){
 
+        if(manual_maximum > 0){
+
+            if(val > manual_maximum)
+                return true;
+            else
+                return false;
+
+        }
         val = Math.abs(val);
 
         if(val < this.average_rolling_stats)
@@ -79,7 +93,17 @@ public class rolling_stats {
 
     }
 
+
     public boolean reject_as_outlier(double val, double threshold){
+
+        if(manual_maximum > 0){
+
+            if(val > manual_maximum)
+                return true;
+            else
+                return false;
+
+        }
 
         val = Math.abs(val);
 
