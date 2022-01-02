@@ -538,9 +538,9 @@ public class LasRelate{
 
             vert = Math.abs(tempVertexA.getZ() - tempVertexB.getZ());
 
-            euc = GroundDetector.euclideanDistance(tempVertexA.x, tempVertexA.y, tempVertexB.x, tempVertexB.y);
+            euc = euclideanDistance(tempVertexA.x, tempVertexA.y, tempVertexB.x, tempVertexB.y);
 
-            angle = GroundDetector.angle(vert, euc);
+            angle = angle(vert, euc);
 
             if(angle > thresHoldAngle && euc > thresHoldDistance){
 
@@ -555,6 +555,20 @@ public class LasRelate{
             }
 
         }
+
+
+    }
+
+    public double angle(double oppositeSideLength, double adjacentSideLength) {
+
+        return Math.toDegrees(Math.atan(oppositeSideLength/ adjacentSideLength));
+
+    }
+
+    public double euclideanDistance(double x1, double y1, double x2, double y2){
+
+
+        return Math.sqrt(  (x1 - x2) * ( x1 - x2) + ( y1 - y2) * ( y1 - y2) );
 
     }
 
@@ -684,7 +698,7 @@ public class LasRelate{
                 for(int j = 0; j < closest.size(); j++){
 
                     tempVertexB = closest.get(j);
-                    distance = GroundDetector.euclideanDistance(tempVertexA.x, tempVertexA.y, tempVertexB.x, tempVertexB.y);
+                    distance = euclideanDistance(tempVertexA.x, tempVertexA.y, tempVertexB.x, tempVertexB.y);
 
                     if(distance < distanceThreshold && keepA == false){
 
@@ -717,6 +731,13 @@ public class LasRelate{
         System.out.println(vL2.size());
 
     }
+
+    public double angleHypo(double hypotenuse, double adjacentSideLength) {
+
+        return Math.toDegrees(Math.acos(adjacentSideLength / hypotenuse));
+
+    }
+
 
     public double[] getExtent(org.tinfour.standard.IncrementalTin in1){
 

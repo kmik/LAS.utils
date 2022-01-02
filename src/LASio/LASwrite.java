@@ -396,6 +396,7 @@ public class LASwrite {
 
 		for(int i = 0; i < charArray.length; i++){
 
+			//System.out.println(tokens[i]);
 			switch(charArray[i])
 			{
 				case 'x':
@@ -558,6 +559,8 @@ public class LASwrite {
 		}
 		//System.out.println(minimum_point_format);
 		//System.exit(1);
+
+
 
 		to.writeAscii(4, "LASF");
 
@@ -932,11 +935,16 @@ public class LASwrite {
 				count++;
 	        }
 	        in.close();
-	    }catch(Exception e){System.out.println(e);}
+	    }catch(Exception e){
+			e.printStackTrace();
+		}
 	    to.writeBuffer2();
 	    updateHeader_txt2las(pointCount, pointsByReturn, minX, maxX, minY, maxY
 			, maxZ, minZ, to, x_offset_update, y_offset_update, z_offset_update,
 				x_scale_update, y_scale_update, z_scale_update);
+
+		//System.out.println("HERE!!");
+
 	}
 
 

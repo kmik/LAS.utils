@@ -8,6 +8,7 @@ import org.apache.commons.math3.linear.RealVector;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.gdal;
+import org.gdal.gdalconst.gdalconst;
 import org.gdal.gdalconst.gdalconstConstants;
 import org.gdal.ogr.*;
 import org.gdal.osr.SpatialReference;
@@ -170,8 +171,17 @@ public class createCHM{
             return (float)Math.sqrt(Math.pow(Gx,2) + Math.pow(Gy,2));// - image.get(x,y).z;
 
     }
+    public double[][] removeOutliers(double[][] input,  int kernel, double theta, int rows, int cols){
+
+        return GaussianSmooth.smooth(input, rows, cols, kernel, theta);
+
+
+    }
+
 
     public static float[][] removeOutliers(float[][] input, int blur, int kernel, double theta){
+
+
 
         Statistics stat = new Statistics();
 
@@ -576,6 +586,60 @@ public class createCHM{
         to.WriteRaster(0, 0, x, y, read);
 
     }
+
+    public static void copyRasterContents(double[][] from, Band to){
+
+
+        int x = to.getXSize();
+        int y = to.getYSize();
+
+        float[] read = new float[x*y];
+
+        int counter = 0;
+
+        for(int y_ = 0; y_ < from[0].length; y_++){
+            for(int x_ = 0; x_ < from.length; x_++){
+
+
+                read[counter++] = (float)from[x_][y_];
+
+            }
+        }
+
+        to.WriteRaster(0, 0, x, y, read);
+
+    }
+
+    public static void copyRasterContents(Band from, float[][] to){
+
+        int x = from.getXSize();
+        int y =from.getYSize();
+
+        float[] read = new float[x];
+
+        for(int y_ = 0; y_ < y; y_++){
+
+            from.ReadRaster(0,y_, x, 1, read);
+
+            for(int x_ = 0; x_ < x; x_++){
+                to[x_][y_] = read[x_];
+            }
+        }
+    }
+
+
+/*
+    public static Dataset removeOutliers(double[][] input, int blur, int kernel, double theta, int id, String filename, boolean nan){
+
+
+            GaussianSmooth.smooth_tif(input, temppi, cols, rows, kernel, theta);  // THIS IS GOOD!!!! :)
+
+
+            double[][] smoothed = GaussianSmooth.smooth(input, rows, cols, kernel, theta);
+
+
+    }
+*/
 
     public static Dataset removeOutliers_tif(Dataset input, int blur, int kernel, double theta, int id, String filename, boolean nan){
 
@@ -2139,6 +2203,20 @@ public class createCHM{
         Band raster_priority_b;
         Band raster_z_b;
 
+        /** Replace with 2d arrays for
+         *
+         * better performance
+         */
+
+        int[][] raster_id_array;
+        short[][] raster_flag_array;
+        float[][] raster_priority_array;
+        float[][] raster_z_array;
+
+        float[] floatArray_1 = new float[9];
+        float[] floatArray_2 = new float[9];
+        float[] floatArray_3 = new float[9];
+
         int coreNumber;
 
         double resolution;
@@ -2157,6 +2235,20 @@ public class createCHM{
 
  			this.yDim = raster_z_b.getYSize(); // in[0].length;
  			this.xDim = raster_z_b.getXSize(); //.length;
+
+
+            raster_id_array = new int[xDim][yDim];
+            raster_flag_array = new short[xDim][yDim];
+            raster_priority_array = new float[xDim][yDim];
+            raster_z_array = new float[xDim][yDim];
+
+
+            copyRasterContents(raster_z_b, raster_z_array);
+
+
+            for(int x = 0 ; x < xDim; x++)
+                for(int y = 0 ; y < yDim; y++)
+                    raster_id_array[x][y] = -999;
 
             float[] floatArray = new float[1];
 
@@ -2226,12 +2318,14 @@ public class createCHM{
  		    floatArray[0] = -99;
  		    raster_flag_b.WriteRaster(x, y, 1, 1, floatArray);
 
+             raster_flag_array[x][y] = -99;
         }
 
         public boolean isTreeTop(int x, int y){
 
  		    raster_flag_b.ReadRaster(x, y, 1, 1, floatArray);
- 		    return floatArray[0] == -99;
+             return raster_flag_array[x][y] == -99;
+            //return floatArray[0] == -99;
         }
 
  		public void attach(int x, int y, int id ){
@@ -2239,27 +2333,49 @@ public class createCHM{
  		    //System.out.println("ATTACHED: " + id);
             floatArray[0] = id;
             raster_id_b.WriteRaster(x, y, 1, 1, floatArray);
+            raster_id_array[x][y] = id;
         }
 
         public void detach(int x, int y){
 
             floatArray[0] = -999f;
             raster_id_b.WriteRaster(x, y, 1, 1, floatArray);
+            raster_id_array[x][y] = -999;
         }
 
         public void queue(int x, int y){
             floatArray[0] = 1.0f;
             raster_flag_b.WriteRaster(x, y, 1, 1, floatArray);
+            raster_flag_array[x][y] = 1;
         }
 
-        public void dequeue(int x, int y){
+        public void dequeue(int x, int y) {
             floatArray[0] = 0.0f;
             raster_flag_b.WriteRaster(x, y, 1, 1, floatArray);
+            raster_flag_array[x][y] = 0;
         }
 
         public void priority(int x, int y, float priority){
             floatArray[0] = priority;
             raster_priority_b.WriteRaster(x, y, 1, 1, floatArray);
+            raster_priority_array[x][y] = priority;
+        }
+
+        public void populateFloatArrays(int x_, int y_){
+
+             int counter = 0;
+
+                for(int y = y_ - 1 ; y <= y_ + 1; y++) {
+                    for(int x = x_ - 1 ; x <= x_ + 1; x++){
+                    floatArray_1[counter] = raster_id_array[x][y];
+                    floatArray_2[counter] = raster_flag_array[x][y];
+                    floatArray_3[counter] = raster_z_array[x][y];
+                    counter++;
+
+                }
+             }
+
+
         }
 
 
@@ -3463,6 +3579,9 @@ public class createCHM{
             waterRaster_ds = copyRaster(raster_ds, waterRaster_ds, "tempWater" + coreNumber + ".tif");
 
 			waterRaster_band = waterRaster_ds.GetRasterBand(1);
+
+            waterRaster = new float[xDim][yDim];
+
 			this.speed = speed2;
 
 			image = new Raster(this.raster_ds, coreNumber, aR.step);
@@ -3484,6 +3603,8 @@ public class createCHM{
 
 			for(double[] key : in){
 
+
+
 				//tempId = homma.pair((long)key[0], (long)key[1]);
 
 				//data.put((long)aidee, new HashSet<double[]>());
@@ -3493,9 +3614,9 @@ public class createCHM{
 
                 floatArray[0] = 0.0f;
 
-                waterRaster_band.WriteRaster((int)key[0], (int)key[1], 1, 1, floatArray);
+                //waterRaster_band.WriteRaster((int)key[0], (int)key[1], 1, 1, floatArray);
 
-                //waterRaster[(int)key[0]][(int)key[1]] = 0.0f;
+                waterRaster[(int)key[0]][(int)key[1]] = 0.0f;
 
 				altaat.add(new WaterBody(aidee, key[0], key[1], key[2], image ));
 
@@ -3614,7 +3735,8 @@ public class createCHM{
                 /* We label the pixel with the SEED closest to it (euc distance) */
 
                 //this.updateNeighbourhood((int)tempPixel.x, (int)tempPixel.y, 10000, false);
-                this.updateNeighbourhood_tif(ci.x, ci.y, 10000, false);
+                    //this.updateNeighbourhood_tif(ci.x, ci.y, 10000, false);
+                this.updateNeighbourhood_array(ci.x, ci.y, 10000, false);
             }
 
         }
@@ -4183,6 +4305,14 @@ public class createCHM{
             int yIndex = 0;
 
 
+/*
+            System.out.println(Arrays.toString(image.floatArray_1));
+            System.out.println(Arrays.toString(floatArray3x3));
+            System.out.println(labelOrNot_tif(image.floatArray_1, x, y));
+            System.out.println(labelOrNot_tif(floatArray3x3, x, y));
+
+            System.out.println("------------");
+*/
             if(labelOrNot_tif(floatArray3x3, x, y) != -9876 || floatArray3x3[4] != -999)
 
                 if(x >= 0 && x < image.xDim && y >= 0 && y < image.yDim){
@@ -4402,6 +4532,256 @@ public class createCHM{
 
         }
 
+        public void updateNeighbourhood_array(int x, int y, double bufferi, boolean giveLabel){
+
+            double buffer = bufferi;
+
+            long[] ids = new long[8];
+
+
+            double zThreshold = 2.0;
+
+
+            //COME HERE
+
+            image.populateFloatArrays(x, y);
+            //image.raster_id_b.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3);
+            //image.raster_flag_b.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3_2);
+            //image.raster_z_b.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3_3);
+
+            int xIndex = 0;
+            int yIndex = 0;
+/*
+            System.out.println(Arrays.toString(image.floatArray_1));
+            System.out.println(Arrays.toString(floatArray3x3));
+
+            System.out.println(Arrays.toString(image.floatArray_2));
+            System.out.println(Arrays.toString(floatArray3x3_2));
+
+            System.out.println(Arrays.toString(image.floatArray_3));
+            System.out.println(Arrays.toString(floatArray3x3_3));
+            System.out.println("------------");
+
+*/
+            if(labelOrNot_tif(image.floatArray_1, x, y) != -9876 || image.floatArray_1[4] != -999)
+
+                if(x >= 0 && x < image.xDim && y >= 0 && y < image.yDim){
+
+                    for(int i = 0; i < image.floatArray_1.length; i++){
+                        if(image.floatArray_2[i] == 0 && image.floatArray_1[i] == -999 && image.floatArray_3[i] > zThreshold){
+
+
+                            yIndex = i / 3;
+
+                            xIndex = i - (yIndex * 3);
+
+                            yIndex = y - 1 + yIndex;
+                            xIndex = x - 1 + xIndex;
+
+                            if(giveLabel){
+                                image.attach(xIndex, yIndex, (int)image.floatArray_1[4]);
+                                image.dequeue(xIndex, yIndex);
+                            }
+                            else{
+                                /* ALWAYS GO HERE!! */
+                                jono2_tif.offer(new cellItem(xIndex, yIndex, -image.floatArray_3[i]));
+                                //jono2.offer(image.get(x - 1, y));
+                                image.queue(xIndex, yIndex);
+                                //image.get(x - 1, y).queue();
+
+                            }
+
+                        }
+                    }
+                    //System.out.println("----------------");
+/*
+                    if(!image.get(x - 1, y).inQue && image.get(x - 1, y).id == -999 && image.get(x - 1, y).z > zThreshold){
+
+                        //if((image.get(x,y).z - image.get(x - 1, y).z) >= (0 - buffer)){/
+
+                        //image.get(x - 1, y).setPriority( gradientAt(x - 1, y ));
+                        image.get(x - 1, y).setPriority( -image.get(x - 1, y ).z);
+
+
+                        if(giveLabel){
+                            image.get(x - 1, y).attach(image.get(x,y).id);
+                            image.get(x - 1, y).dequeue();
+                        }
+                        else{
+                            jono2.offer(image.get(x - 1, y));
+                            image.get(x - 1, y).queue();
+
+                        }
+
+                        //System.out.println(image.get(x - 1, y).id);
+
+                        ids[0] = image.get(x - 1, y).id;
+
+                        // }
+                    }
+
+                    if(!image.get(x + 1, y).inQue && image.get(x + 1, y).id == -999 && image.get(x + 1, y).z > zThreshold){
+
+                        if((image.get(x,y).z - image.get(x + 1, y).z) >= (0 - buffer)){
+
+                            //image.get(x + 1, y).setPriority( gradientAt(x + 1, y) );
+                            image.get(x + 1, y).setPriority( -image.get(x + 1, y).z );
+
+                            if(giveLabel){
+                                image.get(x + 1, y).attach(image.get(x,y).id);
+                                image.get(x + 1, y).dequeue();
+                            }
+                            else{
+                                jono2.offer(image.get(x + 1, y));
+                                image.get(x + 1, y).queue();
+
+                            }
+
+                            ids[1] = image.get(x + 1, y).id;
+                        }
+                    }
+
+
+                    if(!image.get(x, y - 1).inQue && image.get(x, y - 1).id == -999 && image.get(x, y - 1).z > zThreshold){
+
+                        //if((image.get(x,y).z - image.get(x, y - 1).z) >= (0 - buffer)){
+
+                        //image.get(x, y - 1).setPriority( gradientAt(x, y - 1) );
+                        image.get(x, y - 1).setPriority( -image.get(x, y - 1).z );
+
+                        if(giveLabel){
+                            image.get(x, y - 1).attach(image.get(x,y).id);
+                            image.get(x, y - 1).dequeue();
+                        }
+                        else{
+                            jono2.offer(image.get(x, y - 1));
+                            image.get(x, y - 1).queue();
+
+                        }
+
+
+                        ids[2] = image.get(x, y - 1).id;
+                        //}
+                    }
+
+
+                    if(!image.get(x, y + 1).inQue && image.get(x, y + 1).id == -999 && image.get(x, y + 1).z > zThreshold){
+
+                        //if((image.get(x,y).z - image.get(x, y + 1).z) >= (0 - buffer)){
+
+                        //image.get(x, y + 1).setPriority( gradientAt(x, y + 1) );
+                        image.get(x, y + 1).setPriority( -image.get(x, y + 1).z );
+
+                        if(giveLabel){
+                            image.get(x, y + 1).attach(image.get(x,y).id);
+                            image.get(x, y + 1).dequeue();
+                        }
+                        else{
+                            jono2.offer(image.get(x, y + 1));
+                            image.get(x, y + 1).queue();
+                        }
+
+                        ids[3] = image.get(x, y + 1).id;
+                        // }
+                    }
+
+
+
+                    if(!image.get(x - 1, y - 1).inQue && image.get(x - 1, y - 1).id == -999 && image.get(x - 1, y - 1).z > zThreshold){
+
+
+                        //if((image.get(x,y).z - image.get(x - 1, y - 1).z) >= (0 - buffer)){
+
+                        //image.get(x - 1, y - 1).setPriority( gradientAt(x - 1, y - 1) );
+                        image.get(x - 1, y - 1).setPriority( -image.get(x - 1, y - 1).z );
+
+                        if(giveLabel){
+                            image.get(x - 1, y - 1).attach(image.get(x,y).id);
+                            image.get(x - 1, y - 1).dequeue();
+                        }
+                        else{
+                            jono2.offer(image.get(x - 1, y - 1));
+                            image.get(x - 1, y - 1).queue();
+                        }
+
+                        ids[4] = image.get(x - 1, y - 1).id;
+                        //}
+                    }
+
+
+                    if(!image.get(x + 1, y - 1).inQue && image.get(x + 1, y - 1).id == -999 && image.get(x + 1, y - 1).z > zThreshold){
+
+                        // if((image.get(x,y).z - image.get(x + 1, y - 1).z) >= (0 - buffer)){
+
+                        //image.get(x + 1, y - 1).setPriority( gradientAt(x + 1, y - 1) );
+                        image.get(x + 1, y - 1).setPriority( -image.get(x + 1, y - 1).z );
+
+                        if(giveLabel){
+                            image.get(x + 1, y - 1).attach(image.get(x,y).id);
+                            image.get(x + 1, y - 1).dequeue();
+                        }
+                        else{
+                            jono2.offer(image.get(x + 1, y - 1));
+                            image.get(x + 1, y - 1).queue();
+                        }
+
+                        ids[5] = image.get(x + 1, y - 1).id;
+                        //}
+                    }
+
+
+                    if(!image.get(x - 1, y + 1).inQue && image.get(x - 1, y + 1).id == -999 && image.get(x - 1, y + 1).z > zThreshold){
+
+                        //if((image.get(x,y).z - image.get(x - 1, y - 1).z) >= (0 - buffer)){
+
+                        //image.get(x - 1, y + 1).setPriority( gradientAt(x - 1, y + 1) );
+                        image.get(x - 1, y + 1).setPriority( -image.get(x - 1, y + 1).z );
+
+                        if(giveLabel){
+                            image.get(x - 1, y + 1).attach(image.get(x,y).id);
+                            image.get(x - 1, y + 1).dequeue();
+                        }
+                        else{
+                            jono2.offer(image.get(x - 1, y + 1));
+                            image.get(x - 1, y + 1).queue();
+                        }
+
+                        ids[6] = image.get(x - 1, y + 1).id;
+                        //}
+                    }
+
+
+                    if(!image.get(x + 1, y + 1).inQue && image.get(x + 1, y + 1).id == -999 && image.get(x + 1, y + 1).z > zThreshold){
+
+                        //if((image.get(x,y).z - image.get(x + 1, y + 1).z) >= (0 - buffer)){
+
+                        //System.out.println("GAVE lABEL: ");
+                        //image.get(x + 1, y + 1).setPriority( gradientAt(x + 1, y + 1) );
+                        image.get(x + 1, y + 1).setPriority( -image.get(x + 1, y + 1).z );
+
+                        if(giveLabel){
+                            image.get(x + 1, y + 1).attach(image.get(x,y).id);
+                            image.get(x + 1, y + 1).dequeue();
+                        }
+                        else{
+                            jono2.offer(image.get(x + 1, y + 1));
+                            image.get(x + 1, y + 1).queue();
+                        }
+
+                        ids[7] = image.get(x + 1, y + 1).id;
+                        //}
+                    }
+*/
+
+                }
+
+            long prev = ids[0];
+
+            long current = ids[0];
+
+            boolean replace = true;
+
+        }
 
         public double gradientAt(int x, int y){
 
@@ -4420,6 +4800,7 @@ public class createCHM{
 
             waterRaster_band.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3);
             image.raster_z_b.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3_2);
+
 
             float v = floatArray3x3[4];// waterRaster[x][y];
 
@@ -4762,10 +5143,12 @@ public class createCHM{
 
                     //waterRaster[i][j] = image.get(i, j).id;
 
-                    image.raster_id_b.ReadRaster(i, j, 1, 1, floatArray);
+                    //image.raster_id_b.ReadRaster(i, j, 1, 1, floatArray);
+
                     //System.out.println(image.raster_id_b.getXSize() + " ; " + image.raster_id_b.getYSize() + " == " + i + " ; " + j);
 
-                    //floatArray[0] = image.get(i, j).id;
+
+                    floatArray[0] = image.raster_id_array[i][j];
                     waterRaster_band.WriteRaster(i, j, 1, 1, floatArray);
 
 				}
@@ -4994,8 +5377,8 @@ public class createCHM{
 
                 reader.readRecord(i, tempPoint);
 
-                x = (int)Math.floor((tempPoint.x - canopy.minX) / canopy.resolution);   //X INDEX
-                y = (int)Math.floor((canopy.maxY - tempPoint.y) / canopy.resolution);
+                x = Math.max((int)((tempPoint.x - canopy.minX) / canopy.resolution - 1), 0);   //X INDEX
+                y = Math.max((int)((canopy.maxY - tempPoint.y) / canopy.resolution - 1), 0);
 
                 image.raster_id_b.ReadRaster(x, y, 1, 1, floatArray);
 
@@ -5077,7 +5460,7 @@ public class createCHM{
 	}
 
 
-	public static class chm{
+	public class chm{
 
         public Dataset cehoam;
 
@@ -5097,6 +5480,8 @@ public class createCHM{
 		//Mat output = new Mat();
 
         public float[][] output2;
+        public double[][] chm_array;
+
         float[][] output2R;
         float[][] output2G;
         float[][] output2B;
@@ -5160,8 +5545,6 @@ public class createCHM{
         org.tinfour.interpolation.VertexValuatorDefault valuator = new org.tinfour.interpolation.VertexValuatorDefault();
         TriangularFacetInterpolator polator  = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);
 
-
-
         public chm(){
 
 		}
@@ -5182,6 +5565,7 @@ public class createCHM{
         }
 
 		public chm(LASReader in, String method, int layers2, argumentReader aR, int coreNumber) throws IOException{
+
 
 		    this.coreNumber = coreNumber;
 
@@ -5206,16 +5590,6 @@ public class createCHM{
 
             if(!aR.odir.equals("asd"))
                 this.outputFileName = fo.transferDirectories(new File(outputFileName), aR.odir).getAbsolutePath();
-
-            //String asdi = in.getFile().getAbsolutePath().split(".las")[0] + "_ch1.las";
-
-            //File outputPointCloud = new File(asdi);
-
-            //if(outputPointCloud.exists())
-               // outputPointCloud.delete();
-
-            //raTemp = new LASraf(outputPointCloud);
-            //LASwrite.writeHeader(raTemp, "las2dsm");
 
             if(!method.equals("null"))
                 interpolation = true;
@@ -5255,10 +5629,11 @@ public class createCHM{
 
 		public void establish() throws IOException{
 
-			minX = pointCloud.getMinX();
-			maxX = pointCloud.getMaxX();
-			minY = pointCloud.getMinY();
-			maxY = pointCloud.getMaxY();
+			minX = (pointCloud.getMinX());
+			maxX = (pointCloud.getMaxX());
+			minY = (pointCloud.getMinY());
+			maxY = (pointCloud.getMaxY());
+
 
 			numberOfPixelsX = (int)Math.ceil((maxX - minX) / resolution);
 			numberOfPixelsY = (int)Math.ceil((maxY - minY) / resolution);
@@ -5271,8 +5646,39 @@ public class createCHM{
                 groundLevel_count = new short[numberOfPixelsX][numberOfPixelsY];
             }
 
-			cehoam = gdalE.hei(this.outputFileName, numberOfPixelsY, numberOfPixelsX, Float.NaN);
+
+            org.gdal.gdal.Driver driver = null;
+            driver = gdal.GetDriverByName("GTiff");
+            driver.Register();
+
+            try {
+                cehoam = driver.Create(outputFileName, numberOfPixelsX, numberOfPixelsY, 1, gdalconst.GDT_Float32);
+
+            }catch (Exception e){
+                System.out.println("Not enough points! Are you using remove_buffer and ALL points in this .las file are part of the buffer?");
+                return;
+            }
+			//cehoam = gdalE.hei(this.outputFileName, numberOfPixelsY, numberOfPixelsX, Float.NaN);
             band = cehoam.GetRasterBand(1);
+
+            band.SetNoDataValue(Float.NaN);
+
+            double[] geoTransform = new double[]{minX, aR.step, 0.0, maxY, 0.0, -aR.step};
+
+            SpatialReference sr = new SpatialReference();
+
+            sr.ImportFromEPSG(3067);
+
+            cehoam.SetProjection(sr.ExportToWkt());
+            cehoam.SetGeoTransform(geoTransform);
+
+            this.chm_array = new double[numberOfPixelsX][numberOfPixelsY];
+
+
+            for(int x = 0; x < numberOfPixelsX; x++)
+                for(int y = 0; y < numberOfPixelsY; y++)
+                    chm_array[x][y] = Double.NaN;
+
 
             this.resolution_m = (maxX - minX) / numberOfPixelsX;
 
@@ -5315,15 +5721,12 @@ public class createCHM{
 
                         }
                     }
-
                 }
-
             }
 
 
 			//System.out.println("Data size: " + data.size());
 			//System.out.println(count2);
-
 
 
             aR.p_update.threadEnd[coreNumber-1] = (int)n;
@@ -5383,18 +5786,56 @@ public class createCHM{
                 }
 */
 				//pointCloud.readRecord(i, tempPoint);
-				//System.out.println(tempPoint.z);
-                    temppi[0] = Math.max((long)Math.floor((tempPoint.x - minX) / resolution), 0);   //X INDEX
-                    temppi[1] = Math.max((long)Math.floor((maxY - tempPoint.y) / resolution), 0);
+
+                    aR.p_update.threadProgress[coreNumber-1]++;
+
+                    if(aR.p_update.threadProgress[coreNumber-1] % 100000 == 0) {
+
+                        aR.p_update.updateProgressDSM();
+
+                        if(!aR.p_update.las2dsm_print)
+                            aR.p_update.updateProgressITD();
+                    }
+
+                    count++;
+
+
+                    temppi[0] = Math.max((int)((tempPoint.x - minX) / resolution - 1), 0);   //X INDEX
+                    temppi[1] = Math.max((int)((maxY - tempPoint.y) / resolution - 1), 0);
+/*
+                    System.out.println(tempPoint + " \n" + maxX + " " + minY + " " + Arrays.toString(temppi) + " " + ((tempPoint.y - minY)/resolution));
+
+                    System.out.println(minY + " " + maxY + " " + (maxY - minY));
+
+                    System.out.println("------------------");
+
+ */
+                    if(Double.isNaN(chm_array[(int)temppi[0]][(int)temppi[1]] )){
+                        //floatArray[0] = (float)tempPoint.z;
+                        //band.WriteRaster((int)temppi[0], (int)temppi[1], 1, 1, floatArray);
+
+                        chm_array[(int) temppi[0]][(int) temppi[1]] = tempPoint.z;
+                    }
+
+
+                    if(tempPoint.z > chm_array[(int)temppi[0]][(int)temppi[1]]) {
+                        //floatArray[0] = (float)tempPoint.z;
+                        //band.WriteRaster((int)temppi[0], (int)temppi[1], 1, 1, floatArray);
+
+                        chm_array[(int) temppi[0]][(int) temppi[1]] = tempPoint.z;
+                    }
+
+                    //if(true)
+                    //    continue;
 
                     int key = (int) (temppi[1] * numberOfPixelsX + temppi[0]);
 
-                    if(!map.containsKey(key)) {
-                        band.ReadRaster((int) temppi[0], (int) temppi[1], 1, 1, floatArray);
-                        map.put(key, floatArray[0]);
-                    }
-                    else
-                        floatArray[0] = map.get(key);
+                    //if(!map.containsKey(key)) {
+                        //band.ReadRaster((int) temppi[0], (int) temppi[1], 1, 1, floatArray);
+                    //    map.put(key, floatArray[0]);
+                    //}
+                    //else
+                      //  floatArray[0] = map.get(key);
 
                     //imgRaf.read((int)temppi[0], (int)temppi[1]);
 
@@ -5426,11 +5867,12 @@ public class createCHM{
                     //if(tempPoint.z > bank[(int)temppi[0] + (numberOfPixelsX) * (int)temppi[1]][2])
                         //bank[(int)temppi[0] + (numberOfPixelsX) * (int)temppi[1]][2] = (float)tempPoint.z;
 
+                    if(false)
                     if(tempPoint.z > floatArray[0] || Float.isNaN(floatArray[0])){
                         floatArray[0] = (float)tempPoint.z;
 
-                        if(map.containsKey(key))
-                            map.put(key, floatArray[0]);
+                       // if(map.containsKey(key))
+                        //    map.put(key, floatArray[0]);
 
                         band.WriteRaster((int)temppi[0], (int)temppi[1], 1, 1, floatArray);
 
@@ -5472,17 +5914,7 @@ public class createCHM{
                         }
                     }
 */
-                    aR.p_update.threadProgress[coreNumber-1]++;
 
-                    if(aR.p_update.threadProgress[coreNumber-1] % 100000 == 0) {
-
-                        aR.p_update.updateProgressDSM();
-
-                        if(!aR.p_update.las2dsm_print)
-                            aR.p_update.updateProgressITD();
-                    }
-
-                    count++;
 
                 }
 
@@ -5549,7 +5981,7 @@ public class createCHM{
 
             }
 
-            int num_iter = 3;
+            int num_iter = 2;
 
             HashMap<Integer, Float> chauvenets = new HashMap<>();
 
@@ -5562,7 +5994,7 @@ public class createCHM{
             chauvenets.put(9, 1.915f);
 
             float maxDifference = 2.0f;
-
+            if(true)
             for(int iter = 0; iter < num_iter; iter++){
 
                 ArrayList<int[]> indexes_to_set_nan = new ArrayList<>();
@@ -5617,7 +6049,8 @@ public class createCHM{
                                 if (y_ > (height - 1))
                                     y_ = height - 1;
 
-                                band.ReadRaster(x_, y_, 1, 1, floatArray);
+                                floatArray[0] = (float)chm_array[x_][y_];
+                                //band.ReadRaster(x_, y_, 1, 1, floatArray);
 
                                 //System.out.println("count_y: " + count_y);
                                 ke[count_y - 1] = floatArray[0];
@@ -5852,10 +6285,11 @@ public class createCHM{
                 floatArray[0] = Float.NaN;
 
                 for(int[] i : indexes_to_set_nan){
-                    band.WriteRaster(i[0], i[1], 1, 1, floatArray);
+                    chm_array[i[0]][i[1]] = Double.NaN;
+                    //band.WriteRaster(i[0], i[1], 1, 1, floatArray);
                 }
                 //scehoam.FlushCache();
-                band.FlushCache();
+               // band.FlushCache();
 
                 //System.exit(1);
             }
@@ -6092,8 +6526,8 @@ public class createCHM{
 */
                     //pointCloud.readRecord(i, tempPoint);
                     //System.out.println(tempPoint.z);
-                    temppi[0] = Math.max((long)Math.floor((tempPoint.x - minX) / resolution), 0);   //X INDEX
-                    temppi[1] = Math.max((long)Math.floor((maxY - tempPoint.y) / resolution), 0);
+                    temppi[0] = Math.max((long)Math.floor((tempPoint.x - minX) / resolution - 1), 0);   //X INDEX
+                    temppi[1] = Math.max((long)Math.floor((maxY - tempPoint.y) / resolution - 1), 0);
 
                     if(temppi[0] >= numberOfPixelsX)
                         temppi[0] = numberOfPixelsX - 1;
@@ -6736,7 +7170,7 @@ public class createCHM{
          */
         public boolean isTreeTop(Band input, int x, int y){
 
-            band_filterd.ReadRaster(x, y, 1, 1, floatArray);
+            band.ReadRaster(x, y, 1, 1, floatArray);
 
 
             float zMiddle = floatArray[0];
@@ -6817,7 +7251,7 @@ public class createCHM{
                     if (y_ > (band.getYSize()  - 1))
                         y_ = band.getYSize()  - 1;
 
-                    band_filterd.ReadRaster(x_, y_, 1, 1, floatArray);
+                    band.ReadRaster(x_, y_, 1, 1, floatArray);
 
                     if(count++ != (int)((kernelSize * 2 + 1) * (kernelSize * 2 + 1) / 2) && !Float.isNaN(floatArray[0])){
 
@@ -7009,9 +7443,9 @@ public class createCHM{
 
 
                     //if(isTreeTop(output2, i, j, kernelSize)){
-                    if(isTreeTop(band_filterd, i, j)){
+                    if(isTreeTop(band, i, j)){
 
-                        band_filterd.ReadRaster(i, j, 1, 1, floatArray);
+                        band.ReadRaster(i, j, 1, 1, floatArray);
 						double[] temp = new double[3];
 						temp[0] = i;
 						temp[1] = j;
@@ -7039,10 +7473,10 @@ public class createCHM{
 
 				}
 
-                System.out.println("ROW:  " + i + " " + endX);
-                System.out.println("ROW:  " + i + " " + endX);
-                System.out.println("ROW:  " + i + " " + endX);
-                System.out.println("ROW:  " + i + " " + endX);
+                //System.out.println("ROW:  " + i + " " + endX);
+                //System.out.println("ROW:  " + i + " " + endX);
+                //System.out.println("ROW:  " + i + " " + endX);
+                //System.out.println("ROW:  " + i + " " + endX);
 			}
 			//System.out.println(treeTopBank.size());
 			writeTrees();
@@ -7103,19 +7537,36 @@ public class createCHM{
             if(aR.lasrelate)
                 aR.interpolate = false;
 
+            filtered = gdalE.hei("tempFilter_" + this.coreNumber + ".tif", cehoam.getRasterYSize(), cehoam.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
 
 
             if(interpolation){
 
-                filtered = removeOutliers_tif(cehoam, 0, aR.kernel, aR.theta, this.coreNumber, outputFileName, aR.interpolate);
+                //filtered = removeOutliers_tif(cehoam, 0, aR.kernel, aR.theta, this.coreNumber, outputFileName, aR.interpolate);
+
+                chm_array = removeOutliers(chm_array, aR.kernel, aR.theta, this.numberOfPixelsX, this.numberOfPixelsY);
+                //band_filterd = filtered.GetRasterBand(1);
+                copyRasterContents(chm_array, band);
+                //band_filterd = filtered.GetRasterBand(1);
+
+                //filtered.FlushCache();
+                //band_filterd.FlushCache();
+                //System.exit(1);
                 //cehoam = removeOutliers_tif(cehoam, 0, aR.kernel, aR.theta, this.coreNumber, outputFileName, aR.interpolate);
 
-                band_filterd = filtered.GetRasterBand(1);
+
+
 
             }else{
                 filtered = cehoam;
                 band_filterd = cehoam.GetRasterBand(1);
             }
+
+            cehoam.FlushCache();
+            band.FlushCache();
+
+            if(true)
+                return;
 
             /*
             double[] geoTransform = new double[]{pointCloud.minX, aR.step, 0.0, pointCloud.maxY, 0.0, -aR.step};
@@ -7182,7 +7633,7 @@ public class createCHM{
 
             }
 
-            band_filterd.SetNoDataValue(Double.NaN);
+            //band_filterd.SetNoDataValue(Double.NaN);
 
             String tempName = "tempFilter_" + coreNumber + ".tif";
             String tempName2 = "tempFilter2_" + coreNumber + ".tif";
@@ -7233,10 +7684,11 @@ public class createCHM{
 
             org.gdal.gdal.TranslateOptions optit = new org.gdal.gdal.TranslateOptions(optionsVector);
             //Dataset inputdata = gdal.Open(tempName, gdalconstConstants.GA_ReadOnly);
+           // cehoam = gdalE.hei(this.outputFileName, numberOfPixelsY, numberOfPixelsX, Float.NaN);
 
+
+            //Dataset outti = gdaltranslate(outputFileName, filtered, optit); //gdal.Translate(name, inputdata, optit);
             Dataset outti = gdaltranslate(outputFileName, filtered, optit); //gdal.Translate(name, inputdata, optit);
-
-            //System.out.println(Arrays.toString(outti.GetGeoTransform()));
 
             outti.FlushCache();
 
@@ -7288,6 +7740,9 @@ public class createCHM{
              */
 
             //outti.FlushCache();
+
+
+            //System.exit(1);
 		}
 
 	}
@@ -7303,9 +7758,9 @@ public class createCHM{
 		
 		File file1 = new File("dz.las");
 		LASReader asd = new LASReader(file1);
-		chm testi = new chm(asd, "asd.tif");
+		//chm testi = new chm(asd, "asd.tif");
 
-		testi.detectTreeTops(4);
+		//testi.detectTreeTops(4);
 		//System.out.println(testi.treeTops.size());
 
 		//WaterShed fill = new WaterShed(testi.treeTops, 0.2, testi.output2, testi);

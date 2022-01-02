@@ -44,15 +44,15 @@ public class lasCheck {
         //pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
         int thread_n = aR.pfac.addReadThread(pointCloud);
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
 
 
-            maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
             //try {
                 //pointCloud.readRecord_noRAF(i, tempPoint, maxi);
 
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, 200000);
             //} catch (Exception e) {
                 //e.printStackTrace();//pointCloud.braf.buffer.position(0);
            // }

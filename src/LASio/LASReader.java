@@ -396,8 +396,8 @@ public class LASReader {
           minYi = tempPoint.y;
         }
 
-        xPixel = (int)Math.floor((tempPoint.x - this.minX) / (double)spacing);   //X INDEX
-        yPixel = (int)Math.floor((this.maxY - tempPoint.y) / (double)spacing);
+        xPixel = (int)((tempPoint.x - this.minX) / (double)spacing - 1.0);   //X INDEX
+        yPixel = (int)((this.maxY - tempPoint.y) / (double)spacing - 1.0);
 
         indeksi = yPixel * n_pixels_x + xPixel;
 
@@ -1414,6 +1414,22 @@ public class LASReader {
 
     }
     return output;
+  }
+
+  public synchronized void readFromBuffer_fast(LasPoint p){
+
+      int lx = braf.buffer.getInt();
+      int ly = braf.buffer.getInt();
+      int lz = braf.buffer.getInt();
+
+      p.x = lx * xScaleFactor + xOffset;
+      p.y = ly * yScaleFactor + yOffset;
+      p.z = lz * zScaleFactor + zOffset;
+      p.intensity = Short.toUnsignedInt(braf.buffer.getShort());
+
+      braf.buffer.position(braf.buffer.position() + this.pointDataRecordLength - 14);
+
+
   }
 
   public synchronized void readFromBuffer(LasPoint p){

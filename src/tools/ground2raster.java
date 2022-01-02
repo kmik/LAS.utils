@@ -98,7 +98,7 @@ public class ground2raster {
         Band band = null;
 
         try {
-            dataset_output = driver.Create(outputFileName, grid_x_size, grid_x_size, 1, gdalconst.GDT_Float32);
+            dataset_output = driver.Create(outputFileName, grid_x_size, grid_y_size, 1, gdalconst.GDT_Float32);
             band =  dataset_output.GetRasterBand(1);
         }catch (Exception e){
             System.out.println("Not enough points! Are you using remove_buffer and ALL points in this .las file are part of the buffer?");

@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import err.argumentException;
 import err.lasFormatException;
+import err.toolException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -21,6 +22,10 @@ import org.apache.commons.cli.Options;
 
 @SuppressWarnings("unchecked")
 public class argumentReader {
+
+    public ArrayList<File> grounds = new ArrayList<>();
+
+    public boolean harmonized = false;
 
     public lasReadWriteFactory pfac;
     public double edges = 0.0;
@@ -138,6 +143,8 @@ public class argumentReader {
     public String method;
 
     public String sep = "\t";
+
+    public boolean axelsson_mirror = false;
 
     public int cores = 1;
 
@@ -499,6 +506,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("axelsson_mirror")
+                .hasArg(false)
+                .desc("Use the mirroring strategy in ground filtering")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("lowest")
                 .hasArg(false)
                 .desc("Keep lowest point in lasthin")
@@ -554,6 +568,13 @@ public class argumentReader {
                 .longOpt("o_dz")
                 .hasArg(false)
                 .desc("Output delta z")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("harmonized")
+                .hasArg(false)
+                .desc("Harmonized ground")
                 .required(false)
                 .build());
 
@@ -1615,7 +1636,11 @@ public class argumentReader {
                 this.olas = true;
 
             }
+            if (cmd.hasOption("axelsson_mirror")) {
 
+                this.axelsson_mirror = true;
+
+            }
             if (cmd.hasOption("highest")) {
 
                 this.highest = true;
@@ -1748,7 +1773,11 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("harmonized")) {
 
+                this.harmonized = true;
+
+            }
 
             if (cmd.hasOption("axGrid")) {
 
@@ -2513,11 +2542,18 @@ public class argumentReader {
 
     public File createOutputFileWithExtension(LASReader in, String extension) throws IOException {
 
+
+        return createOutputFileWithExtension(in.getFile(), extension);
+
+    }
+
+    public File createOutputFileWithExtension(File in, String extension) throws IOException {
+
         File tempFile = null;
         String tempPath = this.output;
 
         if(this.output.equals("asd"))
-            tempFile = in.getFile();
+            tempFile = in;
         else
             tempFile = new File(this.output);
 
@@ -2528,10 +2564,15 @@ public class argumentReader {
 
         }
 
-        if(tempFile.exists()){
+        //if(tempFile.exists()){
 
-            tempFile = fo.createNewFileWithNewExtension(tempFile, extension);
-        }
+        tempFile = fo.createNewFileWithNewExtension(tempFile, extension);
+
+        //}
+
+        if(tempFile.getAbsolutePath().compareTo(in.getAbsolutePath()) == 0)
+            throw new toolException("Attempting to delete the original file. NO NO NO NO! ");
+
 
         if(tempFile.exists())
             tempFile.delete();
@@ -2542,7 +2583,8 @@ public class argumentReader {
         return tempFile;
     }
 
-    public File createOutputFileWithExtension(File in, String extension) throws IOException {
+
+    public File createOutputFileWithExtension2(File in, String extension) throws IOException {
 
 
         File tempFile = null;
@@ -2565,8 +2607,8 @@ public class argumentReader {
 
             //tempFile.delete();
             //tempFile.createNewFile();
-            System.out.println(tempFile.getAbsolutePath());
-            System.out.println(in.getAbsolutePath());
+            //System.out.println(tempFile.getAbsolutePath());
+            //System.out.println(in.getAbsolutePath());
             tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extension);
         }
 

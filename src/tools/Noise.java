@@ -134,13 +134,13 @@ public class Noise{
         aR.p_update.threadEnd[coreNumber-1] = (int)pointCloud.getNumberOfPointRecords();
         int thread_n = aR.pfac.addReadThread(pointCloud);
 
-        for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 10000) {
+        for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 200000) {
             //for(int i = 0; i < n; i++){
 
-            maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - (p)));
+            maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - (p)));
 
             //try {
-                aR.pfac.prepareBuffer(thread_n, p, 10000);
+                aR.pfac.prepareBuffer(thread_n, p, 200000);
                 //pointCloud.readRecord_noRAF(p, tempPoint, maxi);
             //} catch (Exception e) {
             //    e.printStackTrace();

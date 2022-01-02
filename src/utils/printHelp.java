@@ -773,7 +773,10 @@ public class printHelp {
                 "the distribution of triangle normal angles from the initial TIN\n" +
                 "created from the seed points. The angle threshold is then:\n" +
                 "\n" +
-                "average_angle + std_angles * 2.5\n" +
+                "average_angle + std_angles * _std_threshold_\n" +
+                "\n" +
+                ", where _std_threshold_ is 3.0 by default and can be adjusted\n" +
+                "using e.g. -std_threshold 2.5 flag\n" +
                 "\n" +
                 "This threshold (i.e. average and std) is then dynamically\n" +
                 "adjusted as points are included in the TIN.\n" +
@@ -783,12 +786,27 @@ public class printHelp {
                 "enough. Iterations are automatically terminated if there were\n" +
                 "less than 1% more ground points in the latest iteration.\n" +
                 "\n" +
+                "The ground classification algorithm has several outlier detection\n" +
+                "schemas built in, and is thus relatively robust agains low z and \n" +
+                "high z noise points. Outliers are detected e.g. using criteria that\n" +
+                "detect triangles where one vertice has a statistically abnormal\n" +
+                "(compared to the rest of the TIN) Z distance to the other two \n" +
+                "vertices of the triangle. It is recommended, however, that these\n" +
+                "noise points are filtered prior to ground classificaiton.\n" +
+                "\n" +
+                "If the processing area includes a non-negligible amount of \n" +
+                "discontinuities, it might be beneficial to use the flag\n" +
+                "\"-axelsson_mirror\" in order to use the mirroring strategy\n" +
+                "described in Axelsson (2000). This adds a minor computational\n" +
+                "overhead and thus increases the compuation time. This setting\n" +
+                "is disabled by default.\n" +
+                "\n" +
                 "Usage:\n" +
                 "\n" +
                 "\t-i\t\tInput file(s)\n" +
                 "\t-o\t\tOutput file\n" +
                 "\t-odir\t\tOutput directory\n" +
-                "\t-dist\t\tDistance threshold (default 1.0 m)\n" +
+                "\t-dist\t\tDistance threshold (default 0.75 m)\n" +
                 "\t-angle\t\tAngle threshold (default 10.0 degrees)\n" +
                 "\t-axGrid\t\tSize of the kernel for seed point search\n" +
                 "\t       \t\t(default 20.0 m)\n" +

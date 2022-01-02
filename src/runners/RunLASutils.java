@@ -145,6 +145,10 @@ public class RunLASutils {
 
     public static void main(String[] args) throws Exception {
 
+        ogr.RegisterAll(); //Registering all the formats..
+        gdal.AllRegister();
+
+
         long tStart = System.currentTimeMillis();
 
         argumentReader aR = new argumentReader(args);
@@ -248,6 +252,7 @@ public class RunLASutils {
             Tiler tile = new Tiler(aR.inputFiles, aR);
         }
 
+
         if (aR.tool == 2) {
 
             Merger merge = new Merger(aR.inputFiles, aR.output, aR.getInclusionRule(), aR.odir, aR);
@@ -332,6 +337,10 @@ public class RunLASutils {
                     int[] asdi = det.detectSeedPoints();
 
                     det.detect();
+
+                    det.wipe();
+                    det = null;
+                    System.gc();
                 }
             }
 
@@ -391,6 +400,10 @@ public class RunLASutils {
                         det.normalizeZ(aR.ground_class, aR.output, aR.getInclusionRule(), aR.otype, aR.groundPoints);
 
                     }
+
+                    det.wipe();
+                    det = null;
+                    System.gc();
 
 
                 }
@@ -472,7 +485,9 @@ public class RunLASutils {
                 for (int i = 0; i < filesList.size(); i++) {
 
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
-                    createCHM.chm testi = new createCHM.chm(temp, "y", 1, aR, 1);
+                    createCHM testi_c = new createCHM();
+
+                    createCHM.chm testi = testi_c.new chm(temp, "y", 1, aR, 1);
 
                 }
             }
@@ -816,7 +831,9 @@ public class RunLASutils {
 
                     aR.p_update.threadFile[0] = "CHM";
                     aR.p_update.updateProgressITD();
-                    createCHM.chm testi = new createCHM.chm(temp, "y", 1, aR, 1);
+                    createCHM testi_c = new createCHM();
+
+                    createCHM.chm testi = testi_c.new chm(temp, "y", 1, aR, 1);
 
                     System.out.println("CHM DONE!");
                     System.out.println("CHM DONE!");
@@ -833,7 +850,7 @@ public class RunLASutils {
                     aR.p_update.threadFile[0] = "waterShed";
                     aR.p_update.updateProgressITD();
 
-                    createCHM.WaterShed fill = new createCHM.WaterShed(testi.treeTops, 0.2, testi.filtered, testi, aR, 1);
+                    createCHM.WaterShed fill = new createCHM.WaterShed(testi.treeTops, 0.2, testi.cehoam, testi, aR, 1);
 
                 }
             }
@@ -1439,7 +1456,9 @@ public class RunLASutils {
                 for (int i = 0; i < aR.inputFiles.size(); i++) {
 
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
-                    createCHM.chm testi = new createCHM.chm(temp, "y", 1, aR, 1);
+                    createCHM testi_c = new createCHM();
+
+                    createCHM.chm testi = testi_c.new chm(temp, "y", 1, aR, 1);
 
                     las2solar_photogrammetry l2s = new las2solar_photogrammetry(testi.outputFileName, aR, temp, false);
                 }
@@ -1455,7 +1474,9 @@ public class RunLASutils {
 
                         LASReader temp = new LASReader(aR.inputFiles.get(i));
 
-                        createCHM.chm testi = new createCHM.chm(temp, "y", 1, aR, 1);
+                        createCHM testi_c = new createCHM();
+
+                        createCHM.chm testi = testi_c.new chm(temp, "y", 1, aR, 1);
                         las2solar_photogrammetry l2s = new las2solar_photogrammetry(testi.outputFileName, aR, temp);
 
                     }
@@ -1528,7 +1549,9 @@ public class RunLASutils {
 
                     cc.canopy_cover_points();
 
-                    createCHM.chm testi = new createCHM.chm(temp, "y", 1, aR, 1);
+                    createCHM testi_c = new createCHM();
+
+                    createCHM.chm testi = testi_c.new chm(temp, "y", 1, aR, 1);
 
                     cc.canopy_cover_chm(testi.filtered);
 
@@ -1814,8 +1837,9 @@ public class RunLASutils {
                         toFile = fo.createNewFileWithNewExtension(tempFile, odir, ".las");
 
  */
-                    toFile = aR.createOutputFile(tempFile);
+                    toFile = fo.createNewFileWithNewExtension(tempFile, ".las");
 
+                    System.out.println(toFile.getAbsolutePath());
                     //new File(odir + System.getProperty("file.separator") + tempFile.getName().replaceFirst("[.][^.]+$", "") + ".las");
 
                     //System.out.println(toFile);
@@ -1843,7 +1867,9 @@ public class RunLASutils {
 
                 for (int i = 0; i < tiedostot.size(); i++) {
 
-                    LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", "\t", rule, echoClass, aR);
+
+                    LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", aR.sep, rule, echoClass, aR);
+
                     to.get(i).writeBuffer2();
                     to.get(i).close();
                     //System.out.println("GOT HERE");
@@ -1948,6 +1974,9 @@ public class RunLASutils {
                             GroundDetector det = new GroundDetector(temp, false, aR.output, aR.odir, aR.getInclusionRule(), aR.angle, aR.numarg1, aR.axgrid, aR, nCore);
                             int[] asdi = det.detectSeedPoints();
                             det.detect();
+                            det.wipe();
+                            det = null;
+
                         } catch (Exception e) {
                             e.printStackTrace();
                             System.exit(1);
@@ -1990,6 +2019,10 @@ public class RunLASutils {
                             det.normalizeZ(aR.ground_class, aR.output, aR.getInclusionRule(), aR.otype, aR.groundPoints);
 
                         }
+
+                        det.wipe();
+                        det = null;
+                        System.gc();
                     }
                 }
 
@@ -2024,7 +2057,10 @@ public class RunLASutils {
                             continue;
 
                         LASReader temp = new LASReader(f);
-                        createCHM.chm testi = new createCHM.chm(temp, "y", 1, aR, nCore);
+                        createCHM testi_c = new createCHM();
+
+                        createCHM.chm testi = testi_c.new chm(temp, "y", 1, aR, nCore);
+
 
                     }
 
@@ -2147,7 +2183,9 @@ public class RunLASutils {
                         LASReader temp = new LASReader(f);
                         aR.p_update.threadFile[nCore - 1] = "CHM";
                         aR.p_update.updateProgressITD();
-                        createCHM.chm testi = new createCHM.chm(temp, "y", 1, aR, nCore);
+                        createCHM testi_c = new createCHM();
+
+                        createCHM.chm testi = testi_c.new chm(temp, "y", 1, aR, nCore);
 
                         aR.p_update.threadFile[nCore - 1] = "treeTops";
                         aR.p_update.updateProgressITD();
@@ -2155,7 +2193,7 @@ public class RunLASutils {
 
                         aR.p_update.threadFile[nCore - 1] = "waterShed";
                         aR.p_update.updateProgressITD();
-                        createCHM.WaterShed fill = new createCHM.WaterShed(testi.treeTops, 0.2, testi.filtered, testi, aR, nCore);
+                        createCHM.WaterShed fill = new createCHM.WaterShed(testi.treeTops, 0.2, testi.cehoam, testi, aR, nCore);
 
                     }
                 }

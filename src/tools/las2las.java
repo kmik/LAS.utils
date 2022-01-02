@@ -33,11 +33,11 @@ public class las2las{
 
         aR.pfac.addWriteThread(thread_n, pw, buf);
 
-        for(int i = 0; i < in.getNumberOfPointRecords(); i += 10000) {
+        for(int i = 0; i < in.getNumberOfPointRecords(); i += 200000) {
 
-            maxi = (int) Math.min(10000, Math.abs(in.getNumberOfPointRecords() - i));
+            maxi = (int) Math.min(200000, Math.abs(in.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, 200000);
 
             for (int j = 0; j < maxi; j++) {
 

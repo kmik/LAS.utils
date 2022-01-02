@@ -1036,8 +1036,8 @@ public class uav {
 
         if(args.length <= 2){
 
-            createCHM.chm asd = new createCHM.chm(pCloudMod, "y", 1, asdi, 1);
-            createCHM.chm asd2 = new createCHM.chm(pCloudRef, "y", 1, asdi, 1);
+            //createCHM.chm asd = new createCHM.chm(pCloudMod, "y", 1, asdi, 1);
+            //createCHM.chm asd2 = new createCHM.chm(pCloudRef, "y", 1, asdi, 1);
 
             /*
             chm1 = new Chm("modTemp.tif");
@@ -1051,8 +1051,8 @@ public class uav {
 
              */
 
-            chm1 = new Chm(asd.outputFileName);
-            chm2 = new Chm(asd2.outputFileName);
+            //chm1 = new Chm(asd.outputFileName);
+            //chm2 = new Chm(asd2.outputFileName);
 
 
         }

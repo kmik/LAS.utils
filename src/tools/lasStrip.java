@@ -16,8 +16,8 @@ import java.io.*;
 import java.util.*;
 
 import static org.tinfour.utils.Polyside.isPointInPolygon;
-import static tools.GroundDetector.angleHypo;
-import static tools.GroundDetector.euclideanDistance;
+
+//import static tools.GroundDetector.euclideanDistance;
 
 /**
  * Used for aligning flight lines ("swaths") of LiDAR data, or
@@ -1043,6 +1043,12 @@ public class lasStrip {
         }
     }
 
+    public double angleHypo(double hypotenuse, double adjacentSideLength) {
+
+        return Math.toDegrees(Math.acos(adjacentSideLength / hypotenuse));
+
+    }
+
     public double pointDistanceToPerimeter(List<IQuadEdge> perimeter, Vertex point){
 
         double distance = Double.POSITIVE_INFINITY;
@@ -1487,6 +1493,13 @@ public class lasStrip {
         }
 
         return angle;
+    }
+
+    public double euclideanDistance(double x1, double y1, double x2, double y2){
+
+
+        return Math.sqrt(  (x1 - x2) * ( x1 - x2) + ( y1 - y2) * ( y1 - y2) );
+
     }
 
     /**

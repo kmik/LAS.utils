@@ -174,17 +174,18 @@ public class Tiler{
     public void declareOutputFiles() throws IOException{
 
 
+
         String pathSep = System.getProperty("file.separator");
 
         for(double i = minX; i < maxX; i += sideLength)
             for(double j = minY; j < maxY; j += sideLength){
 
                 File temp = null;
-                if(aR.buffer > 0)
-                    temp = aR.createOutputFileWithExtension(pointClouds.get(0), "_tile_" + (int)i + "_" + (int)j + "_" + (int)aR.step + "m_buf_" + (int)aR.buffer + ".las");
-                else
-                    temp = aR.createOutputFileWithExtension(pointClouds.get(0), "_tile_" + (int)i + "_" + (int)j + "_" + (int)aR.step + "m.las");
-
+                if(aR.buffer > 0) {
+                    temp = aR.createOutputFileWithExtension(pointClouds.get(0), "_tile_" + (int) i + "_" + (int) j + "_" + (int) aR.step + "m_buf_" + (int) aR.buffer + ".las");
+                }else {
+                    temp = aR.createOutputFileWithExtension(pointClouds.get(0), "_tile_" + (int) i + "_" + (int) j + "_" + (int) aR.step + "m.las");
+                }
                 //String fileName = odir + pathSep + "tile_" + (int)i + "_" + (int)j + ".las";
 
                 //System.out.println("HERE!! " + temp.getAbsolutePath() + " " + temp.exists());
@@ -202,8 +203,9 @@ public class Tiler{
 
                 outputFilesMatrix_pw[ (int)((maxX - i) / sideLength) ][(int)((maxY - j) / sideLength) ] = new pointWriterMultiThread(temp, pointClouds.get(0), "lasTile", aR);
                 outputFilesMatrix_buf[ (int)((maxX - i) / sideLength) ][(int)((maxY - j) / sideLength) ] = new LasPointBufferCreator(1, outputFilesMatrix_pw[ (int)((maxX - i) / sideLength) ][(int)((maxY - j) / sideLength) ]);
-                //System.out.println(fileName);
+
             }
+
 
 
     }
@@ -355,6 +357,9 @@ public class Tiler{
 
 
         }
+
+
+
         int count = 0;
         //System.out.println(pointCounts[0][0]);
         for(int i = 0; i < outputFilesMatrix_buf.length; i++){
@@ -376,6 +381,9 @@ public class Tiler{
             }
 
         }
+
+
+
 
     }
 

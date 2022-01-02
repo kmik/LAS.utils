@@ -536,6 +536,11 @@ public class PointInclusionRule{
 				}
 			}
 
+			if(keep_classification != -999){
+				if(tempPoint.classification != keep_classification)
+					return false;
+			}
+
 
 			if(drop_synthetic)
 				if(tempPoint.synthetic)

@@ -32,11 +32,11 @@ public class lasCC {
 
         LasPoint tempPoint = new LasPoint();
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
 
-            int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            int maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, 200000);
 
             for (int j = 0; j < maxi; j++) {
 
