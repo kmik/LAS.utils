@@ -96,9 +96,10 @@ public class las2solar_photogrammetry {
 
                 pointCloud.readFromBuffer(tempPoint);
 
-                int x = (int)((tempPoint.x - pointCloud.getMinX()) / aR.step);
-                int y = (int)((pointCloud.getMaxY() - tempPoint.y) / aR.step);
-                int z = (int)((tempPoint.z - pointCloud.getMinZ()) / aR.step);
+                int x = Math.min((int)((tempPoint.x - pointCloud.getMinX()) / aR.step), chm.getRasterXSize()-1);
+                int y = Math.min((int)((pointCloud.getMaxY() - tempPoint.y) / aR.step), chm.getRasterYSize()-1);
+                int z = Math.min((int)((tempPoint.z - pointCloud.getMinZ()) / aR.step), raster_z_size-1);
+
 
                 float fraction_x = (float)((tempPoint.x - pointCloud.getMinX()) / aR.step) - (float)x;
                 float fraction_y = (float)((pointCloud.getMaxY() - tempPoint.y) / aR.step) - (float)y;
@@ -130,25 +131,25 @@ public class las2solar_photogrammetry {
 
 
         if(false)
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+            for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
-            int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+                int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+                aR.pfac.prepareBuffer(thread_n, i, 10000);
 
-            for (int j = 0; j < maxi; j++) {
+                for (int j = 0; j < maxi; j++) {
 
-                pointCloud.readFromBuffer(tempPoint);
+                    pointCloud.readFromBuffer(tempPoint);
 
-                int x = (int)((tempPoint.x - pointCloud.getMinX()) / aR.step);
-                int y = (int)((pointCloud.getMaxY() - tempPoint.y) / aR.step);
-                int z = (int)((tempPoint.z - pointCloud.getMinZ()) / aR.step);
+                    int x = (int)((tempPoint.x - pointCloud.getMinX()) / aR.step);
+                    int y = (int)((pointCloud.getMaxY() - tempPoint.y) / aR.step);
+                    int z = (int)((tempPoint.z - pointCloud.getMinZ()) / aR.step);
 
-                if(chm_values_f_3d[y][x][z] < 100)
-                    chm_values_f_3d[y][x][z]++;
+                    if(chm_values_f_3d[y][x][z] < 100)
+                        chm_values_f_3d[y][x][z]++;
 
+                }
             }
-        }
 
         System.out.println("ALL GOOD!");
 
@@ -177,7 +178,7 @@ public class las2solar_photogrammetry {
         band2 = dataset.GetRasterBand(1);    // writable band
 
 
-        int steppi = 100;
+        int steppi = 25;
 
         int x_res = (int)Math.ceil((double)chm.getRasterXSize() / (double)steppi);
         int y_res = (int)Math.ceil((double)chm.getRasterYSize() / (double)steppi);
@@ -239,36 +240,37 @@ public class las2solar_photogrammetry {
         sunriseAndSunset.clear();
 
         IntStream.range(0, x_res).parallel().forEach(x -> {
-        //for(int x = 0; x < x_res; x++){
+            //for(int x = 0; x < x_res; x++){
+            GregorianCalendar time_ = new GregorianCalendar(TimeZone.getTimeZone("GMT+2"));
+
+            double[] point_ = new double[3];
             for(int y = 0; y < y_res; y++){
 
                 int precompute_x = (int)((double)steppi * (double)x + (double)steppi / 2.0); // x_size / 2;
                 int precompute_y = (int)((double)steppi * (double)y + (double)steppi / 2.0); // x_size / 2;
 
-                point[0] = gt[0] + precompute_x * gt[1] + precompute_y * gt[2];
-                point[1] = gt[3] + precompute_x * gt[4] + precompute_y * gt[5];
-                point[2] = value;
+                point_[0] = gt[0] + precompute_x * gt[1] + precompute_y * gt[2];
+                point_[1] = gt[3] + precompute_x * gt[4] + precompute_y * gt[5];
+                point_[2] = value;
 
                 //System.out.println(Arrays.toString(point));
-                double[] point_transformed = ct.TransformPoint(point[0], point[1]);
+                double[] point_transformed = ct.TransformPoint(point_[0], point_[1]);
                 //System.out.println(Arrays.toString(point_transformed));
 
                 //System.exit(1);
                 for(int month : calendar_month) {
                     for (int day = 1; day <= n_date_in_month[month]; day += 1) {
 
-                        time.set(2020, month, day, 12, 00, 00);
-
                         for (int hour = 0; hour <= 23; hour += 1) {
 
                             for(int minute = 0; minute < minutes.length; minute++) {
 
-                                time.set(2020, month, day, hour, minutes[minute], 00);
+                                time_.set(2020, month, day, hour, minutes[minute], 00);
 
-                                AzimuthZenithAngle result = SPA.calculateSolarPosition(time, point_transformed[1], point_transformed[0], 127, DeltaT.estimate(time));
+                                AzimuthZenithAngle result = SPA.calculateSolarPosition(time_, point_transformed[1], point_transformed[0], 0, DeltaT.estimate(time));
 
-                                precomputed[x][y][month][day][hour][minute][0] = (float) result.getZenithAngle();
-                                precomputed[x][y][month][day][hour][minute][1] = (float) result.getAzimuth();
+                                precomputed[x][y][month][day][hour][minute][0] =  (float)result.getZenithAngle();
+                                precomputed[x][y][month][day][hour][minute][1] =  (float)result.getAzimuth();
 
                             }
                         }
@@ -337,18 +339,18 @@ public class las2solar_photogrammetry {
         blur3D(imp, xsigma, ysigma, zsigma);
 
         if(true)
-        for(int z = 1; z <= raster_z_size; z++){
+            for(int z = 1; z <= raster_z_size; z++){
 
-            ImageProcessor pros = imp.getImageStack().getProcessor(z);
-            for(int x = 0; x < chm.getRasterXSize(); x++) {
-                for (int y = 0; y < chm.getRasterYSize(); y++) {
+                ImageProcessor pros = imp.getImageStack().getProcessor(z);
+                for(int x = 0; x < chm.getRasterXSize(); x++) {
+                    for (int y = 0; y < chm.getRasterYSize(); y++) {
 
 
-                    rM.setValue(x, y, z-1, pros.getPixelValue(x, y));
+                        rM.setValue(x, y, z-1, pros.getPixelValue(x, y));
 
+                    }
                 }
             }
-        }
 
         File outFile = aR.createOutputFile(pointCloud);
 
@@ -372,9 +374,9 @@ public class las2solar_photogrammetry {
                     continue;
                 }
 
-                int x = (int)((tempPoint.x - pointCloud.getMinX()) / aR.step);
-                int y = (int)((pointCloud.getMaxY() - tempPoint.y) / aR.step);
-                int z = (int)((tempPoint.z - pointCloud.getMinZ()) / aR.step);
+                int x = Math.min((int)((tempPoint.x - pointCloud.getMinX()) / aR.step), chm.getRasterXSize()-1);
+                int y = Math.min((int)((pointCloud.getMaxY() - tempPoint.y) / aR.step), chm.getRasterYSize()-1);
+                int z = Math.min((int)((tempPoint.z - pointCloud.getMinZ()) / aR.step), raster_z_size-1);
 
                 tempPoint.intensity =  (int)(rM.getValue(x, y, z) / solarradiation * 65535.0);
 
@@ -1643,14 +1645,14 @@ class solarParallel_3d extends Thread {
                                     if (!blockArray) {
 
                                         /* If the average obstructed depth is less than one meter */
-                                       // if ((blockArray[0] / blockArray[1]) < 0.5 && false) {
+                                        // if ((blockArray[0] / blockArray[1]) < 0.5 && false) {
 
-                                            //dailyAverageInsolation = (dailyAverageInsolation + insolation) / 2.0;
-                                            //dailyAverageInsolation = dailyAverageInsolation + (insolation - dailyAverageInsolation)/(double)++n;
-                                            //dailyAverageInsolation_ += insolation;
-                                            hour_mean_insolation += insolation;
+                                        //dailyAverageInsolation = (dailyAverageInsolation + insolation) / 2.0;
+                                        //dailyAverageInsolation = dailyAverageInsolation + (insolation - dailyAverageInsolation)/(double)++n;
+                                        //dailyAverageInsolation_ += insolation;
+                                        hour_mean_insolation += insolation;
 
-                                       // }
+                                        // }
 
                                     } else {
                                         //dailyAverageInsolation = dailyAverageInsolation + (insolation - dailyAverageInsolation)/(double)++n;

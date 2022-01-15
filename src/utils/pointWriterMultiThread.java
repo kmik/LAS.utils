@@ -103,6 +103,7 @@ public class pointWriterMultiThread {
         }
 
         LASwrite.writeHeader(outputFile, softwareName, tempReader, aR);
+        this.pointDataRecordLength = outputFile.pointDataRecordLength;
 
     }
 

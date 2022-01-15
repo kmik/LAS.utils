@@ -263,13 +263,12 @@ public class trunkDBH {
                         trunk_points2.get(tempPoint.pointSourceId).put(tempPoint.z, new double[]{tempPoint.x, tempPoint.y, tempPoint.z, Math.abs(tempPoint.scanAngleRank), tempPoint.userData});
                     }
 
-
+                    /* All the points of this trunk has been read, so we can process it */
                     if(n_points_per_trunk.get(tempPoint.pointSourceId) == 0){
 
                         ArrayList<ArrayList<double[]>> perTrunkPoints2 = new ArrayList<>();
                         ArrayList<List<int[]>> perTrunkPoints_combinations = new ArrayList<>();
                         perTrunkPoints2.add(new ArrayList<>());
-                        //perTrunkPoints_combinations.add(new ArrayList<>());
 
                         perTrunkPoints.put(tempPoint.pointSourceId, new ArrayList<>());
                         perTrunkPoints.get(tempPoint.pointSourceId).add(new ArrayList<>());
@@ -326,7 +325,8 @@ public class trunkDBH {
                         //System.out.println("nlme: " + maxRadius);
                         //System.out.println("------------------------");
 
-                        double minRadius = 0.5610092  * Math.pow((zet_constraint - 0.0), 1.241524) / 100.0 / 2.0 * 0.7;
+                        double minRadius = 0.5610092  * Math.pow((zet_constraint - 0.0), 1.241524) / 100.0 / 2.0 * 0.5;
+                        //double minRadius = 0.5610092  * Math.pow((zet_constraint - 0.0), 1.241524) / 100.0 / 2.0 * 0.5;
                         //minRadius = maxRadius * 0.5;
                         //minRadius = 0.025;
                         RcF.setMaxRadius(maxRadius);

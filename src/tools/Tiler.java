@@ -61,7 +61,7 @@ public class Tiler{
      * @param in					Input list of point clouds
      */
 
-    public Tiler(ArrayList<File> in, argumentReader aR) throws IOException {
+    public Tiler(ArrayList<File> in, argumentReader aR) throws Exception {
 
         this.aR = aR;
 
@@ -70,7 +70,6 @@ public class Tiler{
         this.odir = aR.odir;
         this.sideLength = aR.step;
         this.makePointCloudList(in);
-        //pointClouds = in;
         findExtent();
 
         outputFileCount = numberOfOutputFiles();
@@ -173,12 +172,14 @@ public class Tiler{
 
     public void declareOutputFiles() throws IOException{
 
+        int x_ = 0, y_ = 0;
 
-
-        String pathSep = System.getProperty("file.separator");
-
-        for(double i = minX; i < maxX; i += sideLength)
+        for(double i = minX; i < maxX; i += sideLength){
+            y_ = yMax-1;
             for(double j = minY; j < maxY; j += sideLength){
+
+                int x = Math.min((int)((i - minX) / sideLength), xMax-1);
+                int y = Math.min((int)((maxY - j) / sideLength), yMax-1);
 
                 File temp = null;
                 if(aR.buffer > 0) {
@@ -186,26 +187,15 @@ public class Tiler{
                 }else {
                     temp = aR.createOutputFileWithExtension(pointClouds.get(0), "_tile_" + (int) i + "_" + (int) j + "_" + (int) aR.step + "m.las");
                 }
-                //String fileName = odir + pathSep + "tile_" + (int)i + "_" + (int)j + ".las";
 
-                //System.out.println("HERE!! " + temp.getAbsolutePath() + " " + temp.exists());
-                //System.out.println(fileName);
-                //File temp = new File(fileName);
+                outputFilesMatrix_pw[ x_ ][ y_ ] = new pointWriterMultiThread(temp, pointClouds.get(0), "lasTile", aR);
+                outputFilesMatrix_buf[ x_ ][ y_  ] = new LasPointBufferCreator(1, outputFilesMatrix_pw[ x_ ][ y_ ]);
 
-                //if(temp.exists())
-                  //  temp.delete();
-
-                //temp.createNewFile();
-
-                //LASraf raTemp = new LASraf(temp);
-                //LASwrite.writeHeader(raTemp, "lasTile", pointClouds.get(0).versionMajor, pointClouds.get(0).versionMinor, pointClouds.get(0).pointDataRecordFormat, pointClouds.get(0).pointDataRecordLength);
-                //outputFilesMatrix[ (int)((maxX - i) / sideLength) ][(int)((maxY - j) / sideLength) ] = raTemp;
-
-                outputFilesMatrix_pw[ (int)((maxX - i) / sideLength) ][(int)((maxY - j) / sideLength) ] = new pointWriterMultiThread(temp, pointClouds.get(0), "lasTile", aR);
-                outputFilesMatrix_buf[ (int)((maxX - i) / sideLength) ][(int)((maxY - j) / sideLength) ] = new LasPointBufferCreator(1, outputFilesMatrix_pw[ (int)((maxX - i) / sideLength) ][(int)((maxY - j) / sideLength) ]);
-
+                y_--;
             }
+            x_++;
 
+        }
 
 
     }
@@ -216,162 +206,80 @@ public class Tiler{
      * the .las and creates a dummy header.
      */
 
-    public void make() throws IOException{
+    public void make() throws Exception{
 
         LasPoint tempPoint = new LasPoint();
         if(false)
-        if(aR.cores >= 1){
+            if(aR.cores >= 1){
 
-            ArrayList<Thread> lista11 = new ArrayList<Thread>();
+                ArrayList<Thread> lista11 = new ArrayList<Thread>();
 
-            for(int ii = 1; ii <= aR.cores; ii++){
-                //proge.addThread();
-                Thread temp = new Thread(new multiTile(ii, aR.cores, aR.pointClouds, this));
-                lista11.add(temp);
-                temp.start();
+                for(int ii = 1; ii <= aR.cores; ii++){
+                    Thread temp = new Thread(new multiTile(ii, aR.cores, aR.pointClouds, this));
+                    lista11.add(temp);
+                    temp.start();
 
-            }
-
-            for(int i = 0; i < lista11.size(); i++){
-
-                try{
-
-                    lista11.get(i).join();
-                }catch(Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            this.finalize_();
-
-            return;
-        }
-
-        for(int i = 0; i < aR.inputFiles.size(); i++) {
-
-            LASReader temp = new LASReader(aR.inputFiles.get(i));
-            long n = temp.getNumberOfPointRecords();
-
-            int maxi = 0;
-
-            for (int p = 0; p < temp.getNumberOfPointRecords(); p += 10000) {
-                //for(int i = 0; i < n; i++){
-
-                maxi = (int) Math.min(10000, Math.abs(temp.getNumberOfPointRecords() - (p)));
-
-                try {
-                    temp.readRecord_noRAF(p, tempPoint, maxi);
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
 
+                for(int i = 0; i < lista11.size(); i++){
 
-                for (int j = 0; j < maxi; j++) {
+                    try{
 
-                    //if((j+p) > 1600000)
+                        lista11.get(i).join();
+                    }catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                }
 
-                    //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
+                this.finalize_();
+
+                return;
+            }
+
+
+        for(int i_ = 0; i_ < aR.inputFiles.size(); i_++) {
+
+            LASReader temp = new LASReader(aR.inputFiles.get(i_));
+
+            int thread_n = aR.pfac.addReadThread(temp);
+
+            for(int i = 0; i < temp.getNumberOfPointRecords(); i += 200000) {
+
+                int maxi2 = (int) Math.min(200000, Math.abs(temp.getNumberOfPointRecords() - i));
+
+                aR.pfac.prepareBuffer(thread_n, i, 200000);
+
+                for (int j = 0; j < maxi2; j++) {
+
                     temp.readFromBuffer(tempPoint);
 
+                    if (rule.ask(tempPoint, i+j, true)) {
 
+                        int x = Math.min((int) ((tempPoint.x - this.minX) / sideLength), xMax-1);
+                        int y = Math.min((int) ((this.maxY - tempPoint.y) / sideLength), yMax-1);
 
-                    if (rule.ask(tempPoint, j, true)) {
-
-                        int x = (int) ((tempPoint.x - this.minX) / sideLength);
-                        int y = (int) ((this.maxY - tempPoint.y) / sideLength);
 
                         /* Here we write the point to the correct tile */
-                        //if(LASwrite.writePoint(outputFilesMatrix[x][y], tempPoint, rule, 0.01, 0.01, 0.01, 0, 0, 0, temp.pointDataRecordFormat, j))
-                        if (outputFilesMatrix_buf[x][y].writePoint(tempPoint, rule, j))
+                        if (outputFilesMatrix_buf[x][y].writePoint(tempPoint, rule, i+j))
                             pointCounts[x][y]++;
 
                         /* Next we have to check whether the point is in a buffer */
                         if (buffer > 0.0) {
 
-                            tempPoint.synthetic = true;
-
-                            //tempPoint.classification = 5;
-
-                            double xd = ((tempPoint.x - this.minX) / sideLength);
-                            xd = xd - (double) (int) xd;
-                            double yd = ((this.maxY - tempPoint.y) / sideLength);
-                            yd = yd - (double) (int) yd;
-
-
-                            double distanceToRight = (1.0 - xd) * sideLength;
-                            double distanceToLeft = (xd) * sideLength;
-
-                            double distanceToBottom = (1.0 - yd) * sideLength;
-                            double distanceToTop = (yd) * sideLength;
-
-                            if (distanceToRight < buffer)
-                                if (x + 1 < xMax)
-                                    if (outputFilesMatrix_buf[x + 1][y].writePoint(tempPoint, rule, j))
-                                        pointCounts[x + 1][y]++;
-
-                            if (distanceToLeft < buffer)
-                                if (x - 1 >= 0)
-                                    if (outputFilesMatrix_buf[x - 1][y].writePoint(tempPoint, rule, j))
-                                        pointCounts[x - 1][y]++;
-
-                            if (distanceToTop < buffer)
-                                if (y - 1 >= 0)
-                                    if (outputFilesMatrix_buf[x][y - 1].writePoint(tempPoint, rule, j))
-                                        pointCounts[x][y - 1]++;
-
-                            if (distanceToBottom < buffer)
-                                if (y + 1 < yMax)
-                                    if (outputFilesMatrix_buf[x][y + 1].writePoint(tempPoint, rule, j))
-                                        pointCounts[x][y + 1]++;
-
-
-                            /* Top right */
-                            if (distanceToTop < buffer && distanceToRight < buffer)
-                                if (y - 1 >= 0 && x + 1 < xMax)
-                                    if (outputFilesMatrix_buf[x + 1][y - 1].writePoint(tempPoint, rule, j))
-                                        pointCounts[x + 1][y - 1]++;
-
-                            /* Top left */
-                            if (distanceToTop < buffer && distanceToLeft < buffer)
-                                if (y - 1 >= 0 && x - 1 >= 0)
-                                    if (outputFilesMatrix_buf[x - 1][y - 1].writePoint(tempPoint, rule, j))
-                                        pointCounts[x - 1][y - 1]++;
-
-                            /* Bottom left */
-                            if (distanceToBottom < buffer && distanceToLeft < buffer)
-                                if (y + 1 < yMax && x - 1 >= 0)
-                                    if (outputFilesMatrix_buf[x - 1][y + 1].writePoint(tempPoint, rule, j))
-                                        pointCounts[x - 1][y + 1]++;
-
-                            /* Bottom right */
-                            if (distanceToBottom < buffer && distanceToRight < buffer)
-                                if (y + 1 < yMax && x + 1 < xMax)
-                                    if (outputFilesMatrix_buf[x + 1][y + 1].writePoint(tempPoint, rule, j))
-                                        pointCounts[x + 1][y + 1]++;
-
-
+                            check_point_in_buffer(tempPoint, j, x, y);
+                            
                         }
                     }
                 }
             }
 
-
         }
 
-
-
-        int count = 0;
-        //System.out.println(pointCounts[0][0]);
         for(int i = 0; i < outputFilesMatrix_buf.length; i++){
             for(int j = 0; j < outputFilesMatrix_buf[0].length; j++){
 
-                //System.out.println("count: " + count++);
                 if(pointCounts[i][j] > 0){
-                    /*
-                    outputFilesMatrix[i][j].writeBuffer2();
-                    outputFilesMatrix[i][j].updateHeader2();
 
-                     */
                     outputFilesMatrix_buf[i][j].close();
                     outputFilesMatrix_pw[i][j].close(aR);
 
@@ -387,19 +295,75 @@ public class Tiler{
 
     }
 
+    private void check_point_in_buffer(LasPoint tempPoint, int j, int x, int y) throws IOException {
+        tempPoint.synthetic = true;
+
+        double xd = ((tempPoint.x - this.minX) / sideLength);
+        xd = xd - (double) (int) xd;
+        double yd = ((this.maxY - tempPoint.y) / sideLength);
+        yd = yd - (double) (int) yd;
+
+
+        double distanceToRight = (1.0 - xd) * sideLength;
+        double distanceToLeft = (xd) * sideLength;
+
+        double distanceToBottom = (1.0 - yd) * sideLength;
+        double distanceToTop = (yd) * sideLength;
+
+        if (distanceToRight < buffer)
+            if (x + 1 < xMax)
+                if (outputFilesMatrix_buf[x + 1][y].writePoint(tempPoint, rule, j))
+                    pointCounts[x + 1][y]++;
+
+        if (distanceToLeft < buffer)
+            if (x - 1 >= 0)
+                if (outputFilesMatrix_buf[x - 1][y].writePoint(tempPoint, rule, j))
+                    pointCounts[x - 1][y]++;
+
+        if (distanceToTop < buffer)
+            if (y - 1 >= 0)
+                if (outputFilesMatrix_buf[x][y - 1].writePoint(tempPoint, rule, j))
+                    pointCounts[x][y - 1]++;
+
+        if (distanceToBottom < buffer)
+            if (y + 1 < yMax)
+                if (outputFilesMatrix_buf[x][y + 1].writePoint(tempPoint, rule, j))
+                    pointCounts[x][y + 1]++;
+
+
+        /* Top right */
+        if (distanceToTop < buffer && distanceToRight < buffer)
+            if (y - 1 >= 0 && x + 1 < xMax)
+                if (outputFilesMatrix_buf[x + 1][y - 1].writePoint(tempPoint, rule, j))
+                    pointCounts[x + 1][y - 1]++;
+
+        /* Top left */
+        if (distanceToTop < buffer && distanceToLeft < buffer)
+            if (y - 1 >= 0 && x - 1 >= 0)
+                if (outputFilesMatrix_buf[x - 1][y - 1].writePoint(tempPoint, rule, j))
+                    pointCounts[x - 1][y - 1]++;
+
+        /* Bottom left */
+        if (distanceToBottom < buffer && distanceToLeft < buffer)
+            if (y + 1 < yMax && x - 1 >= 0)
+                if (outputFilesMatrix_buf[x - 1][y + 1].writePoint(tempPoint, rule, j))
+                    pointCounts[x - 1][y + 1]++;
+
+        /* Bottom right */
+        if (distanceToBottom < buffer && distanceToRight < buffer)
+            if (y + 1 < yMax && x + 1 < xMax)
+                if (outputFilesMatrix_buf[x + 1][y + 1].writePoint(tempPoint, rule, j))
+                    pointCounts[x + 1][y + 1]++;
+    }
+
     protected void finalize_() throws IOException{
         int count = 0;
-        //System.out.println(pointCounts[0][0]);
+
         for(int i = 0; i < outputFilesMatrix_buf.length; i++){
             for(int j = 0; j < outputFilesMatrix_buf[0].length; j++){
 
-                //System.out.println("count: " + count++);
                 if(pointCounts[i][j] > 0){
-                    /*
-                    outputFilesMatrix[i][j].writeBuffer2();
-                    LASwrite.updateHeader2(outputFilesMatrix[i][j], pointCounts[i][j]);
 
-                     */
                     outputFilesMatrix_buf[i][j].close();
                     outputFilesMatrix_pw[i][j].close(aR);
                 }
@@ -420,21 +384,16 @@ public class Tiler{
 
         for(int i = 0; i < aR.inputFiles.size(); i++){
 
-            //System.out.println("thread: " + coreNumber + " files: " + pClouds.size());
-
             LASReader temp = new LASReader(aR.inputFiles.get(i));
             long n = temp.getNumberOfPointRecords();
 
             aR.p_update.threadProgress[coreNumber-1] = 0;
             aR.p_update.threadEnd[coreNumber-1] = (int)n;
-
             aR.p_update.threadFile[coreNumber-1] = temp.getFile().getName();
-
-
+            
             int maxi = 0;
 
             for (int p = 0; p < temp.getNumberOfPointRecords(); p += 10000) {
-                //for(int i = 0; i < n; i++){
 
                 maxi = (int) Math.min(10000, Math.abs(temp.getNumberOfPointRecords() - (p)));
 
@@ -444,95 +403,23 @@ public class Tiler{
                     e.printStackTrace();
                 }
 
-
-
                 for (int j = 0; j < maxi; j++) {
 
-                    //if((j+p) > 1600000)
-
-                    //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                     temp.readFromBuffer(tempPoint);
 
-
-                    //for(int j = 0; j < n; j++){
-
-                    //temp.readRecord(j, tempPoint);
-
-                    //System.out.println("HERE!!");
                     if (rule.ask(tempPoint, j+p, true)) {
 
                         int x = (int) ((tempPoint.x - this.minX) / sideLength);
                         int y = (int) ((this.maxY - tempPoint.y) / sideLength);
 
                         /* Here we write the point to the correct tile */
-                        //if(LASwrite.writePoint(outputFilesMatrix[x][y], tempPoint, rule, 0.01, 0.01, 0.01, 0, 0, 0, temp.pointDataRecordFormat, j))
                         if (outputFilesMatrix_buf[x][y].writePoint(tempPoint, rule, j+p))
                             pointCounts[x][y]++;
 
                         /* Next we have to check whether the point is in a buffer */
                         if (buffer > 0.0) {
 
-                            tempPoint.synthetic = true;
-
-                            //tempPoint.classification = 5;
-
-                            double xd = ((tempPoint.x - this.minX) / sideLength);
-                            xd = xd - (double) (int) xd;
-                            double yd = ((this.maxY - tempPoint.y) / sideLength);
-                            yd = yd - (double) (int) yd;
-
-
-                            double distanceToRight = (1.0 - xd) * sideLength;
-                            double distanceToLeft = (xd) * sideLength;
-
-                            double distanceToBottom = (1.0 - yd) * sideLength;
-                            double distanceToTop = (yd) * sideLength;
-
-                            if (distanceToRight < buffer)
-                                if (x + 1 < xMax)
-                                    if (outputFilesMatrix_buf[x + 1][y].writePoint(tempPoint, rule, j+p))
-                                        pointCounts[x + 1][y]++;
-
-                            if (distanceToLeft < buffer)
-                                if (x - 1 >= 0)
-                                    if (outputFilesMatrix_buf[x - 1][y].writePoint(tempPoint, rule, j+p))
-                                        pointCounts[x - 1][y]++;
-
-                            if (distanceToTop < buffer)
-                                if (y - 1 >= 0)
-                                    if (outputFilesMatrix_buf[x][y - 1].writePoint(tempPoint, rule, j+p))
-                                        pointCounts[x][y - 1]++;
-
-                            if (distanceToBottom < buffer)
-                                if (y + 1 < yMax)
-                                    if (outputFilesMatrix_buf[x][y + 1].writePoint(tempPoint, rule, j+p))
-                                        pointCounts[x][y + 1]++;
-
-
-                            /* Top right */
-                            if (distanceToTop < buffer && distanceToRight < buffer)
-                                if (y - 1 >= 0 && x + 1 < xMax)
-                                    if (outputFilesMatrix_buf[x + 1][y - 1].writePoint(tempPoint, rule, j+p))
-                                        pointCounts[x + 1][y - 1]++;
-
-                            /* Top left */
-                            if (distanceToTop < buffer && distanceToLeft < buffer)
-                                if (y - 1 >= 0 && x - 1 >= 0)
-                                    if (outputFilesMatrix_buf[x - 1][y - 1].writePoint(tempPoint, rule, j+p))
-                                        pointCounts[x - 1][y - 1]++;
-
-                            /* Bottom left */
-                            if (distanceToBottom < buffer && distanceToLeft < buffer)
-                                if (y + 1 < yMax && x - 1 >= 0)
-                                    if (outputFilesMatrix_buf[x - 1][y + 1].writePoint(tempPoint, rule, j+p))
-                                        pointCounts[x - 1][y + 1]++;
-
-                            /* Bottom right */
-                            if (distanceToBottom < buffer && distanceToRight < buffer)
-                                if (y + 1 < yMax && x + 1 < xMax)
-                                    if (outputFilesMatrix_buf[x + 1][y + 1].writePoint(tempPoint, rule, j+p))
-                                        pointCounts[x + 1][y + 1]++;
-
+                            check_point_in_buffer(tempPoint, j, x, y);
 
                         }
                     }
@@ -544,6 +431,67 @@ public class Tiler{
 
         }
 
+    }
+
+    private void check_point_in_buffer_2(LasPoint tempPoint, int p, int j, int x, int y) throws IOException {
+        tempPoint.synthetic = true;
+
+        double xd = ((tempPoint.x - this.minX) / sideLength);
+        xd = xd - (double) (int) xd;
+        double yd = ((this.maxY - tempPoint.y) / sideLength);
+        yd = yd - (double) (int) yd;
+
+
+        double distanceToRight = (1.0 - xd) * sideLength;
+        double distanceToLeft = (xd) * sideLength;
+
+        double distanceToBottom = (1.0 - yd) * sideLength;
+        double distanceToTop = (yd) * sideLength;
+
+        if (distanceToRight < buffer)
+            if (x + 1 < xMax)
+                if (outputFilesMatrix_buf[x + 1][y].writePoint(tempPoint, rule, j + p))
+                    pointCounts[x + 1][y]++;
+
+        if (distanceToLeft < buffer)
+            if (x - 1 >= 0)
+                if (outputFilesMatrix_buf[x - 1][y].writePoint(tempPoint, rule, j + p))
+                    pointCounts[x - 1][y]++;
+
+        if (distanceToTop < buffer)
+            if (y - 1 >= 0)
+                if (outputFilesMatrix_buf[x][y - 1].writePoint(tempPoint, rule, j + p))
+                    pointCounts[x][y - 1]++;
+
+        if (distanceToBottom < buffer)
+            if (y + 1 < yMax)
+                if (outputFilesMatrix_buf[x][y + 1].writePoint(tempPoint, rule, j + p))
+                    pointCounts[x][y + 1]++;
+
+
+        /* Top right */
+        if (distanceToTop < buffer && distanceToRight < buffer)
+            if (y - 1 >= 0 && x + 1 < xMax)
+                if (outputFilesMatrix_buf[x + 1][y - 1].writePoint(tempPoint, rule, j + p))
+                    pointCounts[x + 1][y - 1]++;
+
+        /* Top left */
+        if (distanceToTop < buffer && distanceToLeft < buffer)
+            if (y - 1 >= 0 && x - 1 >= 0)
+                if (outputFilesMatrix_buf[x - 1][y - 1].writePoint(tempPoint, rule, j + p))
+                    pointCounts[x - 1][y - 1]++;
+
+        /* Bottom left */
+        if (distanceToBottom < buffer && distanceToLeft < buffer)
+            if (y + 1 < yMax && x - 1 >= 0)
+                if (outputFilesMatrix_buf[x - 1][y + 1].writePoint(tempPoint, rule, j + p))
+                    pointCounts[x - 1][y + 1]++;
+
+        /* Bottom right */
+        if (distanceToBottom < buffer && distanceToRight < buffer)
+            if (y + 1 < yMax && x + 1 < xMax)
+                if (outputFilesMatrix_buf[x + 1][y + 1].writePoint(tempPoint, rule, j + p))
+                    pointCounts[x + 1][y + 1]++;
     }
 
     public static class multiTile implements Runnable{
@@ -570,7 +518,6 @@ public class Tiler{
             if(coreNumber != 0){
 
                 int jako = (int)Math.ceil((double)tiedostot.size() / (double) numberOfCores);
-                //System.out.println(plotID1.size() / (double)cores);
                 if(coreNumber != numberOfCores){
 
                     pienin = (coreNumber - 1) * jako;
@@ -581,11 +528,6 @@ public class Tiler{
                     pienin = (coreNumber - 1) * jako;
                     suurin = tiedostot.size();
                 }
-
-                //int[] testi = get_pienin_suurin(tiedostot.size(), numberOfCores, coreNumber);
-                //pienin = testi[0];
-                //suurin = testi[1];
-                //System.out.println("pienin: " + pienin + " suurin: " + suurin + " jako: " + jako);
 
                 tiedostot = new ArrayList<LASReader>(tiedostot.subList(pienin, suurin));
 
@@ -603,31 +545,4 @@ public class Tiler{
 
     }
 
-    public int[] get_pienin_suurin(int m, int n, int part){
-
-        int jako = (int)Math.ceil((double)m / (double) n);
-
-        boolean correct = n % m != 0;
-
-        //System.out.println("correct: " + correct);
-
-        int[] output = new int[2];
-
-        if(n != part){
-            if(correct && part == n - 1){
-                output[0] = (part - 1) * jako;
-                output[1] = part * jako - 1;
-            }else{
-                output[0] = (part - 1) * jako;
-                output[1] = part * jako;
-            }
-        }else{
-            if(correct){
-                output[0] = (part - 1) * jako - 1;
-                output[1] = m;
-            }
-        }
-
-        return output;
-    }
 }

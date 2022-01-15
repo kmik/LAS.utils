@@ -23,6 +23,19 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public ArrayList<Integer> create_extra_byte_vlr = new ArrayList<>();
+    public ArrayList<String> create_extra_byte_vlr_name = new ArrayList<>();
+    public ArrayList<String> create_extra_byte_vlr_description = new ArrayList<>();
+    public ArrayList<Integer> create_extra_byte_vlr_n_bytes = new ArrayList<>();
+
+    public boolean output_only_itc_segments = false;
+
+    public int thread_safe_id = 0;
+
+    public boolean skeleton_output = false;
+
+    public boolean noModify = true;
+
     public ArrayList<File> grounds = new ArrayList<>();
 
     public boolean harmonized = false;
@@ -79,7 +92,8 @@ public class argumentReader {
 
     public int decimate_tin = -1;
 
-    public int tool;
+    public int tool = -1;
+    public String tool_string = null;
 
     public int batch_size = 32;
 
@@ -103,6 +117,8 @@ public class argumentReader {
 
     public boolean rule_when_reading = true;
     public boolean rule_when_writing = false;
+
+    public boolean pitFree = false;
 
     public String[] args;
     public PointInclusionRule inclusionRule;
@@ -198,6 +214,7 @@ public class argumentReader {
     public String splitBy = "asd";
 
     public boolean remove_buffer = false;
+    public boolean remove_buffer_2 = false;
 
     public LASraf outputFile = null;
 
@@ -281,6 +298,135 @@ public class argumentReader {
         this.inclusionRule = new PointInclusionRule();
     }
 
+    public void add_extra_bytes(int data_type, String name, String description){
+
+        this.create_extra_byte_vlr_description.add(description);
+        this.create_extra_byte_vlr_name.add(name);
+        this.create_extra_byte_vlr.add(data_type);
+
+        switch (data_type){
+
+            case 0:
+                this.create_extra_byte_vlr_n_bytes.add(-1);
+                break;
+
+            case 1:
+                this.create_extra_byte_vlr_n_bytes.add(1);
+                break;
+
+            case 2:
+                this.create_extra_byte_vlr_n_bytes.add(1);
+                break;
+
+            case 3:
+                this.create_extra_byte_vlr_n_bytes.add(2);
+                break;
+
+            case 4:
+                this.create_extra_byte_vlr_n_bytes.add(2);
+                break;
+
+            case 5:
+                this.create_extra_byte_vlr_n_bytes.add(4);
+                break;
+
+            case 6:
+                this.create_extra_byte_vlr_n_bytes.add(4);
+                break;
+
+            case 7:
+                this.create_extra_byte_vlr_n_bytes.add(8);
+                break;
+
+            case 8:
+                this.create_extra_byte_vlr_n_bytes.add(8);
+                break;
+
+            case 9:
+                this.create_extra_byte_vlr_n_bytes.add(4);
+                break;
+
+            case 10:
+                this.create_extra_byte_vlr_n_bytes.add(8);
+                break;
+
+            case 11:
+                this.create_extra_byte_vlr_n_bytes.add(2);
+                break;
+
+            case 12:
+                this.create_extra_byte_vlr_n_bytes.add(2);
+                break;
+
+            case 13:
+                this.create_extra_byte_vlr_n_bytes.add(4);
+                break;
+
+            case 14:
+                this.create_extra_byte_vlr_n_bytes.add(4);
+                break;
+
+            case 15:
+                this.create_extra_byte_vlr_n_bytes.add(8);
+                break;
+
+            case 16:
+                this.create_extra_byte_vlr_n_bytes.add(8);
+                break;
+
+            case 17:
+                this.create_extra_byte_vlr_n_bytes.add(16);
+                break;
+
+            case 18:
+                this.create_extra_byte_vlr_n_bytes.add(8);
+                break;
+
+            case 19:
+                this.create_extra_byte_vlr_n_bytes.add(16);
+                break;
+
+            case 20:
+                this.create_extra_byte_vlr_n_bytes.add(8);
+                break;
+
+            case 21:
+                this.create_extra_byte_vlr_n_bytes.add(3);
+                break;
+
+            case 22:
+                this.create_extra_byte_vlr_n_bytes.add(3);
+                break;
+            case 23:
+                this.create_extra_byte_vlr_n_bytes.add(6);
+                break;
+            case 24:
+                this.create_extra_byte_vlr_n_bytes.add(6);
+                break;
+            case 25:
+                this.create_extra_byte_vlr_n_bytes.add(12);
+                break;
+            case 26:
+                this.create_extra_byte_vlr_n_bytes.add(12);
+                break;
+            case 27:
+                this.create_extra_byte_vlr_n_bytes.add(24);
+                break;
+
+            case 28:
+                this.create_extra_byte_vlr_n_bytes.add(24);
+                break;
+            case 29:
+                this.create_extra_byte_vlr_n_bytes.add(12);
+                break;
+            case 30:
+                this.create_extra_byte_vlr_n_bytes.add(24);
+                break;
+
+        }
+
+    }
+
     public void createOpts(){
 
         options = new Options();
@@ -321,6 +467,12 @@ public class argumentReader {
                 .required(false)
                 .build());
 
+        options.addOption(Option.builder()
+                .longOpt("o_itc")
+                .hasArg(false)
+                .desc("Output only ITC segments in point cloud")
+                .required(false)
+                .build());
 
         options.addOption(Option.builder()
                 .longOpt("drop_z_above")
@@ -376,6 +528,13 @@ public class argumentReader {
                 .longOpt("measured_trees")
                 .hasArg(true)
                 .desc("Field measured trees")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("extra_byte")
+                .hasArg(true)
+                .desc("Add extra byte to all points")
                 .required(false)
                 .build());
 
@@ -872,6 +1031,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("pit_free")
+                .hasArg(false)
+                .desc("Pit-free CHM")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("drop_middle")
                 .hasArg(false)
                 .desc("Drop _middle")
@@ -1244,6 +1410,14 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("skeleton")
+                .hasArg(false)
+                .desc("Reduced output - see tool for more information")
+                .required(false)
+                .build());
+
+
+        options.addOption(Option.builder()
                 .longOpt("densities")
                 .hasArg(true)
                 .desc("Vector of densities")
@@ -1305,16 +1479,26 @@ public class argumentReader {
 
     }
 
+    public void parseArguents(String tool) throws IOException{
+
+        this.tool_string = tool;
+        parseArguents();
+
+    }
 
     public void parseArguents() throws IOException {
 
         this.pathSep = System.getProperty("file.separator");
 
-        this.tool = Integer.parseInt(args[0]);
+        if(this.tool_string == null)
+            this.tool = Integer.parseInt(args[0]);
 
         if(args.length <= 1){
-
-            printHelp pH = new printHelp(this.tool);
+            printHelp pH;
+            if(this.tool_string == null)
+                pH = new printHelp(this.tool);
+            else
+                pH = new printHelp(this.tool_string);
             System.exit(1);
 
         }
@@ -1348,6 +1532,9 @@ public class argumentReader {
                 ArrayList<String> temp = new ArrayList<>();
 
                 for(String s : files){
+
+                    System.out.println(s);
+
                     if(new File(s).getName().split("\\.")[1].equals("las")){
                         temp.add(s);
                         this.inputFiles.add(new File(s));
@@ -1389,6 +1576,8 @@ public class argumentReader {
 
             if(cmd.hasOption("change_point_format")){
 
+                this.noModify = false;
+
                 this.change_point_type = Integer.parseInt(cmd.getOptionValue("change_point_format"));
 
                 this.inclusionRule.changePointFormat(this.change_point_type);
@@ -1411,25 +1600,25 @@ public class argumentReader {
             }
 
             if (cmd.hasOption("drop_classification")) {
-
+                this.noModify = false;
                 this.inclusionRule.dropClassification(Integer.parseInt(cmd.getOptionValue("drop_classification")));
 
             }
 
             if (cmd.hasOption("drop_noise")) {
-
+                this.noModify = false;
                 this.inclusionRule.dropNoise();
 
             }
 
             if (cmd.hasOption("drop_user_data")) {
-
+                this.noModify = false;
                 this.inclusionRule.dropUserData(Integer.parseInt(cmd.getOptionValue("drop_user_data")));
 
             }
 
             if (cmd.hasOption("keep_user_data")) {
-
+                this.noModify = false;
                 this.inclusionRule.keepUserData(Integer.parseInt(cmd.getOptionValue("keep_user_data")));
 
             }
@@ -1525,12 +1714,22 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("o_itc")) {
+
+                this.output_only_itc_segments = true;
+
+            }
+
             if (cmd.hasOption("input_in_radians")) {
 
                 this.input_in_radians = true;
 
             }
+            if (cmd.hasOption("extra_byte")) {
 
+                //this.create_extra_byte_vlr = Integer.parseInt(cmd.getOptionValue("extra_byte"));
+
+            }
             if (cmd.hasOption("sa")) {
 
                 this.output_only_stemAlignInput = true;
@@ -1593,7 +1792,7 @@ public class argumentReader {
             }
 
             if (cmd.hasOption("set_classification")) {
-
+                this.noModify = false;
                 this.inclusionRule.setClassification(Integer.parseInt(cmd.getOptionValue("set_classification")));
 
             }
@@ -1608,7 +1807,7 @@ public class argumentReader {
             }
 
             if (cmd.hasOption("drop_noise")) {
-
+                this.noModify = false;
                 this.inclusionRule.dropNoise();
 
             }
@@ -1616,6 +1815,12 @@ public class argumentReader {
             if (cmd.hasOption("thin3d")) {
 
                 this.thin3d = true;
+
+            }
+
+            if (cmd.hasOption("pit_free")) {
+
+                this.pitFree = true;
 
             }
 
@@ -1664,7 +1869,7 @@ public class argumentReader {
             }
 
             if (cmd.hasOption("set_point_source_id")){
-
+                this.noModify = false;
                 this.inclusionRule.setPointSourceId(Integer.parseInt(cmd.getOptionValue("set_point_source_id")));
 
             }
@@ -1715,7 +1920,6 @@ public class argumentReader {
             }
 
             if (cmd.hasOption("read_rules")){
-
                 this.rule_when_reading = true;
                 this.inclusionRule.applyWhenReading();
 
@@ -1791,7 +1995,7 @@ public class argumentReader {
             }
 
             if (cmd.hasOption("set_user_data")) {
-
+                this.noModify = false;
                 this.inclusionRule.setUserData(Integer.parseInt(cmd.getOptionValue("set_user_data")));
 
                 if(Integer.parseInt(cmd.getOptionValue("set_user_data")) > 255){
@@ -1800,23 +2004,23 @@ public class argumentReader {
             }
 
             if (cmd.hasOption("drop_z_below")){
-
+                this.noModify = false;
                 this.inclusionRule.dropZBelow(Double.parseDouble(cmd.getOptionValue("drop_z_below")));
 
             }
             if (cmd.hasOption("drop_z_above")){
-
+                this.noModify = false;
                 this.inclusionRule.dropZAbove(Double.parseDouble(cmd.getOptionValue("drop_z_above")));
 
             }
 
             if (cmd.hasOption("drop_scan_angle_below")){
-
+                this.noModify = false;
                 this.inclusionRule.drop_scan_angle_below(Integer.parseInt(cmd.getOptionValue("drop_scan_angle_below")));
 
             }
             if (cmd.hasOption("drop_scan_angle_above")){
-
+                this.noModify = false;
                 this.inclusionRule.drop_scan_angle_above(Integer.parseInt(cmd.getOptionValue("drop_scan_angle_above")));
 
             }
@@ -1882,6 +2086,12 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("skeleton")) {
+
+                this.skeleton_output = true;
+
+            }
+
             if (cmd.hasOption("sep")) {
 
                 this.sep = cmd.getOptionValue("sep");
@@ -1902,43 +2112,43 @@ public class argumentReader {
             }
 
             if (cmd.hasOption("keep_first")) {
-
+                this.noModify = false;
                 this.inclusionRule.keepFirst();
 
             }
 
             if (cmd.hasOption("keep_last")) {
-
+                this.noModify = false;
                 this.inclusionRule.keepLast();
 
             }
 
             if (cmd.hasOption("keep_only")) {
-
+                this.noModify = false;
                 this.inclusionRule.keepOnly();
 
             }
 
             if (cmd.hasOption("drop_only")) {
-
+                this.noModify = false;
                 this.inclusionRule.dropOnly();
 
             }
 
             if (cmd.hasOption("keep_intermediate")) {
-
+                this.noModify = false;
                 this.inclusionRule.keepIntermediate();
 
             }
 
             if (cmd.hasOption("drop_intermediate")) {
-
+                this.noModify = false;
                 this.inclusionRule.dropIntermediate();
 
             }
 
             if (cmd.hasOption("drop_synthetic")) {
-
+                this.noModify = false;
                 this.inclusionRule.dropSynthetic();
 
             }
@@ -2030,24 +2240,24 @@ public class argumentReader {
             }
 
             if (cmd.hasOption("translate_x")) {
-
+                this.noModify = false;
                 this.inclusionRule.translate_x(Double.parseDouble(cmd.getOptionValue("translate_x")));
 
             }
             if (cmd.hasOption("translate_y")) {
-
+                this.noModify = false;
                 this.inclusionRule.translate_y(Double.parseDouble(cmd.getOptionValue("translate_y")));
 
             }
 
             if (cmd.hasOption("translate_z")) {
-
+                this.noModify = false;
                 this.inclusionRule.translate_z(Double.parseDouble(cmd.getOptionValue("translate_z")));
 
             }
 
             if (cmd.hasOption("translate_i")) {
-
+                this.noModify = false;
                 this.inclusionRule.translate_i(Integer.parseInt(cmd.getOptionValue("translate_i")));
 
             }
@@ -2132,7 +2342,7 @@ public class argumentReader {
             }
 
             if (cmd.hasOption("keep_classification")) {
-
+                this.noModify = false;
                 this.keep_classification = Integer.parseInt(cmd.getOptionValue("keep_classification"));
                 this.inclusionRule.keepClassification(this.keep_classification);
             }
@@ -2540,6 +2750,13 @@ public class argumentReader {
 
     }
 
+    public File createOutputFileWithExtension(String in, String extension) throws IOException {
+
+
+        return createOutputFileWithExtension(new File(in), extension);
+
+    }
+
     public File createOutputFileWithExtension(LASReader in, String extension) throws IOException {
 
 
@@ -2643,6 +2860,12 @@ public class argumentReader {
 
     }
 
+    public synchronized int get_thread_safe_id(){
+
+        return thread_safe_id++;
+
+    }
+
     public void setArgs(String[] args){
         this.args = args;
     }
@@ -2691,6 +2914,10 @@ public class argumentReader {
 
 
     }
+
+
+
+
 }
 
 

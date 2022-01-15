@@ -77,8 +77,6 @@ public class classifyTrunks {
             //in.readRecord_noRAF(i, tempPoint, 10000);
             aR.pfac.prepareBuffer(thread_n, i, 10000);
 
-            //pointCloud.braf.buffer.position(0);
-
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);

@@ -147,7 +147,6 @@ public class Boundary extends tool{
 
         edges = tin.getPerimeter();
         concaveEdges = tin.getPerimeter();
-        //tinfour.semivirtual.SemiVirtualIncrementalTin tempTin = new tinfour.semivirtual.SemiVirtualIncrementalTin();
 
         for (org.tinfour.common.IQuadEdge edge : edges) {
 
@@ -169,12 +168,8 @@ public class Boundary extends tool{
             }
 
             perimTin.add(v);
-            //	tin.add(v);
+
         }
-
-        //tin = perimTin;
-
-        //System.out.println("NEW PERIM: " + perimeterVertices.size());
     }
 
     /**
@@ -193,10 +188,10 @@ public class Boundary extends tool{
         double minC = Double.POSITIVE_INFINITY;
         double minD = Double.POSITIVE_INFINITY;
 
-        double[] koillinen = new double[2]; //b
-        double[] kaakko = new double[2]; //a
-        double[] lounas = new double[2]; //d
-        double[] luode = new double[2]; //c
+        double[] north_east = new double[2]; //b
+        double[] south_east = new double[2]; //a
+        double[] south_west = new double[2]; //d
+        double[] north_west = new double[2]; //c
 
 
         for(int i = 0; i < n; i++){
@@ -205,35 +200,35 @@ public class Boundary extends tool{
 
             if(tempPoint.x - tempPoint.y > maxA){
                 maxA = tempPoint.x - tempPoint.y;
-                kaakko[0] = tempPoint.x;
-                kaakko[1] = tempPoint.y;
+                south_east[0] = tempPoint.x;
+                south_east[1] = tempPoint.y;
             }
 
             if(tempPoint.x + tempPoint.y > maxB){
                 maxB = tempPoint.x + tempPoint.y;
-                koillinen[0] = tempPoint.x;
-                koillinen[1] = tempPoint.y;
+                north_east[0] = tempPoint.x;
+                north_east[1] = tempPoint.y;
             }
 
             if(tempPoint.x - tempPoint.y < minC){
                 minC = tempPoint.x - tempPoint.y;
-                luode[0] = tempPoint.x;
-                luode[1] = tempPoint.y;
+                north_west[0] = tempPoint.x;
+                north_west[1] = tempPoint.y;
             }
 
             if(tempPoint.x + tempPoint.y < minD){
                 minD = tempPoint.x + tempPoint.y;
-                lounas[0] = tempPoint.x;
-                lounas[1] = tempPoint.y;
+                south_west[0] = tempPoint.x;
+                south_west[1] = tempPoint.y;
             }
 
         }
 
-        corners[0] = Math.max(luode[0], lounas[0]);
-        corners[1] = Math.min(koillinen[0], kaakko[0]);
+        corners[0] = Math.max(north_west[0], south_west[0]);
+        corners[1] = Math.min(north_east[0], south_east[0]);
 
-        corners[2] = Math.max(kaakko[1], lounas[1]);
-        corners[3] = Math.min(koillinen[1], luode[1]);
+        corners[2] = Math.max(south_east[1], south_west[1]);
+        corners[3] = Math.min(north_east[1], north_west[1]);
 
     }
 
@@ -244,13 +239,6 @@ public class Boundary extends tool{
      * @throws Exception
      */
     public void makeConvex() throws Exception{
-
-        HashSet<Double> donet = new HashSet<Double>();
-
-        List<org.tinfour.common.Vertex> closest = new ArrayList<>();
-
-        org.tinfour.interpolation.TriangularFacetInterpolator polator = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);
-        org.tinfour.interpolation.VertexValuatorDefault valuator = new org.tinfour.interpolation.VertexValuatorDefault();
 
         long n = pointCloud.getNumberOfPointRecords();
         LasPoint tempPoint = new LasPoint();
@@ -316,15 +304,9 @@ public class Boundary extends tool{
         }
 
         perimeterVertices.clear();
-
         perimTin.clear();
-
         concaveEdges = tin.getPerimeter();
-
         concaveHullInput = new Point[concaveEdges.size()];
-
-        Point comparatorPoint = new Point(1,1);
-
         double[] start = new double[]{0,0};
 
         for(int i = 0; i < concaveEdges.size(); i++){
@@ -358,8 +340,6 @@ public class Boundary extends tool{
 
 
         border.add(new double[]{start[0], start[1]});
-
-        String pathSep = System.getProperty("file.separator");
 
         String oput = "";
 
@@ -476,7 +456,7 @@ public class Boundary extends tool{
         doneIndexes.add((long)startIndex);
 
         Path2D path = new Path2D.Double();
-        Path path2 = new Path();
+        //Path path2 = new Path();
 
         path.moveTo(tempPoint3.x, tempPoint3.y);
 
@@ -495,7 +475,8 @@ public class Boundary extends tool{
 
         while (this.pointCloud.queriedIndexes2.size() <= 1) {
 
-            this.pointCloud.query2(tempPoint3.x - concavity + increase, tempPoint3.x + concavity + increase, tempPoint3.y - concavity + increase, tempPoint3.y + concavity + increase);
+            //this.pointCloud.query2(tempPoint3.x - concavity + increase, tempPoint3.x + concavity + increase, tempPoint3.y - concavity + increase, tempPoint3.y + concavity + increase);
+            pointCloud.queryPoly2(tempPoint3.x - concavity + increase, tempPoint3.x + concavity + increase, tempPoint3.y - concavity + increase, tempPoint3.y + concavity + increase);
             increase += 5.0;
 
 
@@ -626,10 +607,11 @@ public class Boundary extends tool{
             border.add(new double[]{tempPoint.x, tempPoint.y});
 
             increase = 0.0;
-
+            pointCloud.queriedIndexes2.clear();
             /* We search for points in the proximity of the new boundary vertex.
              */
             while (pointCloud.queriedIndexes2.size() <= 1) {
+                //pointCloud.query2(tempPoint.x - concavity + increase, tempPoint.x + concavity + increase, tempPoint.y - concavity + increase, tempPoint.y + concavity + increase);
                 pointCloud.query2(tempPoint.x - concavity + increase, tempPoint.x + concavity + increase, tempPoint.y - concavity + increase, tempPoint.y + concavity + increase);
                 increase += 5.0;
             }

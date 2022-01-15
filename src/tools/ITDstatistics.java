@@ -2,6 +2,7 @@ package tools;
 
 import LASio.*;
 import de.lmu.ifi.dbs.utilities.Arrays2;
+import err.toolException;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TFloatArrayList;
 import gnu.trove.map.hash.THashMap;
@@ -3405,12 +3406,31 @@ public class ITDstatistics{
 
         int xCoord, yCoord;
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+        /* Define the variables that we need */
+        int tree_id = -1;
+        try {
+            tree_id = pointCloud.extraBytes_names.get("ITC_id");
+        }catch (Exception e){
+            throw new toolException("Cannot find ITC_id extra byte VLR.");
+        }
 
-            maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+        /* The idea is two do two full passes of the point cloud. In the first pass,
+            we compute the number of points each tree has. On the second pass, we read
+            points of each tree to an arraylist and process them once all the points of
+            a tree has been read. It should be pretty memory efficient, given that
+            the point cloud data is somewhat spatially coherent. Some trees
+            may remain in the memory for quite some time, but for the most part
+            they should be processed quite rapidly after the first point of
+            a tree has been read.
+         */
+
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
+
+            maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
             try {
-                pointCloud.readRecord_noRAF(i, tempPoint, 10000);
+                pointCloud.readRecord_noRAF(i, tempPoint, 200000);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -3418,9 +3438,12 @@ public class ITDstatistics{
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
+                //treeId = (int)tempPoint.gpsTime;
+                treeId = tempPoint.getExtraByteInt(tree_id);
 
                 if(pointSourceSubset != null){
-                    if(!pointSourceSubset.contains((int)tempPoint.pointSourceId)){
+                    //if(!pointSourceSubset.contains((int)tempPoint.gpsTime)){
+                    if(!pointSourceSubset.contains(treeId)){
                         continue;
                     }
                 }
@@ -3432,7 +3455,7 @@ public class ITDstatistics{
                     continue;
                 }
 
-                treeId = tempPoint.pointSourceId;
+
 
                 xCoord= (int) Math.floor((tempPoint.x - pointCloud.getMinX()) / resolution);
                 yCoord = (int) Math.floor((pointCloud.getMaxY() - tempPoint.y) / resolution);
@@ -3499,14 +3522,14 @@ public class ITDstatistics{
 
                 if(mappi2.containsKey(treeId)){
                     mappi2.put(treeId, mappi2.get(treeId) + 1);
-
                 }else{
                     mappi2.put(treeId, 0);
                 }
 
                 /* Means the point is part of the treeTop x and y location */
-                if(tempPoint.synthetic){
+                if(tempPoint.classification == 15){
 
+                    //System.out.println(tempPoint.z);
                     if(mappi3.containsKey(treeId) && tempPoint.z > mappi3.get(treeId)[2]){
                         mappi3.get(treeId)[0] = tempPoint.x;
                         mappi3.get(treeId)[1] = tempPoint.y;
@@ -3515,14 +3538,11 @@ public class ITDstatistics{
                     }else if (!mappi3.containsKey(treeId)){
                         mappi3.put(treeId, new double[]{tempPoint.x, tempPoint.y, tempPoint.z});
                     }
-
                 }
-
             }
-
         }
 
-        System.out.println("DONE! " + mappi2.size());
+        //System.out.println("DONE! " + mappi2.size());
 
         maxi = 0;
         int count = 0;
@@ -3530,12 +3550,12 @@ public class ITDstatistics{
         long start = System.currentTimeMillis();
         int treeCount = 0;
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
 
-            maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
             try {
-                pointCloud.readRecord_noRAF(i, tempPoint, 10000);
+                pointCloud.readRecord_noRAF(i, tempPoint, 200000);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -3551,7 +3571,8 @@ public class ITDstatistics{
                     continue;
                 }
 
-                treeId = tempPoint.pointSourceId;
+                //treeId = (int)tempPoint.gpsTime;
+                treeId = tempPoint.getExtraByteInt(tree_id);
 
                 /* Means this point is part of an understorey stem */
                 if(tempPoint.classification == 8) {
@@ -3605,6 +3626,7 @@ public class ITDstatistics{
 
                         this.profile(mappi3.get(treeId), mappi13.get(treeId), treeId);
 
+                        //System.out.println(Arrays.toString(mappi3.get(treeId)));
                         System.out.println((treeCount) + " / " + output.size() + " : " + treeId);
 
                         mappi13.get(treeId).clear();

@@ -584,14 +584,11 @@ public class RunId4pointsLAS{
                     }
 
                     tiedostot = new ArrayList<String>(tiedostot.subList(pienin, suurin));
-                    //System.out.println(tiedostot);
-                    //polyBank = new ArrayList<double[][]>(polyBank1.subList(pienin, suurin));
+
 
                 }
                 else{
 
-                    //tiedostot = new ArrayList<Double>(tiedostot);
-                    //polyBank = new ArrayList<double[][]>(polyBank1);
                 }
 
 
@@ -646,54 +643,6 @@ public class RunId4pointsLAS{
             }
 
         }
-
-
-
-    }
-
-    public static ArrayList<String> convertTxt2Las(ArrayList<String> in, String parse){
-
-        ArrayList<String> output = new ArrayList<String>();
-
-        for(int i = 0; i < in.size(); i++){
-            String fileName = in.get(i);
-            output.add(fileName.split(".txt")[0] + ".las");
-            String a = "txt2las --parse " + parse + " -i " + fileName + " -o " +  (fileName.split(".txt")[0] + ".las");
-            //System.out.println(a);
-            //String b = "gdalwarp -t_srs EPSG:3067 test2.tif final.tif";
-
-            final String command = a;
-            Process p = null;
-            try {
-                p = Runtime.getRuntime().exec(command);
-            } catch (final IOException e) {
-                e.printStackTrace();
-            }
-
-            //Wait to get exit value
-            try {
-                p.waitFor();
-                final int exitValue = p.waitFor();
-                if (exitValue == 0){
-                    //System.out.println("Successfully executed the command: " + command);
-                }
-                else {
-                    System.out.println("Failed to execute the following command: " + command + " due to the following error(s):");
-                    try (final BufferedReader b = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
-                        String line;
-                        if ((line = b.readLine()) != null)
-                            System.out.println(line);
-                    } catch (final IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            proge.print();
-            proge.updateCurrent(1);
-        }
-        return output;
     }
 
 
@@ -908,6 +857,15 @@ public class RunId4pointsLAS{
 
 
         origo = LASindex.indexAll3(aR.inputFiles, indeksi_pathi_all);
+
+
+
+        aR.add_extra_bytes(6, "polygon_id", "Polygon id from lasclip");
+
+
+
+
+
 
 
         boolean split = (aR.numarg1 == 1);

@@ -87,13 +87,17 @@ public class pointDistributor {
                 pointCloud.readFromBuffer(tempPoint);
 
                 /* For itd statistics, 0 means the point belongs to no segment */
-                if(tempPoint.pointSourceId == 0)
+                //if(tempPoint.pointSourceId == 0)
+                if(tempPoint.gpsTime <= 0)
                     continue;
 
-                if(!allClasses.contains((int) tempPoint.pointSourceId)){
+                //if(!allClasses.contains((int) tempPoint.pointSourceId)){
+                if(!allClasses.contains((int) tempPoint.gpsTime)){
 
-                    allClasses.add((int)tempPoint.pointSourceId);
-                    to.get(pointer).add((int)tempPoint.pointSourceId);
+                    //allClasses.add((int)tempPoint.pointSourceId);
+                    allClasses.add((int)tempPoint.gpsTime);
+                    //to.get(pointer).add((int)tempPoint.pointSourceId);
+                    to.get(pointer).add((int)tempPoint.gpsTime);
                     pointer++;
 
                     if(pointer == to.size())
@@ -128,7 +132,8 @@ public class pointDistributor {
                 pointCloud.readFromBuffer(tempPoint);
 
                 for(int i_ = 0; i_ < aR.cores; i_++){
-                    if(to.get(i_).contains((int)tempPoint.pointSourceId)){
+                    //if(to.get(i_).contains((int)tempPoint.pointSourceId)){
+                    if(to.get(i_).contains((int)tempPoint.gpsTime)){
                         buf.get(i_).writePoint(tempPoint, aR.getInclusionRule(), j);
                         break;
                     }

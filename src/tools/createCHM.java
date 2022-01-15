@@ -2,7 +2,6 @@ package tools;
 
 
 import LASio.*;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
 import org.gdal.gdal.Band;
@@ -12,11 +11,10 @@ import org.gdal.gdalconst.gdalconst;
 import org.gdal.gdalconst.gdalconstConstants;
 import org.gdal.ogr.*;
 import org.gdal.osr.SpatialReference;
-import org.nd4j.linalg.api.ops.impl.transforms.custom.Max;
 import org.opencv.core.Mat;
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.*;
+import java.util.stream.IntStream;
 
 import org.tinfour.common.IQuadEdge;
 import org.tinfour.common.SimpleTriangle;
@@ -59,94 +57,6 @@ public class createCHM{
         }
     }
 
- 	public static void localSmoothing2(Mat input, int n){  // MEAN
-
-
-        int height = input.height();
-        int width = input.width();
-        int counter = 0;
-        int paatos = (height - n) * (width - n);
-
-
-        for(int i = n; i < (height - n); i++){
-
-            for(int j = n; j < (width - n); j++){
-
-                int minX = j - n;
-                int maxX = j + n;
-                int minY = i - n;
-                int maxY = i + n;
-
-                if(minX < 0)
-                    minX = 0;
-
-                if(minY < 0)
-                    minY = 0;
-
-                if(maxX > (width - 1))
-                    maxX = width - 1;
-
-                if(maxY > (height - 1))
-                    maxY = height - 1;
-
-                Mat submat = input.submat(minY, maxY, minX, maxX);
-
-                int sum = 0;
-
-                int[] array = new int[(n * 2 + 1) * (n * 2 + 1)];
-
-                int count = 0;
-                int count2 = 0;
-
-                for(int h = 0; h < submat.width(); h++)
-                    for(int u = 0; u < submat.height(); u++){
-
-                        if(h == submat.width() / 2 || u == submat.height() / 2){
-
-                            if(u == h)
-                                sum += (int)submat.get(u,h)[0] * 2;
-                            else
-                                sum += (int)submat.get(u,h)[0];
-                            count2++;
-                        }
-                    
-                    }
-                double mean = (double)sum / (double)((n * 2 + 1) * (n * 2 + 1));
-
-                input.put(i,j,(sum / count2));
-
-
-                counter++;
-            }
-
-        } 
-
-    }
-
-
-    public static double[][] twoDimensionalArrayClone(double[][] a) {
-
-        double[][] b = new double[a.length][];
-
-        for (int i = 0; i < a.length; i++) {
-          b[i] = a[i].clone();
-        }
-
-        return b;
-    }
-
-    public static double[][] arrayCopy(double[][] in){
-
-        double[][] output = new double[in.length][in[0].length];
-
-        for(int i = 0; i < in.length; i++)
-            for(int j = 0; j < in[0].length; j++)
-                output[i][j] = in[i][j];
-
-        return output;
-
-
-    }
 
     public static float[][] arrayCopy(float[][] in){
 
@@ -401,22 +311,9 @@ public class createCHM{
             double[] sigmas = new double[]{1.1,2.5};
             double[] tHolds = new double[]{15};
 
-            
-
             double[][] smoothed = null;
 
-
-
-            //smoothed = GaussianSmooth.smooth2(temppi2, cols, rows, kernelSizes, sigmas, tHolds);
-            
-            //if(p80 > 20)
-              //  smoothed = GaussianSmooth.smooth(temppi2, rows, cols, 3, 1.0);  // THIS IS GOOD!!!! :)
-            //else
-              //  smoothed = GaussianSmooth.smooth(temppi2, rows, cols, 3, 0.5);
-
             smoothed = GaussianSmooth.smooth(temppi2, rows, cols, kernel, theta);  // THIS IS GOOD!!!! :)
-
-            //smoothed = GaussianSmooth.smooth(smoothed, cols, rows, 9, 2.2);
 
             for (int i = 0; i < rows; i++){
                 for(int j = 0; j < cols; j++){
@@ -424,150 +321,21 @@ public class createCHM{
                 }
             }
 
-            /*
-            Size ksize = new Size(3, 3);
-
-            Mat output2 = new Mat();//HxW 4x2
-
-
-            Imgproc.GaussianBlur(tempMat, output2, ksize, sigma);
-            */
-            /*
-            for(int i = 0; i < tempMat.height(); i++){
-                for(int j = 0; j < tempMat.width(); j++){
-
-                    input[j][i] = (float)tempMat.get(j,i)[0];
-
-                }
-            }
-            */
-            /*
-            for(int i = 0; i < (height - 0); i++){
-
-                for(int j = 0; j < (width - 0); j++){
-
-                   
-                    int minX = j - n;
-                    int maxX = j + n;
-                    int minY = i - n;
-                    int maxY = i + n;
-
-
-                    int sum = 0;
-
-                    //double[] array = new double[(n * 2 + 1) * (n * 2 + 1)];
-
-                    ArrayList<Float> list = new ArrayList<Float>();
-                    int count = 0;
-                    int count2 = 0;
-
-
-                    tempF = new float[2];
-
-                    
-
-                    for(int h = minX; h <= maxX; h++){
-                        for(int u = minY; u <= maxY; u++){
-
-                            x = h;
-                            y = u;
-
-                            if(x < 0)
-                                x = 0;
-                            if(y < 0)
-                                y = 0;
-                            if(x > (width - 1))
-                                x = width - 1;
-                            if(y > (height - 1))
-                                y = height - 1;
-
-                            if((x != j || y != i) && !Double.isNaN(temppi[x][y])){
-
-                                tempF[0] += temppi[x][y];
-                                tempF[1]++;
-
-
-                            }
-
-
-                        }
-
-                    float median = Float.NaN;
-
-                    if(tempF[1] > 0)
-                        median = tempF[0] / tempF[1];
-
-                    input[j][i] = median;
-                    
-
-                    counter++;
-                }
-                //progebar(paatos, counter, nimi);
-                } 
-
-            
-
-            }
-            */
         }
 
-        //System.out.println("");
-
-        int rows = input.length;
-        int cols = input[0].length;
-        /*
-        float[][] temppi2 = new float[rows][cols];
-            
-            for (int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                     temppi2[i][j] = input[i][j];
-                }
-            }
-        */
         n = 1;
-        /*
-        for(int i = 1; i < (height - 2); i++){
 
-            for(int j = 1; j < (width - 2); j++){
-
-                input[j][i] = (float)gradientAt(temppi2, j, i);
-
-            }
-        }
-        */
         return original;
 
     }
 
     public static Dataset copyRaster(Dataset from, Dataset to, String toName){
-/*
-        int ysize = from.getRasterYSize();
-        int xsize = from.getRasterXSize();
 
-        float[] floatArray = new float[ysize];
-
-        Band fromBand = from.GetRasterBand(1);
-        Band toBand = to.GetRasterBand(1);
-
-        for(int x = 0; x < xsize; x++) {
-            //for (int y = 0; y < fromBand.getYSize(); y++) {
-
-            //}
-
-            fromBand.ReadRaster(x, 0, 1, ysize, floatArray);
-            toBand.WriteRaster(x, 0, 1, ysize, floatArray);
-
-            if(x % 100 == 0)
-                System.out.println(x + " | " + xsize);
-        }
-
-*/
         Vector<String> optionsVector = new Vector<>();
         optionsVector.add("-of");
         optionsVector.add("GTiff");
 
         org.gdal.gdal.TranslateOptions optit = new org.gdal.gdal.TranslateOptions(optionsVector);
-        //Dataset inputdata = gdal.Open(tempName, gdalconstConstants.GA_ReadOnly);
 
         return gdaltranslate(toName, from, optit); //gdal.Translate(name, inputdata, optit);
 
@@ -627,1224 +395,6 @@ public class createCHM{
         }
     }
 
-
-/*
-    public static Dataset removeOutliers(double[][] input, int blur, int kernel, double theta, int id, String filename, boolean nan){
-
-
-            GaussianSmooth.smooth_tif(input, temppi, cols, rows, kernel, theta);  // THIS IS GOOD!!!! :)
-
-
-            double[][] smoothed = GaussianSmooth.smooth(input, rows, cols, kernel, theta);
-
-
-    }
-*/
-
-    public static Dataset removeOutliers_tif(Dataset input, int blur, int kernel, double theta, int id, String filename, boolean nan){
-
-        float[] floatArray = new float[1];
-        float[] floatArray2 = new float[1];
-
-        Statistics stat = new Statistics();
-
-        int x = 0;
-        int y = 0;
-
-        int n = 1;
-
-        //float[][] output = new float[input.length - n * 2][input[0].length - n * 2];
-
-        org.gdal.gdal.Driver driver = gdal.GetDriverByName("GTiff");
-
-
-
-        Dataset temppi = gdalE.hei("tempFilter_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
-        copyRaster(input, temppi, "tempFilter_" + id + ".tif");
-        temppi = gdalE.hei("tempFilter_" + id + ".tif", input.getRasterYSize(), input.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
-
-        //System.exit(0);
-        //Dataset temppi = gdal.Open(newFile.getAbsolutePath());
-
-        //if(true)
-          //  return;
-        Band temppi_band = temppi.GetRasterBand(1);
-        Band input_band = input.GetRasterBand(1);
-
-        copyRasterContents(input_band, temppi_band);
-        //float[][] temppi = arrayCopy(input);
-
-        int height = temppi.getRasterYSize();
-        int width = temppi.getRasterXSize();
-
-
-        int counter = 0;
-        int paatos = (height - n) * (width - n);
-
-        int count3 = 0;
-
-        float[] tempF;
-
-/*
-        if(false) {
-
-            if (nan)
-                for (int i = n; i < (height - n); i++) {
-
-                    for (int j = n; j < (width - n); j++) {
-
-                        //if(input[j][i] > 2.0)
-                        //  zets.add(input[j][i]);
-
-                        if (count3++ % 10000 == 0) {
-
-                            //System.out.print("\033[2K"); // Erase line content
-                            //System.out.print(count3 + "|" + (height * width) + " " + " NaNs found: " + leftOvers.size() + "\r");
-                        }
-
-                        int minX = j - n;
-                        int maxX = j + n;
-                        int minY = i - n;
-                        int maxY = i + n;
-
-
-                        //Mat submat = input.submat(minY, maxY + 1, minX, maxX + 1);
-
-                        int sum = 0;
-
-                        //double[] array = new double[(n * 2 + 1) * (n * 2 + 1)];
-                        ArrayList<Float> list = new ArrayList<Float>();
-                        int count = 0;
-                        int count2 = 0;
-
-
-                        tempF = new float[2];
-
-                        for (int h = minX; h <= maxX; h++) {
-                            for (int u = minY; u <= maxY; u++) {
-
-                                x = h;
-                                y = u;
-
-                                if (x < 0)
-                                    x = 0;
-                                if (y < 0)
-                                    y = 0;
-                                if (x > (width - 1))
-                                    x = width - 1;
-                                if (y > (height - 1))
-                                    y = height - 1;
-
-                                temppi_band.ReadRaster(x, y, 1, 1, floatArray);
-
-                                //if(!Float.isNaN(floatArray2[0]))
-                                //System.out.println(floatArray2[0]);
-
-
-                                if (!Float.isNaN(floatArray[0])) { // (x != j || y != i) &&
-
-                                    tempF[0] += floatArray[0];
-                                    tempF[1]++;
-                                    //list.add(temppi[h][u]);
-
-                                }
-
-                            }
-
-                            float median = Float.NaN;
-
-                            if (tempF[1] > 0)
-                                median = tempF[0] / tempF[1];
-
-
-                            //temppi_band.ReadRaster(j, i, 1, 1, floatArray);
-                            temppi_band.ReadRaster(j, i, 1, 1, floatArray);
-                            Double[] nodata = new Double[1];
-                            temppi_band.GetNoDataValue(nodata);
-
-
-                            //System.out.println(floatArray[0] + " " + floatArray2[0]);
-
-                            //if(true)
-                            // continue;
-
-                            if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
-                                floatArray[0] = median;
-                                temppi_band.WriteRaster(j, i, 1, 1, floatArray);
-                                //input[j][i] = median;
-                            }
-
-
-                            //else if((temppi[j][i]) > (median * 1.2) || temppi[j][i] < (median * 0.8)){
-                            //  input[j][i] = median;
-                            //}
-
-                            temppi_band.ReadRaster(j, i, 1, 1, floatArray);
-                            //input[j][i] = median;
-
-                            if (Float.isNaN(floatArray[0])) {
-
-                                //correctionMap.put(i * width + j, median);
-
-                                leftOvers_2_left.add(i * width + j);
-
-                                //int[] leftOver = new int[2];
-
-                                //leftOver[0] = j;
-                                //leftOver[1] = i;
-
-                                //leftOvers.add(leftOver);
-
-                            } else {
-                                correctionMap.put(i * width + j, floatArray[0]);
-                            }
-                            counter++;
-                        }
-                        //progebar(paatos, counter, nimi);
-                    }
-                }
-
-
-            if (nan) {
-                //for(int i = n; i < (height - n); i++) {
-                for (int i = ((height - n) - 1); i >= n; i--) {
-                    //for (int j = n; j < (width - n); j++) {
-                    for (int j = ((width - n) - 1); j >= n; j--) {
-
-                        //if(input[j][i] > 2.0)
-                        //  zets.add(input[j][i]);
-
-                        if (count3++ % 10000 == 0) {
-
-                            //System.out.print("\033[2K"); // Erase line content
-                            //System.out.print(count3 + "|" + (height * width) + " " + " NaNs found: " + leftOvers.size() + "\r");
-                        }
-
-                        int minX = j - n;
-                        int maxX = j + n;
-                        int minY = i - n;
-                        int maxY = i + n;
-
-                        //Mat submat = input.submat(minY, maxY + 1, minX, maxX + 1);
-
-                        int sum = 0;
-
-                        //double[] array = new double[(n * 2 + 1) * (n * 2 + 1)];
-                        ArrayList<Float> list = new ArrayList<Float>();
-                        int count = 0;
-                        int count2 = 0;
-
-
-                        tempF = new float[2];
-
-                        for (int h = minX; h <= maxX; h++) {
-                            for (int u = minY; u <= maxY; u++) {
-
-                                x = h;
-                                y = u;
-
-                                if (x < 0)
-                                    x = 0;
-                                if (y < 0)
-                                    y = 0;
-                                if (x > (width - 1))
-                                    x = width - 1;
-                                if (y > (height - 1))
-                                    y = height - 1;
-
-                                temppi_r_band.ReadRaster(x, y, 1, 1, floatArray);
-
-                                if (!Float.isNaN(floatArray[0])) { // (x != j || y != i) &&
-
-                                    tempF[0] += floatArray[0];
-                                    tempF[1]++;
-                                    //list.add(temppi[h][u]);
-
-                                }
-
-                            }
-
-                            float median = Float.NaN;
-
-                            if (tempF[1] > 0)
-                                median = tempF[0] / tempF[1];
-
-                            //temppi_band.ReadRaster(j, i, 1, 1, floatArray);
-                            temppi_r_band.ReadRaster(j, i, 1, 1, floatArray);
-                            Double[] nodata = new Double[1];
-                            temppi_r_band.GetNoDataValue(nodata);
-
-                            if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
-                                floatArray[0] = median;
-                                temppi_r_band.WriteRaster(j, i, 1, 1, floatArray);
-                                //input[j][i] = median;
-                            }
-
-                            temppi_r_band.ReadRaster(j, i, 1, 1, floatArray);
-
-
-                            if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
-
-                                //float previous_median = correctionMap.get(i * width + j);
-
-                                //System.out.println("prev: " + previous_median + " sec: " + median + " " + n);
-                                // median = (median + previous_median) / 2.0f;
-
-                                leftOvers_2_right.add(i * width + j);
-
-                                //floatArray[0] = median;
-                                //temppi_r_band.WriteRaster(j, i, 1, 1, floatArray);
-                                //input[j][i] = median;
-                            } else {
-                                correctionMap_r.put(i * width + j, floatArray[0]);
-                            }
-
-
-                            //else if((temppi[j][i]) > (median * 1.2) || temppi[j][i] < (median * 0.8)){
-                            //  input[j][i] = median;
-                            //}
-
-                            counter++;
-                        }
-                        //progebar(paatos, counter, nimi);
-
-
-                    }
-
-                }
-            }
-
-            //System.out.println("leftOvers.size(): " + leftOvers_2_left.size() + " and " + leftOvers_2_right.size());
-            int leftOverCount = 0;
-
-            if (false)
-                for (int key : correctionMap.keySet()) {
-
-                    int y_ = (key / width);
-                    int x_ = key - y_ * width;
-
-                    //System.out.println("key: " + key + " x_ " + x_ + " y_ " + y_ + " " + (y_ * width + x_));
-                    floatArray[0] = correctionMap.get(key);
-                    input_band.WriteRaster(x_, y_, 1, 1, floatArray);
-
-                }
-
-            //System.exit(1);
-            ArrayList<int[]> leftOvers2;
-
-            if (nan && false) {
-
-                while (leftOvers_2_right.size() > 0 && leftOvers_2_left.size() > 0) {
-
-                    //correctionMap.clear();
-
-                    Iterator<Integer> iterator_ascending = leftOvers_2_left.iterator();
-                    Iterator<Integer> iterator_descending = leftOvers_2_right.descendingIterator();
-
-                    while (iterator_ascending.hasNext()) {
-
-                        int value = iterator_ascending.next();
-
-                        int y_ = (value / width);
-                        int x_ = value - y_ * width;
-
-                        int minX = x_ - n;
-                        int maxX = x_ + n;
-                        int minY = x_ - n;
-                        int maxY = x_ + n;
-
-
-                        ArrayList<Float> list = new ArrayList<Float>();
-
-                        tempF = new float[2];
-
-                        for (int h = minX; h <= maxX; h++) {
-                            for (int u = minY; u <= maxY; u++) {
-
-                                x = h;
-                                y = u;
-
-                                if (x < 0)
-                                    x = 0;
-                                if (y < 0)
-                                    y = 0;
-                                if (x > (width - 1))
-                                    x = width - 1;
-                                if (y > (height - 1))
-                                    y = height - 1;
-
-                                temppi_band.ReadRaster(x, y, 1, 1, floatArray);
-
-                                if (!Float.isNaN(floatArray[0])) { // (x != leftOvers2.get(i)[0] || y != leftOvers2.get(i)[1]) &&
-
-                                    tempF[0] += floatArray[0];
-                                    tempF[1]++;
-
-                                }
-                            }
-                        }
-
-                        float median = Float.NaN;
-
-                        if (tempF[1] > 0)
-                            median = tempF[0] / tempF[1];
-
-                        temppi_band.ReadRaster(x_, y_, 1, 1, floatArray);
-
-                        Double[] nodata = new Double[1];
-                        //temppi_r1_band.GetNoDataValue(nodata);
-
-                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
-                            floatArray[0] = median;
-                            temppi_band.WriteRaster(x_, y_, 1, 1, floatArray);
-                            //input[j][i] = median;
-                        }
-
-                        temppi_band.ReadRaster(x_, y_, 1, 1, floatArray);
-
-                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
-
-                        } else {
-                            iterator_ascending.remove();
-                            correctionMap.put(y_ * width + x_, floatArray[0]);
-                        }
-                    }
-                }
-            }
-
-            if (nan) {
-                System.out.println("l: " + leftOvers_2_left.size() + " r: " + leftOvers_2_right.size());
-                while (leftOvers_2_right.size() > 0 || leftOvers_2_left.size() > 0) {
-
-                    //correctionMap.clear();
-
-                    Iterator<Integer> iterator_ascending = leftOvers_2_left.iterator();
-                    Iterator<Integer> iterator_descending = leftOvers_2_right.descendingIterator();
-                    System.out.println("l: " + leftOvers_2_left.size() + " r: " + leftOvers_2_right.size());
-
-                    while (iterator_ascending.hasNext()) {
-
-                        int value = iterator_ascending.next();
-                        int y_ = (value / width);
-                        int x_ = value - y_ * width;
-
-                        int minX = x_ - n;
-                        int maxX = x_ + n;
-                        int minY = x_ - n;
-                        int maxY = x_ + n;
-
-
-                        ArrayList<Float> list = new ArrayList<Float>();
-
-                        tempF = new float[2];
-
-                        for (int h = minX; h <= maxX; h++) {
-                            for (int u = minY; u <= maxY; u++) {
-
-                                x = h;
-                                y = u;
-
-                                if (x < 0)
-                                    x = 0;
-                                if (y < 0)
-                                    y = 0;
-                                if (x > (width - 1))
-                                    x = width - 1;
-                                if (y > (height - 1))
-                                    y = height - 1;
-
-                                temppi_band.ReadRaster(x, y, 1, 1, floatArray);
-
-                                if (!Float.isNaN(floatArray[0])) { // (x != leftOvers2.get(i)[0] || y != leftOvers2.get(i)[1]) &&
-
-                                    tempF[0] += floatArray[0];
-                                    tempF[1]++;
-
-                                }
-                            }
-                        }
-
-                        float median = Float.NaN;
-
-                        if (tempF[1] > 0)
-                            median = tempF[0] / tempF[1];
-
-                        temppi_band.ReadRaster(x_, y_, 1, 1, floatArray);
-
-                        Double[] nodata = new Double[1];
-                        temppi_r_band.GetNoDataValue(nodata);
-
-                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
-                            floatArray[0] = median;
-                            temppi_band.WriteRaster(x_, y_, 1, 1, floatArray);
-                        }
-
-                        temppi_band.ReadRaster(x_, y_, 1, 1, floatArray);
-
-                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
-
-                        } else {
-                            iterator_ascending.remove();
-                            correctionMap.put(y_ * width + x_, floatArray[0]);
-                        }
-                    }
-
-                    while (iterator_descending.hasNext()) {
-
-                        int value = iterator_descending.next();
-
-                        int y_ = (value / width);
-                        int x_ = value - y_ * width;
-
-                        int minX = x_ - n;
-                        int maxX = x_ + n;
-                        int minY = x_ - n;
-                        int maxY = x_ + n;
-
-
-                        ArrayList<Float> list = new ArrayList<Float>();
-
-                        tempF = new float[2];
-
-                        for (int h = minX; h <= maxX; h++) {
-                            for (int u = minY; u <= maxY; u++) {
-
-                                x = h;
-                                y = u;
-
-                                if (x < 0)
-                                    x = 0;
-                                if (y < 0)
-                                    y = 0;
-                                if (x > (width - 1))
-                                    x = width - 1;
-                                if (y > (height - 1))
-                                    y = height - 1;
-
-                                temppi_r_band.ReadRaster(x, y, 1, 1, floatArray);
-
-                                if (!Float.isNaN(floatArray[0])) { // (x != leftOvers2.get(i)[0] || y != leftOvers2.get(i)[1]) &&
-
-                                    tempF[0] += floatArray[0];
-                                    tempF[1]++;
-
-                                }
-                            }
-                        }
-
-                        float median = Float.NaN;
-
-                        if (tempF[1] > 0)
-                            median = tempF[0] / tempF[1];
-
-                        temppi_r_band.ReadRaster(x_, y_, 1, 1, floatArray);
-
-                        Double[] nodata = new Double[1];
-                        temppi_r_band.GetNoDataValue(nodata);
-
-                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
-
-                            floatArray[0] = median;
-                            temppi_r_band.WriteRaster(x_, y_, 1, 1, floatArray);
-                            //input[j][i] = median;
-                        }
-
-                        temppi_r_band.ReadRaster(x_, y_, 1, 1, floatArray);
-
-                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
-
-                        } else {
-                            iterator_descending.remove();
-                            correctionMap_r.put(y_ * width + x_, floatArray[0]);
-                        }
-                    }
-
-                }
-            }
-
-            System.out.println(correctionMap.size() + " " + correctionMap_r.size());
-
-            for (int key : correctionMap.keySet()) {
-
-
-                int y_ = (key / width);
-                int x_ = key - y_ * width;
-
-                temppi_r_band.ReadRaster(x_, y_, 1, 1, floatArray);
-
-                float right = floatArray[0];
-
-                temppi_band.ReadRaster(x_, y_, 1, 1, floatArray);
-
-                float left = floatArray[0];
-
-                //System.out.println("left: " + left + " right: " + right);
-
-                floatArray[0] = (right + left) / 2.0f;
-
-                input_band.WriteRaster(x_, y_, 1, 1, floatArray);
-
-
-            }
-
-            System.exit(1);
-
-            if (nan && false)
-                while (leftOvers.size() > 0) {
-
-                    //temppi = arrayCopy(input);
-                    //copyRaster(input, temppi);
-                    //temppi = gdal.Open(newFile.getAbsolutePath());
-                    //temppi_band = temppi.GetRasterBand(1);
-
-                    Collections.shuffle(leftOvers);
-
-                    leftOvers2 = (ArrayList<int[]>) leftOvers.clone();
-                    leftOvers.clear();
-
-                    leftOverCount++;
-
-                    for (int i = 0; i < leftOvers2.size(); i++) {
-
-                        int minX = leftOvers2.get(i)[0] - n;
-                        int maxX = leftOvers2.get(i)[0] + n;
-                        int minY = leftOvers2.get(i)[1] - n;
-                        int maxY = leftOvers2.get(i)[1] + n;
-
-
-                        ArrayList<Float> list = new ArrayList<Float>();
-
-                        tempF = new float[2];
-
-                        for (int h = minX; h <= maxX; h++) {
-                            for (int u = minY; u <= maxY; u++) {
-
-                                x = h;
-                                y = u;
-
-                                if (x < 0)
-                                    x = 0;
-                                if (y < 0)
-                                    y = 0;
-                                if (x > (width - 1))
-                                    x = width - 1;
-                                if (y > (height - 1))
-                                    y = height - 1;
-
-                                input_band.ReadRaster(x, y, 1, 1, floatArray);
-
-                                if (!Float.isNaN(floatArray[0])) { // (x != leftOvers2.get(i)[0] || y != leftOvers2.get(i)[1]) &&
-
-                                    tempF[0] += floatArray[0];
-                                    tempF[1]++;
-                                    //list.add(temppi[h][u]);
-
-                                }
-
-
-                                //else if(Double.isNaN(input[h][u]))
-                                //array[count] = temppi[h][u];
-                                //count++;
-                            }
-
-                        }
-
-                        //stat.setDataF(list);
-
-                        float median = Float.NaN;
-
-                        if (tempF[1] > 0)
-                            median = tempF[0] / tempF[1];
-
-                        //if(list.size() > 0)
-                        //  median = (float)stat.getMeanFromList();
-
-                        int x1 = leftOvers2.get(i)[0];
-                        int y1 = leftOvers2.get(i)[1];
-
-                        input_band.ReadRaster(x1, y1, 1, 1, floatArray);
-
-                        if (Float.isNaN(floatArray[0])) { //  || floatArray[0] < median / 2.0f
-
-                            //if(!Float.isNaN(median))
-                            //System.out.println("here! 1 " + median);
-                            floatArray[0] = median;
-                            input_band.WriteRaster(x1, y1, 1, 1, floatArray);
-                            //input[leftOvers2.get(i)[0]][leftOvers2.get(i)[1]] = median;
-                        } else if (median > (floatArray[0] + 2.0) || (median + 2.0) < floatArray[0]) {
-                            floatArray[0] = median;
-                            input_band.WriteRaster(x1, y1, 1, 1, floatArray);
-                            //input[leftOvers2.get(i)[0]][leftOvers2.get(i)[1]] = median;
-                        }
-                        //input[leftOvers.get(i)[0]][leftOvers.get(i)[1]] = median;
-
-                        x1 = leftOvers2.get(i)[0];
-                        y1 = leftOvers2.get(i)[1];
-
-                        input_band.ReadRaster(x1, y1, 1, 1, floatArray);
-
-                        if (Float.isNaN(floatArray[0])) {
-
-                            //System.out.println("here! 2");
-
-                            int[] leftOver = new int[2];
-
-                            leftOver[0] = leftOvers2.get(i)[0];
-                            leftOver[1] = leftOvers2.get(i)[1];
-
-                            leftOvers.add(leftOver);
-
-                        }
-
-                    }
-
-
-                    System.out.print("\033[2K"); // Erase line content
-                    System.out.print("Iteration: " + leftOverCount + " NaNs left: " + leftOvers.size() + "\r");
-
-                    if (leftOverCount > 100)
-                        leftOvers.clear();
-
-                }
-
-        }
-*/
-
-        int remaining_1 = 1;
-        int remaining_2 = 1;
-        int remaining_3 = 1;
-        int remaining_4 = 1;
-
-        float[] data_input = new float[width];
-        float[] data_top_left = new float[width];
-        float[] data_top_right = new float[width];
-        float[] data_bottom_left = new float[width];
-        float[] data_bottom_right = new float[width];
-
-        HashSet<Integer> nan_coordinates = new HashSet<>();
-        int counter1 = 0;
-
-        boolean done1 = false;
-        boolean done2 = false;
-        boolean done3 = false;
-        boolean done4 = false;
-
-        if(nan && false)
-        while(remaining_1 > 0 || remaining_2 > 0 || remaining_3 > 0 || remaining_4 > 0){
-
-
-            if(remaining_1 == 0)
-                done1 = true;
-            if(remaining_2 == 0)
-                done2 = true;
-            if(remaining_3 == 0)
-                done3 = true;
-            if(remaining_4 == 0)
-                done4 = true;
-
-            System.out.println("rem: " + remaining_1 + " " + remaining_2 + " " + remaining_3 + " " + remaining_4);
-            remaining_1 = 0;
-            remaining_2 = 0;
-            remaining_3 = 0;
-            remaining_4 = 0;
-
-            System.out.println(counter1++);
-
-            for(int y_ = n; y_ < (height - n); y_++){
-
-                int top_y = y_;
-                int bottom_y = height - n - y_;
-
-                //System.out.println(top_y + "   " + bottom_y);
-                //temppi_band.ReadRaster(0, top_y, width, 1, data_top_left);
-                //temppi_r2_band.ReadRaster(0, top_y, width, 1, data_top_right);
-                //temppi_r3_band.ReadRaster(0, bottom_y, width, 1, data_bottom_right);
-                //temppi_r4_band.ReadRaster(0, bottom_y, width, 1, data_bottom_left);
-
-                for(int x_ = n; x_ < (width-n); x_++){
-
-                    int left_x = x_;
-                    int right_x = width-x_;
-
-                    /* TOP LEFT */
-
-
-                    temppi_band.ReadRaster(left_x, top_y, 1, 1, floatArray);
-
-                    if(Float.isNaN(floatArray[0]) && !done1) {
-
-                        int minX = left_x - n;
-                        int maxX = left_x + n;
-                        int minY = top_y - n;
-                        int maxY = top_y + n;
-
-                        tempF = new float[2];
-
-                        for (int h = minX; h <= maxX; h++) {
-                            for (int u = minY; u <= maxY; u++) {
-
-                                x = h;
-                                y = u;
-
-                                if (x < 0)
-                                    x = 0;
-                                if (y < 0)
-                                    y = 0;
-                                if (x > (width - 1))
-                                    x = width - 1;
-                                if (y > (height - 1))
-                                    y = height - 1;
-
-                                temppi_band.ReadRaster(x, y, 1, 1, floatArray);
-
-                                if (!Float.isNaN(floatArray[0])) {
-
-                                    tempF[0] += floatArray[0];
-                                    tempF[1]++;
-
-                                }
-
-                            }
-
-                            float median = Float.NaN;
-
-                            if (tempF[1] > 0)
-                                median = tempF[0] / tempF[1];
-
-                            //System.out.println("median: " + median);
-                            if(Float.isNaN(median)){
-                                remaining_1++;
-                            }else{
-                                floatArray[0] = median;
-                                temppi_band.WriteRaster(left_x, top_y, 1, 1, floatArray);
-                            }
-
-                        }
-                    }
-
-                    /* TOP RIGHT */
-
-                    //temppi_r2_band.ReadRaster(right_x, top_y, 1, 1, floatArray);
-
-                    if(Float.isNaN(floatArray[0]) && !done2) {
-
-                        int minX = right_x - n;
-                        int maxX = right_x + n;
-                        int minY = top_y - n;
-                        int maxY = top_y + n;
-
-                        tempF = new float[2];
-
-                        for (int h = minX; h <= maxX; h++) {
-                            for (int u = minY; u <= maxY; u++) {
-
-                                x = h;
-                                y = u;
-
-                                if (x < 0)
-                                    x = 0;
-                                if (y < 0)
-                                    y = 0;
-                                if (x > (width - 1))
-                                    x = width - 1;
-                                if (y > (height - 1))
-                                    y = height - 1;
-
-                                //temppi_r2_band.ReadRaster(x, y, 1, 1, floatArray);
-
-                                if (!Float.isNaN(floatArray[0])) {
-
-                                    tempF[0] += floatArray[0];
-                                    tempF[1]++;
-
-                                }
-
-                            }
-
-                            float median = Float.NaN;
-
-                            if (tempF[1] > 0)
-                                median = tempF[0] / tempF[1];
-
-                            if(Float.isNaN(median)){
-                                remaining_2++;
-                            }else{
-                                floatArray[0] = median;
-                                //temppi_r2_band.WriteRaster(right_x, top_y, 1, 1, floatArray);
-                            }
-
-                        }
-                    }
-
-                    /* BOTTOM RIGHT */
-
-                    //temppi_r3_band.ReadRaster(right_x, bottom_y, 1, 1, floatArray);
-
-                    if(Float.isNaN(floatArray[0]) && !done3) {
-
-                        int minX = right_x - n;
-                        int maxX = right_x + n;
-                        int minY = bottom_y - n;
-                        int maxY = bottom_y + n;
-
-                        tempF = new float[2];
-
-                        for (int h = minX; h <= maxX; h++) {
-                            for (int u = minY; u <= maxY; u++) {
-
-                                x = h;
-                                y = u;
-
-                                if (x < 0)
-                                    x = 0;
-                                if (y < 0)
-                                    y = 0;
-                                if (x > (width - 1))
-                                    x = width - 1;
-                                if (y > (height - 1))
-                                    y = height - 1;
-
-                                //temppi_r3_band.ReadRaster(x, y, 1, 1, floatArray);
-
-                                if (!Float.isNaN(floatArray[0])) {
-
-                                    tempF[0] += floatArray[0];
-                                    tempF[1]++;
-
-                                }
-
-                            }
-
-                            float median = Float.NaN;
-
-                            if (tempF[1] > 0)
-                                median = tempF[0] / tempF[1];
-
-                            if(Float.isNaN(median)){
-                                remaining_3++;
-                            }else{
-                                floatArray[0] = median;
-                                //temppi_r3_band.WriteRaster(right_x, bottom_y, 1, 1, floatArray);
-                            }
-
-                        }
-                    }
-
-                    /* BOTTOM LEFT */
-
-                    //temppi_r4_band.ReadRaster(left_x, bottom_y, 1, 1, floatArray);
-
-                    if(Float.isNaN(floatArray[0]) && !done4) {
-
-                        int minX = left_x - n;
-                        int maxX = left_x + n;
-                        int minY = bottom_y - n;
-                        int maxY = bottom_y + n;
-
-                        tempF = new float[2];
-
-                        for (int h = minX; h <= maxX; h++) {
-                            for (int u = minY; u <= maxY; u++) {
-
-                                x = h;
-                                y = u;
-
-                                if (x < 0)
-                                    x = 0;
-                                if (y < 0)
-                                    y = 0;
-                                if (x > (width - 1))
-                                    x = width - 1;
-                                if (y > (height - 1))
-                                    y = height - 1;
-
-                                //temppi_r4_band.ReadRaster(x, y, 1, 1, floatArray);
-
-                                if (!Float.isNaN(floatArray[0])) {
-
-                                    tempF[0] += floatArray[0];
-                                    tempF[1]++;
-
-                                }
-
-                            }
-
-                            float median = Float.NaN;
-
-                            if (tempF[1] > 0)
-                                median = tempF[0] / tempF[1];
-
-                            if(Float.isNaN(median)){
-                                remaining_4++;
-                            }else{
-                                floatArray[0] = median;
-                                //temppi_r4_band.WriteRaster(left_x, bottom_y, 1, 1, floatArray);
-                            }
-
-                        }
-                    }
-                }
-            }
-        }
-
-        if(nan && false)
-        for(int y_ = n; y_ < (height - n); y_++) {
-
-            int top_y = y_;
-            int bottom_y = height - n - y_;
-
-            input_band.ReadRaster(0, top_y, width, 1, data_input);
-            temppi_band.ReadRaster(0, top_y, width, 1, data_top_left);
-
-            for (int x_ = n; x_ < (width - n); x_++) {
-
-                if(Float.isNaN(data_input[x_])){
-
-                    data_input[x_] = (data_top_left[x_] + data_top_right[x_] + data_bottom_left[x_] + data_bottom_right[x_]) / 4.0f;
-
-                }
-
-            }
-
-            input_band.WriteRaster(0, top_y, width, 1, data_input);
-
-
-        }
-
-
-        //System.out.println("SUCCESS!");
-        //System.exit(1);
-        count3 = 0;
-
-        //System.loadLibrary("opencv_java320");
-
-        float[][] original = null;
-
-        n = blur;
-        n = 1;
-
-        int count = 0;
-
-        float p80 = 0f;
-/*
-        for(float i : zets){
-
-            if(count++ >= zets.size() * 0.80){
-                p80 = i;
-                break;
-            }
-
-        }
-*/
-        //System.out.println("p80: " + p80);
-        if(n > 0){
-
-
-            double sigma = 0.8;
-
-            int rows = temppi_band.getYSize();
-            int cols = temppi_band.getXSize();
-
-            //Mat tempMat = new Mat(rows, cols, CvType.CV_32FC1);//HxW 4x2
-
-            //double[][] temppi2 = new double[rows][cols];
-
-            //original = new float[rows][cols];
-/*
-            for (int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-
-                    temppi2[i][j] = (double)input[i][j];
-                    //original[i][j] = input[i][j];
-                }
-            }
-*/
-
-            //int[] kernelSizes = new int[]{9,9};
-            //double[] sigmas = new double[]{1.1,2.5};
-            //double[] tHolds = new double[]{15};
-
-
-
-            //double[][] smoothed = null;
-/*
-            double[][] matti = new double[input.getRasterXSize()][input.getRasterYSize()];
-            double[][] matti_smooth = new double[input.getRasterXSize()][input.getRasterYSize()];
-
-            for(int x_ = 0; x_ < input.getRasterXSize(); x_++){
-                for(int y_ = 0; y_ < input.getRasterYSize(); y_++){
-
-                    input_band.ReadRaster(x_, y_, 1, 1, floatArray);
-
-                    matti[x_][y_] = floatArray[0];
-
-                }
-            }
-
-
-
-
-               matti_smooth = GaussianSmooth.smooth(matti, cols, rows, kernel, theta);
-
-            for(int x_ = 0; x_ < input.getRasterXSize(); x_++){
-                for(int y_ = 0; y_ < input.getRasterYSize(); y_++){
-
-
-                    //floatArray[0] = (float)matti_smooth[x_][y_] ;
-                    floatArray[0] = (float)matti[x_][y_];
-
-                    temppi_band.WriteRaster(x_, y_, 1, 1, floatArray);
-
-
-                }
-            }
-
-*/
-            GaussianSmooth.smooth_tif(input, temppi, cols, rows, kernel, theta);  // THIS IS GOOD!!!! :)
-
-
-
-
-
-            //if(p80 > 20)
-            //  smoothed = GaussianSmooth.smooth(temppi2, rows, cols, 3, 1.0);  // THIS IS GOOD!!!! :)
-            //else
-            //  smoothed = GaussianSmooth.smooth(temppi2, rows, cols, 3, 0.5);
-
-            //smoothed = GaussianSmooth.smooth(input, rows, cols, kernel, theta);  // THIS IS GOOD!!!! :)
-
-
-            //for(int y_ = 0; y_ < height; y_++){
-               // temppi_band.ReadRaster(0, y_, width, 1, data_input);
-               // input_band.WriteRaster(0, y_, width, 1, data_input);
-            //}
-            //copyRaster(temppi, input);
-
-            //newFile.delete();
-            //smoothed = GaussianSmooth.smooth(smoothed, cols, rows, 9, 2.2);
-/*
-            for (int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    input[i][j] = (float)smoothed[i][j];
-                }
-            }
-*/
-            /*
-            Size ksize = new Size(3, 3);
-
-            Mat output2 = new Mat();//HxW 4x2
-
-
-            Imgproc.GaussianBlur(tempMat, output2, ksize, sigma);
-            */
-            /*
-            for(int i = 0; i < tempMat.height(); i++){
-                for(int j = 0; j < tempMat.width(); j++){
-
-                    input[j][i] = (float)tempMat.get(j,i)[0];
-
-                }
-            }
-            */
-            /*
-            for(int i = 0; i < (height - 0); i++){
-
-                for(int j = 0; j < (width - 0); j++){
-
-
-                    int minX = j - n;
-                    int maxX = j + n;
-                    int minY = i - n;
-                    int maxY = i + n;
-
-
-                    int sum = 0;
-
-                    //double[] array = new double[(n * 2 + 1) * (n * 2 + 1)];
-
-                    ArrayList<Float> list = new ArrayList<Float>();
-                    int count = 0;
-                    int count2 = 0;
-
-
-                    tempF = new float[2];
-
-
-
-                    for(int h = minX; h <= maxX; h++){
-                        for(int u = minY; u <= maxY; u++){
-
-                            x = h;
-                            y = u;
-
-                            if(x < 0)
-                                x = 0;
-                            if(y < 0)
-                                y = 0;
-                            if(x > (width - 1))
-                                x = width - 1;
-                            if(y > (height - 1))
-                                y = height - 1;
-
-                            if((x != j || y != i) && !Double.isNaN(temppi[x][y])){
-
-                                tempF[0] += temppi[x][y];
-                                tempF[1]++;
-
-
-                            }
-
-
-                        }
-
-                    float median = Float.NaN;
-
-                    if(tempF[1] > 0)
-                        median = tempF[0] / tempF[1];
-
-                    input[j][i] = median;
-
-
-                    counter++;
-                }
-                //progebar(paatos, counter, nimi);
-                }
-
-
-
-            }
-            */
-        }
-
-        //System.out.println("");
-
-        //int rows = input.length;
-        //int cols = input[0].length;
-        /*
-        float[][] temppi2 = new float[rows][cols];
-
-            for (int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                     temppi2[i][j] = input[i][j];
-                }
-            }
-        */
-        n = 1;
-        /*
-        for(int i = 1; i < (height - 2); i++){
-
-            for(int j = 1; j < (width - 2); j++){
-
-                input[j][i] = (float)gradientAt(temppi2, j, i);
-
-            }
-        }
-        */
-        //return original;
-
-        return temppi;
-
-    }
 
 
     public static ArrayList<float[][]> removeOutliersRGB(ArrayList<float[][]> input){
@@ -2253,49 +803,11 @@ public class createCHM{
             float[] floatArray = new float[1];
 
             long id = 0L;
-/*
- 			this.layout = new Pixel[yDim][xDim];
-
- 			for(int i = 0; i < xDim; i++){
- 				for(int j = 0; j < yDim; j++) {
- 				    //in.ReadRaster(i, j, 1, 1, floatArray);
-                    //layout[j][i] = new Pixel(i, j, floatArray[0], 0.0f);
-                }
- 			}
-*/
-            raster_id = gdalE.hei("tempRasterId"+coreNumber+".tif", this.yDim, this.xDim, -999f);
- 			raster_id_b = raster_id.GetRasterBand(1);
-
-            raster_flag = gdalE.hei("tempRasterFlag"+coreNumber+".tif", this.yDim, this.xDim, 0.0f);
-            raster_flag_b = raster_flag.GetRasterBand(1);
-
-            raster_priority = gdalE.hei("tempRasterPriority"+coreNumber+".tif", this.yDim, this.xDim, 0.0f);
-            raster_priority_b = raster_priority.GetRasterBand(1);
 
  		}
 
  		public void deleteTempFiles(){
 
- 		    File tempFile = new File("tempRasterId"+coreNumber+".tif");
- 		    tempFile.delete();
-
-            tempFile = new File("tempRasterFlag"+coreNumber+".tif");
-            tempFile.delete();
-
-            tempFile = new File("tempRasterPriority"+coreNumber+".tif");
-            tempFile.delete();
-
-
- /*
-            raster_id_b.FlushCache();
-            raster_id.delete();
-
-            raster_flag.FlushCache();
-            raster_flag.delete();
-
-            raster_flag.FlushCache();
-            raster_priority.delete();
-*/
         }
 
  		public Pixel get(int x, int y){
@@ -2316,14 +828,14 @@ public class createCHM{
  		public void treeTop(int x, int y){
 
  		    floatArray[0] = -99;
- 		    raster_flag_b.WriteRaster(x, y, 1, 1, floatArray);
+ 		    //raster_flag_b.WriteRaster(x, y, 1, 1, floatArray);
 
              raster_flag_array[x][y] = -99;
         }
 
         public boolean isTreeTop(int x, int y){
 
- 		    raster_flag_b.ReadRaster(x, y, 1, 1, floatArray);
+ 		    //raster_flag_b.ReadRaster(x, y, 1, 1, floatArray);
              return raster_flag_array[x][y] == -99;
             //return floatArray[0] == -99;
         }
@@ -2332,32 +844,32 @@ public class createCHM{
 
  		    //System.out.println("ATTACHED: " + id);
             floatArray[0] = id;
-            raster_id_b.WriteRaster(x, y, 1, 1, floatArray);
+            //raster_id_b.WriteRaster(x, y, 1, 1, floatArray);
             raster_id_array[x][y] = id;
         }
 
         public void detach(int x, int y){
 
             floatArray[0] = -999f;
-            raster_id_b.WriteRaster(x, y, 1, 1, floatArray);
+            //raster_id_b.WriteRaster(x, y, 1, 1, floatArray);
             raster_id_array[x][y] = -999;
         }
 
         public void queue(int x, int y){
             floatArray[0] = 1.0f;
-            raster_flag_b.WriteRaster(x, y, 1, 1, floatArray);
+            //raster_flag_b.WriteRaster(x, y, 1, 1, floatArray);
             raster_flag_array[x][y] = 1;
         }
 
         public void dequeue(int x, int y) {
             floatArray[0] = 0.0f;
-            raster_flag_b.WriteRaster(x, y, 1, 1, floatArray);
+            //raster_flag_b.WriteRaster(x, y, 1, 1, floatArray);
             raster_flag_array[x][y] = 0;
         }
 
         public void priority(int x, int y, float priority){
             floatArray[0] = priority;
-            raster_priority_b.WriteRaster(x, y, 1, 1, floatArray);
+            //raster_priority_b.WriteRaster(x, y, 1, 1, floatArray);
             raster_priority_array[x][y] = priority;
         }
 
@@ -2615,47 +1127,12 @@ public class createCHM{
 			this.luoteis[0] = x;
 			this.luoteis[1] = y;
 
-			
-			//System.out.println(x + " " + y);
-
 			this.midX = (maxX - minX) / 2.0;
 			this.midY = (maxY - minY) / 2.0;
 
-			//drawCircle((int)x, (int)y, increment);
-
-			//updateNeighbourhood((int)x, (int)y, 20.0);
-			/*
-			jono.offer(img.get((int)x - 1 ,(int)y - 1));
-			img.get((int)x - 1 ,(int)y - 1).attach(this.id);
-
-			jono.offer(img.get((int)x ,(int)y - 1));
-			img.get((int)x ,(int)y - 1).attach(this.id);
-
-			jono.offer(img.get((int)x + 1 ,(int)y - 1));
-			img.get((int)x + 1 ,(int)y - 1).attach(this.id);
-
-			jono.offer(img.get((int)x - 1 ,(int)y));
-			img.get((int)x - 1 ,(int)y).attach(this.id);
-			//jono.offer(img.get(x ,y));
-			jono.offer(img.get((int)x + 1 ,(int)y));
-			img.get((int)x + 1 ,(int)y).attach(this.id);
-
-			jono.offer(img.get((int)x - 1 ,(int)y + 1));
-			img.get((int)x - 1 ,(int)y + 1).attach(this.id);
-
-			jono.offer(img.get((int)x ,(int)y + 1));
-			img.get((int)x ,(int)y + 1).attach(this.id);
-
-			jono.offer(img.get((int)x + 1 ,(int)y + 1));
-			img.get((int)x + 1 ,(int)y + 1).attach(this.id);
-			*/
 			cellCount = cellCount + 8;
 
 			total = jono.size();
-
-			//System.out.println(jono.size());
-
-			//System.out.println(jono);
 
 
 		}
@@ -2766,29 +1243,7 @@ public class createCHM{
 			d[7] = (maxY2 - midY2);
 
 			stat.setData(d);
-			//System.out.println(Arrays.toString(d));
-			//System.out.println(stat.getVariance());
 
-			
-
-			/*
-			System.out.println("----------------");
-			System.out.println(meanDifference);
-			System.out.println("koillis : " + Arrays.toString(koillis));
-			System.out.println("kaakkois : " + Arrays.toString(kaakkois));
-			System.out.println("lounais : " + Arrays.toString(lounais));
-			System.out.println("luoteis : " + Arrays.toString(luoteis));
-			*/
-			/*
-			if(this.id == 162983){
-				System.out.println(Arrays.toString(d));
-				System.out.println(stat.getVariance());
-			}
-			*/
-			//if(this.cellCount <= 5)
-				//return true;
-
-            // (Math.abs((midX2 - minX2) - (midY2 - minY2)) <= 1.0 &&
             return stat.getVariance() < 1.0;
 
         }
@@ -3270,117 +1725,6 @@ public class createCHM{
 
 		}
 
-        public boolean iteration2(){
-
-            if(jono.size() == 0){
-
-                this.done = true;
-                return false;
-
-            }
-
-            Pixel temp = null;
-
-            temp = jono.poll();
-
-            iterationCount++;
-
-            if(euclideanDistance(temp.x, temp.y, this.xMiddle, this.yMiddle) <= (int)(3.0 / 0.25) && connectedALL(temp.x, temp.y, temp.z))
-            if(temp != null && (temp.id == -999) && temp.z < this.zMiddle)
-                if(temp != null && temp.z > 2 && temp.x > 0 && temp.x < (this.image.xDim - 1) &&
-                    temp.y > 0 && temp.y < (this.image.yDim - 1)){ //  || temp.id == this.id
-
-                    
-                    //if(pointInCircle((int)temp.x, (int)temp.y, (int)xMiddle, (int)yMiddle, 
-                           // (int)(this.minDistance * 2.0))){
-
-                        this.first = false;
-                        
-                        if(temp.x < this.minX)
-                            this.minX = temp.x;
-
-                        if(temp.x > this.maxX)
-                            this.maxX = temp.x;
-
-                        if(temp.y < this.minY)
-                            this.minY = temp.y;
-
-                        if(temp.y > this.maxY)
-                            this.maxY = temp.y;
-                        
-
-                        
-                        if(temp.y >= this.maxY && temp.x >= this.maxX){
-                            this.koillis[0] = temp.x; 
-                            this.koillis[1] = temp.y; 
-                        }
-
-                        if(temp.y <= this.minY && temp.x >= this.maxX){
-                            this.kaakkois[0] = temp.x; 
-                            this.kaakkois[1] = temp.y; 
-                        }
-
-                        if(temp.y <= this.minY && temp.x <= this.minX){
-                            this.lounais[0] = temp.x; 
-                            this.lounais[1] = temp.y; 
-                        }
-
-                        if(temp.y >= this.maxY && temp.x <= this.minX){
-                            this.luoteis[0] = temp.x; 
-                            this.luoteis[1] = temp.y; 
-                        }
-
-                        cellCount++;
-
-                        temp.attach(this.id);
-
-                        countLastIteration++;
-
-                        //System.out.println(-this.meanZlast + " " + -temp.z);
-
-                        previous.add(new double[]{temp.x, temp.y, temp.z});
-
-                        image.get(temp.x, temp.y).attach(this.id);
-                        
-                        sumZLastIteration += temp.z;
-
-                        //if(-this.meanZlast + 0.0 > -temp.z)
-                          //  higherThanWaterLevel++;
-
-                        
-                        if(this.waterLevel < -temp.z)
-                            this.waterLevel = -temp.z;
-                        
-                        missedIterations = 0;
-
-                        //this.updateNeighbourhood((int)temp.x, (int)temp.y, 5.5);
-
-                        this.numberOfPixels++;
-
-                        this.area += (this.image.resolution * this.image.resolution);
-                        System.out.println(area);
-                        this.sumZ += temp.z;
-
-                        //this.waterLevel = -(double)(this.numberOfPixels / this.sumZ);
-
-                        return true;
-                    //}
-                    
-                }
-
-            missed++;
-                
-            return false;
-
-        }
-		/*
-		public boolean isPart(double x, double y){
-
-			return (this.image.get(x - 1, y).id == )
-
-		}
-		*/
-
         public boolean connectedALL(double x, double y, double z){
             //System.out.println("GOT HERE");
             double allowedDrop = 1.5;
@@ -3432,47 +1776,6 @@ public class createCHM{
 
         }
 
-		public boolean connected(double x, double y, double z){
-			//System.out.println("GOT HERE");
-			double allowedDrop = 1.5;
-
-			boolean output = ( image.get((int)x - 1, (int)y).id == this.id || image.get((int)x + 1, (int)y).id == this.id || 
-				image.get((int)x, (int)y - 1).id == this.id || image.get((int)x, (int)y + 1).id == this.id);
-
-			boolean drop = ( image.get((int)x, (int)y).z > (this.zMiddle - 15.5 ));
-
-            boolean asdi1 =  (image.get((int)x - 1, (int)y).id == this.id && image.get((int)x - 1, (int)y).z < z);
-            boolean asdi2 =  (image.get((int)x + 1, (int)y).id == this.id && image.get((int)x + 1, (int)y).z < z);
-            boolean asdi3 =  (image.get((int)x, (int)y - 1).id == this.id && image.get((int)x, (int)y - 1).z < z);
-            boolean asdi4 =  (image.get((int)x, (int)y + 1).id == this.id && image.get((int)x, (int)y + 1).z < z);
-
-            int count = (asdi1 ? 1 : 0) + (asdi2 ? 1 : 0) + (asdi3 ? 1 : 0) + (asdi4 ? 1 : 0);
-
-			//System.out.println(this.zMiddle);
-			return (output && drop && count <= 1);
-
-		}
-
-		public boolean DIAGconnected(double x, double y, double z){
-			//System.out.println("GOT HERE");
-			double allowedDrop = 1.5;
-
-			boolean output = ( image.get((int)x - 1, (int)y - 1).id == this.id || image.get((int)x + 1, (int)y - 1).id == this.id || 
-				image.get((int)x + 1, (int)y + 1).id == this.id || image.get((int)x - 1, (int)y + 1).id == this.id);
-
-			boolean drop = ( image.get((int)x, (int)y).z > (this.zMiddle - 15.5 ));
-
-            boolean asdi1 =  (image.get((int)x - 1, (int)y - 1).id == this.id && image.get((int)x - 1, (int)y - 1).z < z);
-            boolean asdi2 =  (image.get((int)x + 1, (int)y - 1).id == this.id && image.get((int)x + 1, (int)y - 1).z < z);
-            boolean asdi3 =  (image.get((int)x + 1, (int)y + 1).id == this.id && image.get((int)x + 1, (int)y + 1).z < z);
-            boolean asdi4 =  (image.get((int)x - 1, (int)y + 1).id == this.id && image.get((int)x - 1, (int)y + 1).z < z);
-
-            int count = (asdi1 ? 1 : 0) + (asdi2 ? 1 : 0) + (asdi3 ? 1 : 0) + (asdi4 ? 1 : 0);
-                            			//System.out.println(this.zMiddle);
-			return (output && drop && count <= 2);
-
-		}
-
         public boolean smaller(double x, double y){
 
             return true;
@@ -3492,6 +1795,13 @@ public class createCHM{
 
 
 	public static class WaterShed{
+
+
+        double minx = Double.MAX_VALUE, maxx = Double.MIN_VALUE;
+        double miny = Double.MAX_VALUE, maxy = Double.MIN_VALUE;
+
+        double minx_no_buf = Double.MAX_VALUE, maxx_no_buf = Double.MIN_VALUE;
+        double miny_no_buf = Double.MAX_VALUE, maxy_no_buf = Double.MIN_VALUE;
 
 
         float[] floatArray3x3 = new float[9];
@@ -3518,6 +1828,7 @@ public class createCHM{
 
 		Dataset waterRaster_ds = null;
 		Band waterRaster_band = null;
+		Band waterRaster_band_mask = null;
 
 
 		float[][] waterRaster = null;
@@ -3557,7 +1868,18 @@ public class createCHM{
 
 		}
 
-		public WaterShed(HashSet<double[]> in, double speed2, Dataset inMat, chm inChm, argumentReader aR, int coreNumber) throws IOException{
+		public WaterShed(HashSet<double[]> in, double speed2, Dataset inMat, chm inChm, argumentReader aR, int coreNumber) throws Exception{
+
+
+            this.minx = inChm.pointCloud.getMinX();
+            this.maxx = inChm.pointCloud.getMaxX();
+            this.miny = inChm.pointCloud.getMinY();
+            this.maxy = inChm.pointCloud.getMaxY();
+
+            this.minx_no_buf = inChm.minX_no_buf;
+            this.miny_no_buf = inChm.minY_no_buf;
+            this.maxx_no_buf = inChm.maxX_no_buf;
+            this.maxy_no_buf = inChm.maxY_no_buf;
 
 		    this.polyBank = aR.polyBank;
 		    this.treeTops = in;
@@ -3565,10 +1887,7 @@ public class createCHM{
 		    this.coreNumber = coreNumber;
 		    this.aR = aR;
 			canopy = inChm;
-/*
-			this.raster = inMat.clone();
-			this.waterRaster = inMat.clone();
-*/
+
 			this.raster_ds = inMat;
 			this.raster_band = this.raster_ds.GetRasterBand(1);
 
@@ -3576,22 +1895,24 @@ public class createCHM{
 			this.xDim = raster_band.getXSize();
 			this.yDim = raster_band.getYSize();
 
+            jono2_tif = new PriorityQueue<>(yDim*xDim, new CheckerCellItem());
+
             waterRaster_ds = copyRaster(raster_ds, waterRaster_ds, "tempWater" + coreNumber + ".tif");
 
-			waterRaster_band = waterRaster_ds.GetRasterBand(1);
+            waterRaster_ds = gdalE.hei("tempWater" + coreNumber + ".tif", raster_ds.getRasterYSize(), raster_ds.getRasterXSize(), Float.NaN, 2);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
+
+            waterRaster_band = waterRaster_ds.GetRasterBand(1);
+            waterRaster_band_mask = waterRaster_ds.GetRasterBand(2);
+
+            copyRasterContents(raster_band, waterRaster_band);
 
             waterRaster = new float[xDim][yDim];
 
 			this.speed = speed2;
 
 			image = new Raster(this.raster_ds, coreNumber, aR.step);
-            //imageOrig = new Raster(canopy.original);
 
 			totPixels = inMat.GetRasterXSize() * inMat.getRasterYSize();
-
-			//Cantor homma = new Cantor();
-
-			int tempId;
 
             int aidee = 0;
 
@@ -3599,63 +1920,22 @@ public class createCHM{
             aR.p_update.threadProgress[coreNumber-1] = -1;
             aR.p_update.threadEnd[coreNumber-1] = -1;
             aR.p_update.updateProgressITD();
-            
 
 			for(double[] key : in){
 
-
-
-				//tempId = homma.pair((long)key[0], (long)key[1]);
-
-				//data.put((long)aidee, new HashSet<double[]>());
-				//data.get((long)aidee).add(key);
-
-				//waterRaster.put((int)key[1], (int)key[0], (long)key[0], (long)key[1]);
-
                 floatArray[0] = 0.0f;
-
-                //waterRaster_band.WriteRaster((int)key[0], (int)key[1], 1, 1, floatArray);
-
                 waterRaster[(int)key[0]][(int)key[1]] = 0.0f;
-
 				altaat.add(new WaterBody(aidee, key[0], key[1], key[2], image ));
-
 				waterbodyAreas.put(aidee, 0.0f);
-
                 filledPixels++;
-
                 image.attach( (int)key[0], (int)key[1], aidee);
-
-				//image.get( (int)key[0], (int)key[1]).attach(aidee);
-
-                //image.treeTop((int)key[0], (int)key[1]);
-                //image.get( (int)key[0], (int)key[1]).treeTop();
-
                 treeTopLocations.add(new int[]{(int)key[0], (int)key[1]});
-                //if(aidee == 4)
-                  //  System.out.println(key[0] + " " + key[1] + " " + key[2]);
                 aidee++;
-
-                //pixelBank.add(image.get( (int)key[0], (int)key[1]).id);
-
-               // image.get( (int)key[0], (int)key[1]).setPriority(gradientAt((int)key[0], (int)key[1]));
                 image.priority((int)key[0], (int)key[1], (float)-key[2]);
-                //image.get( (int)key[0], (int)key[1]).setPriority((float)-key[2]);
-
-                //image.get( (int)key[0], (int)key[1]).lock();
-
-                //jono2.offer(image.get((int)key[0], (int)key[1]));
                 jono2_tif.offer(new cellItem((int)key[0], (int)key[1], (float)-key[2]));
-
                 image.queue((int)key[0], (int)key[1]);
-                //image.get((int)key[0], (int)key[1]).queue();
-
-                //this.updateNeighbourhood((int)key[0], (int)key[1], 10000, false);
 
 			}
-
-            for(int i = 0; i < altaat.size(); i++)
-                jono.offer(altaat.get(i));
 
             aR.p_update.updateProgressITD();
 			start2();
@@ -3671,210 +1951,54 @@ public class createCHM{
 			this.speed = speed;
 
 		}
-			
 
-
-
-		public void start(){
-
-            /* TODO: Order altaat in the order of water level! */
-
-			//System.out.println(totPixels + " " + filledPixels);
-			double prevProgress = -99;
-
-			//while( ((double)filledPixels / (double)totPixels) > prevProgress){
-            while( jono.size() > 0 ){
-
-
-				prevProgress = ((double)filledPixels / (double)totPixels);
-				//System.out.println(((double)filledPixels / (double)totPixels));
-				//for(int i = 0; i < altaat.size(); i++){
-
-                WaterBody tempBody = jono.poll();
-
-                //System.out.println(tempBody.id);
-                if(!tempBody.done)
-                    if(tempBody.iteration2())
-                        filledPixels++;
-
-                if(!tempBody.done)
-                    jono.offer(tempBody);
-                /*
-				if(altaat.get(i).done == false)
-					if(altaat.get(i).iteration())
-						filledPixels++;
-                */
-				//}	
-
-			}
-
-		}
 
         public double euclideanDistance(int x1, int y1, int x2, int y2){
 
-            return Math.sqrt( Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2) );
+            return squareRoot( (x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2) );
 
+        }
+
+        double squareRoot(double n)
+        {
+
+        /*We are using n itself as
+        initial approximation This
+        can definitely be improved */
+            double x = n;
+            double y = 1;
+
+            // e decides the accuracy level
+            double e = 0.001;
+            while (x - y > e) {
+                x = (x + y) / 2;
+                y = n / x;
+            }
+            return x;
         }
 
         public void start2(){
 
             /* TODO: Order altaat in the order of water level! */
 
-            //System.out.println(totPixels + " " + filledPixels);
-            double prevProgress = -99;
-
-            int count = 0; 
-
-            //while( ((double)filledPixels / (double)totPixels) > prevProgress){
             while( jono2_tif.size() > 0){
-
-                //System.out.println(jono2_tif.size());
-                //Pixel tempPixel = jono2.poll();
 
                 cellItem ci = jono2_tif.poll();
                 /* We label the pixel with the SEED closest to it (euc distance) */
-
-                //this.updateNeighbourhood((int)tempPixel.x, (int)tempPixel.y, 10000, false);
-                    //this.updateNeighbourhood_tif(ci.x, ci.y, 10000, false);
-                this.updateNeighbourhood_array(ci.x, ci.y, 10000, false);
+                this.updateNeighbourhood_array(ci.x, ci.y, false);
             }
-
-        }
-
-        public long labelOrNot(int x, int y){
-
-            long label = 0L;
-
-            HashMap<Integer, Integer> t = new HashMap<Integer, Integer>();
-
-            if(image.get(x - 1, y).id != -999){
-
-                if(!t.containsKey(image.get(x - 1, y).id))
-                    t.put(image.get(x - 1, y).id, 1);
-                else
-                    t.put(image.get(x - 1, y).id, t.get(image.get(x - 1, y).id) + 1);
-
-            }
-
-            if(image.get(x + 1, y).id != -999){
-
-                if(!t.containsKey(image.get(x + 1, y).id))
-                    t.put(image.get(x + 1, y).id, 1);
-                else
-                    t.put(image.get(x + 1, y).id, t.get(image.get(x + 1, y).id) + 1);
-
-            }
-            if(image.get(x, y - 1).id != -999){
-
-                if(!t.containsKey(image.get(x, y - 1).id))
-                    t.put(image.get(x, y - 1).id, 1);
-                else
-                    t.put(image.get(x, y - 1).id, t.get(image.get(x, y - 1).id) + 1);
-
-            }
-            if(image.get(x, y + 1).id != -999){
-
-                if(!t.containsKey(image.get(x, y + 1).id))
-                    t.put(image.get(x, y + 1).id, 1);
-                else
-                    t.put(image.get(x, y + 1).id, t.get(image.get(x, y + 1).id) + 1);
-
-            }
-            if(image.get(x - 1, y - 1).id != -999){
-
-                if(!t.containsKey(image.get(x - 1, y - 1).id))
-                    t.put(image.get(x - 1, y - 1).id, 1);
-                else
-                    t.put(image.get(x - 1, y - 1).id, t.get(image.get(x - 1, y - 1).id) + 1);
-
-            }
-            if(image.get(x + 1, y - 1).id != -999){
-
-                if(!t.containsKey(image.get(x + 1, y - 1).id))
-                    t.put(image.get(x + 1, y - 1).id, 1);
-                else
-                    t.put(image.get(x + 1, y - 1).id, t.get(image.get(x + 1, y - 1).id) + 1);
-
-            }
-            if(image.get(x - 1, y + 1).id != -999){
-
-                if(!t.containsKey(image.get(x - 1, y + 1).id))
-                    t.put(image.get(x - 1, y + 1).id, 1);
-                else
-                    t.put(image.get(x - 1, y + 1).id, t.get(image.get(x - 1, y + 1).id) + 1);
-
-            }
-            if(image.get(x + 1, y + 1).id != -999){
-
-                if(!t.containsKey(image.get(x + 1, y + 1).id))
-                    t.put(image.get(x + 1, y + 1).id, 1);
-                else
-                    t.put(image.get(x + 1, y + 1).id, t.get(image.get(x + 1, y + 1).id) + 1);
-
-            }
-            //System.out.println(idsT.size());
-
-            int maxInt = -1;
-            int output = 0;
-
-            double minDistance = Double.POSITIVE_INFINITY;
-            double distance = 0.0;
-
-
-
-            if(image.get(x, y).id == -999)
-
-                if(t.size() > 0){
-
-                    for(int key : t.keySet()){
-
-                        //if(key == 4 && t.size() > 1)
-                          //  System.out.println(distance);
-
-                        distance = euclideanDistance(treeTopLocations.get(key)[0], treeTopLocations.get(key)[1],
-                                    x, y);
-                        //System.out.println(distance + " " + t.size());
-                        /*
-                        if(t.get(key) > maxInt){
-
-                            maxInt = t.get(key);
-                            output = key;
-
-                        }
-                        */
-                        if( distance < minDistance){
-
-                            minDistance = distance;
-                            output = key;
-
-                        }
-                    }   
-
-                    if(image.get(x, y).z >= altaat.get(output).zMiddle * 0.25 && distance < 12){
-                        image.get(x, y).attach(output);
-                        altaat.get(output).add(image.get(x, y));
-
-                        System.out.println("Area: " + altaat.get(output).area());
-                        image.get(x, y).dequeue();
-                    }
-
-                    return output;
-
-                }
-
-
-            return -9876L;
 
         }
 
         public long labelOrNot_tif(float[] in, int x, int y){
 
-            HashMap<Integer, Integer> t = new HashMap<Integer, Integer>();
+            HashMap<Integer, Integer> t = new HashMap();
 
             int nono = 5;
 
-            for(int i = 0; i < in.length; i++){
+            for(int i = 1; i < in.length; i++){
 
+                if(i % 2 != 0)
                 if((int)in[i] != -999) {
 
                     if (!t.containsKey((int) in[i])) {
@@ -3885,81 +2009,14 @@ public class createCHM{
                     }
                 }
             }
-/*
-            if(image.get(x - 1, y).id != -999){
-
-                if(!t.containsKey(image.get(x - 1, y).id))
-                    t.put(image.get(x - 1, y).id, 1);
-                else
-                    t.put(image.get(x - 1, y).id, t.get(image.get(x - 1, y).id) + 1);
-
-            }
-
-            if(image.get(x + 1, y).id != -999){
-
-                if(!t.containsKey(image.get(x + 1, y).id))
-                    t.put(image.get(x + 1, y).id, 1);
-                else
-                    t.put(image.get(x + 1, y).id, t.get(image.get(x + 1, y).id) + 1);
-
-            }
-            if(image.get(x, y - 1).id != -999){
-
-                if(!t.containsKey(image.get(x, y - 1).id))
-                    t.put(image.get(x, y - 1).id, 1);
-                else
-                    t.put(image.get(x, y - 1).id, t.get(image.get(x, y - 1).id) + 1);
-
-            }
-            if(image.get(x, y + 1).id != -999){
-
-                if(!t.containsKey(image.get(x, y + 1).id))
-                    t.put(image.get(x, y + 1).id, 1);
-                else
-                    t.put(image.get(x, y + 1).id, t.get(image.get(x, y + 1).id) + 1);
-
-            }
-            if(image.get(x - 1, y - 1).id != -999){
-
-                if(!t.containsKey(image.get(x - 1, y - 1).id))
-                    t.put(image.get(x - 1, y - 1).id, 1);
-                else
-                    t.put(image.get(x - 1, y - 1).id, t.get(image.get(x - 1, y - 1).id) + 1);
-
-            }
-            if(image.get(x + 1, y - 1).id != -999){
-
-                if(!t.containsKey(image.get(x + 1, y - 1).id))
-                    t.put(image.get(x + 1, y - 1).id, 1);
-                else
-                    t.put(image.get(x + 1, y - 1).id, t.get(image.get(x + 1, y - 1).id) + 1);
-
-            }
-            if(image.get(x - 1, y + 1).id != -999){
-
-                if(!t.containsKey(image.get(x - 1, y + 1).id))
-                    t.put(image.get(x - 1, y + 1).id, 1);
-                else
-                    t.put(image.get(x - 1, y + 1).id, t.get(image.get(x - 1, y + 1).id) + 1);
-
-            }
-            if(image.get(x + 1, y + 1).id != -999){
-
-                if(!t.containsKey(image.get(x + 1, y + 1).id))
-                    t.put(image.get(x + 1, y + 1).id, 1);
-                else
-                    t.put(image.get(x + 1, y + 1).id, t.get(image.get(x + 1, y + 1).id) + 1);
-
-            }
-
- */
-            //System.out.println(idsT.size());
 
             int maxInt = -1;
+            int maxIndex = -1;
             int output = 0;
 
             double minDistance = Double.POSITIVE_INFINITY;
             double distance = 0.0;
+            double minDistanceTreeHeight = 0.0;
 
 
             if((int)in[4] == -999){
@@ -3969,16 +2026,29 @@ public class createCHM{
 
                         distance = euclideanDistance(treeTopLocations.get(key)[0], treeTopLocations.get(key)[1],
                                 x, y);
-
+/*
+                        if(t.get(key) > maxInt){
+                            maxInt = t.get(key);
+                            maxIndex = key;
+                        }
+*/
                         if( distance < minDistance){
 
                             minDistance = distance;
                             output = key;
+                            minDistanceTreeHeight = altaat.get(key).zMiddle;
 
                         }
                     }
 
-                    image.raster_z_b.ReadRaster(x, y, 1, 1, floatArray);
+                    //output = maxIndex
+
+                    //image.raster_z_b.ReadRaster(x, y, 1, 1, floatArray);
+                    floatArray[0] = image.raster_z_array[x][y];
+
+                    double kernel_size_meters = 1.1 + 0.005 * (altaat.get(output).zMiddle*altaat.get(output).zMiddle);
+
+                    double disti = kernel_size_meters / aR.step;
 
                     if((floatArray[0] >= altaat.get(output).zMiddle * 0.2 || floatArray[0] > 2.0) && distance < 12){
 
@@ -3996,47 +2066,6 @@ public class createCHM{
                     return output;
                 }
             }
-/*
-            if(image.get(x, y).id == -999)
-
-                if(t.size() > 0){
-
-                    for(int key : t.keySet()){
-
-                        //if(key == 4 && t.size() > 1)
-                        //  System.out.println(distance);
-
-                        distance = euclideanDistance(treeTopLocations.get((int)key)[0], treeTopLocations.get((int)key)[1],
-                                x, y);
-                        //System.out.println(distance + " " + t.size());
-                        /*
-                        if(t.get(key) > maxInt){
-
-                            maxInt = t.get(key);
-                            output = key;
-
-                        }
-
-                        if( distance < minDistance){
-
-                            minDistance = distance;
-                            output = key;
-
-                        }
-                    }
-
-                    if(image.get(x, y).z >= altaat.get((int)output).zMiddle * 0.25 && distance < 12){
-                        image.get(x, y).attach(output);
-                        altaat.get((int)output).add(image.get(x, y));
-
-                        //System.out.println("Area: " + altaat.get((int)output).area());
-                        image.get(x, y).dequeue();
-                    }
-
-                    return output;
-
-                }
-            */
 
             return -9876L;
 
@@ -4073,229 +2102,11 @@ public class createCHM{
             return isInside;
         }
 
-
-        public void updateNeighbourhood(int x, int y, double bufferi, boolean giveLabel){
-
-            double buffer = bufferi;
-
-            long[] ids = new long[8];
-
-            //double z_treetop = altaat.get((int)image.get(x,y).id).zMiddle;
-
-
-
-            double zThreshold = 2.0;
-
-            //zThreshold = z_treetop * 0.25;
-
-            //if(giveLabel)
-
-            //HashSet<Long> idsT = new HashSet<Long>();
-
-            if(labelOrNot(x, y) != -9876 || image.get(x,y).id != -999)
-
-            if(x >= 0 && x < image.xDim && y >= 0 && y < image.yDim){
-
-                //if(!giveLabel)
-                //System.out.println(image.get(x - 1, y).inQue);
-
-                if(!image.get(x - 1, y).inQue && image.get(x - 1, y).id == -999 && image.get(x - 1, y).z > zThreshold){
-
-                    //if((image.get(x,y).z - image.get(x - 1, y).z) >= (0 - buffer)){/
-
-                        //image.get(x - 1, y).setPriority( gradientAt(x - 1, y ));
-                        image.get(x - 1, y).setPriority( -image.get(x - 1, y ).z);
-
-
-                        if(giveLabel){
-                            image.get(x - 1, y).attach(image.get(x,y).id);
-                            image.get(x - 1, y).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x - 1, y));
-                            image.get(x - 1, y).queue();
-
-                        }
-
-                        //System.out.println(image.get(x - 1, y).id);
-
-                        ids[0] = image.get(x - 1, y).id;
-
-                   // }
-                }
-
-                if(!image.get(x + 1, y).inQue && image.get(x + 1, y).id == -999 && image.get(x + 1, y).z > zThreshold){
-
-                    if((image.get(x,y).z - image.get(x + 1, y).z) >= (0 - buffer)){
-
-                        //image.get(x + 1, y).setPriority( gradientAt(x + 1, y) );
-                        image.get(x + 1, y).setPriority( -image.get(x + 1, y).z );
-
-                        if(giveLabel){
-                            image.get(x + 1, y).attach(image.get(x,y).id);
-                            image.get(x + 1, y).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x + 1, y));
-                            image.get(x + 1, y).queue();
-
-                        }
-
-                        ids[1] = image.get(x + 1, y).id;
-                    }
-                }
-                
-
-                if(!image.get(x, y - 1).inQue && image.get(x, y - 1).id == -999 && image.get(x, y - 1).z > zThreshold){
-
-                    //if((image.get(x,y).z - image.get(x, y - 1).z) >= (0 - buffer)){
-
-                        //image.get(x, y - 1).setPriority( gradientAt(x, y - 1) );
-                        image.get(x, y - 1).setPriority( -image.get(x, y - 1).z );
-
-                        if(giveLabel){
-                            image.get(x, y - 1).attach(image.get(x,y).id);
-                            image.get(x, y - 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x, y - 1));
-                            image.get(x, y - 1).queue();
-
-                        }
-
-
-                        ids[2] = image.get(x, y - 1).id;
-                    //}
-                }
-                
-
-                if(!image.get(x, y + 1).inQue && image.get(x, y + 1).id == -999 && image.get(x, y + 1).z > zThreshold){
-
-                    //if((image.get(x,y).z - image.get(x, y + 1).z) >= (0 - buffer)){
-
-                        //image.get(x, y + 1).setPriority( gradientAt(x, y + 1) );
-                        image.get(x, y + 1).setPriority( -image.get(x, y + 1).z );
- 
-                        if(giveLabel){
-                            image.get(x, y + 1).attach(image.get(x,y).id);
-                            image.get(x, y + 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x, y + 1));
-                            image.get(x, y + 1).queue();
-                        }
-
-                        ids[3] = image.get(x, y + 1).id;
-                   // }
-                }
-                
-
-                
-                if(!image.get(x - 1, y - 1).inQue && image.get(x - 1, y - 1).id == -999 && image.get(x - 1, y - 1).z > zThreshold){
-
-
-                    //if((image.get(x,y).z - image.get(x - 1, y - 1).z) >= (0 - buffer)){
-
-                        //image.get(x - 1, y - 1).setPriority( gradientAt(x - 1, y - 1) );
-                        image.get(x - 1, y - 1).setPriority( -image.get(x - 1, y - 1).z );
-
-                        if(giveLabel){
-                            image.get(x - 1, y - 1).attach(image.get(x,y).id);
-                            image.get(x - 1, y - 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x - 1, y - 1));
-                            image.get(x - 1, y - 1).queue();
-                        }
-
-                        ids[4] = image.get(x - 1, y - 1).id;
-                    //}
-                }
-                
-
-                if(!image.get(x + 1, y - 1).inQue && image.get(x + 1, y - 1).id == -999 && image.get(x + 1, y - 1).z > zThreshold){
-
-                   // if((image.get(x,y).z - image.get(x + 1, y - 1).z) >= (0 - buffer)){
-
-                        //image.get(x + 1, y - 1).setPriority( gradientAt(x + 1, y - 1) );
-                        image.get(x + 1, y - 1).setPriority( -image.get(x + 1, y - 1).z );
-
-                        if(giveLabel){
-                            image.get(x + 1, y - 1).attach(image.get(x,y).id);
-                            image.get(x + 1, y - 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x + 1, y - 1));
-                            image.get(x + 1, y - 1).queue();
-                        }
-
-                        ids[5] = image.get(x + 1, y - 1).id;
-                    //}
-                }
-                
-
-                if(!image.get(x - 1, y + 1).inQue && image.get(x - 1, y + 1).id == -999 && image.get(x - 1, y + 1).z > zThreshold){
-
-                    //if((image.get(x,y).z - image.get(x - 1, y - 1).z) >= (0 - buffer)){
-
-                        //image.get(x - 1, y + 1).setPriority( gradientAt(x - 1, y + 1) );
-                        image.get(x - 1, y + 1).setPriority( -image.get(x - 1, y + 1).z );
-
-                        if(giveLabel){
-                            image.get(x - 1, y + 1).attach(image.get(x,y).id);
-                            image.get(x - 1, y + 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x - 1, y + 1));
-                            image.get(x - 1, y + 1).queue();
-                        }
-
-                        ids[6] = image.get(x - 1, y + 1).id;
-                    //}
-                }
-                
-
-                if(!image.get(x + 1, y + 1).inQue && image.get(x + 1, y + 1).id == -999 && image.get(x + 1, y + 1).z > zThreshold){
-
-                    //if((image.get(x,y).z - image.get(x + 1, y + 1).z) >= (0 - buffer)){
-
-                        //System.out.println("GAVE lABEL: ");
-                        //image.get(x + 1, y + 1).setPriority( gradientAt(x + 1, y + 1) );
-                        image.get(x + 1, y + 1).setPriority( -image.get(x + 1, y + 1).z );
-
-                        if(giveLabel){
-                            image.get(x + 1, y + 1).attach(image.get(x,y).id);
-                            image.get(x + 1, y + 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x + 1, y + 1));
-                            image.get(x + 1, y + 1).queue();
-                        }
-
-                        ids[7] = image.get(x + 1, y + 1).id;
-                    //}
-                }
-
-            }
-
-
-            long prev = ids[0];
-
-            long current = ids[0];
-
-            boolean replace = true;
-
-        }
-
         public void updateNeighbourhood_tif(int x, int y, double bufferi, boolean giveLabel){
 
             double buffer = bufferi;
-
             long[] ids = new long[8];
-
-
             double zThreshold = 2.0;
-
 
             image.raster_id_b.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3);
             image.raster_flag_b.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3_2);
@@ -4304,15 +2115,6 @@ public class createCHM{
             int xIndex = 0;
             int yIndex = 0;
 
-
-/*
-            System.out.println(Arrays.toString(image.floatArray_1));
-            System.out.println(Arrays.toString(floatArray3x3));
-            System.out.println(labelOrNot_tif(image.floatArray_1, x, y));
-            System.out.println(labelOrNot_tif(floatArray3x3, x, y));
-
-            System.out.println("------------");
-*/
             if(labelOrNot_tif(floatArray3x3, x, y) != -9876 || floatArray3x3[4] != -999)
 
                 if(x >= 0 && x < image.xDim && y >= 0 && y < image.yDim){
@@ -4327,459 +2129,48 @@ public class createCHM{
                             yIndex = y - 1 + yIndex;
                             xIndex = x - 1 + xIndex;
 
-                            if(giveLabel){
-                                image.attach(xIndex, yIndex, (int)floatArray3x3[4]);
-                                image.dequeue(xIndex, yIndex);
-                            }
-                            else{
-                                /* ALWAYS GO HERE!! */
-                                jono2_tif.offer(new cellItem(xIndex, yIndex, -floatArray3x3_3[i]));
-                                //jono2.offer(image.get(x - 1, y));
-                                image.queue(xIndex, yIndex);
-                                //image.get(x - 1, y).queue();
-
-                            }
+                            jono2_tif.offer(new cellItem(xIndex, yIndex, -floatArray3x3_3[i]));
+                            image.queue(xIndex, yIndex);
 
                         }
+
                     }
-                    //System.out.println("----------------");
-/*
-                    if(!image.get(x - 1, y).inQue && image.get(x - 1, y).id == -999 && image.get(x - 1, y).z > zThreshold){
-
-                        //if((image.get(x,y).z - image.get(x - 1, y).z) >= (0 - buffer)){/
-
-                        //image.get(x - 1, y).setPriority( gradientAt(x - 1, y ));
-                        image.get(x - 1, y).setPriority( -image.get(x - 1, y ).z);
-
-
-                        if(giveLabel){
-                            image.get(x - 1, y).attach(image.get(x,y).id);
-                            image.get(x - 1, y).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x - 1, y));
-                            image.get(x - 1, y).queue();
-
-                        }
-
-                        //System.out.println(image.get(x - 1, y).id);
-
-                        ids[0] = image.get(x - 1, y).id;
-
-                        // }
-                    }
-
-                    if(!image.get(x + 1, y).inQue && image.get(x + 1, y).id == -999 && image.get(x + 1, y).z > zThreshold){
-
-                        if((image.get(x,y).z - image.get(x + 1, y).z) >= (0 - buffer)){
-
-                            //image.get(x + 1, y).setPriority( gradientAt(x + 1, y) );
-                            image.get(x + 1, y).setPriority( -image.get(x + 1, y).z );
-
-                            if(giveLabel){
-                                image.get(x + 1, y).attach(image.get(x,y).id);
-                                image.get(x + 1, y).dequeue();
-                            }
-                            else{
-                                jono2.offer(image.get(x + 1, y));
-                                image.get(x + 1, y).queue();
-
-                            }
-
-                            ids[1] = image.get(x + 1, y).id;
-                        }
-                    }
-
-
-                    if(!image.get(x, y - 1).inQue && image.get(x, y - 1).id == -999 && image.get(x, y - 1).z > zThreshold){
-
-                        //if((image.get(x,y).z - image.get(x, y - 1).z) >= (0 - buffer)){
-
-                        //image.get(x, y - 1).setPriority( gradientAt(x, y - 1) );
-                        image.get(x, y - 1).setPriority( -image.get(x, y - 1).z );
-
-                        if(giveLabel){
-                            image.get(x, y - 1).attach(image.get(x,y).id);
-                            image.get(x, y - 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x, y - 1));
-                            image.get(x, y - 1).queue();
-
-                        }
-
-
-                        ids[2] = image.get(x, y - 1).id;
-                        //}
-                    }
-
-
-                    if(!image.get(x, y + 1).inQue && image.get(x, y + 1).id == -999 && image.get(x, y + 1).z > zThreshold){
-
-                        //if((image.get(x,y).z - image.get(x, y + 1).z) >= (0 - buffer)){
-
-                        //image.get(x, y + 1).setPriority( gradientAt(x, y + 1) );
-                        image.get(x, y + 1).setPriority( -image.get(x, y + 1).z );
-
-                        if(giveLabel){
-                            image.get(x, y + 1).attach(image.get(x,y).id);
-                            image.get(x, y + 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x, y + 1));
-                            image.get(x, y + 1).queue();
-                        }
-
-                        ids[3] = image.get(x, y + 1).id;
-                        // }
-                    }
-
-
-
-                    if(!image.get(x - 1, y - 1).inQue && image.get(x - 1, y - 1).id == -999 && image.get(x - 1, y - 1).z > zThreshold){
-
-
-                        //if((image.get(x,y).z - image.get(x - 1, y - 1).z) >= (0 - buffer)){
-
-                        //image.get(x - 1, y - 1).setPriority( gradientAt(x - 1, y - 1) );
-                        image.get(x - 1, y - 1).setPriority( -image.get(x - 1, y - 1).z );
-
-                        if(giveLabel){
-                            image.get(x - 1, y - 1).attach(image.get(x,y).id);
-                            image.get(x - 1, y - 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x - 1, y - 1));
-                            image.get(x - 1, y - 1).queue();
-                        }
-
-                        ids[4] = image.get(x - 1, y - 1).id;
-                        //}
-                    }
-
-
-                    if(!image.get(x + 1, y - 1).inQue && image.get(x + 1, y - 1).id == -999 && image.get(x + 1, y - 1).z > zThreshold){
-
-                        // if((image.get(x,y).z - image.get(x + 1, y - 1).z) >= (0 - buffer)){
-
-                        //image.get(x + 1, y - 1).setPriority( gradientAt(x + 1, y - 1) );
-                        image.get(x + 1, y - 1).setPriority( -image.get(x + 1, y - 1).z );
-
-                        if(giveLabel){
-                            image.get(x + 1, y - 1).attach(image.get(x,y).id);
-                            image.get(x + 1, y - 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x + 1, y - 1));
-                            image.get(x + 1, y - 1).queue();
-                        }
-
-                        ids[5] = image.get(x + 1, y - 1).id;
-                        //}
-                    }
-
-
-                    if(!image.get(x - 1, y + 1).inQue && image.get(x - 1, y + 1).id == -999 && image.get(x - 1, y + 1).z > zThreshold){
-
-                        //if((image.get(x,y).z - image.get(x - 1, y - 1).z) >= (0 - buffer)){
-
-                        //image.get(x - 1, y + 1).setPriority( gradientAt(x - 1, y + 1) );
-                        image.get(x - 1, y + 1).setPriority( -image.get(x - 1, y + 1).z );
-
-                        if(giveLabel){
-                            image.get(x - 1, y + 1).attach(image.get(x,y).id);
-                            image.get(x - 1, y + 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x - 1, y + 1));
-                            image.get(x - 1, y + 1).queue();
-                        }
-
-                        ids[6] = image.get(x - 1, y + 1).id;
-                        //}
-                    }
-
-
-                    if(!image.get(x + 1, y + 1).inQue && image.get(x + 1, y + 1).id == -999 && image.get(x + 1, y + 1).z > zThreshold){
-
-                        //if((image.get(x,y).z - image.get(x + 1, y + 1).z) >= (0 - buffer)){
-
-                        //System.out.println("GAVE lABEL: ");
-                        //image.get(x + 1, y + 1).setPriority( gradientAt(x + 1, y + 1) );
-                        image.get(x + 1, y + 1).setPriority( -image.get(x + 1, y + 1).z );
-
-                        if(giveLabel){
-                            image.get(x + 1, y + 1).attach(image.get(x,y).id);
-                            image.get(x + 1, y + 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x + 1, y + 1));
-                            image.get(x + 1, y + 1).queue();
-                        }
-
-                        ids[7] = image.get(x + 1, y + 1).id;
-                        //}
-                    }
-*/
-
                 }
-
-            long prev = ids[0];
-
-            long current = ids[0];
-
-            boolean replace = true;
-
         }
 
-        public void updateNeighbourhood_array(int x, int y, double bufferi, boolean giveLabel){
 
-            double buffer = bufferi;
+        public void updateNeighbourhood_array(int x, int y, boolean giveLabel){
 
             long[] ids = new long[8];
-
-
-            double zThreshold = 2.0;
-
-
-            //COME HERE
-
+            double zThreshold = 5.0;
             image.populateFloatArrays(x, y);
-            //image.raster_id_b.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3);
-            //image.raster_flag_b.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3_2);
-            //image.raster_z_b.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3_3);
 
             int xIndex = 0;
             int yIndex = 0;
-/*
-            System.out.println(Arrays.toString(image.floatArray_1));
-            System.out.println(Arrays.toString(floatArray3x3));
 
-            System.out.println(Arrays.toString(image.floatArray_2));
-            System.out.println(Arrays.toString(floatArray3x3_2));
+            if(labelOrNot_tif(image.floatArray_1, x, y) != -9876 || image.floatArray_1[4] != -999) {
 
-            System.out.println(Arrays.toString(image.floatArray_3));
-            System.out.println(Arrays.toString(floatArray3x3_3));
-            System.out.println("------------");
+                if (x >= 0 && x < image.xDim && y >= 0 && y < image.yDim) {
 
-*/
-            if(labelOrNot_tif(image.floatArray_1, x, y) != -9876 || image.floatArray_1[4] != -999)
-
-                if(x >= 0 && x < image.xDim && y >= 0 && y < image.yDim){
-
-                    for(int i = 0; i < image.floatArray_1.length; i++){
-                        if(image.floatArray_2[i] == 0 && image.floatArray_1[i] == -999 && image.floatArray_3[i] > zThreshold){
+                    for (int i = 1; i < image.floatArray_1.length; i++) {
+                        if (i % 2 != 0)
+                            if (image.floatArray_2[i] == 0 && image.floatArray_1[i] == -999 && image.floatArray_3[i] > zThreshold) {
 
 
-                            yIndex = i / 3;
+                                yIndex = i / 3;
 
-                            xIndex = i - (yIndex * 3);
+                                xIndex = i - (yIndex * 3);
 
-                            yIndex = y - 1 + yIndex;
-                            xIndex = x - 1 + xIndex;
+                                yIndex = y - 1 + yIndex;
+                                xIndex = x - 1 + xIndex;
 
-                            if(giveLabel){
-                                image.attach(xIndex, yIndex, (int)image.floatArray_1[4]);
-                                image.dequeue(xIndex, yIndex);
-                            }
-                            else{
-                                /* ALWAYS GO HERE!! */
                                 jono2_tif.offer(new cellItem(xIndex, yIndex, -image.floatArray_3[i]));
-                                //jono2.offer(image.get(x - 1, y));
                                 image.queue(xIndex, yIndex);
-                                //image.get(x - 1, y).queue();
 
                             }
-
-                        }
                     }
-                    //System.out.println("----------------");
-/*
-                    if(!image.get(x - 1, y).inQue && image.get(x - 1, y).id == -999 && image.get(x - 1, y).z > zThreshold){
-
-                        //if((image.get(x,y).z - image.get(x - 1, y).z) >= (0 - buffer)){/
-
-                        //image.get(x - 1, y).setPriority( gradientAt(x - 1, y ));
-                        image.get(x - 1, y).setPriority( -image.get(x - 1, y ).z);
-
-
-                        if(giveLabel){
-                            image.get(x - 1, y).attach(image.get(x,y).id);
-                            image.get(x - 1, y).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x - 1, y));
-                            image.get(x - 1, y).queue();
-
-                        }
-
-                        //System.out.println(image.get(x - 1, y).id);
-
-                        ids[0] = image.get(x - 1, y).id;
-
-                        // }
-                    }
-
-                    if(!image.get(x + 1, y).inQue && image.get(x + 1, y).id == -999 && image.get(x + 1, y).z > zThreshold){
-
-                        if((image.get(x,y).z - image.get(x + 1, y).z) >= (0 - buffer)){
-
-                            //image.get(x + 1, y).setPriority( gradientAt(x + 1, y) );
-                            image.get(x + 1, y).setPriority( -image.get(x + 1, y).z );
-
-                            if(giveLabel){
-                                image.get(x + 1, y).attach(image.get(x,y).id);
-                                image.get(x + 1, y).dequeue();
-                            }
-                            else{
-                                jono2.offer(image.get(x + 1, y));
-                                image.get(x + 1, y).queue();
-
-                            }
-
-                            ids[1] = image.get(x + 1, y).id;
-                        }
-                    }
-
-
-                    if(!image.get(x, y - 1).inQue && image.get(x, y - 1).id == -999 && image.get(x, y - 1).z > zThreshold){
-
-                        //if((image.get(x,y).z - image.get(x, y - 1).z) >= (0 - buffer)){
-
-                        //image.get(x, y - 1).setPriority( gradientAt(x, y - 1) );
-                        image.get(x, y - 1).setPriority( -image.get(x, y - 1).z );
-
-                        if(giveLabel){
-                            image.get(x, y - 1).attach(image.get(x,y).id);
-                            image.get(x, y - 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x, y - 1));
-                            image.get(x, y - 1).queue();
-
-                        }
-
-
-                        ids[2] = image.get(x, y - 1).id;
-                        //}
-                    }
-
-
-                    if(!image.get(x, y + 1).inQue && image.get(x, y + 1).id == -999 && image.get(x, y + 1).z > zThreshold){
-
-                        //if((image.get(x,y).z - image.get(x, y + 1).z) >= (0 - buffer)){
-
-                        //image.get(x, y + 1).setPriority( gradientAt(x, y + 1) );
-                        image.get(x, y + 1).setPriority( -image.get(x, y + 1).z );
-
-                        if(giveLabel){
-                            image.get(x, y + 1).attach(image.get(x,y).id);
-                            image.get(x, y + 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x, y + 1));
-                            image.get(x, y + 1).queue();
-                        }
-
-                        ids[3] = image.get(x, y + 1).id;
-                        // }
-                    }
-
-
-
-                    if(!image.get(x - 1, y - 1).inQue && image.get(x - 1, y - 1).id == -999 && image.get(x - 1, y - 1).z > zThreshold){
-
-
-                        //if((image.get(x,y).z - image.get(x - 1, y - 1).z) >= (0 - buffer)){
-
-                        //image.get(x - 1, y - 1).setPriority( gradientAt(x - 1, y - 1) );
-                        image.get(x - 1, y - 1).setPriority( -image.get(x - 1, y - 1).z );
-
-                        if(giveLabel){
-                            image.get(x - 1, y - 1).attach(image.get(x,y).id);
-                            image.get(x - 1, y - 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x - 1, y - 1));
-                            image.get(x - 1, y - 1).queue();
-                        }
-
-                        ids[4] = image.get(x - 1, y - 1).id;
-                        //}
-                    }
-
-
-                    if(!image.get(x + 1, y - 1).inQue && image.get(x + 1, y - 1).id == -999 && image.get(x + 1, y - 1).z > zThreshold){
-
-                        // if((image.get(x,y).z - image.get(x + 1, y - 1).z) >= (0 - buffer)){
-
-                        //image.get(x + 1, y - 1).setPriority( gradientAt(x + 1, y - 1) );
-                        image.get(x + 1, y - 1).setPriority( -image.get(x + 1, y - 1).z );
-
-                        if(giveLabel){
-                            image.get(x + 1, y - 1).attach(image.get(x,y).id);
-                            image.get(x + 1, y - 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x + 1, y - 1));
-                            image.get(x + 1, y - 1).queue();
-                        }
-
-                        ids[5] = image.get(x + 1, y - 1).id;
-                        //}
-                    }
-
-
-                    if(!image.get(x - 1, y + 1).inQue && image.get(x - 1, y + 1).id == -999 && image.get(x - 1, y + 1).z > zThreshold){
-
-                        //if((image.get(x,y).z - image.get(x - 1, y - 1).z) >= (0 - buffer)){
-
-                        //image.get(x - 1, y + 1).setPriority( gradientAt(x - 1, y + 1) );
-                        image.get(x - 1, y + 1).setPriority( -image.get(x - 1, y + 1).z );
-
-                        if(giveLabel){
-                            image.get(x - 1, y + 1).attach(image.get(x,y).id);
-                            image.get(x - 1, y + 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x - 1, y + 1));
-                            image.get(x - 1, y + 1).queue();
-                        }
-
-                        ids[6] = image.get(x - 1, y + 1).id;
-                        //}
-                    }
-
-
-                    if(!image.get(x + 1, y + 1).inQue && image.get(x + 1, y + 1).id == -999 && image.get(x + 1, y + 1).z > zThreshold){
-
-                        //if((image.get(x,y).z - image.get(x + 1, y + 1).z) >= (0 - buffer)){
-
-                        //System.out.println("GAVE lABEL: ");
-                        //image.get(x + 1, y + 1).setPriority( gradientAt(x + 1, y + 1) );
-                        image.get(x + 1, y + 1).setPriority( -image.get(x + 1, y + 1).z );
-
-                        if(giveLabel){
-                            image.get(x + 1, y + 1).attach(image.get(x,y).id);
-                            image.get(x + 1, y + 1).dequeue();
-                        }
-                        else{
-                            jono2.offer(image.get(x + 1, y + 1));
-                            image.get(x + 1, y + 1).queue();
-                        }
-
-                        ids[7] = image.get(x + 1, y + 1).id;
-                        //}
-                    }
-*/
-
                 }
-
-            long prev = ids[0];
-
-            long current = ids[0];
-
-            boolean replace = true;
+            }
 
         }
 
@@ -4798,9 +2189,10 @@ public class createCHM{
 
         public boolean isIsolated(int x, int y){
 
-            waterRaster_band.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3);
-            image.raster_z_b.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3_2);
+            image.populateFloatArrays(x, y);
 
+            floatArray3x3 = image.floatArray_1;
+            floatArray3x3_2 = image.floatArray_3;
 
             float v = floatArray3x3[4];// waterRaster[x][y];
 
@@ -4811,10 +2203,6 @@ public class createCHM{
             int maxY = y + 1;
 
             HashMap<Integer, double[]> pankki = new HashMap<Integer, double[]>();
-
-            //int xDim = waterRaster.length; // i
-
-            //int yDim = waterRaster[0].length; // j
 
             if(minX < 0)
                 minX = 0;
@@ -4827,9 +2215,6 @@ public class createCHM{
 
             int yIndex;
             int xIndex;
-
-            ///for(int i = minX; i <= maxX; i++ ){
-               //for(int j = minY; j <= maxY; j++ ){
 
             for(int i = 0; i < floatArray3x3.length; i++){
 
@@ -4856,44 +2241,6 @@ public class createCHM{
                     }
                 }
             }
-            /*
-                   waterRaster_band.ReadRaster(i, j, 1, 1, floatArray);
-
-                    if(i != x || j != y){
-
-                        if(!pankki.containsKey((int)floatArray[0]))
-                            pankki.put((int)floatArray[0], new double[]{image.get(i,j).z, 1});
-                        else{
-                            pankki.get((int)floatArray[0])[0] += image.get(i,j).z;
-                            pankki.get((int)floatArray[0])[1] += 1.0;
-                        }
-
-                        replaceValue = floatArray[0];
-
-                        if(floatArray[0] == v){
-                            return false;
-                        }
-                    }
-                    /*
-                    if(i != x || j != y){
-
-                        if(!pankki.containsKey(waterRaster[i][j]))
-                            pankki.put((int)waterRaster[i][j], new double[]{image.get(i,j).z, 1});
-                        else{
-                            pankki.get((int)waterRaster[i][j])[0] += image.get(i,j).z;
-                            pankki.get((int)waterRaster[i][j])[1] += 1.0;
-                        }
-
-                        replaceValue = waterRaster[i][j];
-
-                        if(waterRaster[i][j] == v){
-                            return false;
-                        }
-                    }
-                     */
-
-               //}
-            //}
 
             
             float thisValue = floatArray3x3_2[4];
@@ -4922,8 +2269,11 @@ public class createCHM{
 
         public boolean isHanging(int x, int y){
 
-            waterRaster_band.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3);
-            image.raster_z_b.ReadRaster(x - 1, y - 1, 3, 3, floatArray3x3_2);
+            image.populateFloatArrays(x, y);
+
+            floatArray3x3 = image.floatArray_1;
+            floatArray3x3_2 = image.floatArray_3;
+
 
             float v = floatArray3x3[4];// waterRaster[x][y];
 
@@ -4931,19 +2281,10 @@ public class createCHM{
 
             TreeMap<Float, Integer> map = new TreeMap<Float, Integer>();
 
-
-            waterRaster_band.ReadRaster(x, y, 1, 1, floatArray);
-
-            //float v = floatArray[0]; // waterRaster[x][y];
-
             int minX = x - 1;
             int maxX = x + 1;
             int minY = y - 1;
             int maxY = y + 1;
-
-            //int xDim = waterRaster.length; // i
-
-            //int yDim = waterRaster[0].length; // j
 
             if(minX < 0)
                 minX = 0;
@@ -4953,9 +2294,6 @@ public class createCHM{
                 minY = 0;
             if(maxY >= yDim)
                 maxY = yDim - 1;
-
-            //System.out.println(maxX - minX);
-
 
             HashMap<Integer, double[]> pankki = new HashMap<Integer, double[]>();
 
@@ -4985,66 +2323,7 @@ public class createCHM{
 
                 }
             }
-/*
-            for(int i = minX; i <= maxX; i++ ){
 
-               for(int j = minY; j <= maxY; j++ ){
-
-                   waterRaster_band.ReadRaster(i, j, 1, 1, floatArray);
-
-                    if(i != x || j != y){
-
-                        if(!pankki.containsKey((int)floatArray[0]))
-                            pankki.put((int)floatArray[0], new double[]{image.get(i,j).z, 1});
-                        else{
-                            pankki.get((int)floatArray[0])[0] += image.get(i,j).z;
-                            pankki.get((int)floatArray[0])[1] += 1.0;
-                        }
-
-
-
-                        replaceValue = floatArray[0];
-
-                        if(!map.containsKey(replaceValue))
-                            map.put(replaceValue, 1);
-                        else
-                            map.put(replaceValue, map.get(replaceValue) + 1);
-
-                        if(floatArray[0] == v){
-                            
-                            count++;
-
-                        }
-                    }
-                    /*
-                    if(i != x || j != y){
-
-                        if(!pankki.containsKey(waterRaster[i][j]))
-                            pankki.put((int)waterRaster[i][j], new double[]{image.get(i,j).z, 1});
-                        else{
-                            pankki.get((int)waterRaster[i][j])[0] += image.get(i,j).z;
-                            pankki.get((int)waterRaster[i][j])[1] += 1.0;
-                        }
-
-                        replaceValue = waterRaster[i][j];
-
-                        if(!map.containsKey(replaceValue))
-                            map.put(replaceValue, 1);
-                        else
-                            map.put(replaceValue, map.get(replaceValue) + 1);
-
-                        if(waterRaster[i][j] == v){
-
-                            count++;
-
-                        }
-                    }
-
-
-               }
-            }
-                 */
-           
 
            if(count == 1) {
 
@@ -5057,6 +2336,8 @@ public class createCHM{
 
             for(int i : pankki.keySet()){
 
+
+
                 if(i != -999 && i != v && i != -1)
                 if(thisValue - altaat.get(i).zMiddle < minDifference && (i != -999)){
 
@@ -5065,34 +2346,10 @@ public class createCHM{
 
                 }
 
-                /*
-                if(thisValue - pankki.get(i)[0] / pankki.get(i)[1] < minDifference && (i != -999)){
-
-                    minIndexi = i;
-                    minDifference = thisValue - pankki.get(i)[0] / pankki.get(i)[1];
-
-                }
-                */
             }
 
             replaceValue = minIndexi;
 
-            /*
-               Float max = 0.0f;
-               int maxV = 0;
-
-               for(Float key : map.keySet()){
-
-                    if(map.get(key) > maxV){
-
-                        max = key;
-                        maxV = map.get(key);
-
-                    }
-               } 
-
-               replaceValue = max;
-            */
                return true;
 
            }
@@ -5103,79 +2360,116 @@ public class createCHM{
 
         public void refine(){
 
+            int[][] temp = image.raster_id_array.clone();
             //float replaceValue = 0.0f;
 
             for(int i = 1; i < image.xDim - 1; i++){
                 for(int j = 1; j < image.yDim - 1; j++){
 
-                    //waterRaster.put(j, i, image.get(i, j).id);
                     if(isIsolated(i,j)){
+                        floatArray[0] = replaceValue;
+                        temp[i][j] = (int)floatArray[0];
+                    }
+
+                    if(temp[i][j] < 0)
+                        continue;
+
+                    if(isHanging(i,j)){
 
                         floatArray[0] = replaceValue;
-                        waterRaster_band.WriteRaster(i, j, 1, 1, floatArray);
-                        //waterRaster[i][j] = replaceValue;
-                    }
-                    if(isHanging(i,j)){
-                        //System.out.println(replaceValue);
-                        floatArray[0] = replaceValue;
-                        waterRaster_band.WriteRaster(i, j, 1, 1, floatArray);
-                        //waterRaster[i][j] = replaceValue;
+                        temp[i][j] = (int)floatArray[0];
+
                     }
 
                 }
             }
 
+            image.raster_id_array = temp.clone();
+
         }
 			
-		public void export() throws IOException{
+		public void export() throws Exception{
 
-            aR.p_update.threadFile[0] = "waterShed - export";
+            aR.p_update.threadFile[coreNumber-1] = "waterShed - export";
             aR.p_update.threadProgress[coreNumber-1] = -1;
             aR.p_update.threadEnd[coreNumber-1] = -1;
             aR.p_update.updateProgressITD();
 
-
-
-            for(int i = 0; i < image.xDim; i++){
-				for(int j = 0; j < image.yDim; j++){
-
-					//waterRaster.put(j, i, image.get(i, j).id);
-
-                    //waterRaster[i][j] = image.get(i, j).id;
-
-                    //image.raster_id_b.ReadRaster(i, j, 1, 1, floatArray);
-
-                    //System.out.println(image.raster_id_b.getXSize() + " ; " + image.raster_id_b.getYSize() + " == " + i + " ; " + j);
-
-
-                    floatArray[0] = image.raster_id_array[i][j];
-                    waterRaster_band.WriteRaster(i, j, 1, 1, floatArray);
-
-				}
-			}
+            double[] gt = raster_ds.GetGeoTransform();
 
             refine();
+            refine();
+            //waterRaster_band.SetNoDataValue(-999);
+            //waterRaster_band_mask.SetNoDataValue(-999);
+
+            float[] floatArrayRow = new float[image.xDim];
+            float[] floatArrayRow_mask = new float[image.xDim];
+            double[] point_ = new double[3];
+            HashSet<Integer> treesOutsideTile = new HashSet<>();
+            double x_, y_, z_;
+
+            if(aR.remove_buffer_2)
+            if(minx_no_buf > minx || miny_no_buf > miny || maxx_no_buf < maxx || maxy_no_buf < maxy){
+
+                for(int i = 0; i < altaat.size(); i++){
 
 
-			//Imgcodecs.imwrite("watershed.tif", waterRaster);
-/*
-            String tempName1 = "temp1_" + coreNumber + ".tif";
-            String tempName2 = "temp2_" + coreNumber + ".tif";
+                    x_ = altaat.get(i).xMiddle;
+                    y_ = altaat.get(i).yMiddle;
+                    z_ = altaat.get(i).zMiddle;
 
-			gdalE out = new gdalE();
-			File tied = new File(tempName1);
+                    point_[0] = gt[0] + x_ * gt[1] + y_ * gt[2];
+                    point_[1] = gt[3] + x_ * gt[4] + y_ * gt[5];
+                    point_[2] = z_;
 
-			if(tied.exists())
-				tied.delete();
+                    //System.out.println(Arrays.toString(point_));
+                    if(point_[0] < minx_no_buf || point_[0] > maxx_no_buf || point_[1] < miny_no_buf || point_[1] > maxy_no_buf) {
+                        //System.out.println(Arrays.toString(point_));
+                        treesOutsideTile.add(altaat.get(i).id);
+                    }
 
-			out.hei(tempName1, waterRaster);
+                }
 
-            Dataset outputti ;
-*/
-			//String a = "gdal_translate -of GTiff -a_srs EPSG:3067 -a_ullr " + canopy.minX + " " + canopy.maxY + " " + (canopy.minX + canopy.resolution * canopy.numberOfPixelsX) +
-			//" " + (canopy.maxY - canopy.resolution * canopy.numberOfPixelsY) + " water.tif water2.tif";
-			//System.out.println(a);
-        	//String b = "gdal_polygonize.py water2.tif -f \"ESRI Shapefile\" crowns.shp";
+            }
+
+            HashMap<Integer, Integer> this_id_to_unique_id = new HashMap<>();
+
+            boolean[][] mask = new boolean[image.xDim][image.yDim];
+            //boolean[][] mask = new boolean[image.xDim][image.yDim];
+
+            for(int i = 0; i < altaat.size(); i++){
+                this_id_to_unique_id.put(altaat.get(i).id, aR.get_thread_safe_id());
+            }
+
+				for(int y = 0; y < image.yDim; y++){
+                    for(int x = 0; x < image.xDim; x++){
+
+                    if(image.raster_id_array[x][y] < 0 ) {
+                        floatArrayRow[x] = image.raster_id_array[x][y];
+                        floatArrayRow_mask[x] = 0;
+                        mask[x][y] = false;
+                    }else {
+                        floatArrayRow[x] = this_id_to_unique_id.get(image.raster_id_array[x][y]);
+                        floatArrayRow_mask[x] = 1;
+                        mask[x][y] = true;
+                    }
+
+                    if(treesOutsideTile.size() > 0){
+                        if(treesOutsideTile.contains(image.raster_id_array[x][y] )){
+                            //System.out.println("HERE");
+
+                            floatArrayRow_mask[x] = 0;
+                            mask[x][y] = false;
+
+                        }
+
+
+                    }
+
+				}
+                    waterRaster_band.WriteRaster(0, y, image.xDim, 1, floatArrayRow);
+                    waterRaster_band_mask.WriteRaster(0, y, image.xDim, 1, floatArrayRow_mask);
+			}
 
             String tempName = "tempWater" + coreNumber + ".tif";
             String tempName2 = "tempWater2" + coreNumber + ".tif";
@@ -5200,54 +2494,9 @@ public class createCHM{
             Dataset outti = gdaltranslate(tempName2, waterRaster_ds, optit); //gdal.Translate("waterShed.tif", inputdata, optit);
 
             outti.FlushCache();
-            //outti.CommitTransaction();
-            //File tFile1 = new File("water2.tif");
-
-            /*
-			final String command = a;
-			Process p = null;
-			    try {
-			        p = Runtime.getRuntime().exec(command);
-			    } catch (final IOException e) {
-			        e.printStackTrace();
-			    }
-
-			    //Wait to get exit value
-			    try {
-			        p.waitFor();
-			        final int exitValue = p.waitFor();
-			        if (exitValue == 0)
-			            System.out.println("Successfully executed the command: " + command);
-			        else {
-			            System.out.println("Failed to execute the following command: " + command + " due to the following error(s):");
-			            try (final BufferedReader b = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
-			                String line;
-			                if ((line = b.readLine()) != null)
-			                    System.out.println(line);
-			            } catch (final IOException e) {
-			                e.printStackTrace();
-			            }                
-			        }
-			    } catch (InterruptedException e) {
-			        e.printStackTrace();
-			    }
-
-            */
-			//gdalExport2("water.tif", waterRaster);
 
             ogr.RegisterAll(); //Registering all the formats..
             gdal.AllRegister();
-
-            /*
-            try {
-                Thread.sleep(5000);
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-            */
-
-            //tied.delete();
-
 
             String in_file = "tempWater2" + coreNumber + ".tif";
 
@@ -5259,13 +2508,14 @@ public class createCHM{
                 out_file = fo.transferDirectories(new File(out_file), aR.odir).getAbsolutePath();
 
             String driverName = "ESRI Shapefile";
-      
+
             String[]  split2 = out_file.split("/.");
             String out_name = split2[0];
-                
+
             Dataset hDataset = gdal.Open(in_file, gdalconstConstants.GA_ReadOnly);
             Band rasterBand = hDataset.GetRasterBand(1);
-            
+            Band rasterBand_mask = hDataset.GetRasterBand(2);
+
             Driver shpDriver;
             shpDriver = ogr.GetDriverByName(driverName);
 
@@ -5276,32 +2526,15 @@ public class createCHM{
 
             FieldDefn layerFieldDef = new FieldDefn("DN",4);
             outShpLayer.CreateField(layerFieldDef);
-            //FeatureDefn outShpFeatDefn = outShpLayer.GetLayerDefn();
-            //Feature outShpFeat = new Feature(outShpFeatDefn);      
 
-            gdal.Polygonize(rasterBand, null, outShpLayer, 0);
+            gdal.Polygonize(rasterBand, rasterBand_mask, outShpLayer, 0);
 
             String pointCloudName = canopy.pointCloud.getFile().getAbsolutePath();
-
-            //String outPointCloudName = pointCloudName.substring(pointCloudName.lastIndexOf(".")-1) + "_ITD.las";
 
             File outFile = fo.createNewFileWithNewExtension(canopy.pointCloud.getFile(), "_ITD.las");
 
             if(!aR.odir.equals("asd"))
                 outFile = fo.transferDirectories(outFile, aR.odir);
-
-            //File tFile = new File("waterShed.shp");
-
-            //System.out.println(isCompletelyWritten(tFile));
-
-            //while(!isCompletelyWritten(tFile)){
-
-
-            //}
-
-           // new File(tempName2).delete();
-           // new File(tempName2 + ".aux.xml").delete();
-
 
             outShp.delete();
 
@@ -5315,118 +2548,166 @@ public class createCHM{
             deleteFile2.delete();
             deleteFile22.delete();
 
-            if(outFile.exists())
-                outFile.delete();
+            if(!aR.skeleton_output) {
+                if (outFile.exists())
+                    outFile.delete();
 
-            outFile.createNewFile();
+                outFile.createNewFile();
 
-            LASraf raOutput = new LASraf(outFile);
+                LASReader p_cloud = new LASReader(new File(pointCloudName));
+                aR.add_extra_bytes(6, "ITC_id", "ID for an ITC segment");
 
-            LASReader reader = new LASReader(new File(pointCloudName));
-            PointInclusionRule rule = new PointInclusionRule();
-
-            LASwrite.writeHeader(raOutput, "lasITD", reader.versionMajor, reader.versionMinor,
-                    reader.pointDataRecordFormat, reader.pointDataRecordLength,
-                    reader.headerSize, reader.offsetToPointData, reader.numberVariableLengthRecords,
-                    reader.fileSourceID, reader.globalEncoding,
-                    reader.xScaleFactor, reader.yScaleFactor, reader.zScaleFactor,
-                    reader.xOffset, reader.yOffset, reader.zOffset);
+                int thread_n = aR.pfac.addReadThread(p_cloud);
 
 
-            long n = reader.getNumberOfPointRecords();
+                pointWriterMultiThread pw = new pointWriterMultiThread(outFile, p_cloud, "las2las", aR);
 
-            LasPoint tempPoint = new LasPoint();
+                LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
-            long pointCount = 0;
+                aR.pfac.addWriteThread(thread_n, pw, buf);
 
-            int x = 0;
-            int y = 0;
+                LasPoint tempPoint = new LasPoint();
+
+                long pointCount = 0;
+
+                int x = 0;
+                int y = 0;
 
 
-            for(double[] key : treeTops) {
+                for (double[] key : treeTops) {
 
-                image.treeTop((int)key[0], (int)key[1]);
-
-            }
-
-            boolean good = false;
-
-            boolean poly = this.polyBank.size() > 0;
-
-            double[] haku = new double[2];
-
-            HashSet<Integer> rejected = new HashSet<>();
-
-            if(poly) {
-                for (int i = 0; i < altaat.size(); i++) {
-
-                    haku[0] = canopy.minX + altaat.get(i).xMiddle * canopy.resolution + (canopy.resolution /2.0);
-                    haku[1] = canopy.maxY - altaat.get(i).yMiddle * canopy.resolution - (canopy.resolution /2.0);
-
-                    if (insidePolygons(haku) && waterbodyAreas.get(altaat.get(i).id) > 1.0f) {
-                        rejected.add(altaat.get(i).id);
-                    }
-
+                    image.treeTop((int) key[0], (int) key[1]);
 
                 }
-            }
 
-            //System.out.println("rejected size: " + rejected.size());
+                boolean good = false;
 
+                boolean poly = this.polyBank.size() > 0;
+
+                double[] haku = new double[2];
+
+                HashSet<Integer> rejected = new HashSet<>();
+
+                if (poly) {
+                    for (int i = 0; i < altaat.size(); i++) {
+
+                        haku[0] = canopy.minX + altaat.get(i).xMiddle * canopy.resolution + (canopy.resolution / 2.0);
+                        haku[1] = canopy.maxY - altaat.get(i).yMiddle * canopy.resolution - (canopy.resolution / 2.0);
+
+                        if (insidePolygons(haku) && waterbodyAreas.get(altaat.get(i).id) > 1.0f) {
+                            rejected.add(altaat.get(i).id);
+                        }
+
+
+                    }
+                }
+
+                boolean remove_buffer = aR.remove_buffer_2;
+
+                /* This tool is a special case for "remove_buffer"
+                *
+                *   If we want to remove buffer, we actually want to keep
+                *   the buffer points of ITC segments that have a treetop
+                *   not in the buffer zone. So let's override the aR.
+                *   remove buffer argument.
+                *
+                *  */
+                //if(remove_buffer)
+                //    aR.remove_buffer = false;
+
+                //System.out.println("rejected size: " + rejected.size());
+                for (int i = 0; i < p_cloud.getNumberOfPointRecords(); i += 200000) {
+
+                    int maxi = (int) Math.min(200000, Math.abs(p_cloud.getNumberOfPointRecords() - i));
+
+                    aR.pfac.prepareBuffer(thread_n, i, 200000);
+
+                    for (int j = 0; j < maxi; j++) {
+
+                        p_cloud.readFromBuffer(tempPoint);
+
+                        if (!aR.inclusionRule.ask(tempPoint, i + j, true)) {
+                            continue;
+                        }
+/*
             for(long i = 0; i < n; i++){
 
                 reader.readRecord(i, tempPoint);
 
-                x = Math.max((int)((tempPoint.x - canopy.minX) / canopy.resolution - 1), 0);   //X INDEX
-                y = Math.max((int)((canopy.maxY - tempPoint.y) / canopy.resolution - 1), 0);
+ */
+                        x = Math.min((int) ((tempPoint.x - canopy.minX) / canopy.resolution), canopy.numberOfPixelsX - 1);   //X INDEX
+                        y = Math.min((int) ((canopy.maxY - tempPoint.y) / canopy.resolution), canopy.numberOfPixelsY - 1);
 
-                image.raster_id_b.ReadRaster(x, y, 1, 1, floatArray);
+                        floatArray[0] = image.raster_id_array[x][y];
 
-                //System.out.println("HERE!! " + rejected.size() + " " + polyBank.size());
-/*
-                if(poly){
+                        if (rejected.contains((int) floatArray[0]) || !poly) {
 
+                            if (floatArray[0] >= 0) {
 
-                    haku[0] = canopy.minX + x * (double)canopy.resolution + ((double)canopy.resolution/2.0);
-                    haku[1] = canopy.maxY - y * (double)canopy.resolution - ((double)canopy.resolution/2.0);
+                                if (image.isTreeTop(x, y)) {
+                                    tempPoint.classification = 15;
+                                }
 
-                    good = insidePolygons(haku);
+                                /** This WILL overflow at larger areas */
+                                tempPoint.pointSourceId = (short) (floatArray[0] + 1);
 
-                }else{
-                    good = true;
-                }
-*/
+                                /** This will definitely not overflow at larger areas */
+                                tempPoint.gpsTime = (double) (floatArray[0] + 1);
 
-                if(rejected.contains((int)floatArray[0]) || !poly) {
+                                tempPoint.setExtraByteINT((int)(floatArray[0] + 1), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
 
-                    if (floatArray[0] >= 0) {
+                            } else {
+                                tempPoint.pointSourceId = 0;
+                                tempPoint.gpsTime = 0;
 
-                        if (image.isTreeTop(x, y)) {
-                            tempPoint.synthetic = true;
+                            }
                         }
 
-                        tempPoint.pointSourceId = (short) (floatArray[0] + 1);
+                        try {
 
-                        if (raOutput.writePoint(tempPoint, rule, reader.xScaleFactor, reader.yScaleFactor, reader.zScaleFactor,
-                                reader.xOffset, reader.yOffset, reader.zOffset, reader.pointDataRecordFormat, 0))
-                            pointCount++;
+                            /* Output only the points inside non-synthetic points that belong to a ITC segment */
+                            if(aR.output_only_itc_segments && remove_buffer){
 
-                    } else {
-                        tempPoint.pointSourceId = 0;
+                                if(mask[x][y] && !treesOutsideTile.contains((int)floatArray[0]))
+                                    aR.pfac.writePoint(tempPoint, i + j, thread_n);
 
-                        if (raOutput.writePoint(tempPoint, rule, reader.xScaleFactor, reader.yScaleFactor, reader.zScaleFactor,
-                                reader.xOffset, reader.yOffset, reader.zOffset, reader.pointDataRecordFormat, 0))
-                            pointCount++;
+                            }
+                            else if(aR.output_only_itc_segments && !remove_buffer){
+
+                                if(mask[x][y])
+                                    aR.pfac.writePoint(tempPoint, i + j, thread_n);
+
+                            }else if(!aR.output_only_itc_segments && remove_buffer){
+
+                                if(!treesOutsideTile.contains((int)floatArray[0]))
+                                    aR.pfac.writePoint(tempPoint, i + j, thread_n);
+
+                            }else{
+                                aR.pfac.writePoint(tempPoint, i + j, thread_n);
+                            }
+
+                            //if(!treesOutsideTile.contains((int)floatArray[0]))
+                            //
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
                     }
                 }
-            }
 
+
+/*
             raOutput.writeBuffer2();
             raOutput.updateHeader2();
             raOutput.close();
+*/
+                aR.pfac.closeThread(thread_n);
+
+
+            }
 
             image.deleteTempFiles();
-
             aR.p_update.fileProgress++;
 
 
@@ -5505,9 +2786,15 @@ public class createCHM{
         float[][] bankB;
 
 		double minX = 0.0;
+		double minX_no_buf = Double.MAX_VALUE;
 		double maxX = 0.0;
+		double maxX_no_buf = Double.MIN_VALUE;
 		double minY = 0.0;
+		double minY_no_buf = Double.MAX_VALUE;
 		double maxY = 0.0;
+		double maxY_no_buf = Double.MIN_VALUE;
+
+
 
 		HashSet<Long> treeTopBank = new HashSet<Long>();
 
@@ -5629,10 +2916,10 @@ public class createCHM{
 
 		public void establish() throws IOException{
 
-			minX = (pointCloud.getMinX());
-			maxX = (pointCloud.getMaxX());
-			minY = (pointCloud.getMinY());
-			maxY = (pointCloud.getMaxY());
+			minX = Math.floor(pointCloud.getMinX());
+			maxX = Math.ceil(pointCloud.getMaxX());
+			minY = Math.floor(pointCloud.getMinY());
+			maxY = Math.ceil(pointCloud.getMaxY());
 
 
 			numberOfPixelsX = (int)Math.ceil((maxX - minX) / resolution);
@@ -5745,12 +3032,12 @@ public class createCHM{
 
             MaxSizeHashMap<Integer, Float> map = new MaxSizeHashMap<>(100000);
 
-            for(int i = 0; i < n; i += 10000) {
+            for(int i = 0; i < n; i += 200000) {
 
-                int maxi = (int) Math.min(10000, Math.abs(n - i));
+                int maxi = (int) Math.min(200000, Math.abs(n - i));
 
                 try {
-                    pointCloud.readRecord_noRAF(i, tempPoint, 10000);
+                    pointCloud.readRecord_noRAF(i, tempPoint, 200000);
                 }catch (Exception e){
                     e.printStackTrace();
                 }
@@ -5764,6 +3051,17 @@ public class createCHM{
                  */
                     if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
                         continue;
+                    }
+
+                    if(!tempPoint.synthetic) {
+                        if (tempPoint.x < this.minX_no_buf)
+                            this.minX_no_buf = tempPoint.x;
+                        if (tempPoint.x > this.maxX_no_buf)
+                            this.maxX_no_buf = tempPoint.x;
+                        if (tempPoint.y < this.minY_no_buf)
+                            this.minY_no_buf = tempPoint.y;
+                        if (tempPoint.y > this.maxY_no_buf)
+                            this.maxY_no_buf = tempPoint.y;
                     }
 
                     if(dz_on_the_fly){
@@ -5800,8 +3098,8 @@ public class createCHM{
                     count++;
 
 
-                    temppi[0] = Math.max((int)((tempPoint.x - minX) / resolution - 1), 0);   //X INDEX
-                    temppi[1] = Math.max((int)((maxY - tempPoint.y) / resolution - 1), 0);
+                    temppi[0] = Math.min((int)((tempPoint.x - minX) / resolution), numberOfPixelsX-1);   //X INDEX
+                    temppi[1] = Math.min((int)((maxY - tempPoint.y) / resolution), numberOfPixelsY-1);
 /*
                     System.out.println(tempPoint + " \n" + maxX + " " + minY + " " + Arrays.toString(temppi) + " " + ((tempPoint.y - minY)/resolution));
 
@@ -5920,6 +3218,7 @@ public class createCHM{
 
 			}
 
+
             long tEnd = System.currentTimeMillis();
             long tDelta = tEnd - tStart;
 
@@ -5994,7 +3293,7 @@ public class createCHM{
             chauvenets.put(9, 1.915f);
 
             float maxDifference = 2.0f;
-            if(true)
+            if(aR.pitFree)
             for(int iter = 0; iter < num_iter; iter++){
 
                 ArrayList<int[]> indexes_to_set_nan = new ArrayList<>();
@@ -6004,14 +3303,19 @@ public class createCHM{
 
                 int n_ = 1;
 
-                TreeSet<Float> ts_f = new TreeSet<>();
                 //ArrayList<Float> ts_f_surroundings = new ArrayList<>();
 
-                int x_, y_;
+                //int x_, y_;
 
-                int count_x = 0, count_y = 0;
+               // int count_x = 0, count_y = 0;
 
-                for (int y = n_; y < (height - n_); y++) {
+                //for (int y = n_; y < (height - n_); y++) {
+
+                /** TODO: LOADS OF THINGS TO OPTIMIZE HERE!!!! THIS IS JUST STUPID IMPLEMENTATION. */
+                IntStream.range(n_, (height - n_)).parallel().forEach(y -> {
+
+                    float value = 0;
+
                     for (int x = n_; x < (width - n_); x++) {
 
                         int minX = x - n_;
@@ -6021,15 +3325,18 @@ public class createCHM{
 
                         ArrayList<Float> list = new ArrayList<Float>();
 
-                        ts_f.clear();
-
-                        count_x = 0;
-                        count_y = 0;
+                        int count_x = 0;
+                        int count_y = 0;
 
                         int[] kernel_indexes = new int[9];
                         float[] ke = new float[9];
                         ArrayList<Float> numarray = new ArrayList<>();
                         ArrayList<Float> numarray_surroundings = new ArrayList<>();
+
+                        runningMedian median_all = new runningMedian();
+                        runningMedian median_surroundings_ = new runningMedian();
+                        runningMedian median_MAD = new runningMedian();
+
 
                         for (int h = minX; h <= maxX; h++) {
                             //count_x++;
@@ -6037,8 +3344,8 @@ public class createCHM{
 
                                 count_y++;
 
-                                x_ = h;
-                                y_ = u;
+                                int x_ = h;
+                                int y_ = u;
 
                                 if (x_ < 0)
                                     x_ = 0;
@@ -6049,23 +3356,23 @@ public class createCHM{
                                 if (y_ > (height - 1))
                                     y_ = height - 1;
 
-                                floatArray[0] = (float)chm_array[x_][y_];
+                                value = (float)chm_array[x_][y_];
                                 //band.ReadRaster(x_, y_, 1, 1, floatArray);
 
                                 //System.out.println("count_y: " + count_y);
-                                ke[count_y - 1] = floatArray[0];
+                                ke[count_y - 1] = value;
 
-                                if (!Float.isNaN(floatArray[0])) { // (x != j || y != i) &&
+                                if (!Float.isNaN(value)) { // (x != j || y != i) &&
 
-                                    kernel_indexes[ts_f.size()] = count_y;
-
-                                    ts_f.add(floatArray[0]);
+                                    kernel_indexes[numarray.size()] = count_y;
 
                                     if(count_y != 5){
-                                        numarray_surroundings.add(floatArray[0]);
+                                        numarray_surroundings.add(value);
+                                        //median_surroundings_.add(floatArray[0]);
                                     }
 
-                                    numarray.add(floatArray[0]);
+                                    //median_all.add(floatArray[0]);
+                                    numarray.add(value);
 
                                 }
                             }
@@ -6077,17 +3384,8 @@ public class createCHM{
 
                        // Arrays.sort(ke);
 
-                        Collections.sort(numarray_surroundings);
-
-                        double median_surroundings;
-
-                        if (numarray_surroundings.size() % 2 == 0)
-                            median_surroundings = ((double)numarray_surroundings.get(numarray_surroundings.size()/2) + (double)numarray_surroundings.get(numarray_surroundings.size()/2 - 1))/2;
-                        else
-                            median_surroundings = (double) numarray_surroundings.get(numarray_surroundings.size()/2);
-
-
                         Collections.sort(numarray);
+
                         double median;
                        /*
                         if (ke.length % 2 == 0)
@@ -6101,10 +3399,24 @@ public class createCHM{
                             median = (double) numarray.get(numarray.size()/2);
 
 
+                        Collections.sort(numarray_surroundings);
+
+                        double median_surroundings;
+
+                        if (numarray_surroundings.size() % 2 == 0)
+                            median_surroundings = ((double)numarray_surroundings.get(numarray_surroundings.size()/2) + (double)numarray_surroundings.get(numarray_surroundings.size()/2 - 1))/2;
+                        else
+                            median_surroundings = (double) numarray_surroundings.get(numarray_surroundings.size()/2);
+
+
+
+                        //System.out.println(median + " == " + median_all.median());
+                        //System.out.println(median_surroundings + " == " + median_surroundings_.median());
 
                         //float[] ke2 = new float[ke.length];
 
-
+                        //median = median_all.median();
+                        //median_surroundings = median_surroundings_.median();
 
                         ArrayList<Float> numarray2 = new ArrayList<>();
 
@@ -6112,6 +3424,7 @@ public class createCHM{
 
                             numarray2.add((float)Math.abs(numarray.get(i) - median));
 
+                            //median_MAD.add((float)Math.abs(numarray.get(i) - median));
                         }
 
 
@@ -6131,6 +3444,7 @@ public class createCHM{
                             MAD = (double) numarray2.get(numarray2.size()/2);
 
 
+                        //MAD = median_MAD.median();
 
                         int n_outliers = 0;
                         boolean center_outlier = false;
@@ -6237,13 +3551,15 @@ public class createCHM{
 */
                         if(n_outliers <= 4 && center_outlier && median > 2){
 
-                            indexes_to_set_nan.add(new int[]{x,y});
+                            //indexes_to_set_nan.add(new int[]{x,y});
+                            addToArrayList(indexes_to_set_nan, new int[]{x,y});
 
                         }else if(n_outliers > 4 && center_outlier){
 
                             /* This probably means that the surrounding stuff is VERY flat*/
                             if((median_surroundings - ke[4]) > 5.0)
-                                indexes_to_set_nan.add(new int[]{x,y});
+                                //indexes_to_set_nan.add(new int[]{x,y});
+                                addToArrayList(indexes_to_set_nan, new int[]{x,y});
 
                         }
 
@@ -6280,7 +3596,7 @@ public class createCHM{
 
                      */
                     }
-                }
+                });
 
                 floatArray[0] = Float.NaN;
 
@@ -6365,6 +3681,12 @@ public class createCHM{
             
 
             return output;
+
+        }
+
+        public synchronized void addToArrayList(ArrayList<int[]> indexes_to_set_nan, int[] add){
+
+            indexes_to_set_nan.add(add);
 
         }
 
@@ -7170,12 +4492,15 @@ public class createCHM{
          */
         public boolean isTreeTop(Band input, int x, int y){
 
-            band.ReadRaster(x, y, 1, 1, floatArray);
+            //band.ReadRaster(x, y, 1, 1, floatArray);
 
 
-            float zMiddle = floatArray[0];
+            //float zMiddle = floatArray[0];
+            float zMiddle = (float)chm_array[x][y];
 
-            if(zMiddle < 4.0f || Double.isNaN(zMiddle))
+            //System.out.println(zMiddle  + " " + floatArray[0]);
+
+            if(zMiddle < 5.0f || Double.isNaN(zMiddle))
                 return false;
 
             double kernel_size_meters = 1.1 + 0.002 * (zMiddle*zMiddle);
@@ -7204,7 +4529,7 @@ public class createCHM{
                 kernelSize = 1;
 
 
-            zMiddle = floatArray[0];
+            //zMiddle = floatArray[0];
 
             if(zMiddle <= 0)
                 return false;
@@ -7251,7 +4576,8 @@ public class createCHM{
                     if (y_ > (band.getYSize()  - 1))
                         y_ = band.getYSize()  - 1;
 
-                    band.ReadRaster(x_, y_, 1, 1, floatArray);
+                    //band.ReadRaster(x_, y_, 1, 1, floatArray);
+                    floatArray[0] = (float)chm_array[x_][y_];
 
                     if(count++ != (int)((kernelSize * 2 + 1) * (kernelSize * 2 + 1) / 2) && !Float.isNaN(floatArray[0])){
 
@@ -7445,7 +4771,10 @@ public class createCHM{
                     //if(isTreeTop(output2, i, j, kernelSize)){
                     if(isTreeTop(band, i, j)){
 
-                        band.ReadRaster(i, j, 1, 1, floatArray);
+                        //band.ReadRaster(i, j, 1, 1, floatArray);
+
+                        floatArray[0] = (float)chm_array[i][j];
+
 						double[] temp = new double[3];
 						temp[0] = i;
 						temp[1] = j;
@@ -7473,9 +4802,6 @@ public class createCHM{
 
 				}
 
-                //System.out.println("ROW:  " + i + " " + endX);
-                //System.out.println("ROW:  " + i + " " + endX);
-                //System.out.println("ROW:  " + i + " " + endX);
                 //System.out.println("ROW:  " + i + " " + endX);
 			}
 			//System.out.println(treeTopBank.size());
@@ -7537,7 +4863,7 @@ public class createCHM{
             if(aR.lasrelate)
                 aR.interpolate = false;
 
-            filtered = gdalE.hei("tempFilter_" + this.coreNumber + ".tif", cehoam.getRasterYSize(), cehoam.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
+            //filtered = gdalE.hei("tempFilter_" + this.coreNumber + ".tif", cehoam.getRasterYSize(), cehoam.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
 
 
             if(interpolation){

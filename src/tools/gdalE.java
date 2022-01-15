@@ -240,6 +240,68 @@ class gdalE {
 
     }
 
+    public static Dataset hei(String filename, int xDim, int yDim, float value, int layers){
+
+        //ogr.RegisterAll(); //Registering all the formats..
+        //gdal.AllRegister();
+
+        Dataset dataset = null;
+        Driver driver = null;
+        Band band = null;
+
+
+        int METHOD_DBB = 1;
+        int METHOD_JAVA_ARRAYS = 2;
+        int method = 2;
+
+
+        int xsize = yDim;
+        int ysize = xDim;
+
+        int nbIters = 1;
+
+        driver = gdal.GetDriverByName("GTiff");
+
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4 * xsize);
+        byteBuffer.order(ByteOrder.nativeOrder());
+        FloatBuffer floatBuffer = byteBuffer.asFloatBuffer();
+
+        int[] intArray = new int[xsize];
+        float[] floatArray = new float[xsize];
+
+        //int a = gdalconst.GDT_Float32 == 1 ? 1 : 2;
+
+        //System.out.println(filename);
+        dataset = driver.Create(filename, xsize, ysize, layers, gdalconst.GDT_Float32);
+
+        for(int i_ = 1; i_ <= layers; i_++) {
+            band = dataset.GetRasterBand(i_);
+            if(i_ == 1)
+            band.SetNoDataValue(Float.NaN);
+
+            for (int iter = 0; iter < nbIters; iter++) {
+                if (method == METHOD_DBB) {
+                    for (int i = 0; i < ysize; i++) {
+                        for (int j = 0; j < xsize; j++) {
+                            floatBuffer.put(j, (float) (i + j));
+                        }
+                        band.WriteRaster_Direct(0, i, xsize, 1, gdalconst.GDT_Float32, byteBuffer);
+                    }
+                } else {
+                    for (int i = 0; i < ysize; i++) {
+                        for (int j = 0; j < xsize; j++) {
+                            floatArray[j] = value;// in.get(i, j)[0];
+                            //System.out.println(in[j][i]);
+                        }
+                        band.WriteRaster(0, i, xsize, 1, floatArray);
+                    }
+                }
+            }
+        }
+        //dataset.delete();
+        return dataset;
+
+    }
 
     public static void hei(String filename, ArrayList<float[][]> in, int layers){
 

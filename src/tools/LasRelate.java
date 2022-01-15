@@ -255,7 +255,6 @@ public class LasRelate{
                 LASReader tempReader = pointCloudsToRelate.get(i);
 
                 String outNameG = fo.createNewFileWithNewExtension(tempReader.getFile(), "_ground.las").getAbsolutePath();
-                //tempReader.getFile().getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_ground.las";
 
                 File tempG = new File(outNameG);
 
@@ -301,10 +300,6 @@ public class LasRelate{
                 //ArrayList<Integer> overlapping = new ArrayList<Integer>();
 
                 org.tinfour.standard.IncrementalTin tempTinReference = new org.tinfour.standard.IncrementalTin();
-
-
-
-
 
 
                 for(int j : overlapping){

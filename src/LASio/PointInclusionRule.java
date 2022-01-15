@@ -156,7 +156,6 @@ public class PointInclusionRule{
 
 	public PointInclusionRule(){
 
-
 	}
 
 	/**
@@ -221,6 +220,13 @@ public class PointInclusionRule{
 
 		this.remove_buffer = true;
 		this.have_drop_rule = true;
+	}
+
+	public void undoRemoveBuffer(){
+
+		this.remove_buffer = false;
+		this.have_drop_rule = false;
+
 	}
 
 	public void dropZBelow(double in){

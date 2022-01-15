@@ -1,5 +1,12 @@
 package LASio;
 
+import org.apache.commons.math3.fitting.GaussianCurveFitter;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class LasPoint implements Cloneable {
     /** The position within the file at which the record is stored */
     public long filePosition;
@@ -73,18 +80,132 @@ public class LasPoint implements Cloneable {
 
     public float z_t;
 
+
+
+    /* We should only define the extra bytes that we are actually using
+
+     */
+    ByteBuffer buffer = ByteBuffer.allocateDirect(4);
+
+
+    /* If we don't care for the extra bytes */
+    public ArrayList<byte[]> extra_bytes = new ArrayList<>();
+    public ArrayList<byte[]> extra_bytes_custom = new ArrayList<>();
+
     public void setClassification(int in){
 
         this.classification = in;
 
     }
-    /*
-    
-    */
+
     public LasPoint(){
 
+        //buffer.order(ByteOrder.BIG_ENDIAN);
 
     }
+
+    public LasPoint(ArrayList<Integer> extra_bytes_length){
+
+        for(int i : extra_bytes_length)
+            this.extra_bytes.add(new byte[i]);
+
+    }
+
+    public void addExraByte(int n){
+
+        this.extra_bytes.add(new byte[n]);
+
+    }
+
+    public void setExtraByteINT(int in, int bytes, int whichOne){
+
+        if(extra_bytes_custom.size() <= whichOne){
+            while(extra_bytes_custom.size() <= whichOne)
+                extra_bytes_custom.add(new byte[0]);
+        }
+
+        //System.out.println(extra_bytes_custom.size());
+
+        extra_bytes_custom.set(whichOne,ByteBuffer.allocate(bytes).order(ByteOrder.LITTLE_ENDIAN).putInt(in).array());
+        //System.out.println(ByteBuffer.wrap(extra_bytes_custom.get(0)).getInt());
+
+    }
+
+
+
+    public void setExtraByteSHORT(short in, int bytes, int whichOne){
+
+        if(extra_bytes_custom.size() <= whichOne){
+            while(extra_bytes_custom.size() <= whichOne)
+                extra_bytes_custom.add(new byte[0]);
+        }
+
+        //System.out.println(extra_bytes_custom.size());
+
+        extra_bytes_custom.set(whichOne,buffer.allocate(bytes).putShort(in).array());
+
+        //System.out.println(ByteBuffer.wrap(extra_bytes_custom.get(0)).getInt());
+
+    }
+
+    public void setExtraByteLONG(long in, int bytes){
+
+        if(extra_bytes_custom.size() == 0){
+            extra_bytes_custom.add(new byte[0]);
+        }
+
+        extra_bytes_custom.set(0,buffer.allocate(bytes).putLong(in).array());
+        //System.out.println(ByteBuffer.wrap(extra_bytes_custom.get(0)).getInt());
+
+    }
+
+    public void setExtraByteDOUBLE(double in, int bytes){
+
+        if(extra_bytes_custom.size() == 0){
+            extra_bytes_custom.add(new byte[0]);
+        }
+
+        extra_bytes_custom.set(0,buffer.allocate(bytes).putDouble(in).array());
+        //System.out.println(ByteBuffer.wrap(extra_bytes_custom.get(0)).getInt());
+
+    }
+
+    public void setExtraByteFLOAT(float in, int bytes){
+
+        if(extra_bytes_custom.size() == 0){
+            extra_bytes_custom.add(new byte[0]);
+        }
+
+        extra_bytes_custom.set(0,buffer.allocate(bytes).putFloat(in).array());
+        //System.out.println(ByteBuffer.wrap(extra_bytes_custom.get(0)).getInt());
+
+    }
+
+    public int getExtraByteInt(int whichOne){
+
+        return ByteBuffer.wrap(extra_bytes.get(whichOne)).order(ByteOrder.LITTLE_ENDIAN).getInt();
+
+    }
+
+    public int getExtraByteInt_custom(int whichOne){
+
+        return ByteBuffer.wrap(extra_bytes_custom.get(whichOne)).order(ByteOrder.BIG_ENDIAN).getInt();
+
+    }
+
+    public short getExtraByteShort(int whichOne){
+
+        return ByteBuffer.wrap(extra_bytes.get(whichOne)).order(ByteOrder.LITTLE_ENDIAN).getShort();
+
+    }
+
+    public float getExtraByteFloat(int whichOne){
+
+        return ByteBuffer.wrap(extra_bytes.get(whichOne)).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+
+    }
+
+
     
     public LasPoint(LasPoint another) {
 
@@ -130,5 +251,7 @@ public class LasPoint implements Cloneable {
         return this.gpsTime;
 
     }
+
+
 
 }

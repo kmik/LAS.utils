@@ -2,12 +2,8 @@ package runners;
 
 import java.io.*;
 import java.util.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 
-import java.awt.Shape;
-import java.awt.geom.Area;
 import java.awt.geom.Path2D;
 
 import java.util.concurrent.BlockingQueue;
@@ -230,7 +226,7 @@ class MKid4pointsLAS{
     }
 
 
-    public static ArrayList<double[][]> readPolygonsFromWKT(String fileName, ArrayList<Integer> plotID1){
+    public static ArrayList<double[][]> readPolygonsFromWKT(String fileName, ArrayList<Integer> plotID1) throws Exception{
 
         ArrayList<double[][]> output = new ArrayList<>();
         String line1;
@@ -301,7 +297,7 @@ class MKid4pointsLAS{
 
 
         }catch( IOException ioException ) {
-            ioException.printStackTrace();
+            //ioException.printStackTrace();
         }
 
         return output;
@@ -944,49 +940,11 @@ class MKid4pointsLAS{
 
                             if(asd.indexContainsStuff()) {
 
-                                /*
-                                for (int u = 0; u < asd.queriedIndexes2.size(); u++) {
-
-                                    long n1 = asd.queriedIndexes2.get(u)[1] - asd.queriedIndexes2.get(u)[0];
-                                    long n2 = asd.queriedIndexes2.get(u)[1];
-
-                                    int parts = (int) Math.ceil((double) n1 / 20000.0);
-                                    int jako = (int) Math.ceil((double) n1 / (double) parts);
-
-                                    int ero;
-
-                                    for (int c = 1; c <= parts; c++) {
-
-                                        if (c != parts) {
-                                            pienin = (c - 1) * jako;
-                                            suurin = c * jako;
-                                        } else {
-                                            pienin = (c - 1) * jako;
-                                            suurin = (int) n1;
-                                        }
-
-                                        pienin = pienin + asd.queriedIndexes2.get(u)[0];
-                                        suurin = suurin + asd.queriedIndexes2.get(u)[0];
-
-                                        ero = suurin - pienin + 1;
-
-                                        asd.readRecord_noRAF(pienin, tempPoint, ero);
-
-                                        for (int p = pienin; p <= suurin; p++) {
-*/
                                         int p = 0;
 
                                         while(!asd.index_read_terminated){
 
                                             p = asd.fastReadFromQuery(tempPoint);
-
-                                            //System.out.println(p);
-                                            //System.out.println(tempPoint.x + " " + tempPoint.y);
-                                            //if (!doneIndexes.contains(p)) {
-
-                                                //asd.readFromBuffer(tempPoint);
-
-                                              //  doneIndexes.add(p);
 
                                                 haku[0] = tempPoint.x;
                                                 haku[1] = tempPoint.y;
@@ -995,7 +953,8 @@ class MKid4pointsLAS{
 
                                                     if (otype.equals("las")) {
 
-                                                        tempPoint.pointSourceId = plotID.get(j).shortValue();
+                                                        //tempPoint.pointSourceId = plotID.get(j).shortValue();
+                                                        tempPoint.setExtraByteINT(plotID.get(j), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
 
                                                         if (aR.omet) {
 
@@ -1138,7 +1097,7 @@ class MKid4pointsLAS{
 
                                                 //tempPoint.pointSourceId = plotID.get(j).shortValue();
                                                 //tempPoint.gpsTime = plotID.get(j).doubleValue();
-
+                                                tempPoint.setExtraByteINT(plotID.get(j), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
                                                 //System.out.println(tempPoint.gpsTime);
                                                 //LasPoint clonePoint = (LasPoint) tempPoint.clone();
                                                 //queueLAS.put(clonePoint);

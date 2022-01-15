@@ -7,6 +7,7 @@ import LASio.PointInclusionRule;
 import err.toolException;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
+import org.jetbrains.annotations.NotNull;
 import tools.*;
 import utils.*;
 
@@ -15,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.concurrent.BlockingQueue;
 
 import static runners.MKid4pointsLAS.clipPlots_singleLASfile;
 import static runners.MKid4pointsLAS.readPolygonsFromWKT;
@@ -26,102 +26,6 @@ public class RunLASutils {
     public static fileOperations fo = new fileOperations();
     public static listOfFiles tiedostoLista = new listOfFiles();
     public static RunId4pointsLAS.ThreadProgressBar proge = new RunId4pointsLAS.ThreadProgressBar();
-
-    /**
-     * Method to erase the line and print a progress
-     * bar based on the input.
-     *
-     * @param paatos Maximum value
-     * @param proge  Current progress
-     * @param nimi   Name of the process
-     */
-
-    public static void progebar(int paatos, int proge, String nimi) {
-        System.out.print("\033[2K"); // Erase line content
-        if (proge < 0.05 * paatos) System.out.print(nimi + "   |                    |\r");
-        if (proge >= 0.05 * paatos && proge < 0.10 * paatos)
-            System.out.print(nimi + "   |#                   |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.10 * paatos && proge < 0.15 * paatos)
-            System.out.print(nimi + "   |##                  |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.15 * paatos && proge < 0.20 * paatos)
-            System.out.print(nimi + "   |###                 |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.20 * paatos && proge < 0.25 * paatos)
-            System.out.print(nimi + "   |####                |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.25 * paatos && proge < 0.30 * paatos)
-            System.out.print(nimi + "   |#####               |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.30 * paatos && proge < 0.35 * paatos)
-            System.out.print(nimi + "   |######              |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.35 * paatos && proge < 0.40 * paatos)
-            System.out.print(nimi + "   |#######             |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.40 * paatos && proge < 0.45 * paatos)
-            System.out.print(nimi + "   |########            |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.45 * paatos && proge < 0.50 * paatos)
-            System.out.print(nimi + "   |#########           |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.50 * paatos && proge < 0.55 * paatos)
-            System.out.print(nimi + "   |##########          |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.55 * paatos && proge < 0.60 * paatos)
-            System.out.print(nimi + "   |###########         |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.60 * paatos && proge < 0.65 * paatos)
-            System.out.print(nimi + "   |############        |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.65 * paatos && proge < 0.70 * paatos)
-            System.out.print(nimi + "   |#############       |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.70 * paatos && proge < 0.75 * paatos)
-            System.out.print(nimi + "   |##############      |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.75 * paatos && proge < 0.80 * paatos)
-            System.out.print(nimi + "   |###############     |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.80 * paatos && proge < 0.85 * paatos)
-            System.out.print(nimi + "   |################    |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.85 * paatos && proge < 0.90 * paatos)
-            System.out.print(nimi + "   |#################   |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.90 * paatos && proge < 0.95 * paatos)
-            System.out.print(nimi + "   |##################  |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.95 * paatos && proge < 0.97 * paatos)
-            System.out.print(nimi + "   |################### |  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-        if (proge >= 0.97 * paatos && proge <= 1 * paatos)
-            System.out.print(nimi + "   |####################|  " + Math.round(((double) proge / (double) paatos) * 100) + "%\r");
-
-
-    }
-
-    public static int[] split(int x, int n) {
-
-        int[] output = new int[n];
-// If we cannot split the
-// number into exactly 'N' parts
-
-        if (x < n)
-            System.out.print("-1 ");
-
-
-            // If x % n == 0 then the minimum
-            // difference is 0 and all
-            // numbers are x / n
-        else if (x % n == 0) {
-            for (int i = 0; i < n; i++) {
-                output[i] = x / n;
-
-            }
-            return output;
-            //System.out.print((x/n)+" ");
-        } else {
-
-            // upto n-(x % n) the values
-            // will be x / n
-            // after that the values
-            // will be x / n + 1
-            int zp = n - (x % n);
-            int pp = x / n;
-            for (int i = 0; i < n; i++) {
-
-                if (i >= zp)
-                    output[i] = pp + 1;
-                else
-                    output[i] = pp;
-            }
-        }
-
-        return output;
-    }
 
     public static void addIndexFiles(ArrayList<LASReader> in) throws Exception {
 
@@ -148,104 +52,29 @@ public class RunLASutils {
         ogr.RegisterAll(); //Registering all the formats..
         gdal.AllRegister();
 
-
         long tStart = System.currentTimeMillis();
-
         argumentReader aR = new argumentReader(args);
         aR.setExecDir(System.getProperty("user.dir"));
         aR.parseArguents();
-
         String pathSep = System.getProperty("file.separator");
-
         if (!System.getProperty("os.name").equals("Linux"))
             pathSep = "\\" + pathSep;
-
-        boolean lasFormat = false;
-        boolean txtFormat = false;
-
-        lasFormat = new File(aR.files[0]).getName().split("\\.")[1].equals("las");
-        txtFormat = new File(aR.files[0]).getName().split("\\.")[1].equals("txt");
-
-
+        boolean lasFormat, txtFormat;
+        String[] lasToken = new File(aR.files[0]).getName().split("\\.");
+        lasFormat = lasToken[lasToken.length-1].equals("las");
+        txtFormat = lasToken[lasToken.length-1].equals("txt");
         ArrayList<String> filesList = new ArrayList<String>();
-
         ArrayList<LASReader> pointClouds = new ArrayList<LASReader>();
         ArrayList<File> inputFiles = new ArrayList<>();
-
-        if (lasFormat) {
-
-
-            filesList.addAll(Arrays.asList(aR.files));
-
-
-            for (int i = 0; i < filesList.size(); i++) {
-
-                inputFiles.add(new File(filesList.get(i)));
-
-            }
-        }
-
-
-        if (txtFormat) {
-
-            System.out.println("converting txt to las");
-
-            proge.setName("Converting .txt to .las ...");
-            ArrayList<String> tempList = new ArrayList<String>();
-
-
-            tempList.addAll(Arrays.asList(aR.files));
-
-            proge.setEnd(tempList.size());
-
-            if (aR.cores > tempList.size())
-                aR.cores = tempList.size();
-
-
-            ArrayList<Thread> lista11 = new ArrayList<Thread>();
-            for (int ii = 1; ii <= aR.cores; ii++) {
-
-                proge.addThread();
-                Thread temp = new Thread(new multiTXT2LAS(tempList, aR.iparse, aR.cores, ii, aR.odir, aR.echoClass, aR));
-                lista11.add(temp);
-                temp.start();
-
-
-            }
-
-            for (int i = 0; i < lista11.size(); i++) {
-
-                try {
-
-                    lista11.get(i).join();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            filesList = tiedostoLista.files;
-
-            for (int i = 0; i < filesList.size(); i++) {
-                //System.out.println(filesList.get(i));
-                //pointClouds.add(new LASReader(new File(filesList.get(i))));
-                inputFiles.add(new File(filesList.get(i)));
-
-            }
-        }
+        filesList = getFileListAsString(aR, lasFormat, txtFormat, filesList, inputFiles);
         proge.reset();
-
         try {
             addIndexFiles(pointClouds);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         aR.setInputFiles(inputFiles);
-
         aR.p_update.totalFiles = aR.pointClouds.size();
-
-        //System.out.println(Arrays.toString(aR.inputFiles.toArray()));
-
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
         if (aR.tool == 1) {
@@ -262,30 +91,7 @@ public class RunLASutils {
         if (aR.tool == 3) {
 
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
 
@@ -301,37 +107,13 @@ public class RunLASutils {
         if (aR.tool == 4) {
 
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
                 for (int i = 0; i < filesList.size(); i++) {
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
 
-
+                    /* PARTLY REFACTORED */
                     GroundDetector det = new GroundDetector(temp, false, aR.output, aR.odir, aR.getInclusionRule(), aR.angle, aR.numarg1, aR.axgrid, aR, 1);
 
                     int[] asdi = det.detectSeedPoints();
@@ -347,34 +129,9 @@ public class RunLASutils {
         }
 
         if (aR.tool == 5) {
+
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
                 for (int i = 0; i < filesList.size(); i++) {
@@ -414,31 +171,7 @@ public class RunLASutils {
         if (aR.tool == 6) {
 
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
                 for (int i = 0; i < filesList.size(); i++) {
@@ -455,33 +188,10 @@ public class RunLASutils {
         if (aR.tool == 7) {
 
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
+
                 for (int i = 0; i < filesList.size(); i++) {
 
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
@@ -515,31 +225,7 @@ public class RunLASutils {
         if (aR.tool == 9) {
 
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
                 for (int i = 0; i < filesList.size(); i++) {
@@ -554,31 +240,7 @@ public class RunLASutils {
         if (aR.tool == 10) {
 
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
                 for (int i = 0; i < filesList.size(); i++) {
@@ -593,31 +255,7 @@ public class RunLASutils {
         if (aR.tool == 11) {
 
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
                 for (int i = 0; i < filesList.size(); i++) {
@@ -625,7 +263,6 @@ public class RunLASutils {
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
 
                     ToShp toshape = new ToShp(aR.output, temp, aR.getInclusionRule(), aR.odir, aR.oparse, aR);
-                    //LASutils.Boundary bound = new LASutils.Boundary(pointClouds.get(i), odir, output, false);
 
                 }
             }
@@ -636,31 +273,7 @@ public class RunLASutils {
             aR.p_update.las2txt_oparse = aR.oparse;
 
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
 
@@ -676,35 +289,11 @@ public class RunLASutils {
         if (aR.tool == 13) {
 
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
 
-                las2las tooli = new las2las(1);
+                process_las2las tooli = new process_las2las(1);
 
                 for (int i = 0; i < inputFiles.size(); i++) {
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
@@ -785,8 +374,13 @@ public class RunLASutils {
                 aR.poly = "tempWKT.csv";
                 //shapeType = 2;
             }
-            polyBank = readPolygonsFromWKT(aR.poly, plotID);
 
+            try {
+                polyBank = readPolygonsFromWKT(aR.poly, plotID);
+            }
+            catch (Exception e){
+
+            }
             aR.setPolyBank(polyBank);
 
             aR.p_update.las2dsm_print = false;
@@ -798,59 +392,21 @@ public class RunLASutils {
 
 
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
+
+                boolean rem_buf = false;
+
+                if(aR.remove_buffer){
+                    aR.remove_buffer_2 = true;
+                    aR.remove_buffer = false;
+                    aR.inclusionRule.undoRemoveBuffer();
+                }
+
                 for (int i = 0; i < filesList.size(); i++) {
 
-                    LASReader temp = new LASReader(aR.inputFiles.get(i));
-
-                    aR.p_update.threadFile[0] = "CHM";
-                    aR.p_update.updateProgressITD();
-                    createCHM testi_c = new createCHM();
-
-                    createCHM.chm testi = testi_c.new chm(temp, "y", 1, aR, 1);
-
-                    System.out.println("CHM DONE!");
-                    System.out.println("CHM DONE!");
-                    System.out.println("CHM DONE!");
-
-                    aR.p_update.threadFile[0] = "CHM - treeTops";
-                    aR.p_update.updateProgressITD();
-                    testi.detectTreeTops((int) aR.p_update.lasITD_itdKernel);
-
-                    System.out.println("treetops DONE!");
-                    System.out.println("treetops DONE!");
-                    System.out.println("treetops DONE!");
-
-                    aR.p_update.threadFile[0] = "waterShed";
-                    aR.p_update.updateProgressITD();
-
-                    createCHM.WaterShed fill = new createCHM.WaterShed(testi.treeTops, 0.2, testi.cehoam, testi, aR, 1);
+                    run_itc(aR, i);
 
                 }
             }
@@ -867,7 +423,6 @@ public class RunLASutils {
                 try {
                     LASReader tempReader = new LASReader(aR.inputFiles.get(i));
                     tempReader.index((int) aR.step);
-                    //aR.pointClouds.get(i).index((int)aR.step);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -878,31 +433,7 @@ public class RunLASutils {
         if (aR.tool == 17) {
 
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
                 for (int i = 0; i < aR.inputFiles.size(); i++) {
@@ -924,31 +455,7 @@ public class RunLASutils {
         if (aR.tool == 18) {
 
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
                 for (int i = 0; i < aR.inputFiles.size(); i++) {
@@ -981,7 +488,11 @@ public class RunLASutils {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                temp.close();
+                System.gc();
             }
+
 
         }
 
@@ -1185,8 +696,6 @@ public class RunLASutils {
             System.out.println("NEURAL HYPERPARAMETER OPTIMIZATION");
 
             try {
-                //neuralNetworkHyperparameterOptimization te = new neuralNetworkHyperparameterOptimization(aR);
-                //neuralNetworkHyperparameterOptimization_convolution te = new neuralNetworkHyperparameterOptimization_convolution(aR);
                 neuralNetworkHyperparameterOptimization_convolution_mix te = new neuralNetworkHyperparameterOptimization_convolution_mix(aR);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -1532,6 +1041,7 @@ public class RunLASutils {
                 e.printStackTrace();
             }
 
+
         }
 
         if (aR.tool == 33){
@@ -1567,31 +1077,7 @@ public class RunLASutils {
         if (aR.tool == 34){
 
             if (aR.cores > 1) {
-                proge.setEnd(aR.inputFiles.size());
-
-                if (aR.cores > aR.inputFiles.size())
-                    aR.cores = aR.inputFiles.size();
-
-                ArrayList<Thread> lista11 = new ArrayList<Thread>();
-
-                for (int ii = 1; ii <= aR.cores; ii++) {
-
-                    proge.addThread();
-                    Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
-                    lista11.add(temp);
-                    temp.start();
-
-                }
-
-                for (int i = 0; i < lista11.size(); i++) {
-
-                    try {
-
-                        lista11.get(i).join();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                threadTool(aR, fD);
 
             } else {
                 try {
@@ -1610,6 +1096,26 @@ public class RunLASutils {
 
         }
 
+        if (aR.tool == 35){
+
+            if (aR.cores > 1) {
+                threadTool(aR, fD);
+
+            } else {
+
+
+                gz_tools gz = new gz_tools(aR);
+
+                for (int i = 0; i < aR.inputFiles.size(); i++) {
+
+                    gz.process(aR.inputFiles.get(i));
+
+                }
+
+            }
+
+
+        }
 
         long tEnd = System.currentTimeMillis();
         long tDelta = tEnd - tStart;
@@ -1619,6 +1125,135 @@ public class RunLASutils {
 
         System.out.println("Processing took: " + minutes + " min " + seconds + " sec");
 
+    }
+
+    private static void run_itc(argumentReader aR, int i) throws Exception {
+        LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+        aR.p_update.threadFile[0] = "CHM";
+        aR.p_update.updateProgressITD();
+        createCHM testi_c = new createCHM();
+
+        createCHM.chm testi = testi_c.new chm(temp, "y", 1, aR, 1);
+
+        System.out.println("CHM DONE!");
+        System.out.println("CHM DONE!");
+        System.out.println("CHM DONE!");
+
+
+        aR.p_update.threadFile[0] = "CHM - treeTops";
+        aR.p_update.updateProgressITD();
+        testi.detectTreeTops((int) aR.p_update.lasITD_itdKernel);
+
+        System.out.println("treetops DONE!");
+        System.out.println("treetops DONE!");
+        System.out.println("treetops DONE!");
+
+        aR.p_update.threadFile[0] = "waterShed";
+        aR.p_update.updateProgressITD();
+
+
+        createCHM.WaterShed fill = new createCHM.WaterShed(testi.treeTops, 0.2, testi.cehoam, testi, aR, 1);
+    }
+
+    private static void threadTool(argumentReader aR, fileDistributor fD) {
+        proge.setEnd(aR.inputFiles.size());
+
+        if (aR.cores > aR.inputFiles.size())
+            aR.cores = aR.inputFiles.size();
+
+        ArrayList<Thread> threadList = new ArrayList<Thread>();
+
+        for (int ii = 1; ii <= aR.cores; ii++) {
+
+            proge.addThread();
+            Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
+            threadList.add(temp);
+            temp.start();
+
+        }
+
+        for (int i = 0; i < threadList.size(); i++) {
+
+            try {
+                threadList.get(i).join();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @NotNull
+    public static ArrayList<String> getFileListAsString(argumentReader aR, boolean lasFormat, boolean txtFormat, ArrayList<String> filesList, ArrayList<File> inputFiles) {
+        if (lasFormat) {
+
+
+            filesList.addAll(Arrays.asList(aR.files));
+
+
+            for (int i = 0; i < filesList.size(); i++) {
+
+                inputFiles.add(new File(filesList.get(i)));
+
+            }
+        }
+        else if (txtFormat) {
+
+            System.out.println("converting txt to las");
+
+            proge.setName("Converting .txt to .las ...");
+            ArrayList<String> tempList = new ArrayList<String>();
+
+
+            tempList.addAll(Arrays.asList(aR.files));
+
+            proge.setEnd(tempList.size());
+
+            if (aR.cores > tempList.size())
+                aR.cores = tempList.size();
+
+
+            ArrayList<Thread> lista11 = new ArrayList<Thread>();
+            for (int ii = 1; ii <= aR.cores; ii++) {
+
+                proge.addThread();
+                Thread temp = new Thread(new multiTXT2LAS(tempList, aR.iparse, aR.cores, ii, aR.odir, aR.echoClass, aR));
+                lista11.add(temp);
+                temp.start();
+
+
+            }
+
+            for (int i = 0; i < lista11.size(); i++) {
+
+                try {
+
+                    lista11.get(i).join();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            filesList = tiedostoLista.files;
+
+            for (int i = 0; i < filesList.size(); i++) {
+
+                inputFiles.add(new File(filesList.get(i)));
+
+            }
+        }else{
+
+            filesList.addAll(Arrays.asList(aR.files));
+
+
+            for (int i = 0; i < filesList.size(); i++) {
+
+                inputFiles.add(new File(filesList.get(i)));
+
+            }
+
+        }
+        return filesList;
     }
 
     public static void readTrunkFile(File trunkFile, HashMap<Integer, double[]> fil) throws Exception {
@@ -1640,88 +1275,6 @@ public class RunLASutils {
             }
 
         }
-    }
-
-    /**
-     * A class to implement the method progebar() in
-     * multiple threads.
-     *
-     * @author Kukkonen Mikko
-     * @version 0.1
-     * @since 06.03.2018
-     */
-
-    public static class ThreadProgressBar {
-
-        int current = 0;
-        int end = 0;
-        String name = "give me name!";
-        int numberOfThreads = 0;
-
-        public ThreadProgressBar() {
-
-        }
-
-        /**
-         * Set the maximum value of the iterator to:
-         *
-         * @param newEnd
-         */
-        public synchronized void setEnd(int newEnd) {
-            end = newEnd;
-        }
-
-        /**
-         * Increment the current progress by amount equal to:
-         *
-         * @param input
-         */
-
-        public synchronized void updateCurrent(int input) {
-
-            current += input;
-
-        }
-
-        /**
-         * Reset the class
-         */
-
-        public synchronized void reset() {
-
-            current = 0;
-            numberOfThreads = 0;
-            end = 0;
-            name = "give me name!";
-
-        }
-
-        /**
-         * Name of the process being tracked
-         */
-
-        public void setName(String nimi) {
-            //System.out.println("Setting name to");
-            name = nimi;
-
-        }
-
-        /**
-         * Add a thread
-         */
-
-        public void addThread() {
-
-            numberOfThreads++;
-
-        }
-
-        public synchronized void print() {
-            //System.out.println(end);
-            progebar(end, current, " " + name);
-            //System.out.println(end + " " + current);
-        }
-
     }
 
     /**
@@ -1761,7 +1314,7 @@ public class RunLASutils {
     static class multiTXT2LAS implements Runnable {
 
         private final String parse;
-        ArrayList<String> tiedostot;
+        ArrayList<String> files;
         ArrayList<String> returnList = new ArrayList<String>();
         int numberOfCores;
         int coreNumber;
@@ -1772,7 +1325,7 @@ public class RunLASutils {
         public multiTXT2LAS(ArrayList<String> tiedostot2, String parse2, int numberOfCores2, int coreNumber2, String odir2, boolean echoClass, argumentReader aR) {
 
             this.aR = aR;
-            tiedostot = tiedostot2;
+            files = tiedostot2;
             parse = parse2;
             numberOfCores = numberOfCores2;
             coreNumber = coreNumber2;
@@ -1795,91 +1348,63 @@ public class RunLASutils {
                 int suurin = 0;
                 if (coreNumber != 0) {
 
-                    int jako = (int) Math.ceil((double) tiedostot.size() / (double) numberOfCores);
-                    //System.out.println(plotID1.size() / (double)cores);
+                    int jako = (int) Math.ceil((double) files.size() / (double) numberOfCores);
                     if (coreNumber != numberOfCores) {
 
                         pienin = (coreNumber - 1) * jako;
                         suurin = coreNumber * jako;
                     } else {
                         pienin = (coreNumber - 1) * jako;
-                        suurin = tiedostot.size();
+                        suurin = files.size();
                     }
 
-                    tiedostot = new ArrayList<String>(tiedostot.subList(pienin, suurin));
-                    //System.out.println(tiedostot);
-                    //polyBank = new ArrayList<double[][]>(polyBank1.subList(pienin, suurin));
+                    files = new ArrayList<String>(files.subList(pienin, suurin));
 
-                } else {
-
-                    //tiedostot = new ArrayList<Double>(tiedostot);
-                    //polyBank = new ArrayList<double[][]>(polyBank1);
                 }
-
 
                 ArrayList<File> from = new ArrayList<File>();
                 ArrayList<LASraf> to = new ArrayList<LASraf>();
                 ArrayList<String> outList = new ArrayList<String>();
 
-                for (int i = 0; i < tiedostot.size(); i++) {
+                for (int i = 0; i < files.size(); i++) {
 
-                    File tempFile = new File(tiedostot.get(i));
+                    File tempFile = new File(files.get(i));
 
                     File toFile = null;
-/*
-                    if (odir.equals("asd"))
 
-                        toFile = fo.createNewFileWithNewExtension(tempFile, ".las");
-                    //new File(tiedostot.get(i).replaceFirst("[.][^.]+$", "") + ".las");
-
-                    if (!odir.equals("asd"))
-
-                        toFile = fo.createNewFileWithNewExtension(tempFile, odir, ".las");
-
- */
-                    toFile = fo.createNewFileWithNewExtension(tempFile, ".las");
+                    toFile = aR.createOutputFileWithExtension(tempFile, ".las");
 
                     System.out.println(toFile.getAbsolutePath());
-                    //new File(odir + System.getProperty("file.separator") + tempFile.getName().replaceFirst("[.][^.]+$", "") + ".las");
-
-                    //System.out.println(toFile);
-                    File fromFile = new File(tiedostot.get(i));
-
-                    //System.out.println(odir + System.getProperty("file.separator") + tempFile.getName().replaceFirst("[.][^.]+$", "") + ".las");
+                    File fromFile = new File(files.get(i));
 
                     if (toFile.exists())
                         toFile.delete();
 
                     toFile.createNewFile();
 
-                    //System.out.println(toFile);
                     from.add(fromFile);
 
                     to.add(new LASraf(toFile));
-                    //System.exit(0);
-                    outList.add(fo.createNewFileWithNewExtension(tempFile, ".las").getAbsolutePath());
-                    //outList.add(tiedostot.get(i).replaceFirst("[.][^.]+$", "") + ".las");
+
+                    outList.add(aR.createOutputFileWithExtension(tempFile, ".las").getAbsolutePath());
 
                 }
 
                 PointInclusionRule rule = new PointInclusionRule();
                 tiedostoLista.add(outList);
 
-                for (int i = 0; i < tiedostot.size(); i++) {
-
+                for (int i = 0; i < files.size(); i++) {
 
                     LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", aR.sep, rule, echoClass, aR);
 
                     to.get(i).writeBuffer2();
                     to.get(i).close();
-                    //System.out.println("GOT HERE");
                     proge.updateCurrent(1);
                     if (i % (proge.end / 20 + 1) == 0)
                         proge.print();
                 }
-                //return 1;
+
             } catch (Exception e) {
-                //System.out.println(e);
                 System.out.println(e.getMessage());
 
             }
@@ -1909,33 +1434,9 @@ public class RunLASutils {
         }
 
         public void run() {
-            int jako = -1;
-
-            int[] n_per_thread = split(aR.inputFiles.size(), aR.cores);
 
             try {
 
-                int pienin = 0;
-                int suurin = 0;
-
-                if (nCore != 0) {
-
-                    jako = (int) Math.ceil((double) aR.inputFiles.size() / (double) nCores);
-
-                    int howMany = -n_per_thread[0];
-                    for (int i = 0; i < nCore; i++) {
-
-                        howMany += n_per_thread[i];
-
-                    }
-                    pienin = howMany;
-                    suurin = Math.min(howMany + n_per_thread[nCore - 1], aR.inputFiles.size());
-
-                    this.inputFiles = new ArrayList<>(aR.inputFiles.subList(pienin, suurin));
-
-                } else {
-
-                }
                 if (aR.tool == 3) {
 
                     while (true) {
@@ -2142,9 +1643,10 @@ public class RunLASutils {
 
                 }
 
-                if (aR.tool == 13) {
+                /* DONE */
+                if (aR.tool == 13 && false) {
 
-                    las2las tooli = new las2las(nCore);
+                    process_las2las tooli = new process_las2las(nCore);
 
                     while (true) {
 
@@ -2169,6 +1671,16 @@ public class RunLASutils {
                 }
 
                 if (aR.tool == 15) {
+
+
+                    boolean rem_buf = false;
+
+                    if(aR.remove_buffer){
+                        aR.remove_buffer_2 = true;
+                        aR.remove_buffer = false;
+                        aR.inclusionRule.undoRemoveBuffer();
+                    }
+
 
                     while (true) {
 
@@ -2271,6 +1783,30 @@ public class RunLASutils {
 
 
                 }
+
+                if(aR.tool == 35){
+
+                    gz_tools gz = new gz_tools(aR);
+
+                    while (true) {
+
+                        if (fD.isEmpty())
+                            break;
+
+                        File f = fD.getFile();
+
+                        if (f == null)
+                            continue;
+
+                        gz.process(f);
+
+
+                    }
+
+
+                }
+
+
 
 
             } catch (Exception e) {

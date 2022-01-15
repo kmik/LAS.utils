@@ -1016,7 +1016,7 @@ public class uav {
         LASReader pCloudMod = new LASReader(f1);
         LASReader pCloudRef = new LASReader(f2);
 
-        Chm chm1 = null; //new Chm("modTemp.tif");
+        Chm chm1 = null; //new chm("modTemp.tif");
         Chm chm2 = null; //new Chm("refTemp.tif");
 
         argumentReader asdi = new argumentReader();
@@ -1199,7 +1199,7 @@ public class uav {
         String a = "wine /media/koomikko/B8C80A93C80A4FD41/LAStools/bin/las2las.exe -i " + lasFile1 + 
         " -translate_x " + output.getX() + " -translate_y " + output.getY() + " -o " + lasOutName;
 
-        las2las tooli = new las2las(1);
+        process_las2las tooli = new process_las2las(1);
 
         argumentReader aR = new argumentReader();
 

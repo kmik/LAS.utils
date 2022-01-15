@@ -50,7 +50,6 @@ public class Merger{
         this.aR = aR;
         this.odir = odir2;
 
-        //this.pointClouds = pointClouds2;
         this.rule = rule2;
         this.outputFileName = output;
 

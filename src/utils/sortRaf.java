@@ -11,7 +11,7 @@ public class sortRaf implements Closeable {
 
     public File file;
     public RandomAccessFile raFile;
-    public int bufferSize = (int)Math.pow(2, 18);
+    public int bufferSize = (int)Math.pow(2, 24);
     public byte[] allArray2 = new byte[bufferSize];
     public int allArray2Index = 0;
 

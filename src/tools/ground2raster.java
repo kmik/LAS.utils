@@ -31,7 +31,6 @@ public class ground2raster {
     public ground2raster(LASReader pointCloud, argumentReader aR) throws Exception{
 
         ogr.RegisterAll(); //Registering all the formats..
-        //gdal.AllRegister();
         LasPoint tempPoint = new LasPoint();
 
         double true_min_x = Double.POSITIVE_INFINITY, true_min_y = Double.POSITIVE_INFINITY;
@@ -77,11 +76,7 @@ public class ground2raster {
         double miny = pointCloud.getMinY();
         double maxy = pointCloud.getMaxY();
 
-
-
         double cell_size = aR.step;
-
-
 
         int grid_x_size = (int)Math.ceil((true_max_x - true_min_x) / cell_size);
         int grid_y_size = (int)Math.ceil((true_max_y - true_min_y) / cell_size);
@@ -90,7 +85,7 @@ public class ground2raster {
         driver = gdal.GetDriverByName("GTiff");
         driver.Register();
 
-        String outputFileName = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_terrain.tif").getAbsolutePath();
+        String outputFileName = aR.createOutputFileWithExtension(pointCloud.getFile(), "_terrain.tif").getAbsolutePath();
 
 
         //Dataset dataset = driver.Create("tmp.tif", grid_x_size, grid_x_size, 1, gdalconst.GDT_Float32);
@@ -109,7 +104,6 @@ public class ground2raster {
 
         VertexValuatorDefault valuator = new VertexValuatorDefault();
 
-        //NaturalNeighborInterpolator polator = new NaturalNeighborInterpolator(tin);
         TriangularFacetInterpolator polator = new TriangularFacetInterpolator(tin);
 
         band.SetNoDataValue(Float.NaN);
@@ -118,23 +112,23 @@ public class ground2raster {
 
         SpatialReference sr = new SpatialReference();
 
-        sr.ImportFromEPSG(3067);
+        sr.ImportFromEPSG(aR.EPSG);
 
         dataset_output.SetProjection(sr.ExportToWkt());
         dataset_output.SetGeoTransform(geoTransform);
 
-        float[] outValue = new float[1];
+        float[] outValue = new float[grid_x_size];
 
-        for(int x = 0; x < grid_x_size; x++){
+        for(int y = 0; y < grid_y_size; y++) {
 
-            for(int y = 0; y < grid_y_size; y++) {
+            for(int x = 0; x < grid_x_size; x++){
 
                 double interpolatedValue = polator.interpolate(true_min_x + x * aR.step + aR.step/2.0, true_max_y - y * aR.step - aR.step/2.0, valuator);
-                outValue[0] = (float)interpolatedValue;
-                band.WriteRaster(x, y, 1, 1, outValue);
-                //band2.WriteRaster(x, y, 1, 1, outValue);
+                outValue[x] = (float)interpolatedValue;
 
             }
+            band.WriteRaster(0, y, grid_x_size, 1, outValue);
+
         }
 
         band.FlushCache();

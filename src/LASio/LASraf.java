@@ -6,7 +6,9 @@ import utils.argumentReader;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 
@@ -57,6 +59,10 @@ public class LASraf implements Closeable {
    * The file channel obtained from the random-access file
    */
   public FileChannel fileChannel;
+  public ArrayList<MappedByteBuffer> mbb = new ArrayList<>();
+  public ArrayList<Long> mbb_starts = new ArrayList<>();
+  public int whichMbb = -1;
+
   /**
    * the length of the random-access file being read
    */
@@ -97,13 +103,18 @@ public class LASraf implements Closeable {
   public ByteBuffer writeBuffer_ascii_8;
   */
 
+  long step = 0;
+
   double xScaleFactor;
   double yScaleFactor;
   double zScaleFactor;
   double xOffset;
   double yOffset;
   double zOffset;
-  int pointDataRecordFormat;
+  public int pointDataRecordFormat;
+  public int pointDataRecordLength;
+  public long offsetToPointData;
+  public ArrayList<Integer> extra_bytes = new ArrayList<>();
 
   /**
    * Opens the specified file for read-only, random-access.
@@ -124,9 +135,9 @@ public class LASraf implements Closeable {
 
     //fileOuputStream = new FileOutputStream(file.getName(), true); 
     buffer = ByteBuffer.allocateDirect(bufferSize);
+
     buffer.order(ByteOrder.LITTLE_ENDIAN);
 
-    
     //buffer2 = ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE2);
     //buffer2.order(ByteOrder.LITTLE_ENDIAN);
 
@@ -176,6 +187,69 @@ public class LASraf implements Closeable {
     raFile.seek(0);
     bufferContainsData = false;
 
+    //System.out.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+
+  }
+
+  public void setUpMappedByteBuffer() throws IOException{
+
+    //fileChannel = raFile.getChannel();
+
+    this.step = (pointDataRecordLength * 10000000);
+
+    if(fileChannel.size() > Integer.MAX_VALUE){
+
+      int parts = (int)Math.ceil(((double)fileChannel.size()-(double)offsetToPointData) / (double)step);
+
+      System.out.println("here " + parts + " " + fileChannel.size() + " " + this.step + " " + offsetToPointData + " " + pointDataRecordLength);
+
+      for(long i = 0; i < parts; i++){
+
+          mbb.add(fileChannel
+                  .map(FileChannel.MapMode.READ_ONLY, i * step + this.offsetToPointData, Math.min(step, fileChannel.size() - i * step)));
+
+          mbb.get(mbb.size()-1).order(ByteOrder.LITTLE_ENDIAN);
+
+          mbb_starts.add(i * step + this.offsetToPointData);
+
+      }
+
+    }else{
+      mbb.add(fileChannel
+              .map(FileChannel.MapMode.READ_ONLY, this.offsetToPointData, fileChannel.size() - this.offsetToPointData));
+
+      mbb.get(mbb.size()-1).order(ByteOrder.LITTLE_ENDIAN);
+
+      mbb_starts.add(this.offsetToPointData);
+
+    }
+
+
+    //System.out.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+
+    //System.exit(1);
+
+
+  }
+
+  public void setMBB(long filePosition, int pointDataRecordLength) throws IOException{
+
+    this.whichMbb = (int)Math.floor((filePosition-this.offsetToPointData) / step);
+
+    try {
+      this.mbb.get(this.whichMbb).position((int) (filePosition - this.mbb_starts.get(this.whichMbb)));
+    }catch (Exception e){
+
+      System.out.println((filePosition-this.offsetToPointData) + " " + fileChannel.size());
+
+    }
+
+  }
+
+  public MappedByteBuffer getMbb(){
+
+    return this.mbb.get(whichMbb);
+
   }
 
   public boolean check(){
@@ -197,6 +271,7 @@ public class LASraf implements Closeable {
     }
     //fileOuputStream.close();
     fileChannel = null;
+    buffer.clear();
   }
 
   /**
@@ -261,25 +336,19 @@ public class LASraf implements Closeable {
           buffer.clear();
         } else {
           buffer.compact();
-          // note that we have to tweak our bookkeeping here
-          // because we have a partial in the buffer... so we need
-          // to advance the rafPosition ahead so that we don't re-read
-          // what we've already pulled in.
           raFilePos += remaining;
           bytesNotRead -= remaining;
         }
       }
     }
 
-    //System.out.println("READ ENABLED: " + readEnabled);
-    //System.out.println(buffer.remaining());
     if (readEnabled) {
+
       raFile.seek(raFilePos);
       fileChannel.read(buffer);
-
       buffer.flip();
-
       bufferContainsData = true;
+
     }
     raFilePos += bytesNotRead;
   }
@@ -532,6 +601,9 @@ public class LASraf implements Closeable {
 
     return buffer.get();
   }
+
+
+
 /*
   public synchronized void writeByte(byte in) throws IOException {
     //buffer.clear();
@@ -585,6 +657,7 @@ public class LASraf implements Closeable {
     return (int) (buffer.get()) & 0x000000ff;
   }
 
+
   public synchronized void writeUnsignedByte(byte in) throws IOException {
 
     int unsignedValue = in&0x000000ff;
@@ -614,6 +687,7 @@ public class LASraf implements Closeable {
     prepareBufferForRead(4);
     return  (long)(buffer.getInt())&0xffffffffL;
   }
+
 
   public synchronized void writeUnsignedInt(int in) throws IOException {
 
@@ -654,6 +728,7 @@ public class LASraf implements Closeable {
     return (int)(buffer.getShort())&0xffff;
   }
 
+
   public synchronized void writeUnsignedShort(int in) throws IOException {   // POSSIBLY WRONG!!!!!
 
     unsignedShortArray[0] = (byte)(in & 0xff);
@@ -682,6 +757,8 @@ public class LASraf implements Closeable {
       prepareBufferForRead(4);
       return buffer.getInt();
   }
+
+
 
   public synchronized void writeInt(int in) throws IOException {
 
@@ -779,6 +856,8 @@ public class LASraf implements Closeable {
     return buffer.getDouble();
   }
 
+
+
   public synchronized void writeDouble(double in) throws IOException {
 
     long v = Double.doubleToLongBits(in);
@@ -828,6 +907,9 @@ public class LASraf implements Closeable {
     return buffer.getFloat();
   }
 
+
+
+
   public synchronized void writeFloat(float in) throws IOException {
 
     int bits = Float.floatToIntBits(in);
@@ -864,6 +946,7 @@ public class LASraf implements Closeable {
         prepareBufferForRead(8);
     return buffer.getLong();
   }
+
 
   public synchronized void writeLong(long in) throws IOException {
 
@@ -912,6 +995,7 @@ public class LASraf implements Closeable {
      prepareBufferForRead(2);
     return buffer.getShort();
   }
+
 
   public synchronized void writeShort(short in) throws IOException {
 
@@ -1787,6 +1871,134 @@ public class LASraf implements Closeable {
       return in |= 1 << bit;
     else
       return in &= ~(1 << bit);
+  }
+
+  public int data_type_to_n_bytes(int data_type){
+
+    int returni = -1;
+
+    switch (data_type){
+
+      case 0:
+        returni = -1;
+        break;
+
+      case 1:
+        returni = 1;
+        break;
+
+      case 2:
+        returni = 1;
+        break;
+
+      case 3:
+        returni = 2;
+        break;
+
+      case 4:
+        returni = 2;
+        break;
+
+      case 5:
+        returni = 4;
+        break;
+
+      case 6:
+        returni = 4;
+        break;
+
+      case 7:
+        returni = 8;
+        break;
+
+      case 8:
+        returni = 8;
+        break;
+
+      case 9:
+        returni = 4;
+        break;
+
+      case 10:
+        returni =  8;
+        break;
+
+      case 11:
+        returni = 2;
+        break;
+
+      case 12:
+        returni =  2;
+        break;
+
+      case 13:
+        returni = 4;
+        break;
+
+      case 14:
+        returni = 4;
+        break;
+
+      case 15:
+        returni = 8;
+        break;
+
+      case 16:
+        returni = 8;
+        break;
+
+      case 17:
+        returni = 16;
+        break;
+
+      case 18:
+        returni = 8;
+        break;
+
+      case 19:
+        returni = 16;
+        break;
+
+      case 20:
+        returni = 8;
+        break;
+
+      case 21:
+        returni = 3;
+        break;
+
+      case 22:
+        returni = 3;
+        break;
+      case 23:
+        returni = 6;
+        break;
+      case 24:
+        returni = 6;
+        break;
+      case 25:
+        returni = 12;
+        break;
+      case 26:
+        returni = 12;
+        break;
+      case 27:
+        returni = 24;
+        break;
+
+      case 28:
+        returni =  24;
+        break;
+      case 29:
+        returni =  12;
+        break;
+      case 30:
+        returni = 24;
+        break;
+
+    }
+    return returni;
+
   }
 
 }

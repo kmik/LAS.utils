@@ -19,10 +19,39 @@ public class printHelp {
         }
 
         this.print(tool_id);
-
-
     }
 
+    public printHelp(String tool_id){
+
+        if(!SystemUtils.IS_OS_LINUX){
+            isLinux = false;
+        }
+
+        this.print(tool_id);
+    }
+
+
+
+    public void print(String tool_id){
+
+
+        switch (tool_id){
+
+            case "las2las":
+                las2las();
+                break;
+
+            case "las2tile":
+                tiler();
+                break;
+            case "lasmerge":
+                merger();
+                break;
+            default:
+                throw new toolException("What happened?");
+
+        }
+    }
 
     public void print(int tool_id){
 
@@ -512,8 +541,7 @@ public class printHelp {
                 "\n" +
                 "The first file is the output .las file where each point\n" +
                 "is labeled with the corresponding tree segments id in \n" +
-                "pointSourceId slot. This is an unsigned short, which means\n" +
-                "that id:s larger than 65535 will cause issues.\n" +
+                "pointSourceId (or gps time slot. \n" +
                 "\n" +
                 "The second file is a shapefile where each point corresponds\n" +
                 "to a treetop. \n" +
@@ -523,12 +551,30 @@ public class printHelp {
                 "\n" +
                 "The fourth file is the gaussian filtered CHM.\n" +
                 "\n" +
+                "\n" +
+                "The tool is capable of producing ITC segments from tiled\n" +
+                "point clouds. Here, -remove_buffer has a special purpose. \n" +
+                "The buffer points are not removed when creating the CHM,\n" +
+                "but rather when the ITC segments are output. Given\n" +
+                "-remove_buffer flag, the tool will keep the ITC segments\n" +
+                "that have their treetop located inside the original tile.\n" +
+                "\n" +
+                "\n" +
+                "The segmentation shapefile contain polygons that are\n" +
+                "ALWAYS from tree segments, not from ground. The output\n" +
+                "point cloud can be adjusted with flag -o_itc. This \n" +
+                "means that the points in the output point cloud\n" +
+                "will contain points that are a part of an ITC segment.\n" +
+                "\n" +
+                "\n" +
                 "Usage:\n" +
                 "\n" +
                 "\t-i\t\tInput file(s)\n" +
                 "\t-odir\t\tOutput directory\n" +
                 "\t-step \t\tResolution of the CHM\n" +
-                "\t-theta\t\tGaussian theta");
+                "\t-theta\t\tGaussian theta\n" +
+                "\t-remove_buffer\n" +
+                "\t-o_itc");
     }
 
 
@@ -746,7 +792,8 @@ public class printHelp {
                 "\t-i\t\tInput file(s)\n" +
                 "\t-o\t\tOutput file\n" +
                 "\t-step\t\tDSM resolution (in meters)\n" +
-                "\t-theta\t\tGaussian theta (default 1.0)");
+                "\t-theta\t\tGaussian theta (default 1.0)\n" +
+                "\t-pit_free\tDetect and remove outliers.\n");
     }
 
 

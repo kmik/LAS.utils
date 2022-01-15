@@ -160,7 +160,7 @@ public class lasGridStats {
         int raf_location_l = 0;
         int raf_location_i = 0;
 
-        ArrayList<Short> ids = new ArrayList<>();
+        ArrayList<Integer> ids = new ArrayList<>();
 
         ArrayList<IncrementalTin> tins = new ArrayList<>();
         ArrayList<List<IQuadEdge>> tin_perimeters = new ArrayList<>();
@@ -176,11 +176,11 @@ public class lasGridStats {
 
         int gridCounter = 0;
 
-        Set<Short> foundStands = new HashSet<>();
+        Set<Integer> foundStands = new HashSet<>();
 
         ArrayList<Double> metrics = new ArrayList<>();
 
-        HashMap<Short, Integer> order = new HashMap<>();
+        HashMap<Integer, Integer> order = new HashMap<>();
 
         ArrayList<Integer> do_overs = new ArrayList<>();
 
@@ -202,6 +202,20 @@ public class lasGridStats {
                 gridLocationInRaf_i.get(x).add(new ArrayList<>());
             }
         }
+
+        boolean stands_delineated = true;
+        /* Define the variables that we need */
+        int polygon_id = -1;
+        try {
+            polygon_id = pointCloud.extraBytes_names.get("polygon_id");
+        }catch (Exception e){
+
+            System.out.println("The file is not stand delineated.");
+            stands_delineated = false;
+        }
+
+
+
 
         int[][] cell_only_id = new int[grid_x_size][grid_y_size];
 
@@ -241,8 +255,6 @@ public class lasGridStats {
                 gridLocationInRaf_i.get(x).get(y).clear();
 
                 foundStands.clear();
-
-                //System.out.println("ONE THROUGHT");
 
                 if (pointCloud.queriedIndexes2.size() > 0) {
 
@@ -295,12 +307,19 @@ public class lasGridStats {
 
 
 
-                                    if(!foundStands.contains(tempPoint.pointSourceId)) {
+                                    //if(!foundStands.contains(tempPoint.pointSourceId)) {
+                                    int stand_id = 1;
+                                    if(stands_delineated){
+                                        stand_id = tempPoint.getExtraByteInt(polygon_id);
+                                    }else{
+                                    }
+                                    //if(!foundStands.contains(tempPoint.pointSourceId)) {
+                                    if(!foundStands.contains(stand_id)) {
 
                                         //tins.add(new IncrementalTin());
                                        // tin_perimeters.add(null);
 
-                                        ids.add(tempPoint.pointSourceId);
+                                        ids.add(stand_id);
 
                                         points.add(new ArrayList<>());
 
@@ -330,8 +349,8 @@ public class lasGridStats {
                                         sum_z_i.add(0.0);
                                         sum_i_i.add(0.0);
 
-                                        order.put(tempPoint.pointSourceId, gridPoints_z_a.size()-1);
-                                        foundStands.add(tempPoint.pointSourceId);
+                                        order.put(stand_id, gridPoints_z_a.size()-1);
+                                        foundStands.add(stand_id);
 
                                     }
 
@@ -368,13 +387,13 @@ public class lasGridStats {
                                     que_gridPoints_z_a.add(tempPoint.z);
                                     que_gridPoints_i_a.add(tempPoint.intensity);
 */
-                                    gridPoints_z_a.get(order.get(tempPoint.pointSourceId)).add(tempPoint.z);
-                                    gridPoints_i_a.get(order.get(tempPoint.pointSourceId)).add(tempPoint.intensity);
+                                    gridPoints_z_a.get(order.get(stand_id)).add(tempPoint.z);
+                                    gridPoints_i_a.get(order.get(stand_id)).add(tempPoint.intensity);
 
-                                    sum_z_a.set(order.get(tempPoint.pointSourceId), sum_z_a.get(order.get(tempPoint.pointSourceId)) + tempPoint.z);
-                                    sum_i_a.set(order.get(tempPoint.pointSourceId), sum_i_a.get(order.get(tempPoint.pointSourceId)) + tempPoint.intensity);
+                                    sum_z_a.set(order.get(stand_id), sum_z_a.get(order.get(stand_id)) + tempPoint.z);
+                                    sum_i_a.set(order.get(stand_id), sum_i_a.get(order.get(stand_id)) + tempPoint.intensity);
 
-                                    points.get(order.get(tempPoint.pointSourceId)).add(new Point(tempPoint.x, tempPoint.y));
+                                    points.get(order.get(stand_id)).add(new Point(tempPoint.x, tempPoint.y));
 
                                     //System.out.println("intensity" + tempPoint.intensity);
 
@@ -387,14 +406,14 @@ public class lasGridStats {
                                         gridPoints_i_f.add(tempPoint.intensity);
 
                                          */
-                                        gridPoints_z_f.get(order.get(tempPoint.pointSourceId)).add(tempPoint.z);
+                                        gridPoints_z_f.get(order.get(stand_id)).add(tempPoint.z);
 
-                                        gridPoints_RGB_f.get(order.get(tempPoint.pointSourceId)).add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B});
+                                        gridPoints_RGB_f.get(order.get(stand_id)).add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B});
 
-                                        gridPoints_i_f.get(order.get(tempPoint.pointSourceId)).add(tempPoint.intensity);
+                                        gridPoints_i_f.get(order.get(stand_id)).add(tempPoint.intensity);
 
-                                        sum_z_f.set(order.get(tempPoint.pointSourceId), sum_z_f.get(order.get(tempPoint.pointSourceId)) + tempPoint.z);
-                                        sum_i_f.set(order.get(tempPoint.pointSourceId), sum_i_f.get(order.get(tempPoint.pointSourceId)) + tempPoint.intensity);
+                                        sum_z_f.set(order.get(stand_id), sum_z_f.get(order.get(stand_id)) + tempPoint.z);
+                                        sum_i_f.set(order.get(stand_id), sum_i_f.get(order.get(stand_id)) + tempPoint.intensity);
 
                                     }
                                     if (tempPoint.returnNumber == tempPoint.numberOfReturns) {
@@ -406,11 +425,11 @@ public class lasGridStats {
                                         gridPoints_i_l.add(tempPoint.intensity);
 
  */
-                                        gridPoints_z_l.get(order.get(tempPoint.pointSourceId)).add(tempPoint.z);
-                                        gridPoints_i_l.get(order.get(tempPoint.pointSourceId)).add(tempPoint.intensity);
+                                        gridPoints_z_l.get(order.get(stand_id)).add(tempPoint.z);
+                                        gridPoints_i_l.get(order.get(stand_id)).add(tempPoint.intensity);
 
-                                        sum_z_l.set(order.get(tempPoint.pointSourceId), sum_z_l.get(order.get(tempPoint.pointSourceId)) + tempPoint.z);
-                                        sum_i_l.set(order.get(tempPoint.pointSourceId), sum_i_l.get(order.get(tempPoint.pointSourceId)) + tempPoint.intensity);
+                                        sum_z_l.set(order.get(stand_id), sum_z_l.get(order.get(stand_id)) + tempPoint.z);
+                                        sum_i_l.set(order.get(stand_id), sum_i_l.get(order.get(stand_id)) + tempPoint.intensity);
 
                                     }
                                     if (tempPoint.returnNumber > 1 && tempPoint.returnNumber != tempPoint.numberOfReturns) {
@@ -420,11 +439,11 @@ public class lasGridStats {
                                         gridPoints_z_i.add(tempPoint.z);
                                         gridPoints_i_i.add(tempPoint.intensity);
  */
-                                        gridPoints_z_i.get(order.get(tempPoint.pointSourceId)).add(tempPoint.z);
-                                        gridPoints_i_i.get(order.get(tempPoint.pointSourceId)).add(tempPoint.intensity);
+                                        gridPoints_z_i.get(order.get(stand_id)).add(tempPoint.z);
+                                        gridPoints_i_i.get(order.get(stand_id)).add(tempPoint.intensity);
 
-                                        sum_z_i.set(order.get(tempPoint.pointSourceId), sum_z_i.get(order.get(tempPoint.pointSourceId)) + tempPoint.z);
-                                        sum_i_i.set(order.get(tempPoint.pointSourceId), sum_i_i.get(order.get(tempPoint.pointSourceId)) + tempPoint.intensity);
+                                        sum_z_i.set(order.get(stand_id), sum_z_i.get(order.get(stand_id)) + tempPoint.z);
+                                        sum_i_i.set(order.get(stand_id), sum_i_i.get(order.get(stand_id)) + tempPoint.intensity);
 
                                     }
                                 }
@@ -433,16 +452,13 @@ public class lasGridStats {
                     //}
                     long stopTime = System.currentTimeMillis();
                     System.out.println(stopTime - startTime);
+                }else{
+                    //System.out.println("WHAT THE FUCK!!");
                 }
-
-
-
 
                 /* No points in this rectangle */
                 if(ids.size() == 0)
                     continue;
-
-                //double area = tin.countTriangles().getAreaSum();
 
                 ArrayList<Double> areas = new ArrayList<>();
 

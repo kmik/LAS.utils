@@ -64,7 +64,6 @@ public class lasSort {
 
         for(int i = 1; i <= parts; i++) {
 
-
             count = 0;
 
             if (i != parts) {
@@ -166,18 +165,14 @@ public class lasSort {
         }
 
         Pair_float tempPair2;
-
         int counteri = 0;
-
         pointWriterMultiThread pw = new pointWriterMultiThread(outputFile, pointCloud, "lasSort", aR);
 
         LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
-
         while(prioque.size() > 0){
 
             counteri++;
-
             counteri++;
 
             tempPair2 = prioque.poll();
@@ -232,7 +227,7 @@ public class lasSort {
      */
     public void sortByZCount() throws IOException {
 
-        int parts = (int)Math.ceil((double)pointCloud.getNumberOfPointRecords() / 2500000.0);
+        int parts = (int)Math.ceil((double)pointCloud.getNumberOfPointRecords() / 2000000.0);
         int jako = (int)Math.ceil((double)pointCloud.getNumberOfPointRecords() / (double) parts);
 
         int pienin;
@@ -270,10 +265,6 @@ public class lasSort {
 
             Pair_z[] parit = new Pair_z[suurin-pienin];
 
-            /*
-            System.out.println(" i " + i + " parts: " + parts);
-            System.out.println("su: " + suurin + " pi: " + pienin + " point cloud size " + pointCloud.getNumberOfPointRecords());
-*/
             int maxi;// = 0;
 
             pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
@@ -281,28 +272,16 @@ public class lasSort {
             for(int s = pienin; s < suurin; s += 10000){
 
                 maxi = Math.min(10000, Math.abs(suurin - s));
-                //System.out.println("maxi: " + maxi + " s: " + s);
+
                 try {
                     pointCloud.readRecord_noRAF(s, tempPoint, maxi);
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-                //pointCloud.braf.buffer.position(0);
 
                 for (int j = 0; j < maxi; j++) {
 
                     pointCloud.readFromBuffer(tempPoint);
-
-                    //System.out.println(tempPoint.x + " " + tempPoint.y + " " + calcZOrder( (int)tempPoint.x*10, (int)tempPoint.y*10));
-
-                    //x = new UInt32((int)(tempPoint.x*1000));
-
-                    //morton_uint = m.EncodeM2D(new UInt32((int)(tempPoint.x*1000)), new UInt32((int)(tempPoint.y*1000)));
-                    //morton = morton_uint.intValue();
-
-                   // System.out.println((int)(tempPoint.x*1000) + " == " + m.DecodeM2X(morton_uint) + " == " + x.intValue() + " == " + morton);
-
-                    //System.out.println(m.EncodeM2D(new UInt32((int)(tempPoint.x*1000)), new UInt32((int)(tempPoint.y*1000))).intValue());
                     parit[count] = new Pair_z(s + j, calcZOrder((int) tempPoint.x * 10, (int) tempPoint.y * 10));
                     count++;
 
@@ -316,8 +295,6 @@ public class lasSort {
             tempFiles.get(i-1).seek(0);
 
             for (Pair_z pair_z : parit) {
-
-                //System.out.println(parit[g].z_order);
 
                 tempFiles.get(i - 1).writeInt(pair_z.index);
                 tempFiles.get(i - 1).writeInt((int) pair_z.z_order);
@@ -335,15 +312,6 @@ public class lasSort {
         }
 
         LASraf br = new LASraf(outputFile);
-/*
-        LASwrite.writeHeader(br, "lasSort", this.pointCloud.versionMajor, this.pointCloud.versionMinor, this.pointCloud.pointDataRecordFormat,
-                this.pointCloud.pointDataRecordLength,
-                this.pointCloud.headerSize, this.pointCloud.offsetToPointData, this.pointCloud.numberVariableLengthRecords,
-                this.pointCloud.fileSourceID, this.pointCloud.globalEncoding,
-                this.pointCloud.xScaleFactor, this.pointCloud.yScaleFactor, this.pointCloud.zScaleFactor,
-                this.pointCloud.xOffset, this.pointCloud.yOffset, this.pointCloud.zOffset);
-
- */
 
         LASwrite.writeHeader(br, "lasSort", this.pointCloud, aR);
 
@@ -351,17 +319,18 @@ public class lasSort {
 
         int counter = 0;
 
+        int n_ = 100000;
 
         TreeMap<Integer, Integer> help = new TreeMap<>();
 
         int[] counts = new int[tempFiles.size()];
 
         for(int i = 0; i < tempFiles.size(); i++){
-            counts[i] = 1000;
+            counts[i] = n_;
         }
 
 
-        Pair_z[][] ehm = new Pair_z[tempFiles.size()][1000];
+        Pair_z[][] ehm = new Pair_z[tempFiles.size()][n_];
 
         for(int i = 0; i < ehm[0].length; i++){
             for(int j = 0; j < ehm.length; j++){
@@ -381,11 +350,10 @@ public class lasSort {
 
         for(int j = 0; j < tempFiles.size(); j++) {
 
-
             tempFiles.get(j).seek(0);
-            tempFiles.get(j).read((4 + 4) * 1000);
+            tempFiles.get(j).read((4 + 4) * n_);
 
-            for (int i = 0; i < 1000; i++) {
+            for (int i = 0; i < n_; i++) {
 
                 tempFiles.get(j).readFromBuffer2(tempPair);
 
@@ -403,8 +371,6 @@ public class lasSort {
                     prioque.add(ehm[j][i]);
                 }
             }
-
-
         }
 
         Pair_z tempPair2;
@@ -432,9 +398,9 @@ public class lasSort {
 
                 if(pointCountsPerFile[tempPair2.extra] > 0) {
 
-                    tempFiles.get(tempPair2.extra).read((4 + 4) * Math.min(1000, pointCountsPerFile[tempPair2.extra]));
+                    tempFiles.get(tempPair2.extra).read((4 + 4) * Math.min(n_, pointCountsPerFile[tempPair2.extra]));
 
-                    for (int i = 0; i < Math.min(1000, pointCountsPerFile[tempPair2.extra]); i++) {
+                    for (int i = 0; i < Math.min(n_, pointCountsPerFile[tempPair2.extra]); i++) {
 
                         tempFiles.get(tempPair2.extra).readFromBuffer2(ehm[tempPair2.extra][i]);
                         ehm[tempPair2.extra][i].extra = tempPair2.extra;
@@ -453,7 +419,7 @@ public class lasSort {
 
                     }
 
-                    counts[tempPair2.extra] = Math.min(1000, pointCountsPerFile[tempPair2.extra]);
+                    counts[tempPair2.extra] = Math.min(n_, pointCountsPerFile[tempPair2.extra]);
                 }
             }
 
@@ -467,9 +433,80 @@ public class lasSort {
 
         br.writeBuffer2();
         br.updateHeader2();
-
         deleteTemporaryFiles(parts);
 
+    }
+
+    public void sortByZCount_RAM() throws Exception {
+
+        int parts = (int)Math.ceil((double)pointCloud.getNumberOfPointRecords() / 5000000.0);
+        int jako = (int)Math.ceil((double)pointCloud.getNumberOfPointRecords() / (double) parts);
+
+        int pienin;
+        int suurin;
+        int ero;
+
+        int count = 0;// = 0;
+        int totalCount = 0;
+
+        //declareTemporaryFiles(parts);
+
+        int[] pointCountsPerFile = new int[parts];
+
+        HashSet<Integer> chekki = new HashSet<>();
+
+        int morton = 0;
+        UInt32 morton_uint;
+
+        UInt32 x;
+
+        LasPoint tempPoint = new LasPoint();
+        Pair_z[] parit = new Pair_z[(int)pointCloud.getNumberOfPointRecords()];
+
+        int thread_n = aR.pfac.addReadThread(pointCloud);
+
+        pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
+
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
+
+            int maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+            aR.pfac.prepareBuffer(thread_n, i, 200000);
+
+            for (int j = 0; j < maxi; j++) {
+
+                pointCloud.readFromBuffer(tempPoint);
+                    parit[count] = new Pair_z(i + j, calcZOrder((int) tempPoint.x * 10, (int) tempPoint.y * 10));
+                    count++;
+
+                }
+
+            }
+
+
+            totalCount += count;
+
+            Arrays.sort(parit);
+
+        pointWriterMultiThread pw = new pointWriterMultiThread(outputFile, pointCloud, "lasSort - z_order", aR);
+
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
+
+        aR.pfac.addWriteThread(thread_n, pw, buf);
+
+        count =0;
+
+        for(Pair_z p_z : parit){
+
+            //System.out.println(p_z.index);
+
+            pointCloud.readRecord(p_z.index, tempPoint);
+
+            aR.pfac.writePoint(tempPoint, p_z.index, thread_n);
+
+        }
+
+        aR.pfac.closeThread(thread_n);
 
     }
 

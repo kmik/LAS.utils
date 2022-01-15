@@ -205,17 +205,6 @@ public class Thinner{
         outputFile.createNewFile();
 
         LASraf br = new LASraf(outputFile);
-
-        /*
-        LASwrite.writeHeader(br, "lasthin", this.pointCloud.versionMajor, this.pointCloud.versionMinor,
-                this.pointCloud.pointDataRecordFormat, this.pointCloud.pointDataRecordLength,
-                pointCloud.headerSize, pointCloud.offsetToPointData, pointCloud.numberVariableLengthRecords,
-                pointCloud.fileSourceID, pointCloud.globalEncoding,
-                pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
-                pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset);
-
-         */
-
         LASwrite.writeHeader(br, "lasThin", this.pointCloud, aR);
 
         int pointCount = 0;
@@ -291,17 +280,7 @@ public class Thinner{
             outputFile.delete();
 
         outputFile.createNewFile();
-/*
-        LASraf br = new LASraf(outputFile);
 
-        LASwrite.writeHeader(br, "lasthin3d", this.pointCloud.versionMajor, this.pointCloud.versionMinor,
-                this.pointCloud.pointDataRecordFormat, this.pointCloud.pointDataRecordLength,
-                pointCloud.headerSize, pointCloud.offsetToPointData, pointCloud.numberVariableLengthRecords,
-                pointCloud.fileSourceID, pointCloud.globalEncoding,
-                pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
-                pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset);
-
- */
         int pointCount = 0;
 
         int nParts = (int)Math.ceil((n * 4.0 / 1000000.0) / 1000.0);
@@ -394,9 +373,6 @@ public class Thinner{
         ArrayList<Integer> takeRandomList = new ArrayList<>();
 
         int[] randomit = new int[this.n_ranodm];
-        int randomIndex = 0;
-
-        int writeIndex = 0;
         aR.p_update.threadFile[coreNumber-1] = "second pass";
         aR.p_update.threadEnd[coreNumber-1] = parit.length;
         //aR.p_update.threadEnd[coreNumber-1] = hashmappi.size();

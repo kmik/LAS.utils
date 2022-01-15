@@ -5,6 +5,7 @@ import LASio.LasPoint;
 import LASio.PointInclusionRule;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
+import org.gdal.osr.SpatialReference;
 import utils.argumentReader;
 import utils.fileOperations;
 
@@ -70,16 +71,14 @@ public class ToShp{
             outputfilename = cloud.getFile().getParent() + pathSep + outputfilename;
         }
 
-        outputfilename = fo.createNewFileWithNewExtension(outputfilename, "."+otype).getAbsolutePath();
-        // outputfilename.replaceFirst("[.][^.]+$", "") + "." + otype;
-
+        outputfilename = aR.createOutputFileWithExtension(outputfilename, "."+otype).getAbsolutePath();
         System.out.println(outputfilename);
 
         this.outputFile = new File(outputfilename);
 
         if(outputFile.exists()){
             //outputFile = cloud.getFile().getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1.las";
-            outputfilename = fo.createNewFileWithNewExtension(outputFile, "_1." + otype).getAbsolutePath()  ;//
+            outputfilename = aR.createOutputFileWithExtension(outputFile, "_1." + otype).getAbsolutePath()  ;//
 
             // outputFile.getAbsolutePath().replaceFirst("[.][^.]+$", "") + "_1." + otype;
             outputFile = new File(outputfilename);
@@ -102,6 +101,9 @@ public class ToShp{
         String[]  split2 = out_file.split("/.");
         String out_name = split2[0];
 
+        SpatialReference sr = new SpatialReference();
+
+        sr.ImportFromEPSG(aR.EPSG);
 
         Driver shpDriver;
         shpDriver = ogr.GetDriverByName(driverName);
@@ -113,17 +115,18 @@ public class ToShp{
         FeatureDefn outShpFeatDefn=outShpLayer.GetLayerDefn();
         Feature outShpFeat = new Feature(outShpFeatDefn);
 
+
         long n = pointCloud.getNumberOfPointRecords();
 
         LasPoint tempPoint = new LasPoint();
 
         int thread_n = aR.pfac.addReadThread(pointCloud);
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
 
-            int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            int maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, 200000);
 
             for (int j = 0; j < maxi; j++) {
 

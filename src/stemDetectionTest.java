@@ -16,7 +16,7 @@ public class stemDetectionTest {
 
         argumentReader aR = new argumentReader();
 
-        /* THIS WAS USE IN KUNNONEN ET AL. 2020) */
+        /* THIS WAS USE IN KUNNONEN ET AL. 2021) */
         //stemDetector sd = new stemDetector(las, 0.10, 0.2, 1, aR);
 
         stemDetector sd = new stemDetector(las, 0.10, 0.2, 1, aR);

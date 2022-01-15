@@ -4,6 +4,8 @@ import err.lasFormatException;
 import utils.pointWriterMultiThread;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class LasPointBufferCreator {
 
@@ -50,12 +52,13 @@ public class LasPointBufferCreator {
     public LasPointBufferCreator(int bufferId, pointWriterMultiThread pwrite){
 
         this.pointLengthInBytes = pwrite.pointDataRecordLength;
+
         this.pointDataRecordFormat = pwrite.pointDataRecordFormat;
 
         this.bufferId = bufferId;
 
         this.bufferSize = this.pointLengthInBytes * 225000;
-        allArray2 = new byte[bufferSize];
+        allArray2 = new byte[this.bufferSize];
         this.pwrite = pwrite;
 
     }
@@ -325,6 +328,8 @@ public class LasPointBufferCreator {
 
                 }
 
+
+
                 if (this.pwrite.pointDataRecordFormat == 2 ||
                         this.pwrite.pointDataRecordFormat == 3 ||
                         this.pwrite.pointDataRecordFormat == 5) {
@@ -479,10 +484,105 @@ public class LasPointBufferCreator {
                 this.pointCount_1_4++;
 
             }
+            //System.out.println(pwrite.tempReader.readExtra.length);
+            //if(pwrite.tempReader.readExtra.length > 1){
+            if(pwrite.outputFile.extra_bytes.size() > 0){
+
+                if(tempPoint.extra_bytes.size() > 0) {
+                    for (int i_ = 0; i_ < pwrite.outputFile.extra_bytes.size(); i_++) {
+                        //System.out.println( i_ +    " WROTE EXISTING! " + pwrite.outputFile.extra_bytes.size() + " " + tempPoint.extra_bytes.size() + " " + tempPoint.extra_bytes_custom.size());
+                        //System.out.println(ByteBuffer.wrap(tempPoint.extra_bytes.get(i_)).getInt());
+                        this.writeByteArray_reord(tempPoint.extra_bytes.get(i_));
+                    }
+                }
+                if(tempPoint.extra_bytes_custom.size() > 0){
+                    for(int i_ = 0; i_ < tempPoint.extra_bytes_custom.size(); i_++) {
+                        //System.out.println("WROTE NEW ONE!");
+                        this.writeByteArray_reord(tempPoint.extra_bytes_custom.get(i_));
+                        //this.writeInt(ByteBuffer.wrap(b).getInt());
+                        //int val = ByteBuffer.wrap(b).getInt();
+                        // if(val > 50)
+                            //System.out.println(ByteBuffer.wrap(b).getInt());
+
+                    }
+
+                }
+                //System.out.println("------------");
+                //this.writeInt(tempPoint.extra_byte_int);
+
+                //System.out.println(i);
+                //for(int i_ = 0; i_ < pwrite.tempReader.readExtra.length; i_++)
+                    //this.writeUnsignedByte(pwrite.tempReader.readExtra[i]);
+            }
 
         }
 
+        //System.out.println("WROTE: " + this.allArray2Index);
+        //System.exit(1);
+
         return output;
+    }
+
+    public void writeByteArray_reord(byte[] in) throws IOException{
+
+        if(allArray2Index + in.length >= allArray2.length) {
+
+            for(int i = 0; i < in.length; i++) {
+
+                //
+
+                allArray2[allArray2Index] = in[i];
+                allArray2Index++;
+            }
+                output();
+                allArray2Index = 0;
+
+                return;
+
+            }
+
+
+
+        for(int i = 0; i < in.length; i++) {
+
+            //
+
+            allArray2[allArray2Index] = in[i];
+            allArray2Index++;
+
+        }
+
+    }
+
+    public void writeByteArray(byte[] in) throws IOException{
+
+        if(allArray2Index + in.length >= allArray2.length) {
+
+            for(int i = in.length-1; i >= 0;  i--) {
+
+                //for(int i = 0; i < in.length; i++){
+
+                allArray2[allArray2Index] = in[i];
+                allArray2Index++;
+            }
+                output();
+                allArray2Index = 0;
+
+                return;
+
+            }
+
+
+
+        for(int i = in.length-1; i >= 0;  i--){
+
+            //for(int i = 0; i < in.length; i++) {
+
+            allArray2[allArray2Index] = in[i];
+            allArray2Index++;
+
+        }
+
     }
 
     public void writeLong(long in) throws IOException {
@@ -820,6 +920,8 @@ public class LasPointBufferCreator {
         //intArray = null;
 
     }
+
+
 
     public void writeUnsignedByte(byte in) throws IOException {
 

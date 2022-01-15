@@ -90,32 +90,6 @@ public class Noise{
         int numberOfPixelsY = (int)Math.ceil((maxY - minY) / step) + 1;
         int numberOfPixelsZ = (int)Math.ceil((maxZ - minZ) / step) + 1;
 
-        //System.out.println()
-
-
-        if(false)
-        if(numberOfPixelsX*numberOfPixelsY*numberOfPixelsZ*2 > 2000000000){
-            System.out.println((numberOfPixelsX*numberOfPixelsY*numberOfPixelsZ*2.0/1000000000) + " GB");
-            System.out.println((numberOfPixelsY*numberOfPixelsZ*2.0/1000000000) + " GB");
-
-            System.exit(1);
-
-
-
-        }
-/*
-        System.out.println(this.step);
-        System.out.println(numberOfPixelsX );
-        System.out.println(numberOfPixelsY );
-        System.out.println(numberOfPixelsZ );
-        System.out.println(numberOfPixelsX*numberOfPixelsY*numberOfPixelsZ);
-
-        System.out.println((numberOfPixelsX*numberOfPixelsY*numberOfPixelsZ*2.0/1000000000) + " GB");
-        System.out.println((numberOfPixelsY*numberOfPixelsZ*2.0/1000000000) + " GB");
-
-        System.exit(1);
-*/
-
         this.cellMatrix = new short[numberOfPixelsX][numberOfPixelsY][numberOfPixelsZ];
 
         long n = pointCloud.getNumberOfPointRecords();
@@ -139,19 +113,10 @@ public class Noise{
 
             maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - (p)));
 
-            //try {
-                aR.pfac.prepareBuffer(thread_n, p, 200000);
-                //pointCloud.readRecord_noRAF(p, tempPoint, maxi);
-            //} catch (Exception e) {
-            //    e.printStackTrace();
-            //}
-
+            aR.pfac.prepareBuffer(thread_n, p, 200000);
 
             for (int j = 0; j < maxi; j++) {
 
-                //if((j+p) > 1600000)
-
-                //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                 pointCloud.readFromBuffer(tempPoint);
 
                 /* Reading, so ask if this point is ok, or if
@@ -161,13 +126,6 @@ public class Noise{
                     continue;
                 }
 
-                if((int) ((tempPoint.y - minY) / step) >= numberOfPixelsY) {
-                    System.out.println(tempPoint.y + " " + maxY + " " + minY);
-                    System.out.println((maxY - minY) / step);
-                    System.out.println((int)Math.ceil((maxY - minY) / step));
-                    System.out.println((maxY - minY));
-                    System.out.println("----------------------------");
-                }
 
                 cellMatrix[(int)((tempPoint.x - minX) / step)][(int)((tempPoint.y - minY) / step)][(int)((tempPoint.z - minZ) / step)]++;
                 aR.p_update.threadProgress[coreNumber-1]++;
@@ -180,16 +138,7 @@ public class Noise{
 
 
         }
-/*
-        for(long i = 0; i < n; i++){
 
-            pointCloud.readRecord(i, tempPoint);
-
-            cellMatrix[(int)((tempPoint.x - minX) / step)][(int)((tempPoint.y - minY) / step)][(int)((tempPoint.z - minZ) / step)]++;
-
-        }
-
- */
         int noiseCount = 0;
         int counter = 0;
 
@@ -240,15 +189,6 @@ public class Noise{
 
         aR.p_update.threadFile[coreNumber-1] = "second pass";
 
-       // LASraf asd2 = new LASraf(outWriteFile);
-/*
-        LASwrite.writeHeader(asd2, "lasNoise", pointCloud.versionMajor, pointCloud.versionMinor,
-                pointCloud.pointDataRecordFormat, pointCloud.pointDataRecordLength,
-                pointCloud.headerSize, pointCloud.offsetToPointData, pointCloud.numberVariableLengthRecords,
-                pointCloud.fileSourceID, pointCloud.globalEncoding,
-                pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
-                pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset);
-*/
         maxi = 0;
 
         aR.p_update.threadProgress[coreNumber-1] = 0;
@@ -264,22 +204,13 @@ public class Noise{
         int pointCount = 0;
 
         for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 10000) {
-            //for(int i = 0; i < n; i++){
 
             maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - (p)));
 
-            //try {
-                pointCloud.readRecord_noRAF(p, tempPoint, maxi);
-            //} catch (Exception e) {
-            //    e.printStackTrace();
-            //}
-
+            pointCloud.readRecord_noRAF(p, tempPoint, maxi);
 
             for (int j = 0; j < maxi; j++) {
 
-                //if((j+p) > 1600000)
-
-                //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
                 pointCloud.readFromBuffer(tempPoint);
 
                 /* Reading, so ask if this point is ok, or if
@@ -304,12 +235,10 @@ public class Noise{
 
                 }else{
                     if(!noisePoints.contains(combine(x, y, z))){
-                        // if(asd2.writePoint( tempPoint, rule, pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
-                        //pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, p+j)){
+
                         pointCount++;
                         aR.pfac.writePoint(tempPoint, p + j, thread_n);
-                        //System.out.println("!!!");
-                        //}
+
                     }else{
                         aR.p_update.lasnoise_removed++;
                         noisePointCount++;
@@ -325,51 +254,10 @@ public class Noise{
 
                     aR.p_update.updateProgressNoise();
                 }
-                    //noisePointsList.add(p+j);
             }
         }
 
         aR.pfac.closeThread(thread_n);
-
-        //asd2.writeBuffer2();
-        //asd2.updateHeader2();
-        /*
-        for(int i = 0; i < n; i++){
-
-            pointCloud.readRecord(i, tempPoint);
-
-            int x = (int)((tempPoint.x - minX) / step);
-            int y = (int)((tempPoint.y - minY) / step);
-            int z = (int)((tempPoint.z - minZ) / step);
-
-
-            if(noisePoints.contains(combine(x, y, z)))
-                noisePointsList.add(i);
-
-        }
-
-
-
-        String pathSep = System.getProperty("file.separator");
-
-        String outPath = "";
-
-
-
-        String otype = "las";
-        String oparse = "";
-
-
-
-        for(int i = 0; i < n; i++){
-
-            pointCloud.readRecord(i, tempPoint);
-
-            if(!noisePointsList.contains(i))
-
-        }
-
-        */
 
         aR.p_update.fileProgress++;
 
