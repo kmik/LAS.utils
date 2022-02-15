@@ -6,7 +6,7 @@ export GDAL_DATA=$curDir/gdal/gdal_data
 #echo "current dir: " $curDir
 
 
-java -Xmx16g -Djava.library.path=$curDir/gdal/java/ -cp ".:$curDir/lib/*:$curDir/target/" runners.RunLASutils 4 $@
+java -Xmx16g -cp ".:$curDir/lib/*:$curDir/target/" lasground $@
 
 set +f
 

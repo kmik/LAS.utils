@@ -28,6 +28,8 @@ public class process_las2las {
 
         int thread_n = aR.pfac.addReadThread(in);
 
+        //aR.add_extra_bytes(6, "ITC_id", "ID for an ITC segment");
+
         //aR.add_extra_bytes(6, "z_order", "just a running id for points");
         //aR.add_extra_bytes(6, "point_id_2", "just a running id for points_2");
         //aR.add_extra_bytes(6, "tree_id", "ITC id");
@@ -76,6 +78,9 @@ public class process_las2las {
 
                 //in.readRecord(i+j, tempPoint);
                 in.readRecord(i, tempPoint);
+
+                System.out.println(tempPoint);
+
                 counter++;
                 //double x2 = tempPoint.x;
 
@@ -87,6 +92,14 @@ public class process_las2las {
 
                 if(aR.echoClass){
 
+                    /*
+					#   0 = only
+
+					#   1 = first of many
+					#   2 = intermediate
+
+   					#   3 = last of many
+							*/
                     if(tempPoint.numberOfReturns == 1){
                         tempPoint.numberOfReturns = 0;
                     }else if(tempPoint.returnNumber == tempPoint.numberOfReturns){
@@ -99,7 +112,7 @@ public class process_las2las {
 
                 }
 
-                //tempPoint.setExtraByteINT(i+j, aR.create_extra_byte_vlr_n_bytes.get(0), 0);
+                //tempPoint.setExtraByteINT(i, aR.create_extra_byte_vlr_n_bytes.get(0), 0);
                 //tempPoint.setExtraByteINT(tempPoint.scanAngleRank, aR.create_extra_byte_vlr_n_bytes.get(1), 1);
 
                 if(aR.setNegativeZero){
@@ -118,7 +131,7 @@ public class process_las2las {
                     System.exit(1);
                 }
             }
-            System.out.println(counter + " == " + in.numberOfPointRecords);
+            //System.out.println(counter + " == " + in.numberOfPointRecords);
             aR.pfac.closeThread(thread_n);
 
         return true;

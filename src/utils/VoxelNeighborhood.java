@@ -13,8 +13,13 @@ public class VoxelNeighborhood {
     public short count = 0;
     public short capacity = 0;
 
+    HashSet<xyz> buffer_neighbors;
+
+
     public boolean stem = false;
     public boolean isSurface = false;
+    public boolean isSurface_buffer = false;
+    public boolean ignore_this = false;
 
     public int x;
     public int y;
@@ -48,7 +53,7 @@ public class VoxelNeighborhood {
         data = null;
     }
 
-    public void addPoint(double x, double y, double z, int index){
+    public synchronized void addPoint(double x, double y, double z, int index){
 
 
         colMeans[0] += x;
@@ -190,16 +195,37 @@ public class VoxelNeighborhood {
         dat.center();
         EigenSet eigen = dat.getCovarianceEigenSet();
 
+        double delta_x = eigen.vectors[0][2];
+        double delta_y = eigen.vectors[1][2];
+        double delta_z = eigen.vectors[2][2];
+
+        double dist3d = euclideanDistance_3d(colMeans[0], colMeans[1], colMeans[2], colMeans[0]+delta_x, colMeans[1]+delta_y, colMeans[2]+delta_z);
+        double dist2d = euclideanDistance(colMeans[0], colMeans[1], colMeans[0]+delta_x, colMeans[1]+delta_y);
+
+        double angle1 = Math.toDegrees(Math.cos(dist2d / dist3d));
         double angle = Math.toDegrees(Math.acos(eigen.vectors[2][2]/1.0));
+
+
+        if(angle1 < 0) {
+            System.out.println(Arrays.toString(eigen.vectors[0]));
+            System.out.println(Arrays.toString(eigen.vectors[1]));
+            System.out.println(Arrays.toString(eigen.vectors[2]));
+            System.out.println(angle + " " + angle1);
+            System.out.println("----------------");
+        }
+
         double[][] vals = {eigen.values};
         //double flatness = 1.0 - (vals[0][2] / (vals[0][0] + vals[0][1] + vals[0][2]));
 
-        this.normal = (float)angle;
 
-        if(!Double.isNaN(angle)) {
+        this.normal = (float)angle1;
+
+        if(!Double.isNaN(angle1)) {
             //System.out.println(data[0][data[0].length-1]);
             //System.out.println("z angle: " + angle);
-            if(Math.abs(angle - 90) <= 25.0){
+            //if(Math.abs(angle - 90) <= 25.0){
+            //if(Math.abs(angle - 90) <= 33.0){
+            if(angle1 <= 35.0){
                 //System.out.println("flatness: " + flatness);
                 this.stem = true;
             }
@@ -209,4 +235,38 @@ public class VoxelNeighborhood {
     public void setId(int id){
         this.id = id;
     }
+
+    public void addBufferNeighbor(int x, int y, int z){
+
+        if(buffer_neighbors == null){
+            buffer_neighbors = new HashSet<>();
+        }
+
+        buffer_neighbors.add(new xyz(x, y, z));
+    }
+
+    class xyz{
+        int x, y, z;
+        xyz(int x, int y, int z){
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
+
+    public double euclideanDistance_3d(double x1, double y1, double z1, double x2, double y2, double z2){
+
+
+        return Math.sqrt( ( x1 - x2) * ( x1 - x2) + ( y1 - y2) * ( y1 - y2) + ( z1 - z2) * ( z1 - z2) );
+
+    }
+
+    public double euclideanDistance(double x1, double y1, double x2, double y2){
+
+
+        return Math.sqrt( Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2) );
+
+    }
+
 }

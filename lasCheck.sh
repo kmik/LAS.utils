@@ -5,7 +5,7 @@ export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib:$curDir/gdal/java
 export GDAL_DATA=$curDir/gdal/gdal_data
 echo $LD_LIBRARY_PATH 
 
-java -Xmx8g -Djava.library.path=$curDir/gdal/java/ -cp ".:$curDir/lib/*:$curDir/target/" runners.RunLASutils 19 $@
+java -Xmx8g -cp ".:$curDir/lib/*:$curDir/target/" lasCheck $@
 
 set +f
 

@@ -14,7 +14,7 @@ import gnu.trove.set.hash.TIntHashSet;
 import tools.*;
 
 import utils.*;
-class MKid4pointsLAS{
+public class MKid4pointsLAS{
 
     public static boolean isInside(double[] point, double[] extent, double buffer){
 
@@ -310,8 +310,6 @@ class MKid4pointsLAS{
                           LASraf mergeOutput, ArrayList<BlockingQueue<byte[]>> qu, BlockingQueue<Integer> threadWrote, pointWriterMultiThread pwrite,
                           ArrayList<pointWriterMultiThread> outputFiles)throws Exception{
 
-
-
         pointCloudMetrics pCM = new pointCloudMetrics(aR);
 
         double sum_z_a = 0.0;
@@ -325,6 +323,8 @@ class MKid4pointsLAS{
 
         ArrayList<String> colnames_a = new ArrayList<>(), colnames_f = new ArrayList<>(), colnames_l = new ArrayList<>(), colnames_i = new ArrayList<>();
 
+        ArrayList<String> colnames_convo = new ArrayList<>();
+
         ArrayList<Double> gridPoints_z_a = new ArrayList<>();
         ArrayList<Integer> gridPoints_i_a = new ArrayList<>();
 
@@ -337,6 +337,10 @@ class MKid4pointsLAS{
 
         ArrayList<Double> gridPoints_z_i = new ArrayList<>();
         ArrayList<Integer> gridPoints_i_i = new ArrayList<>();
+
+        ArrayList<double[]> gridPoints_xyz_a = new ArrayList<>();
+        ArrayList<double[]> gridPoints_xyz_f = new ArrayList<>();
+        ArrayList<double[]> gridPoints_xyz_l = new ArrayList<>();
 
         aR.p_update.updateProgressClip();
 
@@ -824,34 +828,16 @@ class MKid4pointsLAS{
             for (int j = 0; j < kountti; j++) {
 
 
-                sum_z_a = 0.0;
-                sum_i_a = 0.0;
-                sum_z_f = 0.0;
-                sum_i_f = 0.0;
-                sum_z_l = 0.0;
-                sum_i_l = 0.0;
-                sum_z_i = 0.0;
-                sum_i_i = 0.0;
+                sum_z_a = 0.0;sum_i_a = 0.0;sum_z_f = 0.0;sum_i_f = 0.0;sum_z_l = 0.0;
+                sum_i_l = 0.0;sum_z_i = 0.0;sum_i_i = 0.0;
 
-                colnames_a.clear();
-                colnames_f.clear();
-                colnames_l.clear();
-                colnames_i.clear();
+                colnames_convo.clear();gridPoints_xyz_a.clear();gridPoints_xyz_f.clear(); gridPoints_xyz_l.clear();
+                colnames_a.clear();colnames_f.clear();colnames_l.clear();colnames_i.clear();
 
-                gridPoints_z_a.clear();
-                gridPoints_i_a.clear();
+                gridPoints_z_a.clear();gridPoints_i_a.clear();gridPoints_z_f.clear();gridPoints_i_f.clear();
 
-                gridPoints_z_f.clear();
-                gridPoints_i_f.clear();
-                gridPoints_RGB_f.clear();
-
-
-
-                gridPoints_z_l.clear();
-                gridPoints_i_l.clear();
-
-                gridPoints_z_i.clear();
-                gridPoints_i_i.clear();
+                gridPoints_RGB_f.clear();gridPoints_z_l.clear();gridPoints_i_l.clear();
+                gridPoints_z_i.clear();gridPoints_i_i.clear();
 
                 aR.p_update.threadFile[part-1] = plotID.get(j).toString();
 
@@ -922,8 +908,6 @@ class MKid4pointsLAS{
 
                 for (int va = 0; va < valinta.size(); va++) {
 
-                    //System.out.println("VA");
-
                     doneIndexes.clear();
                     LASReader asd = new LASReader(aR.inputFiles.get(valinta.get(va))); //pointClouds.get(valinta.get(va));
 
@@ -931,9 +915,7 @@ class MKid4pointsLAS{
 
                         asd.queryPoly2(minmaxXY[0], minmaxXY[1], minmaxXY[2], minmaxXY[3]);
 
-
                         LasPoint tempPoint = new LasPoint();
-
 
                         try {
                             FileWriter fw = null;
@@ -946,9 +928,12 @@ class MKid4pointsLAS{
 
                                             p = asd.fastReadFromQuery(tempPoint);
 
+
+                                            //if(tempPoint.R == 0 || tempPoint.G == 0 || tempPoint.B == 0 || tempPoint.N == 0)
+                                            //    System.out.println("ZERO SPECTRAL POINT! SHOULD NOT HAPPEN!");
                                                 haku[0] = tempPoint.x;
                                                 haku[1] = tempPoint.y;
-
+                                            //System.out.println(tempPoint);
                                                 if (pointInPolygon(haku, tempPolygon)) {
 
                                                     if (otype.equals("las")) {
@@ -958,8 +943,10 @@ class MKid4pointsLAS{
 
                                                         if (aR.omet) {
 
+
                                                             gridPoints_z_a.add(tempPoint.z);
                                                             gridPoints_i_a.add(tempPoint.intensity);
+                                                            gridPoints_xyz_a.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
                                                             sum_z_a += tempPoint.z;
                                                             sum_i_a += tempPoint.intensity;
@@ -975,10 +962,14 @@ class MKid4pointsLAS{
                                         gridPoints_i_f.add(tempPoint.intensity);
 
                                          */
+
                                                                 gridPoints_z_f.add(tempPoint.z);
                                                                 gridPoints_i_f.add(tempPoint.intensity);
+                                                                gridPoints_xyz_f.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
-                                                                gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B});
+                                                                gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
+
+                                                                //System.out.println(tempPoint.getRGB());
                                                                 //System.out.println(Arrays.toString(gridPoints_RGB_f.get(gridPoints_RGB_f.size()-1)));
                                                                 sum_z_f += tempPoint.z;
                                                                 sum_i_f += tempPoint.intensity;
@@ -994,6 +985,7 @@ class MKid4pointsLAS{
  */
                                                                 gridPoints_z_l.add(tempPoint.z);
                                                                 gridPoints_i_l.add(tempPoint.intensity);
+                                                                gridPoints_xyz_l.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
                                                                 sum_z_l += tempPoint.z;
                                                                 sum_i_l += tempPoint.intensity;
@@ -1013,13 +1005,14 @@ class MKid4pointsLAS{
                                                                 sum_i_i += tempPoint.intensity;
 
                                                             }
-
                                                         }
+                                                        if (!aR.split) {
+                                                                try {
+                                                                    pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), p);
+                                                                }catch (Exception e){
 
-
-                                                        if (!aR.split)
-                                                            pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), p);
-                                                        else
+                                                                }
+                                                        }else
                                                             outputBuffers.get(valinta.get(va)).writePoint(tempPoint, aR.getInclusionRule(), p);
 
                                                         aR.p_update.lasclip_clippedPoints++;
@@ -1041,12 +1034,7 @@ class MKid4pointsLAS{
                                                     i++;
                                                     //}
                                                 }
-                                            //} else {
-                                                //asd.skipPointInBuffer();
-                                            //}
                                         }
-
-                                        //System.out.println(debugCounter + " ?==? " + ero);
                                     }
                                 //}
                             //}
@@ -1108,6 +1096,8 @@ class MKid4pointsLAS{
                                                     gridPoints_z_a.add(tempPoint.z);
                                                     gridPoints_i_a.add(tempPoint.intensity);
 
+                                                    gridPoints_xyz_a.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z});
+
                                                     sum_z_a += tempPoint.z;
                                                     sum_i_a += tempPoint.intensity;
 
@@ -1124,8 +1114,9 @@ class MKid4pointsLAS{
                                          */
                                                         gridPoints_z_f.add(tempPoint.z);
                                                         gridPoints_i_f.add(tempPoint.intensity);
+                                                        gridPoints_xyz_f.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z});
 
-                                                        gridPoints_RGB_f.add(new int[]{tempPoint.R,tempPoint.G,tempPoint.B});
+                                                        gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
                                                         sum_z_f += tempPoint.z;
                                                         sum_i_f += tempPoint.intensity;
@@ -1141,6 +1132,7 @@ class MKid4pointsLAS{
  */
                                                         gridPoints_z_l.add(tempPoint.z);
                                                         gridPoints_i_l.add(tempPoint.intensity);
+                                                        gridPoints_xyz_l.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z});
 
                                                         sum_z_l += tempPoint.z;
                                                         sum_i_l += tempPoint.intensity;
@@ -1201,6 +1193,7 @@ class MKid4pointsLAS{
                         }
                     }
 
+                    asd.close();
                     asd = null;
                     System.gc();
                 }
@@ -1209,12 +1202,29 @@ class MKid4pointsLAS{
                 /* if we want to output metrics per polyon */
                 if(aR.omet){
 
-                    ArrayList<Double> metrics_a = pCM.calc(gridPoints_z_a, gridPoints_i_a, sum_z_a, sum_i_a, "_a", colnames_a);
-                    ArrayList<Double> metrics_f = pCM.calc_with_RGB(gridPoints_z_f, gridPoints_i_f, sum_z_f, sum_i_f, "_f", colnames_f, gridPoints_RGB_f);
-                    ArrayList<Double> metrics_l = pCM.calc(gridPoints_z_l, gridPoints_i_l, sum_z_l, sum_i_l, "_l", colnames_l);
-                    ArrayList<Double> metrics_i = pCM.calc(gridPoints_z_i, gridPoints_i_i, sum_z_i, sum_i_i, "_i", colnames_i);
-                    aR.lCMO.writeLine(metrics_a, metrics_f, metrics_l, metrics_i, colnames_a, colnames_f, colnames_l, colnames_i, plotID.get(j));
+                    boolean train = aR.convolution_metrics_train;
 
+                    if(aR.convolution_metrics_train) {
+                        ArrayList<ArrayList<Double>> metrics_convolution = pCM.calc_nn_input_train_spectral(gridPoints_xyz_f, "_convo_f", colnames_convo, minmaxXY[0], minmaxXY[3],
+                                minmaxXY[1], minmaxXY[2]);
+                        aR.lCMO.writeLine_convo( metrics_convolution, colnames_convo, plotID.get(j));
+                        //System.out.println("HERE!!");
+                    }else if(aR.convolution_metrics){
+                        ArrayList<Double> metrics_convolution = pCM.calc_nn_input_test_spectral(gridPoints_xyz_f, "_convo_f", colnames_convo, minmaxXY[0], minmaxXY[3],
+                                minmaxXY[1], minmaxXY[2]);
+                        aR.lCMO.writeLine_convo_test( metrics_convolution, colnames_convo, plotID.get(j));
+                        //System.out.println("HERE_test_data!!");
+                    }
+                    else {
+                        ArrayList<Double> metrics_a = pCM.calc(gridPoints_z_a, gridPoints_i_a, sum_z_a, sum_i_a, "_a", colnames_a);
+                        ArrayList<Double> metrics_f = pCM.calc_with_RGB(gridPoints_z_f, gridPoints_i_f, sum_z_f, sum_i_f, "_f", colnames_f, gridPoints_RGB_f);
+                        ArrayList<Double> metrics_l = pCM.calc(gridPoints_z_l, gridPoints_i_l, sum_z_l, sum_i_l, "_l", colnames_l);
+                        ArrayList<Double> metrics_i = pCM.calc(gridPoints_z_i, gridPoints_i_i, sum_z_i, sum_i_i, "_i", colnames_i);
+
+                        //for(int co = 0; co < 11; co++) {
+                            aR.lCMO.writeLine(metrics_a, metrics_f, metrics_l, metrics_i, colnames_a, colnames_f, colnames_l, colnames_i, plotID.get(j));
+                       // }
+                    }
                 }
 
                 if (npoints != 0) {
@@ -1228,24 +1238,23 @@ class MKid4pointsLAS{
 
                 }
 
-
-                System.gc();
-                System.gc();
-                System.gc();
-                System.gc();
                 System.gc();
 
                 aR.p_update.threadProgress[part-1]++;
                 aR.p_update.updateProgressClip();
                 aR.p_update.fileProgress++;
+
+                System.out.println(j + " / " + kountti);
             }
         }
 
         aR.p_update.updateProgressClip();
 
-        if(!aR.split)
+        if(!aR.split) {
 
             pointBuffer.close();
+            pointBuffer.pwrite.close(aR);
+        }
         else{
             for(int i = 0; i < outputBuffers.size(); i++)
                 outputBuffers.get(i).close();
@@ -1507,8 +1516,6 @@ class MKid4pointsLAS{
                             if(asd.queriedIndexes2.size() > 0)
 
                                 for (int u = 0; u < asd.queriedIndexes2.size(); u++) {
-
-
 
                                     long n1 = asd.queriedIndexes2.get(u)[1] - asd.queriedIndexes2.get(u)[0];
                                     long n2 = asd.queriedIndexes2.get(u)[1];

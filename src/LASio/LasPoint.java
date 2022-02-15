@@ -80,7 +80,8 @@ public class LasPoint implements Cloneable {
 
     public float z_t;
 
-
+    public double custom_double;
+    public double custom_int;
 
     /* We should only define the extra bytes that we are actually using
 
@@ -101,7 +102,7 @@ public class LasPoint implements Cloneable {
     public LasPoint(){
 
         //buffer.order(ByteOrder.BIG_ENDIAN);
-
+        this.N = 0;
     }
 
     public LasPoint(ArrayList<Integer> extra_bytes_length){
@@ -243,7 +244,17 @@ public class LasPoint implements Cloneable {
         return  "x: " + this.x + "\n" +
                 "y: " + this.y + "\n" +
                 "z: " + this.z + "\n" +
-                "i: " + this.intensity + "\n";
+                "i: " + this.intensity + "\n" +
+                "u: " + this.userData + "\n" +
+                "n: " + this.numberOfReturns + "\n" +
+                "r: " + this.returnNumber + "\n";
+    }
+
+    public String getRGB(){
+        return "R: " + this.R + "\n" +
+                "G: " + this.G + "\n" +
+                "B: " + this.B + "\n" +
+                "N: " + this.N + "\n";
     }
 
     public double getGpsTime(){
@@ -251,6 +262,8 @@ public class LasPoint implements Cloneable {
         return this.gpsTime;
 
     }
+
+
 
 
 

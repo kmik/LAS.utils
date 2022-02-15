@@ -6,7 +6,7 @@ export GDAL_DATA=$curDir/gdal/gdal_data
 echo $LD_LIBRARY_PATH 
 
 
-java -Xmx12g -Djava.library.path=$curDir/gdal/java/ -cp ".:$curDir/lib/*:$curDir/target/" runners.RunLASutils 5 $@
+java -Xmx16g -cp ".:$curDir/lib/*:$curDir/target/" lasdz $@
 
 set +f
 

@@ -7,7 +7,7 @@ echo $LD_LIBRARY_PATH
 
 
 
-java -Djava.library.path=$curDir/gdal/java/ -cp ".:$curDir/lib/*:$curDir/target/:$curDir/lib/ddogleg-v0.18-libs/*" runners.RunLASutils 23 $@
+java -Xmx16g -cp ".:$curDir/lib/*:$curDir/target/:$curDir/lib/ddogleg-v0.18-libs/*" lasStemAlign $@
 
 set +f
 

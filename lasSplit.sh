@@ -3,7 +3,7 @@ set -f
 export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib
 curDir=$(dirname $0)
 
-java -Djava.library.path=$curDir/gdal/java/ -cp ".:$curDir/lib/*:$curDir/target/" runners.RunLASutils 18 $@
+java -Xmx16g -cp ".:$curDir/lib/*:$curDir/target/" lasSplit $@
 
 set +f
 

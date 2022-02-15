@@ -337,7 +337,7 @@ public class LASwrite {
 				case 'p':
 					point.pointSourceId = (short)Integer.parseInt(tokens[i]);
 					break;
-				case 's':
+				case 'd':
 					point.scanAngleRank = Integer.parseInt(tokens[i]);
 					break;
 				case 'u':
@@ -354,6 +354,9 @@ public class LASwrite {
 					break;
 				case 'N':
 					point.N = (short)Double.parseDouble(tokens[i]);
+					break;
+				case 's':
+					/* SKIP */
 					break;
 				default:
 					throw new argumentException("-iparse command " + charArray[i] + " not recognized");
@@ -409,8 +412,11 @@ public class LASwrite {
 		/* First just create a placeholder header. Minimum header requirements will be updated
 			with the information inferred from the point records.
 		 */
-		int minimum_point_format = inferPointDataFormat(parse);
 
+		byte myBitti = myByte.byteValue();
+
+		int minimum_point_format = inferPointDataFormat(parse);
+		to.pointDataRecordFormat = minimum_point_format;
 		int minimum_version = -1;
 
 		if(minimum_point_format <= 3){
@@ -421,9 +427,38 @@ public class LASwrite {
 			minimum_version = 4;
 		}
 
+		String line = "";
+		LasPoint tempPoint = new LasPoint();
+
+		int x_offset_update = 0, y_offset_update = 0, z_offset_update = 0;
+		double x_scale_update = 0, y_scale_update = 0, z_scale_update = 0;
+
+		try {
+			FileInputStream fis = new FileInputStream(from);
+			BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+
+			while ((line = in.readLine()) != null) {
+
+				String2LASpoint(tempPoint, line, parse, sep);
+
+				x_offset_update = (int)tempPoint.x;
+				y_offset_update = (int)tempPoint.y;
+				z_offset_update = (int)tempPoint.z;
+
+
+				x_scale_update = 0.01;
+				y_scale_update = 0.01;
+				z_scale_update = 0.01;
+
+			}
+
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+
 		to.writeAscii(4, "LASF");
 	    to.writeUnsignedShort((short)2); // = braf.readUnsignedShort();
-	    to.writeUnsignedShort((short)0); // = braf.readUnsignedShort();
+	    to.writeUnsignedShort((short)1); // = braf.readUnsignedShort();
 
 	    // GUID
 	    to.writeLong(0);
@@ -434,11 +469,23 @@ public class LASwrite {
 	    to.writeAscii(32, (softwareName + " version 0.1"));// generatingSoftware = braf.readAscii(32);
 		int year = Calendar.getInstance().get(Calendar.YEAR); //now.getYear();
 		Calendar calendar = Calendar.getInstance();
-		int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);  
+		int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
 	    to.writeUnsignedShort((short)dayOfYear);// = braf.readUnsignedShort();
 	    to.writeUnsignedShort((short)(year));// = braf.readUnsignedShort();
-	    to.writeUnsignedShort((short)227);// = braf.readUnsignedShort();
-	    to.writeUnsignedInt(227);
+
+		if(minimum_version == 2){
+			to.writeUnsignedShort((short)227);// = braf.readUnsignedShort();
+			to.writeUnsignedInt(227);
+		}
+		else if(minimum_version == 3){
+			to.writeUnsignedShort((short)335);// = braf.readUnsignedShort();
+			to.writeUnsignedInt(335);
+
+		}else if(minimum_version == 4){
+			to.writeUnsignedShort((short)375);// = braf.readUnsignedShort();
+			to.writeUnsignedInt(375);
+		}
+
 	    to.writeUnsignedInt(0);// = braf.readUnsignedInt();
 	    to.writeUnsignedByte((byte)minimum_point_format);// = braf.readUnsignedByte();
 	    to.writeUnsignedShort((short)getPointDataRecordLength(minimum_point_format));// = braf.readUnsignedShort();
@@ -453,20 +500,38 @@ public class LASwrite {
 	    to.writeDouble(0.01);// = braf.readDouble();
 	    to.writeDouble(0.01);// = braf.readDouble();
 	    
+	    to.writeDouble(x_offset_update);// = braf.readDouble();
+	    to.writeDouble(y_offset_update);// = braf.readDouble();
+	    to.writeDouble(z_offset_update);// = braf.readDouble();
+		//System.out.println("Z_OFFSET: " + z_offset_update);
+		//System.exit(1);
+		to.xOffset = x_offset_update; to.yOffset = y_offset_update; to.zOffset = z_offset_update;
+		to.xScaleFactor = 0.01; to.yScaleFactor = 0.01; to.zScaleFactor = 0.01;
 	    to.writeDouble(0);// = braf.readDouble();
 	    to.writeDouble(0);// = braf.readDouble();
 	    to.writeDouble(0);// = braf.readDouble();
-
 	    to.writeDouble(0);// = braf.readDouble();
 	    to.writeDouble(0);// = braf.readDouble();
 	    to.writeDouble(0);// = braf.readDouble();
-	    to.writeDouble(0);// = braf.readDouble();
-	    to.writeDouble(0);// = braf.readDouble();
-	    to.writeDouble(0);// = braf.readDouble();
+		System.out.println(minimum_version);
+		if(minimum_version == 3){
+			to.writeDouble(0);
+		}
+		if(minimum_version == 4){
+			to.writeDouble(0);
+			to.writeDouble(0);
+			to.writeUnsignedInt(0);
+			to.writeDouble(0);
+			to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);
+			to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);
+			to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);
+			to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);
+			to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);
+			to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);
+		}
 
 	    to.writeBuffer2();
 	    long n = 0;//from.getNumberOfPointRecords();
-		LasPoint tempPoint = new LasPoint();
 
 		double minX = Double.POSITIVE_INFINITY;
 		double maxX = Double.NEGATIVE_INFINITY;
@@ -482,8 +547,6 @@ public class LASwrite {
 		long[] pointsByReturn = new long[5];
 		long[] pointsByReturn_1_4 = new long[15];
 
-		String line = "";
-
 		//LasPoint tempPoint = new LasPoint();
 
 		double offSet = 0.0;
@@ -496,8 +559,7 @@ public class LASwrite {
 
 		int version_minor_update = 2;
 		int point_data_format_update = 0;
-		int x_offset_update = 0, y_offset_update = 0, z_offset_update = 0;
-		double x_scale_update = 0, y_scale_update = 0, z_scale_update = 0;
+
 
 		try {
 	        FileInputStream fis = new FileInputStream(from);
@@ -505,15 +567,11 @@ public class LASwrite {
 
 	        while((line = in.readLine())!= null){
 
-
 	        	String2LASpoint(tempPoint, line, parse, sep);
 
 				if(!aR.inclusionRule.ask(tempPoint, 1, true)){
 					continue;
 				}
-
-				tempPoint.numberOfReturns = Math.max(tempPoint.numberOfReturns, 1);
-				tempPoint.returnNumber = Math.max(tempPoint.returnNumber, 1);
 
 				if(tempPoint.numberOfReturns > 5){
 					version_minor_update = 4;
@@ -526,13 +584,26 @@ public class LASwrite {
 					y_offset_update = (int)tempPoint.y;
 					z_offset_update = (int)tempPoint.z;
 
-					x_scale_update = 0.001;
-					y_scale_update = 0.001;
-					z_scale_update = 0.001;
+					x_scale_update = 0.01;
+					y_scale_update = 0.01;
+					z_scale_update = 0.01;
 
 				}
 
 				if(echoClass){
+
+					//tempPoint.userData = tempPoint.numberOfReturns;
+					/*
+					#   0 = only
+
+					#   1 = first of many
+					#   2 = intermediate
+
+   					#   3 = last of many
+							*/
+					//System.out.println("HERE!!");
+
+					//System.out.println(tempPoint.numberOfReturns + " " + tempPoint.returnNumber);
 
 					if(tempPoint.numberOfReturns == 0){
 						tempPoint.numberOfReturns = 1;
@@ -543,16 +614,30 @@ public class LASwrite {
 						tempPoint.returnNumber = 1;
 					}
 					else if(tempPoint.numberOfReturns == 2){
-						tempPoint.numberOfReturns = 2;
-						tempPoint.returnNumber = 2;
-					}
-					else if(tempPoint.numberOfReturns == 3){
 						tempPoint.numberOfReturns = 3;
 						tempPoint.returnNumber = 2;
 					}
+					else if(tempPoint.numberOfReturns == 3){
+						tempPoint.numberOfReturns = 2;
+						tempPoint.returnNumber = 2;
+					}
+					else{
+
+					}
+
 				}
 
-	        	if(rule.ask(tempPoint, count, false)){
+
+				if(tempPoint.returnNumber <= 0 || tempPoint.numberOfReturns <= 0){
+
+					System.exit(1);
+					continue;
+
+
+
+				}
+
+				if(rule.ask(tempPoint, count, false)){
 
 					pointCount++;
 					
@@ -681,6 +766,19 @@ public class LASwrite {
 						myBitti = setUnsetBit(myBitti, 1, ((byte) tempPoint.returnNumber & (1 << (1))) > 0 ? 1 : 0);
 						myBitti = setUnsetBit(myBitti, 0, ((byte) tempPoint.returnNumber & (1 << (0))) > 0 ? 1 : 0);
 
+						int mask = myBitti;
+
+						int numberOfReturns_ = mask>>4;
+
+						int returnNumber_ = mask&15;
+
+						if(tempPoint.numberOfReturns != numberOfReturns_ || returnNumber_ != tempPoint.returnNumber){
+							System.out.println("HATHAFHSAFD: !" );
+							System.out.println(numberOfReturns_ + " " + tempPoint.numberOfReturns);
+							System.out.println(returnNumber_ + " " + tempPoint.returnNumber);
+						}
+
+
 						/* Write byte */
 						to.writeUnsignedByte(myBitti);
 
@@ -758,9 +856,15 @@ public class LASwrite {
 			e.printStackTrace();
 		}
 	    to.writeBuffer2();
-	    updateHeader_txt2las(pointCount, pointsByReturn, minX, maxX, minY, maxY
-			, maxZ, minZ, to, x_offset_update, y_offset_update, z_offset_update,
-				x_scale_update, y_scale_update, z_scale_update);
+
+		if(minimum_version == 4){
+			to.updateHeader_1_4_2((int)pointCount, minX, maxX, minY, maxY
+					, maxZ, minZ, pointsByReturn, pointsByReturn_1_4,  aR, x_offset_update, y_offset_update, z_offset_update,
+					x_scale_update, y_scale_update, z_scale_update);
+		}else
+			updateHeader_txt2las(pointCount, pointsByReturn, minX, maxX, minY, maxY
+				, maxZ, minZ, to, x_offset_update, y_offset_update, z_offset_update,
+					x_scale_update, y_scale_update, z_scale_update);
 
 	}
 
@@ -1348,6 +1452,8 @@ public class LASwrite {
 		}
 		boolean added_to_existing = false;
 
+		int n_added_bytes = 0;
+
 		for(int i = 0; i < from.vlrList.size(); i++){
 
 			/* UNUSED */
@@ -1429,6 +1535,8 @@ public class LASwrite {
 
 				if(aR.create_extra_byte_vlr_n_bytes.size() > 0){
 
+					int from_bytes = to.allArray2Index;
+
 					for(int i_ = 0; i_ < aR.create_extra_byte_vlr_n_bytes.size(); i_++) {
 						added_to_existing = true;
 
@@ -1473,6 +1581,8 @@ public class LASwrite {
 						/* description[32]; */
 						to.writeAscii(32, aR.create_extra_byte_vlr_description.get(i_));
 					}
+
+					n_added_bytes += to.allArray2Index - from_bytes;
 				}
 			}
 			else{
@@ -1486,6 +1596,8 @@ public class LASwrite {
 		/* If the tool requires to save data for each point
 		* and no extra byte VLR exists */
 		if(aR.create_extra_byte_vlr.size() > 0 && !added_to_existing){
+
+			int from_bytes = to.allArray2Index;
 
 			/* UNUSED */
 			to.writeUnsignedByte((byte)0);
@@ -1547,6 +1659,11 @@ public class LASwrite {
 
 			to.extra_bytes.add(add_bytes);
 
+			n_added_bytes += to.allArray2Index - from_bytes;
+		}
+
+		while(to.allArray2Index < from.offsetToPointData + n_added_bytes){
+			to.writeUnsignedByte((byte)0);
 		}
 
 		to.writeBuffer2();

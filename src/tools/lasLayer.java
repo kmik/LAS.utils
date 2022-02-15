@@ -66,7 +66,8 @@ public class lasLayer {
 
         this.resolution = 2.0;
 
-        this.resolution = aR.dist;
+        if(aR.dist != -999)
+            this.resolution = aR.dist;
 
 
 
@@ -90,7 +91,7 @@ public class lasLayer {
         else
             this.kernelSize = aR.kernel;
 
-        //this.kernelSize = aR.kernel;
+        this.kernelSize = aR.kernel;
 
         this.binThresHold_n = (int) (1.0 / this.delta);
 
@@ -116,6 +117,8 @@ public class lasLayer {
         double numberOfPixelsZ = (int) Math.ceil((maxZ - minZ) / delta) + 1;
 
         float[][] understoreyHeight = new float[(int)numberOfPixelsX][(int)numberOfPixelsY];
+
+        //this.kernelSize = (int)( 2.0 * Math.ceil( 3.0 * aR.theta) + 1.0);
 
         System.out.println("resolution: " + resolution + " kernelSize: " + this.kernelSize);
 
@@ -411,7 +414,7 @@ public class lasLayer {
                     for(int x1 = xLim[0]; x1 <= xLim[1]; x1++){
                         for(int y1 = yLim[0]; y1 <= yLim[1]; y1++){
 
-                            if(layers[x][y][z] >= 5) {
+                            if(layers[x][y][z] >= 0) {
                                 yAxis[z] += layers[x1][y1][z];
                                 nPoints += layers[x1][y1][z];
                                 //averagePoints[x][y] += layers[x1][y1][z];
@@ -461,13 +464,13 @@ public class lasLayer {
 
                 //funk_poly = new PolynomialFunction(fitPolynomialToData(xAxis, yAxis, 10));
 
-                yAxis_filtered = filter(yAxis);
+                //yAxis_filtered = filter(yAxis);
+
+
                 //yAxis_filtered = standardize(yAxis_filtered);
 
-                //System.out.println(Arrays.toString(yAxis));
-                //System.out.println(Arrays.toString(yAxis_filtered));
-                //System.out.println("----------------");
-                funk_poly = new PolynomialFunction(fitPolynomialToData(xAxis, yAxis, 5));
+
+                funk_poly = new PolynomialFunction(fitPolynomialToData(xAxis, yAxis, 3));
                 //funk = interpolatori.interpolate(xAxis, yAxis);
 
                 int countOf = 0;
@@ -478,6 +481,12 @@ public class lasLayer {
                         countOf++;
                     yAxis_filtered[i] = funk_poly.value(xAxis[i]);
                 }
+
+
+                //System.out.println(Arrays.toString(yAxis));
+                //System.out.println(Arrays.toString(yAxis_filtered));
+                //System.out.println("----------------------------");
+
 
                 //if(countOf < 0.5 * (double)xAxis.length)
                   //  continue;
@@ -513,6 +522,15 @@ public class lasLayer {
 
                     //System.out.println(yDerivatives[i] + " == " + funk_s_poly.value(xAxis[i]));
                 }
+/*
+                System.out.println(Arrays.toString(yAxis));
+                System.out.println();
+                System.out.println(Arrays.toString(yAxis_filtered));
+                System.out.println();
+                System.out.println(Arrays.toString(yDerivatives));
+                                System.out.println("----------------");
+
+*/
 
                // System.out.println("vales: " + Arrays.toString(yDerivatives));
 
@@ -522,7 +540,7 @@ public class lasLayer {
 
                 double cutoff = 1E-10;
 
-                int[] canopyOrNot = new int[yAxis.length];
+                int[] canopyOrNot = new int[yAxis_filtered.length];
                 for(int i = 0; i < canopyOrNot.length; i++)
                     canopyOrNot[i] = -99;
                 int indeksiHere = 0;
@@ -555,11 +573,13 @@ public class lasLayer {
 
                     canopyOrNot[i] = -99;
 
-                    if(yAxis_filtered[i] > 0.2)
+                    if(yAxis_filtered[i] > 0.2) {
                         foundOver = true;
-
+                        consecutive = i;
+                    }
                     if(yAxis_filtered[i] <= 0.10 && foundOver){
 
+                        /* This prevents more than two layers */
                         if(found == true){
                             for(int j = 0; j < yAxis_filtered.length; j++){
                                 canopyOrNot[j] = -99;
@@ -587,6 +607,11 @@ public class lasLayer {
                         //break;
 
                     }
+                }
+
+                if(understoreyHeight[x][y] >= startEnd[1] * 0.8) {
+                    found = false;
+                    understoreyHeight[x][y] = 0.0f;
                 }
 
                 if(found){

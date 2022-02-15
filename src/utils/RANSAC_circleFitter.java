@@ -1367,7 +1367,8 @@ public class RANSAC_circleFitter {
         double minimumDiameter = Double.POSITIVE_INFINITY;
         double center_x_ransac = 0, center_y_ransac = 0;
 
-        double fraction_of_too_many_inside = 0.33;
+        //double fraction_of_too_many_inside = 0.33;
+        double fraction_of_too_many_inside = 0.85;
 
         ArrayList<double[]> points_orig = (ArrayList<double[]>)points.clone();
 
@@ -1429,7 +1430,8 @@ public class RANSAC_circleFitter {
 
                 if(distance < 0) {
                     inside = true;
-                    distance *= -1.33;
+                    //distance *= -1.33;
+                    distance *= -1.1;
                 }else
                     inside = false;
 

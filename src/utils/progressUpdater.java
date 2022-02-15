@@ -95,8 +95,13 @@ public class progressUpdater {
     /** lasSplit variables */
     public volatile String lasSplit_splitCriterion = "null";
 
+
     /** las2txt variables */
     public volatile String las2txt_oparse = "xyz";
+
+
+    /** lasgrid variables */
+    public volatile int lasgrid_resolution = 0;
 
 
     public progressUpdater(argumentReader aR){
@@ -360,6 +365,43 @@ public class progressUpdater {
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K");
 
     }
+
+    public synchronized void updateProgressGridStats(){
+
+
+        if(false)
+            return;
+
+        int first = 12;
+
+        first += aR.cores;
+
+        String beginning = "[" + first + "A\r";
+
+        System.out.printf(((char) 0x1b) + beginning + "\033[2K" + "-------------------------------------------------------");
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "LASutils - lasgridstats, version (0.1), (c) Mikko Kukkonen");
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "-------------------------------------------------------");
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "");
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "\t%-35s %d | %d", "* File progress:", this.fileProgress, this.totalFiles);
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "\t%-35s %d", "* Resolution:", this.lasgrid_resolution );
+
+
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K");
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "\t\t\t---Thread progress---");
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K");
+
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "%-8s" + "%-25s" + "%-25s" + "%-10s", "thread", "operation", "progress", "vertices");
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "____________________________________________________________________________");
+
+        for(int i = 0; i < aR.cores; i++) {
+            System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "%-8d" + "%-25s" + "%-25s" + "%-10d", i+1, threadFile[i],  progeBar.getProgress(threadEnd[i],threadProgress[i]), threadInt[i]);
+        }
+
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K");
+        System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K");
+
+    }
+
 
     public synchronized void updateProgressThin(){
 

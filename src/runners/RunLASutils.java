@@ -11,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import tools.*;
 import utils.*;
 
+import com.clust4j.*;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +34,6 @@ public class RunLASutils {
         File temppi;
         for (int i = 0; i < in.size(); i++) {
             temppi = fo.createNewFileWithNewExtension(in.get(i).getFile(), ".lasx");
-            // new File(in.get(i).path.getAbsolutePath().replaceFirst("[.][^.]+$", "") + ".lasx");
 
             if (temppi.exists()) {
 
@@ -52,6 +53,7 @@ public class RunLASutils {
         ogr.RegisterAll(); //Registering all the formats..
         gdal.AllRegister();
 
+
         long tStart = System.currentTimeMillis();
         argumentReader aR = new argumentReader(args);
         aR.setExecDir(System.getProperty("user.dir"));
@@ -66,7 +68,9 @@ public class RunLASutils {
         ArrayList<String> filesList = new ArrayList<String>();
         ArrayList<LASReader> pointClouds = new ArrayList<LASReader>();
         ArrayList<File> inputFiles = new ArrayList<>();
+
         filesList = getFileListAsString(aR, lasFormat, txtFormat, filesList, inputFiles);
+
         proge.reset();
         try {
             addIndexFiles(pointClouds);
@@ -161,8 +165,6 @@ public class RunLASutils {
                     det.wipe();
                     det = null;
                     System.gc();
-
-
                 }
             }
 
@@ -441,7 +443,7 @@ public class RunLASutils {
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
 
                     try {
-                        lasSort sort = new lasSort(temp, aR);
+                        lasSort sort = new lasSort(temp, aR, 1);
 
 
                     } catch (Exception e) {
@@ -497,6 +499,7 @@ public class RunLASutils {
         }
 
         /* Compute ITD statistics */
+        /* NOT YET REFACTORED NOT SWITCHED TO SINGLE FILE!!! */
         if (aR.tool == 20) {
 
             if(aR.cores <= 1) {
@@ -737,17 +740,12 @@ public class RunLASutils {
         }
 
         if (aR.tool == 25) {
-
-
             try {
 
                 for (int i = 0; i < aR.inputFiles.size(); i++) {
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
-
-                    lasGridStats lGS = new lasGridStats(temp, aR);
-
+                    lasGridStats lGS = new lasGridStats(temp, aR, 1);
                 }
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -783,9 +781,7 @@ public class RunLASutils {
                 for (int i = 0; i < aR.inputFiles.size(); i++) {
 
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
-
                     trunkDBH t_DBH = new trunkDBH(temp, aR, trunkMatches, n_trunks);
-
                     t_DBH.process();
 
                 }
@@ -970,10 +966,8 @@ public class RunLASutils {
                     createCHM.chm testi = testi_c.new chm(temp, "y", 1, aR, 1);
 
                     las2solar_photogrammetry l2s = new las2solar_photogrammetry(testi.outputFileName, aR, temp, false);
+
                 }
-
-
-
 
             }else {
                 try {
@@ -993,9 +987,7 @@ public class RunLASutils {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
             }
-
         }
 
         if (aR.tool == 31){
@@ -1086,7 +1078,7 @@ public class RunLASutils {
 
                         LASReader temp = new LASReader(aR.inputFiles.get(i));
 
-                        ground2raster g2r = new ground2raster(temp, aR);
+                        ground2raster g2r = new ground2raster(temp, aR, 1);
                     }
 
                 } catch (Exception e) {
@@ -1185,7 +1177,7 @@ public class RunLASutils {
 
     @NotNull
     public static ArrayList<String> getFileListAsString(argumentReader aR, boolean lasFormat, boolean txtFormat, ArrayList<String> filesList, ArrayList<File> inputFiles) {
-        if (lasFormat) {
+        if (lasFormat && !aR.noLas) {
 
 
             filesList.addAll(Arrays.asList(aR.files));
@@ -1197,13 +1189,12 @@ public class RunLASutils {
 
             }
         }
-        else if (txtFormat) {
+        else if (txtFormat && !aR.noLas) {
 
             System.out.println("converting txt to las");
 
             proge.setName("Converting .txt to .las ...");
             ArrayList<String> tempList = new ArrayList<String>();
-
 
             tempList.addAll(Arrays.asList(aR.files));
 
@@ -1220,7 +1211,6 @@ public class RunLASutils {
                 Thread temp = new Thread(new multiTXT2LAS(tempList, aR.iparse, aR.cores, ii, aR.odir, aR.echoClass, aR));
                 lista11.add(temp);
                 temp.start();
-
 
             }
 
@@ -1365,6 +1355,7 @@ public class RunLASutils {
                 ArrayList<File> from = new ArrayList<File>();
                 ArrayList<LASraf> to = new ArrayList<LASraf>();
                 ArrayList<String> outList = new ArrayList<String>();
+                PointInclusionRule rule = new PointInclusionRule();
 
                 for (int i = 0; i < files.size(); i++) {
 
@@ -1384,24 +1375,29 @@ public class RunLASutils {
 
                     from.add(fromFile);
 
-                    to.add(new LASraf(toFile));
+                    //to.add(new LASraf(toFile));
+                    LASraf tmp = new LASraf(toFile);
+                    LASwrite.txt2las(from.get(i), tmp, parse, "txt2las", aR.sep, rule, echoClass, aR);
 
-                    outList.add(aR.createOutputFileWithExtension(tempFile, ".las").getAbsolutePath());
+                    tmp.writeBuffer2();
+                    tmp.close();
 
-                }
+                    //System.exit(1);
 
-                PointInclusionRule rule = new PointInclusionRule();
-                tiedostoLista.add(outList);
-
-                for (int i = 0; i < files.size(); i++) {
-
-                    LASwrite.txt2las(from.get(i), to.get(i), parse, "txt2las", aR.sep, rule, echoClass, aR);
-
-                    to.get(i).writeBuffer2();
-                    to.get(i).close();
                     proge.updateCurrent(1);
                     if (i % (proge.end / 20 + 1) == 0)
                         proge.print();
+
+                    //outList.add(aR.createOutputFileWithExtension(tempFile, ".las").getAbsolutePath());
+
+                }
+
+                tiedostoLista.add(outList);
+
+                if(false)
+                for (int i = 0; i < files.size(); i++) {
+
+
                 }
 
             } catch (Exception e) {
@@ -1724,7 +1720,7 @@ public class RunLASutils {
 
                         LASReader temp = new LASReader(f);
                         try {
-                            lasSort sort = new lasSort(temp, aR);
+                            lasSort sort = new lasSort(temp, aR, nCore);
 
 
                         } catch (Exception e) {
@@ -1773,7 +1769,7 @@ public class RunLASutils {
 
                         LASReader temp = new LASReader(f);
                         try {
-                            ground2raster g2r = new ground2raster(temp, aR);
+                            ground2raster g2r = new ground2raster(temp, aR, nCore);
                             //sort.sortByZCount();
 
                         } catch (Exception e) {

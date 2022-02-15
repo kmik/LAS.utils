@@ -1,13 +1,18 @@
 package LASio;
 
 
+import sun.misc.Cleaner;
 import utils.argumentReader;
 
 import java.io.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -201,7 +206,7 @@ public class LASraf implements Closeable {
 
       int parts = (int)Math.ceil(((double)fileChannel.size()-(double)offsetToPointData) / (double)step);
 
-      System.out.println("here " + parts + " " + fileChannel.size() + " " + this.step + " " + offsetToPointData + " " + pointDataRecordLength);
+      //System.out.println("here " + parts + " " + fileChannel.size() + " " + this.step + " " + offsetToPointData + " " + pointDataRecordLength);
 
       for(long i = 0; i < parts; i++){
 
@@ -215,6 +220,7 @@ public class LASraf implements Closeable {
       }
 
     }else{
+
       mbb.add(fileChannel
               .map(FileChannel.MapMode.READ_ONLY, this.offsetToPointData, fileChannel.size() - this.offsetToPointData));
 
@@ -234,7 +240,7 @@ public class LASraf implements Closeable {
 
   public void setMBB(long filePosition, int pointDataRecordLength) throws IOException{
 
-    this.whichMbb = (int)Math.floor((filePosition-this.offsetToPointData) / step);
+    this.whichMbb = Math.min((int)Math.floor((filePosition-this.offsetToPointData) / step), this.mbb.size()-1);
 
     try {
       this.mbb.get(this.whichMbb).position((int) (filePosition - this.mbb_starts.get(this.whichMbb)));
@@ -247,7 +253,7 @@ public class LASraf implements Closeable {
   }
 
   public MappedByteBuffer getMbb(){
-
+    //System.out.println(whichMbb);
     return this.mbb.get(whichMbb);
 
   }
@@ -272,6 +278,11 @@ public class LASraf implements Closeable {
     //fileOuputStream.close();
     fileChannel = null;
     buffer.clear();
+
+    for(int i = 0; i < mbb.size(); i++){
+      mbb.get(i).clear();
+    }
+
   }
 
   /**
@@ -1551,6 +1562,57 @@ public class LASraf implements Closeable {
     this.writePByReturn(pointsByReturn);
 
   }
+
+  public void updateHeader_1_4_2(int pointCount, double minX, double maxX, double minY, double maxY, double minZ, double maxZ, long[] pointsByReturn, long[] pointsByReturn_1_4,
+                               argumentReader aR,
+                               double x_offset, double y_offset, double z_offset,
+                               double x_scale, double y_scale, double z_scale	) throws IOException{
+
+    int lx = (int)((minX - x_offset) / x_scale);
+    int ly = (int)((minY - y_offset) / y_scale);
+    int lz = (int)((minZ - z_offset) / z_scale);
+
+    double min_x = lx * x_scale + x_offset;
+    double min_y = ly * y_scale + y_offset;
+    double min_z = lz * z_scale + z_offset;
+
+
+    lx = (int)((maxX - x_offset) / x_scale);
+    ly = (int)((maxY - y_offset) / y_scale);
+    lz = (int)((maxZ - z_offset) / z_scale);
+
+    double max_x = lx * x_scale + x_offset;
+    double max_y = ly * y_scale + y_offset;
+    double max_z = lz * z_scale + z_offset;
+
+    //this.writeMinMax(min_x, max_x, min_y, max_y, max_z, min_z);
+    this.writeMinMax(minX, maxX, minY, maxY, minZ, maxZ);
+
+    //System.out.println(this.pointDataRecordFormat);
+    if(this.pointDataRecordFormat >= 6){
+      this.writePointCount(0);
+      this.writePByReturn(new long[]{0,0,0,0,0});
+    }
+    else {
+
+      //this.writePointCount(this.writtenPoints);
+      this.writePointCount(pointCount);
+      this.writePByReturn(pointsByReturn);
+
+    }
+
+
+
+    //this.write_n_points_1_4(this.writtenPoints);
+    this.write_n_points_1_4(pointCount);
+    this.writePByReturn_1_4(pointsByReturn_1_4);
+
+
+    System.out.println(Arrays.toString(pointsByReturn_1_4));
+
+
+  }
+
 
   public void updateHeader_1_4(double minX, double maxX, double minY, double maxY, double minZ, double maxZ, long[] pointsByReturn, long[] pointsByReturn_1_4,
                            argumentReader aR,

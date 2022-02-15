@@ -1023,8 +1023,8 @@ public class RunId4pointsLAS{
             }
         }
 
-        if(!aR.split)
-            pwrite.close(aR);
+        //if(!aR.split)
+        //    pwrite.close(aR);
 
         String outName = "hilaFile.txt";
 

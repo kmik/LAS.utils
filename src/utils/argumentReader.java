@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.stream.Stream;
 
 import err.argumentException;
@@ -28,9 +29,14 @@ public class argumentReader {
     public ArrayList<String> create_extra_byte_vlr_description = new ArrayList<>();
     public ArrayList<Integer> create_extra_byte_vlr_n_bytes = new ArrayList<>();
 
+    public boolean convolution_metrics_train = true;
+    public boolean convolution_metrics = false;
+
     public boolean output_only_itc_segments = false;
 
     public int thread_safe_id = 0;
+
+    public boolean noLas = false;
 
     public boolean skeleton_output = false;
 
@@ -269,6 +275,8 @@ public class argumentReader {
     public String exterior;
     public String interior;
 
+    HashSet<String> addedExtraByteNames = new HashSet<>();
+
     public int[] sequence = new int[]{0,1,2};
 
     public boolean output_only_stemAlignInput = false;
@@ -298,7 +306,14 @@ public class argumentReader {
         this.inclusionRule = new PointInclusionRule();
     }
 
-    public void add_extra_bytes(int data_type, String name, String description){
+    public synchronized void add_extra_bytes(int data_type, String name, String description){
+
+        /* This is to enable multithreaded tools */
+        if(!addedExtraByteNames.contains(name)){
+            addedExtraByteNames.add(name);
+        }
+        else
+            return;
 
         this.create_extra_byte_vlr_description.add(description);
         this.create_extra_byte_vlr_name.add(name);
@@ -1469,6 +1484,7 @@ public class argumentReader {
                 .desc("uef echoclass")
                 .required(false)
                 .build());
+
         options.addOption(Option.builder()
                 .longOpt("min_points")
                 .hasArg(true)
@@ -1533,7 +1549,7 @@ public class argumentReader {
 
                 for(String s : files){
 
-                    System.out.println(s);
+                    //System.out.println(s);
 
                     if(new File(s).getName().split("\\.")[1].equals("las")){
                         temp.add(s);
@@ -1708,7 +1724,7 @@ public class argumentReader {
 
             }
 
-            if (cmd.hasOption("echoClass")) {
+            if (cmd.hasOption("uef_echoClass")) {
 
                 this.echoClass = true;
 

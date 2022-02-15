@@ -77,10 +77,13 @@ public class Merger{
         LASReader tempReader1 = new LASReader(aR.inputFiles.get(0));
         LASReader tempReader = new LASReader(aR.inputFiles.get(0));
 
+        int thread_n = aR.pfac.addReadThread(tempReader1);
+
         pointWriterMultiThread pw = new pointWriterMultiThread(this.outputfile, tempReader1, "lasmerge", aR);
 
         LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
+        aR.pfac.addWriteThread(thread_n, pw, buf);
 
         double minX = Double.MAX_VALUE;
         int counter = 0;
@@ -106,8 +109,8 @@ public class Merger{
                         continue;
                     }
 
-                    if(buf.writePoint( tempPoint, rule, j+i))
-                        pointCount++;
+                    aR.pfac.writePoint(tempPoint, i, thread_n);
+
 
                     counter++;
                 }

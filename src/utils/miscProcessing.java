@@ -5,6 +5,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import static runners.RunLASutils.getFileListAsString;
@@ -13,8 +15,19 @@ public class miscProcessing {
 
 
 
+    static long tStart = System.currentTimeMillis();
+    static long tEnd = System.currentTimeMillis();
+    static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy 'at' hh:mm a");
+    static LocalDateTime now = LocalDateTime.now();
+
+
+
     @NotNull
     public static ArrayList<File> prepareData(argumentReader aR, String toolName) throws IOException {
+
+        tStart = System.currentTimeMillis();
+        //dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy 'at' hh:mm a");
+        now = LocalDateTime.now();
 
 
         aR.setExecDir(System.getProperty("user.dir"));
@@ -36,4 +49,22 @@ public class miscProcessing {
         return inputFiles;
 
     }
+
+    public static void printProcessingTime(){
+
+        tEnd = System.currentTimeMillis();
+        long tDelta = tEnd - tStart;
+
+        int hours = (int) ((tDelta / (1000*60*60)) % 24);
+        long minutes = (tDelta / 1000)  / 60;
+        int seconds = (int)((tDelta / 1000) % 60);
+
+        System.out.println("-------------------------------------");
+        System.out.println("Start time: " + dtf.format(now));
+        System.out.println("Processing took: " + hours + " h " + minutes + " min " + seconds + " sec");
+        System.out.println("-------------------------------------");
+
+    }
+
+
 }

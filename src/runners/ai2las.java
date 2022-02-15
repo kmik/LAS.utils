@@ -309,7 +309,6 @@ class ai2las{
 				double gsd = ((sensorSize / 1000.0 * flyingHeight) / (focalLength_millimeters / 1000.0 * (double)tempDataset.GetRasterXSize())) * 100.0;
 				double gsd_m = gsd / 100.0;
 
-
 				System.out.println("img altitude: " + flyingHeight + " gsd: " + gsd + " cm");
 				System.out.println(sensorSize + " " + focalLength_millimeters + " " + (double)tempDataset.GetRasterXSize());
 

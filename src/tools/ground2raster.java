@@ -28,9 +28,9 @@ public class ground2raster {
     LASReader pointCloud;
     IncrementalTin tin = new IncrementalTin();
 
-    public ground2raster(LASReader pointCloud, argumentReader aR) throws Exception{
+    public ground2raster(LASReader pointCloud, argumentReader aR, int coreNumber) throws Exception{
 
-        ogr.RegisterAll(); //Registering all the formats..
+
         LasPoint tempPoint = new LasPoint();
 
         double true_min_x = Double.POSITIVE_INFINITY, true_min_y = Double.POSITIVE_INFINITY;

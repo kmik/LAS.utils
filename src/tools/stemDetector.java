@@ -1555,6 +1555,7 @@ public class stemDetector{
                 pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
                 pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset);
 
+        /*
         LASraf stemAlignPcloud = new LASraf(outputFile_stemAlign);
 
         LASwrite.writeHeader(stemAlignPcloud, "lasStem-align in", pointCloud.versionMajor, pointCloud.versionMinor,
@@ -1563,6 +1564,15 @@ public class stemDetector{
                 pointCloud.fileSourceID, pointCloud.globalEncoding,
                 pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
                 pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset);
+*/
+        int thread_n_2 = aR.pfac.addReadThread(pointCloud);
+
+        pointWriterMultiThread pw1 = new pointWriterMultiThread(outputFile_stemAlign, pointCloud, "lasStemAlign", aR);
+
+        LasPointBufferCreator buf1 = new LasPointBufferCreator(1, pw1);
+
+        aR.pfac.addWriteThread(thread_n_2, pw1, buf1);
+
 
         System.out.println(pointCloud.getNumberOfPointRecords());
 
@@ -1580,64 +1590,75 @@ public class stemDetector{
             pointCloud.readRecord(i, tempPoint);
             pointCloud.readRecord(i, tempPoint2);
 
-            if(!dz){
+            if(tempPoint.classification != 2) {
 
-                //raster_dz[xCoord][yCoord] = (float)groundLevel(tempPoint);
-                delta_z = tempPoint.z - polator.interpolate(tempPoint.x, tempPoint.y, valuator); //= tempPoint.z - raster_dz[xCoord][yCoord];
+                if (!dz) {
 
-            }else{
-                delta_z = tempPoint.z;
-            }
+                    //raster_dz[xCoord][yCoord] = (float)groundLevel(tempPoint);
+                    delta_z = tempPoint.z - polator.interpolate(tempPoint.x, tempPoint.y, valuator); //= tempPoint.z - raster_dz[xCoord][yCoord];
 
-            //tempPoint2.classification = 0;
+                } else {
+                    delta_z = tempPoint.z;
+                }
 
-            if(tempPoint.z > stemITDid_highestZ[tempPoint.pointSourceId]){
-                stemITDid_highestZ[tempPoint.pointSourceId] = (float)delta_z;
-            }
-            //if(tempPoint.z >= 0.5 && tempPoint.z < z_cutoff_max) {
+                //tempPoint2.classification = 0;
 
-            int xLocation = (int) Math.floor((tempPoint.x - cloudMinX) / y_interval);
-            int yLocation = (int) Math.floor((cloudMaxY - tempPoint.y) / y_interval);
-            int zLocation = (int) Math.floor((delta_z - cloudMinZ) / y_interval);
+                if (tempPoint.z > stemITDid_highestZ[tempPoint.pointSourceId]) {
+                    stemITDid_highestZ[tempPoint.pointSourceId] = (float) delta_z;
+                }
+                //if(tempPoint.z >= 0.5 && tempPoint.z < z_cutoff_max) {
 
-            if(zLocation < this.zDim) {
-                //System.out.println(xLocation + " " + yLocation + " " + zLocation);
-                if (surface[xLocation][yLocation][zLocation] != null) {
+                int xLocation = (int) Math.floor((tempPoint.x - cloudMinX) / y_interval);
+                int yLocation = (int) Math.floor((cloudMaxY - tempPoint.y) / y_interval);
+                int zLocation = (int) Math.floor((delta_z - cloudMinZ) / y_interval);
 
-                    if (surface[xLocation][yLocation][zLocation].isSurface && surface[xLocation][yLocation][zLocation].id >= 0 && !badStems.contains((short) surface[xLocation][yLocation][zLocation].id)) {
+                if (zLocation < this.zDim) {
+                    //System.out.println(xLocation + " " + yLocation + " " + zLocation);
+                    if (surface[xLocation][yLocation][zLocation] != null) {
 
-                        tempPoint.classification = 1;
+                        if (surface[xLocation][yLocation][zLocation].isSurface && surface[xLocation][yLocation][zLocation].id >= 0 && !badStems.contains((short) surface[xLocation][yLocation][zLocation].id)) {
 
-                        tempPoint2.classification = 4;
-                        tempPoint2.pointSourceId = (short) surface[xLocation][yLocation][zLocation].id;
-                        byte heighti = (byte) (stemHeights[(short) surface[xLocation][yLocation][zLocation].id] * 10);
+                            tempPoint.classification = 1;
 
-                        heighti = heighti < 0 ? (byte) 255 : heighti;
+                            tempPoint2.classification = 4;
+                            tempPoint2.pointSourceId = (short) surface[xLocation][yLocation][zLocation].id;
+                            byte heighti = (byte) (stemHeights[(short) surface[xLocation][yLocation][zLocation].id] * 10);
 
-                        tempPoint.userData = heighti;
-                        tempPoint.gpsTime = stemDiams[(short) surface[xLocation][yLocation][zLocation].id];
-                        tempPoint.intensity = (short) surface[xLocation][yLocation][zLocation].id;
+                            heighti = heighti < 0 ? (byte) 255 : heighti;
 
-                        if (underStoreyIds.containsKey((short) surface[xLocation][yLocation][zLocation].id)) {
+                            tempPoint.userData = heighti;
+                            tempPoint.gpsTime = stemDiams[(short) surface[xLocation][yLocation][zLocation].id];
+                            tempPoint.intensity = (short) surface[xLocation][yLocation][zLocation].id;
 
-                            //System.out.println("HERE1");
-                            tempPoint.classification = 5;
-                            //tempPoint.intensity = underStoreyIds.get((short) surface[xLocation][yLocation][zLocation].id);
+                            if (underStoreyIds.containsKey((short) surface[xLocation][yLocation][zLocation].id)) {
 
-                            //tempPoint.classification = (short) 5;
-                            //System.out.println("intensity: " + tempPoint.intensity);
+                                //System.out.println("HERE1");
+                                tempPoint.classification = 5;
+                                //tempPoint.intensity = underStoreyIds.get((short) surface[xLocation][yLocation][zLocation].id);
+
+                                //tempPoint.classification = (short) 5;
+                                //System.out.println("intensity: " + tempPoint.intensity);
 
 
-                            //System.out.println("diam: " + tempPoint.gpsTime + " height: " + tempPoint.userData + " ?=? " + (stemHeights[(short) surface[xLocation][yLocation][zLocation].id] * 10));
+                                //System.out.println("diam: " + tempPoint.gpsTime + " height: " + tempPoint.userData + " ?=? " + (stemHeights[(short) surface[xLocation][yLocation][zLocation].id] * 10));
+                            } else {
+
+                            }
+
                         } else {
 
-                        }
+                            //tempPoint.classification = 0;
+                            tempPoint.intensity = 0;
+                            tempPoint.gpsTime = 0;
+                            tempPoint.intensity = 0;
+                            tempPoint.gpsTime = 0;
+                            tempPoint.userData = 0;
+                            tempPoint.classification = 0;
+                            tempPoint2.pointSourceId = 0;
 
+                        }
                     } else {
 
-                        //tempPoint.classification = 0;
-                        tempPoint.intensity = 0;
-                        tempPoint.gpsTime = 0;
                         tempPoint.intensity = 0;
                         tempPoint.gpsTime = 0;
                         tempPoint.userData = 0;
@@ -1646,20 +1667,12 @@ public class stemDetector{
 
                     }
                 } else {
-
                     tempPoint.intensity = 0;
                     tempPoint.gpsTime = 0;
                     tempPoint.userData = 0;
                     tempPoint.classification = 0;
                     tempPoint2.pointSourceId = 0;
-
                 }
-            }else{
-                tempPoint.intensity = 0;
-                tempPoint.gpsTime = 0;
-                tempPoint.userData = 0;
-                tempPoint.classification = 0;
-                tempPoint2.pointSourceId = 0;
             }
 
             tempPoint.z = delta_z;
@@ -1667,20 +1680,30 @@ public class stemDetector{
             if(asd4.writePoint( tempPoint, rule, pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
                     pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, i))
                 pointCount++;
-
+/*
             if(stemAlignPcloud.writePoint( tempPoint2, rule, pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
                     pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, i))
                 pointCount++;
+*/
+            aR.pfac.writePoint(tempPoint2, i, thread_n_2);
 
 
             //}
         }
 
-        asd4.writeBuffer2();
-        asd4.updateHeader2();
+        try {
+            asd4.writeBuffer2();
+            asd4.updateHeader2();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        aR.pfac.closeThread(thread_n_2);
 
-        stemAlignPcloud.writeBuffer2();
-        stemAlignPcloud.updateHeader2();
+
+        //stemAlignPcloud.writeBuffer2();
+        //stemAlignPcloud.updateHeader2();
+
+
 
         System.out.printf("\nMean diameter %.2f cm\n", (meanDiameter / count)*100);
         System.out.println("Understorey trees found: " + underStoreyIds.size());

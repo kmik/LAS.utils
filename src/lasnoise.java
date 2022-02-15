@@ -1,4 +1,5 @@
 import LASio.LASReader;
+import tools.Noise;
 import tools.process_las2las;
 import utils.argumentReader;
 import utils.fileDistributor;
@@ -15,22 +16,17 @@ public class lasnoise {
     public static void main(String[] args) throws IOException {
 
         argumentReader aR = new argumentReader(args);
-        ArrayList<File> inputFiles = prepareData(aR, "las2las");
+        ArrayList<File> inputFiles = prepareData(aR, "lasnoise");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
-        if(aR.cores <= 1){
+        if(aR.cores > 1){
             threadTool(aR, fD);
         }else{
-
-            process_las2las tooli = new process_las2las(1);
-
-
             for (int i = 0; i < inputFiles.size(); i++) {
-                LASReader temp = new LASReader(aR.inputFiles.get(i));
-
                 try {
 
-                    tooli.convert(temp, aR);
+                    LASReader temp = new LASReader(aR.inputFiles.get(i));
+                    Noise nois = new Noise(temp, aR, 1);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -51,7 +47,7 @@ public class lasnoise {
         for (int ii = 1; ii <= aR.cores; ii++) {
 
             proge.addThread();
-            Thread temp = new Thread(new las2las.multiThreadTool(aR, aR.cores, ii, fD));
+            Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
             threadList.add(temp);
             temp.start();
 
@@ -88,8 +84,6 @@ public class lasnoise {
 
         public void run() {
 
-            process_las2las tooli = new process_las2las(nCore);
-
             while (true) {
                 if (fD.isEmpty())
                     break;
@@ -103,7 +97,7 @@ public class lasnoise {
                     e.printStackTrace();
                 }
                 try {
-                    tooli.convert(temp, aR);
+                    Noise nois = new Noise(temp, aR, 1);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

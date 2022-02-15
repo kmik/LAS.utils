@@ -3438,7 +3438,6 @@ public class ITDstatistics{
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
-                //treeId = (int)tempPoint.gpsTime;
                 treeId = tempPoint.getExtraByteInt(tree_id);
 
                 if(pointSourceSubset != null){

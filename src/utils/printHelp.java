@@ -47,6 +47,80 @@ public class printHelp {
             case "lasmerge":
                 merger();
                 break;
+
+            case "lasnoise":
+                noise();
+                break;
+            case "lasground":
+                ground_detect();
+                break;
+            case "lasheight":
+                z_normalize();
+                break;
+            case "lasthin":
+                thin();
+                break;
+            case "las2dsm":
+                chm();
+                break;
+
+            case "lasborder":
+                border();
+                break;
+            case "las2shp":
+                las2shp();
+                break;
+            case "las2txt":
+                las2txt();
+                break;
+
+            case "lasStripAlign":
+                lasStrip();
+                break;
+
+            case "lasITC":
+                lasITD();
+                break;
+
+            case "lasindex":
+                lasIndex();
+                break;
+
+            case "lasSort":
+                lasSort();
+                break;
+
+            case "lasSplit":
+                lasSplit();
+                break;
+
+            case "lasCheck":
+                lasCheck();
+                break;
+
+            case "lasLayer":
+                lasLayer();
+                break;
+
+            case "stemAlign":
+                stemAlign();
+                break;
+            case "lasGridStats":
+                lasGridStats();
+                break;
+
+            case "stemDetector":
+                stemDetector();
+                break;
+
+            case "las2solar":
+                las2solar();
+                break;
+
+            case "las2dtm":
+                las2dtm();
+                break;
+
             default:
                 throw new toolException("What happened?");
 
@@ -410,8 +484,46 @@ public class printHelp {
                 "\t-o\t\tName of the output file");
     }
 
+    public static void stemAlign(){
+        System.out.println("----------------------------------------------\n" +
+                " stemAlign -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " Natural Resources Institute Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Checks that the contents of the .las file are \n" +
+                "coherent with the header information.\n" +
+                "\n" +
+                "Also does various other checks which are reported\n" +
+                "at the end of the run.\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)");
+    }
+
 
     public static void lasCheck(){
+        System.out.println("----------------------------------------------\n" +
+                " lasCheck -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " Natural Resources Institute Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Checks that the contents of the .las file are \n" +
+                "coherent with the header information.\n" +
+                "\n" +
+                "Also does various other checks which are reported\n" +
+                "at the end of the run.\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)");
+    }
+
+    public static void las2solar(){
         System.out.println("----------------------------------------------\n" +
                 " lasCheck -- LASutils build $line\n" +
                 "\n" +
@@ -774,6 +886,37 @@ public class printHelp {
                 "----------------------------------------------\n" +
                 "\n" +
                 "Creates a Digital Surface Model (DSM) from .las file.\n" +
+                "-step parameter defines the output resolution (in meters)\n" +
+                "of the surface model and -theta the intensitvity of the gaussian. \n" +
+                "filter. Gaussian kernel is computed automatically using the  \n" +
+                "provided -theta parameter. \n" +
+                "\n" +
+                "Data gaps are detected in the algorithm from a 3x3 kernel\n" +
+                "using the outlier detection idea by Iglewicz and Hoaglin (1993). \n" +
+                "These gaps are then interpolated via the gaussian filter. The \n" +
+                "intensity of the Iglewicz and Hoaglin (1993) can be adjusted with \n" +
+                "-filter_intensity parameter. This parameter defaults to 2.5, \n" +
+                "which has been observed to work well with ~5 pulses per square \n" +
+                "meter LiDAR data. Commonly used value in literature appear to be ~3.5.\n" +
+                "\n" +
+                "Usage:\n" +
+                "\n" +
+                "\t-i\t\tInput file(s)\n" +
+                "\t-o\t\tOutput file\n" +
+                "\t-step\t\tDSM resolution (in meters)\n" +
+                "\t-theta\t\tGaussian theta (default 1.0)\n" +
+                "\t-pit_free\tDetect and remove outliers.\n");
+    }
+
+    public void las2dtm(){
+        System.out.println("----------------------------------------------\n" +
+                " las2dtm -- LASutils build $line\n" +
+                "\n" +
+                " (c) M.Kukkonen\n" +
+                " Natural Resources Institute Finland\n" +
+                "----------------------------------------------\n" +
+                "\n" +
+                "Creates a Digital Terrain Model (DTM) from .las file.\n" +
                 "-step parameter defines the output resolution (in meters)\n" +
                 "of the surface model and -theta the intensitvity of the gaussian. \n" +
                 "filter. Gaussian kernel is computed automatically using the  \n" +

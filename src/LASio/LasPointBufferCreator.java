@@ -196,7 +196,7 @@ public class LasPointBufferCreator {
             return in &= ~(1 << bit);
     }
 
-    public synchronized boolean writePoint(LasPoint tempPoint, PointInclusionRule rule, int i)throws IOException {
+        public synchronized boolean writePoint(LasPoint tempPoint, PointInclusionRule rule, int i)throws IOException {
 
         /* Written or not */
         boolean output = false;
@@ -497,7 +497,6 @@ public class LasPointBufferCreator {
                 }
                 if(tempPoint.extra_bytes_custom.size() > 0){
                     for(int i_ = 0; i_ < tempPoint.extra_bytes_custom.size(); i_++) {
-                        //System.out.println("WROTE NEW ONE!");
                         this.writeByteArray_reord(tempPoint.extra_bytes_custom.get(i_));
                         //this.writeInt(ByteBuffer.wrap(b).getInt());
                         //int val = ByteBuffer.wrap(b).getInt();

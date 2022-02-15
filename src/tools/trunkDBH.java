@@ -142,6 +142,10 @@ public class trunkDBH {
 
     public void process() throws Exception{
 
+
+        double ransac_distance_threshold = 0.03;
+
+
         readFieldPlots(new File("GridPlots_2020.shp"));
 
         KdTree kd_tree_trunks = new KdTree();
@@ -191,8 +195,9 @@ public class trunkDBH {
                 int xCoord = (int) Math.floor((tempPoint.x - pointCloud.getMinX()) / resolution);
                 int yCoord = (int) Math.floor((pointCloud.getMaxY() - tempPoint.y) / resolution);
 
-                tempPoint.z -= polator.interpolate(tempPoint.x, tempPoint.y, valuator); //= tempPoint.z - raster_dz[xCoord][yCoord];
 
+                tempPoint.z -= polator.interpolate(tempPoint.x, tempPoint.y, valuator); //= tempPoint.z - raster_dz[xCoord][yCoord];
+                //System.out.println(tempPoint.z);
                 if(tempPoint.z > raster[xCoord][yCoord])
                     raster[xCoord][yCoord] = (float)tempPoint.z;
 
@@ -325,7 +330,7 @@ public class trunkDBH {
                         //System.out.println("nlme: " + maxRadius);
                         //System.out.println("------------------------");
 
-                        double minRadius = 0.5610092  * Math.pow((zet_constraint - 0.0), 1.241524) / 100.0 / 2.0 * 0.5;
+                        double minRadius = 0.5610092  * Math.pow((zet_constraint - 0.0), 1.241524) / 100.0 / 2.0 * 0.7;
                         //double minRadius = 0.5610092  * Math.pow((zet_constraint - 0.0), 1.241524) / 100.0 / 2.0 * 0.5;
                         //minRadius = maxRadius * 0.5;
                         //minRadius = 0.025;
@@ -412,7 +417,7 @@ public class trunkDBH {
                                         int iter = (int) (Math.log(1.0 - 0.99) / (Math.log(1.0 - (min_inlier * min_inlier * min_inlier))));
                                         //System.out.println(iter);
 
-                                        RcF.initialize5(slice_flightlines.get(id), 3, d, 0.03, 1000, 1, aR.set_seed);
+                                        RcF.initialize5(slice_flightlines.get(id), 3, d, ransac_distance_threshold, 1000, 1, aR.set_seed);
 
                                         //System.out.println("Flightline: " + id + " radius(" + RcF.ransacFailed + "): " + RcF.radius_ransac);
 
@@ -447,7 +452,6 @@ public class trunkDBH {
                                     ArrayList<double[]> all_points_backup = new ArrayList<>();
 
                                     for(int i_ = 0; i_ < all_points.size(); i_++){
-
                                         slicePoints_temp.add(new double[]{all_points.get(i_)[0], all_points.get(i_)[1]});
                                        all_points_backup.add(new double[]{all_points.get(i_)[0], all_points.get(i_)[1]});
 
@@ -573,7 +577,9 @@ public class trunkDBH {
 
 
                                         //System.out.println("mean erro: " + meanError);
-                                        RcF.initialize5(slicePoints_temp, 3, d, 0.04, 1000, 1, aR.set_seed);
+
+                                        //RcF.initialize5(slicePoints_temp, 3, d, 0.04, 1000, 1, aR.set_seed);
+                                        RcF.initialize5(slicePoints_temp, 3, d, ransac_distance_threshold, 1000, 1, aR.set_seed);
                                         //RcF.initialize5(all_points, 3, d, 0.03, 1000, 1, aR.set_seed);
 
                                         //System.out.println(RcF.ransacFailed + " " + RcF.radius_ransac);
@@ -748,7 +754,8 @@ public class trunkDBH {
                             }
 
                             //System.out.println("zet " + zet);
-                            RansacLinearRegression RLR = new RansacLinearRegression(dataForRansacInverse, 0.33, 0.33, 0.045  , aR.set_seed);
+                            //RansacLinearRegression RLR = new RansacLinearRegression(dataForRansacInverse, 0.33, 0.33, 0.045  , aR.set_seed);
+                            RansacLinearRegression RLR = new RansacLinearRegression(dataForRansacInverse, 0.33, 0.33, 0.03  , aR.set_seed);
 
                             /* LISÄÄ PAINOT TUONNE REGRESSIOON!!! */
 
@@ -925,17 +932,17 @@ public class trunkDBH {
             double diam = trunk_diameters.get(p.getIndex());
             double scanAngle = trunk_diameter_scan_angle_ranks.get(p.getIndex());
             nearest = (List<KdTree.XYZPoint>)stats.kd_tree2.nearestNeighbourSearch(1, p);
-            //nearest2 = (List<KdTree.XYZPoint>)kd_tree_trunks.nearestNeighbourSearch(1, nearest.get(0));
+            nearest2 = (List<KdTree.XYZPoint>)kd_tree_trunks.nearestNeighbourSearch(1, nearest.get(0));
 
-            //int indexi = findMatchIndex(kd_tree_trunks, stats.kd_tree2, p, diam * 100.0 * 2.0, stats.treeBank);
+            int indexi = findMatchIndex(kd_tree_trunks, stats.kd_tree2, p, diam * 100.0 * 2.0, stats.treeBank);
 
-            int indexi = nearest.get(0).getIndex();
+            //int indexi = nearest.get(0).getIndex();
 
             double distance = p.euclideanDistance(nearest.get(0));
+            distance = p.euclideanDistance(nearest.get(0));
 
-            //if(p.getIndex() == nearest2.get(0).getIndex()){
-            if(indexi >= 0 && distance < 2.0 ){
-
+            if(p.getIndex() == nearest2.get(0).getIndex() && distance < 2.0 ){
+            //if(indexi >= 0 && distance < 2.0 ){
 
                 //int index = nearest.get(0).getIndex();
                 int index = indexi;

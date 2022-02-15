@@ -189,6 +189,7 @@ public class LASReader {
     try {
       if (!doneIndexes.contains(index_p)) {
         readFromBuffer(tempPoint);
+        //readRecord(index_p, tempPoint);
         doneIndexes.add(index_p);
       } else {
 
@@ -200,6 +201,8 @@ public class LASReader {
           if (!doneIndexes.contains(++index_p)) {
 
             readFromBuffer(tempPoint);
+            //readRecord(index_p, tempPoint);
+
             doneIndexes.add(index_p);
             terminatus = true;
 
@@ -1578,9 +1581,9 @@ public class LASReader {
 
       int mask = braf.getMbb().get();
 
-      p.returnNumber = mask>>4;
+      p.numberOfReturns = mask>>4;
 
-      p.numberOfReturns = mask&15;
+      p.returnNumber = mask&15;
 
       mask = braf.getMbb().get();
 
@@ -1894,9 +1897,9 @@ public class LASReader {
 
       int mask = braf.buffer.get();
 
-      p.returnNumber = mask>>4;
+      p.numberOfReturns = mask>>4;
 
-      p.numberOfReturns = mask&15;
+      p.returnNumber = mask&15;
 
       mask = braf.buffer.get();
 
@@ -2015,7 +2018,6 @@ public class LASReader {
     braf.seek(filePos);
 
     braf.read(n * this.pointDataRecordLength);
-
 
   }
 

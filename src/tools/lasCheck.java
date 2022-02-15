@@ -5,6 +5,7 @@ import LASio.LasPoint;
 import utils.argumentReader;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 
 import static com.github.mreutegg.laszip4j.laszip.MyDefs.U32_MAX;
@@ -43,20 +44,22 @@ public class lasCheck {
 
         int thread_n = aR.pfac.addReadThread(pointCloud);
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i++){
+        //for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
 
-            maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            //maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 200000);
+           // aR.pfac.prepareBuffer(thread_n, i, 200000);
 
-            for (int j = 0; j < maxi; j++) {
+           // for (int j = 0; j < maxi; j++) {
                 //Sstem.out.println(j);
-                pointCloud.readFromBuffer(tempPoint);
+                //pointCloud.readFromBuffer(tempPoint);
+                pointCloud.readRecord(i, tempPoint);
 
 
                 this.numberOfPoints++;
 
-                numberOfPointsByReturn[tempPoint.returnNumber]++;
+                numberOfPointsByReturn[tempPoint.returnNumber-1]++;
 
                 if(tempPoint.gpsTime < gpsRange[0])
                     gpsRange[0] = tempPoint.gpsTime;
@@ -79,7 +82,7 @@ public class lasCheck {
                     minMax_z[1] = tempPoint.z;
 
             }
-        }
+
     }
 
 
@@ -520,9 +523,14 @@ public class lasCheck {
 
 
         if ((pointCloud.versionMajor == 1) && (pointCloud.versionMinor >= 4)) {
+
+            System.out.println(Arrays.toString(pointCloud.numberOfPointsByReturn));
+            System.out.println(Arrays.toString(this.numberOfPointsByReturn));
+
+            System.exit(1);
             for (i = 0; i < 15; i++) {
-                if (pointCloud.numberOfPointsByReturn[i] != this.numberOfPointsByReturn[i+1]) {
-                    fails.add(String.format("number of points by return[%d]: the number of %d%s returns is %lld and not %lld", i, this.numberOfPointsByReturn[i+1], pointCloud.numberOfPointsByReturn[i]));
+                if (pointCloud.numberOfPointsByReturn[i] != this.numberOfPointsByReturn[i]) {
+                    fails.add(String.format("number of points by return[%d]: the number of returns is %d and not %d", i, this.numberOfPointsByReturn[i+1], pointCloud.numberOfPointsByReturn[i]));
                 }
             }
         }

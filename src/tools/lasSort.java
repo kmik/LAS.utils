@@ -20,7 +20,7 @@ public class lasSort {
 
     ArrayList<sortRaf> tempFiles = new ArrayList<>();
 
-    public lasSort(LASReader pointCloud, argumentReader aR){
+    public lasSort(LASReader pointCloud, argumentReader aR, int coreNumber){
 
         this.pointCloud = pointCloud;
         this.aR = aR;

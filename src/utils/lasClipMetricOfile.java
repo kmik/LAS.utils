@@ -11,7 +11,9 @@ import java.util.ArrayList;
 public class lasClipMetricOfile {
 
     ArrayList<File> echo_class_files = new ArrayList<>();
+    ArrayList<File> convolution_files = new ArrayList<>();
     ArrayList<FileWriter> echo_class_FileWriter = new ArrayList<>();
+    ArrayList<FileWriter> convolution_FileWriter = new ArrayList<>();
     argumentReader aR;
     int closeCommands = 0;
 
@@ -37,6 +39,10 @@ public class lasClipMetricOfile {
             echo_class_files.add(aR.createOutputFileWithExtension(new LASReader(aR.inputFiles.get(0)), "_metrics_i.txt"));
             echo_class_FileWriter.add(new FileWriter(echo_class_files.get(echo_class_files.size()-1)));
 
+            convolution_files.add(aR.createOutputFileWithExtension(new LASReader(aR.inputFiles.get(0)), "_convo_a.txt"));
+            convolution_FileWriter.add(new FileWriter(echo_class_files.get(echo_class_files.size()-1)));
+
+
         }catch (IOException e){
             e.printStackTrace();
         }
@@ -61,9 +67,40 @@ public class lasClipMetricOfile {
             echo_class_files.add(aR.fo.createNewFileWithNewExtension(in, "_metrics_i.txt"));
             echo_class_FileWriter.add(new FileWriter(echo_class_files.get(echo_class_files.size()-1)));
 
+            convolution_files.add(aR.createOutputFileWithExtension(in, "_convo_a.txt"));
+            convolution_FileWriter.add(new FileWriter(convolution_files.get(convolution_files.size()-1)));
+
+
         }catch (IOException e){
             e.printStackTrace();
         }
+
+    }
+
+
+    public synchronized void writeColumnNames_convo(ArrayList<String> colnames_convo){
+
+        if(colnamesWritten)
+            return;
+
+        try {
+
+            convolution_FileWriter.get(0).write("poly_id\t");
+
+            for (int i = 0; i < colnames_convo.size(); i++) {
+
+                convolution_FileWriter.get(0).write(colnames_convo.get(i) + "\t");
+
+            }
+
+            convolution_FileWriter.get(0).write("\n");
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        this.colnamesWritten = true;
 
     }
 
@@ -106,6 +143,66 @@ public class lasClipMetricOfile {
         this.colnamesWritten = true;
 
     }
+
+    public synchronized void writeLine_convo(ArrayList<ArrayList<Double>> metrics, ArrayList<String> colnames, double poly_id){
+
+        if(!colnamesWritten) {
+
+
+            this.writeColumnNames_convo(colnames);
+
+        }
+
+        try {
+
+            for(int i_ = 0; i_ < metrics.size(); i_++) {
+
+                convolution_FileWriter.get(0).write(poly_id + "\t");
+
+                for (int i = 0; i < metrics.get(i_).size(); i++) {
+
+                    convolution_FileWriter.get(0).write(metrics.get(i_).get(i) + "\t");
+
+
+                }
+
+
+                convolution_FileWriter.get(0).write("\n");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public synchronized void writeLine_convo_test(ArrayList<Double> metrics, ArrayList<String> colnames, double poly_id){
+
+        if(!colnamesWritten) {
+
+
+            this.writeColumnNames_convo(colnames);
+
+        }
+
+        try {
+
+            //for(int i_ = 0; i_ < metrics.size(); i_++) {
+
+                convolution_FileWriter.get(0).write(poly_id + "\t");
+
+                for (int i = 0; i < metrics.size(); i++) {
+
+                    convolution_FileWriter.get(0).write(metrics.get(i) + "\t");
+
+                }
+                convolution_FileWriter.get(0).write("\n");
+            //}
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
 
     public synchronized void writeLine(ArrayList<Double> metrics_a, ArrayList<Double> metrics_f, ArrayList<Double> metrics_l, ArrayList<Double> metrics_i,
                                        ArrayList<String> colnames_a, ArrayList<String> colnames_f, ArrayList<String> colnames_l, ArrayList<String> colnames_i, double poly_id){
@@ -155,6 +252,7 @@ public class lasClipMetricOfile {
             echo_class_FileWriter.get(1).close();
             echo_class_FileWriter.get(2).close();
             echo_class_FileWriter.get(3).close();
+            convolution_FileWriter.get(0).close();
 
         }catch (Exception e){
             e.printStackTrace();

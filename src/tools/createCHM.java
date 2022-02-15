@@ -91,8 +91,6 @@ public class createCHM{
 
     public static float[][] removeOutliers(float[][] input, int blur, int kernel, double theta){
 
-
-
         Statistics stat = new Statistics();
 
         int x = 0;
@@ -2555,12 +2553,15 @@ public class createCHM{
                 outFile.createNewFile();
 
                 LASReader p_cloud = new LASReader(new File(pointCloudName));
-                aR.add_extra_bytes(6, "ITC_id", "ID for an ITC segment");
+
 
                 int thread_n = aR.pfac.addReadThread(p_cloud);
 
 
-                pointWriterMultiThread pw = new pointWriterMultiThread(outFile, p_cloud, "las2las", aR);
+                aR.add_extra_bytes(6, "ITC_id", "ID for an ITC segment");
+
+
+                pointWriterMultiThread pw = new pointWriterMultiThread(outFile, p_cloud, "lasITC", aR);
 
                 LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
@@ -2616,17 +2617,21 @@ public class createCHM{
                 //    aR.remove_buffer = false;
 
                 //System.out.println("rejected size: " + rejected.size());
-                for (int i = 0; i < p_cloud.getNumberOfPointRecords(); i += 200000) {
+
+                for(int i = 0; i < p_cloud.getNumberOfPointRecords(); i++){
+                /*
+                    for (int i = 0; i < p_cloud.getNumberOfPointRecords(); i += 200000) {
 
                     int maxi = (int) Math.min(200000, Math.abs(p_cloud.getNumberOfPointRecords() - i));
 
                     aR.pfac.prepareBuffer(thread_n, i, 200000);
 
                     for (int j = 0; j < maxi; j++) {
+*/
+                        //p_cloud.readFromBuffer(tempPoint);
+                        p_cloud.readRecord(i, tempPoint);
 
-                        p_cloud.readFromBuffer(tempPoint);
-
-                        if (!aR.inclusionRule.ask(tempPoint, i + j, true)) {
+                        if (!aR.inclusionRule.ask(tempPoint, i, true)) {
                             continue;
                         }
 /*
@@ -2657,10 +2662,15 @@ public class createCHM{
                                 tempPoint.setExtraByteINT((int)(floatArray[0] + 1), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
 
                             } else {
+                                tempPoint.setExtraByteINT(0, aR.create_extra_byte_vlr_n_bytes.get(0), 0);
+
                                 tempPoint.pointSourceId = 0;
                                 tempPoint.gpsTime = 0;
 
                             }
+                        }else{
+                            tempPoint.setExtraByteINT(0, aR.create_extra_byte_vlr_n_bytes.get(0), 0);
+
                         }
 
                         try {
@@ -2669,21 +2679,21 @@ public class createCHM{
                             if(aR.output_only_itc_segments && remove_buffer){
 
                                 if(mask[x][y] && !treesOutsideTile.contains((int)floatArray[0]))
-                                    aR.pfac.writePoint(tempPoint, i + j, thread_n);
+                                    aR.pfac.writePoint(tempPoint, i, thread_n);
 
                             }
                             else if(aR.output_only_itc_segments && !remove_buffer){
 
                                 if(mask[x][y])
-                                    aR.pfac.writePoint(tempPoint, i + j, thread_n);
+                                    aR.pfac.writePoint(tempPoint, i, thread_n);
 
                             }else if(!aR.output_only_itc_segments && remove_buffer){
 
                                 if(!treesOutsideTile.contains((int)floatArray[0]))
-                                    aR.pfac.writePoint(tempPoint, i + j, thread_n);
+                                    aR.pfac.writePoint(tempPoint, i, thread_n);
 
                             }else{
-                                aR.pfac.writePoint(tempPoint, i + j, thread_n);
+                                aR.pfac.writePoint(tempPoint, i, thread_n);
                             }
 
                             //if(!treesOutsideTile.contains((int)floatArray[0]))
@@ -2693,7 +2703,7 @@ public class createCHM{
                             e.printStackTrace();
                         }
 
-                    }
+
                 }
 
 

@@ -1,10 +1,21 @@
 import LASio.LASReader;
+import LASio.LasPoint;
+import com.clust4j.algo.DBSCAN;
+import com.clust4j.algo.DBSCANParameters;
+import com.clust4j.algo.MeanShift;
+import com.clust4j.algo.MeanShiftParameters;
+import com.clust4j.data.DataSet;
+import com.clust4j.data.ExampleDataSets;
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import tools.neuralNetworkHyperparameterOptimization;
 import tools.process_las2las;
 import utils.argumentReader;
 import utils.fileDistributor;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import utils.miscProcessing;
 
 import static runners.RunLASutils.*;
@@ -18,7 +29,7 @@ public class las2las {
         ArrayList<File> inputFiles = prepareData(aR, "las2las");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
-        if(aR.cores <= 1){
+        if(aR.cores > 1){
             threadTool(aR, fD);
         }else{
 
@@ -27,7 +38,32 @@ public class las2las {
 
             for (int i = 0; i < inputFiles.size(); i++) {
                 LASReader temp = new LASReader(aR.inputFiles.get(i));
+/*
+                double[][] dbscan_input = new double[(int)temp.getNumberOfPointRecords()][3];
 
+                LasPoint tempPoint = new LasPoint();
+
+                for(int p = 0; p < temp.getNumberOfPointRecords(); p++){
+
+                    temp.readRecord(p, tempPoint);
+                    dbscan_input[p][0] = tempPoint.x;
+                    dbscan_input[p][1] = tempPoint.y;
+                    dbscan_input[p][2] = tempPoint.z;
+
+
+                }
+
+                final Array2DRowRealMatrix mat =new Array2DRowRealMatrix(dbscan_input);
+
+                System.out.println("STARTING DBSCAN! ");
+
+                MeanShift ms = new MeanShiftParameters(4).fitNewModel(mat);
+                final int[] results = ms.getLabels();
+
+                System.out.println("DBSCAN COMPLETE! " + results.length);
+
+                System.exit(1);
+                */
                 try {
 
                     tooli.convert(temp, aR);
