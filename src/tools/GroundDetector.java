@@ -970,7 +970,11 @@ public class GroundDetector{
 
 
         }
-        System.gc();
+
+
+        //System.gc();
+
+
         int maxi = 0;
 
         polator.resetForChangeToTin();
@@ -1124,6 +1128,7 @@ public class GroundDetector{
     }
 
     private void removeOutlierPoints(TriangularFacetInterpolator polator, rolling_stats vertex_distance_to_nearest, IIncrementalTinNavigator navi) {
+
         StreamSupport.stream(tin.triangles().spliterator(), false).forEach((t) -> {
 
             vertex_distance_to_nearest.add(Math.abs(t.getVertexA().getZ() - t.getVertexB().getZ()));
