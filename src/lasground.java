@@ -19,9 +19,10 @@ public class lasground {
         argumentReader aR = new argumentReader(args);
         ArrayList<File> inputFiles = prepareData(aR, "lasground");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
+        lasground lg = new lasground();
 
         if(aR.cores > 1){
-            threadTool(aR, fD);
+            lg.threadTool(aR, fD);
         }else{
             for (int i = 0; i < inputFiles.size(); i++) {
 
@@ -39,7 +40,7 @@ public class lasground {
 
     }
 
-    static void threadTool(argumentReader aR, fileDistributor fD) {
+    void threadTool(argumentReader aR, fileDistributor fD) {
 
         proge.setEnd(aR.inputFiles.size());
 
@@ -51,6 +52,7 @@ public class lasground {
         for (int ii = 1; ii <= aR.cores; ii++) {
 
             proge.addThread();
+            //multiThreadTool mtt = new multiThreadTool();
             Thread temp = new Thread(new multiThreadTool(aR, aR.cores, ii, fD));
             threadList.add(temp);
             temp.start();
@@ -67,55 +69,53 @@ public class lasground {
         }
     }
 
-}
+    /**
+     * Just a class to divide workers for multithreaded tools.
+     */
 
+    static class multiThreadTool implements Runnable {
 
-/**
- * Just a class to divide workers for multithreaded tools.
- */
+        argumentReader aR;
+        int nCores;
+        int nCore;
+        fileDistributor fD;
 
-class multiThreadTool implements Runnable {
+        public multiThreadTool(argumentReader aR, int nCores, int nCore, fileDistributor fD) {
 
-    argumentReader aR;
-    int nCores;
-    int nCore;
-    fileDistributor fD;
+            this.aR = aR;
+            this.nCores = nCores;
+            this.nCore = nCore;
+            this.fD = fD;
 
-    public multiThreadTool(argumentReader aR, int nCores, int nCore, fileDistributor fD) {
+        }
 
-        this.aR = aR;
-        this.nCores = nCores;
-        this.nCore = nCore;
-        this.fD = fD;
+        public void run() {
 
-    }
+            while (true) {
+                if (fD.isEmpty())
+                    break;
+                File f = fD.getFile();
+                if (f == null)
+                    continue;
+                LASReader temp = null;
+                try {
+                    temp = new LASReader(f);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    /* PARTLY REFACTORED */
+                    GroundDetector det = new GroundDetector(temp, false, aR.output, aR.odir, aR.getInclusionRule(), aR.angle, aR.numarg1, aR.axgrid, aR, nCore);
+                    det.detectSeedPoints();
+                    det.detect();
+                    det.wipe();
+                    det = null;
+                    System.gc();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
 
-    public void run() {
-
-        while (true) {
-            if (fD.isEmpty())
-                break;
-            File f = fD.getFile();
-            if (f == null)
-                continue;
-            LASReader temp = null;
-            try {
-                temp = new LASReader(f);
-            }catch (Exception e){
-                e.printStackTrace();
             }
-            try {
-                /* PARTLY REFACTORED */
-                GroundDetector det = new GroundDetector(temp, false, aR.output, aR.odir, aR.getInclusionRule(), aR.angle, aR.numarg1, aR.axgrid, aR, nCore);
-                det.detectSeedPoints();
-                det.detect();
-                det.wipe();
-                det = null;
-                System.gc();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-
         }
     }
 }
