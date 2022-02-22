@@ -1832,7 +1832,7 @@ public class GroundDetector{
 
         calcSurfaceNormal(false);
 
-        Geometry outRing = new Geometry(wkbLinearRing);
+        //Geometry outRing = new Geometry(wkbLinearRing);
 
         List<IQuadEdge> perim = new ArrayList<>();
         perim = tin.getPerimeter();
