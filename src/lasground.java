@@ -67,53 +67,55 @@ public class lasground {
         }
     }
 
-    /**
-     * Just a class to divide workers for multithreaded tools.
-     */
+}
 
-    static class multiThreadTool implements Runnable {
 
-        argumentReader aR;
-        int nCores;
-        int nCore;
-        fileDistributor fD;
+/**
+ * Just a class to divide workers for multithreaded tools.
+ */
 
-        public multiThreadTool(argumentReader aR, int nCores, int nCore, fileDistributor fD) {
+class multiThreadTool implements Runnable {
 
-            this.aR = aR;
-            this.nCores = nCores;
-            this.nCore = nCore;
-            this.fD = fD;
+    argumentReader aR;
+    int nCores;
+    int nCore;
+    fileDistributor fD;
 
-        }
+    public multiThreadTool(argumentReader aR, int nCores, int nCore, fileDistributor fD) {
 
-        public void run() {
+        this.aR = aR;
+        this.nCores = nCores;
+        this.nCore = nCore;
+        this.fD = fD;
 
-            while (true) {
-                if (fD.isEmpty())
-                    break;
-                File f = fD.getFile();
-                if (f == null)
-                    continue;
-                LASReader temp = null;
-                try {
-                    temp = new LASReader(f);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                try {
-                    /* PARTLY REFACTORED */
-                    GroundDetector det = new GroundDetector(temp, false, aR.output, aR.odir, aR.getInclusionRule(), aR.angle, aR.numarg1, aR.axgrid, aR, nCore);
-                    det.detectSeedPoints();
-                    det.detect();
-                    det.wipe();
-                    det = null;
-                    System.gc();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
+    }
 
+    public void run() {
+
+        while (true) {
+            if (fD.isEmpty())
+                break;
+            File f = fD.getFile();
+            if (f == null)
+                continue;
+            LASReader temp = null;
+            try {
+                temp = new LASReader(f);
+            }catch (Exception e){
+                e.printStackTrace();
             }
+            try {
+                /* PARTLY REFACTORED */
+                GroundDetector det = new GroundDetector(temp, false, aR.output, aR.odir, aR.getInclusionRule(), aR.angle, aR.numarg1, aR.axgrid, aR, nCore);
+                det.detectSeedPoints();
+                det.detect();
+                det.wipe();
+                det = null;
+                System.gc();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
         }
     }
 }
