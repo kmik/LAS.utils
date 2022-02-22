@@ -29,7 +29,7 @@ public class argumentReader {
     public ArrayList<String> create_extra_byte_vlr_description = new ArrayList<>();
     public ArrayList<Integer> create_extra_byte_vlr_n_bytes = new ArrayList<>();
 
-    public boolean convolution_metrics_train = true;
+    public boolean convolution_metrics_train = false;
     public boolean convolution_metrics = false;
 
     public boolean output_only_itc_segments = false;
