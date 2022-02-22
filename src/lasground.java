@@ -19,10 +19,10 @@ public class lasground {
         argumentReader aR = new argumentReader(args);
         ArrayList<File> inputFiles = prepareData(aR, "lasground");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
-        lasground lg = new lasground();
+        //lasground lg = new lasground();
 
         if(aR.cores > 1){
-            lg.threadTool(aR, fD);
+            threadTool(aR, fD);
         }else{
             for (int i = 0; i < inputFiles.size(); i++) {
 
@@ -40,7 +40,7 @@ public class lasground {
 
     }
 
-    void threadTool(argumentReader aR, fileDistributor fD) {
+    static void threadTool(argumentReader aR, fileDistributor fD) {
 
         proge.setEnd(aR.inputFiles.size());
 
