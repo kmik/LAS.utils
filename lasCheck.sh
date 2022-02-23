@@ -5,7 +5,7 @@ export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib:$curDir/gdal/java
 export GDAL_DATA=$curDir/gdal/gdal_data
 echo $LD_LIBRARY_PATH 
 
-java -Xmx8g -cp ".:$curDir/lib/*:$curDir/target/" lasCheck $@
+java -Xmx8g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/" lasCheck $@
 
 set +f
 

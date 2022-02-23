@@ -5,7 +5,7 @@ export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib:$curDir/gdal/java
 export GDAL_DATA=$curDir/gdal/gdal_data
 echo $LD_LIBRARY_PATH 
 
-java -Xmx16g -cp ".:$curDir/lib/*:$curDir/target/" las2solar $@
+java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/" las2solar $@
 
 set +f
 

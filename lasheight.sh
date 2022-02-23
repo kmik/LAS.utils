@@ -6,7 +6,7 @@ export GDAL_DATA=$curDir/gdal/gdal_data
 echo $LD_LIBRARY_PATH 
 
 
-java -Xmx16g -cp ".:$curDir/lib/*:$curDir/target/" lasdz $@
+java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/" lasdz $@
 
 set +f
 

@@ -6,7 +6,7 @@ export GDAL_DATA=$curDir/gdal/gdal_data
 #echo "current dir: " $curDir
 
 
-java -Xmx16g -cp ".:$curDir/lib/*:$curDir/target/" lasground $@
+java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/" lasground $@
 
 set +f
 

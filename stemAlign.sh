@@ -7,7 +7,7 @@ echo $LD_LIBRARY_PATH
 
 
 
-java -Xmx16g -cp ".:$curDir/lib/*:$curDir/target/:$curDir/lib/ddogleg-v0.18-libs/*" lasStemAlign $@
+java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$curDir/lib/ddogleg-v0.18-libs/*" lasStemAlign $@
 
 set +f
 
