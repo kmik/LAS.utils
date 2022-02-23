@@ -943,6 +943,8 @@ public class GroundDetector{
                                             navi.resetForChangeToTin();
 
                                             doneInd[p + j] = true;
+                                        }else{
+                                            doneInd[p + j] = true;
                                         }
                                     }
                                 }
