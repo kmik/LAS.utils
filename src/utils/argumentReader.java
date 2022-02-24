@@ -1555,8 +1555,22 @@ public class argumentReader {
                     //System.out.println(s);
 
                     if(new File(s).getName().split("\\.")[1].equals("las")){
-                        temp.add(s);
-                        this.inputFiles.add(new File(s));
+                        LASReader tempReader = null;
+
+                        try{
+                            tempReader = new LASReader(new File(s));
+
+                            tempReader.close();
+                            tempReader = null;
+
+                            temp.add(s);
+                            this.inputFiles.add(new File(s));
+
+                        }catch (Exception e){
+                            //tempReader.close();
+                            //tempReader = null;
+                        }
+
                     }else{
                         temp.add(s);
                         this.inputFiles.add(new File(s));
