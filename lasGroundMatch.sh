@@ -1,9 +1,15 @@
 #!/bin/bash
 set -f
-export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib
-curDir=$(dirname $0)
+curDir="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+file_p=$curDir/gdal_paths
+GDAL_JAVA_PATH=$(sed '2q;d' $file_p)
+LIBGDAL_PATH=$(sed '4q;d' $file_p)
+GDAL_DATA_PATH=$(sed '6q;d' $file_p)
 
-java -Xmx4g -Djava.library.path=$curDir/gdal/java/ -cp ".:$curDir/lib/*:$curDir/target/" runners.RunLASutils 24 $@
+export LD_LIBRARY_PATH=$GDAL_PATH:$GDAL_DATA_PATH:$GDAL_JAVA_PATH:$LIBGDAL_PATH:$LD_LIBRARY_PATH
+export GDAL_DATA=$GDAL_DATA_PATH
+
+java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" runners.RunLASutils 24 $@
 
 set +f
 

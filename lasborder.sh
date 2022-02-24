@@ -2,7 +2,6 @@
 set -f
 curDir="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 file_p=$curDir/gdal_paths
-echo $file_p
 GDAL_JAVA_PATH=$(sed '2q;d' $file_p)
 LIBGDAL_PATH=$(sed '4q;d' $file_p)
 GDAL_DATA_PATH=$(sed '6q;d' $file_p)
