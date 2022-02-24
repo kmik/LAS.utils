@@ -930,10 +930,9 @@ public class GroundDetector{
 
                                         foundGroundPoints++;
 
-                                        if (miniDist > 0.5) {
+                                        if (miniDist > aR.min_edge_length) {
 
                                             this.rolling_statistics.add(maxAngle);
-
 
                                             org.tinfour.common.Vertex tempVertex = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z);
                                             tempVertex.setIndex((p + j));

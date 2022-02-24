@@ -24,13 +24,12 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
-
-
-
     public ArrayList<Integer> create_extra_byte_vlr = new ArrayList<>();
     public ArrayList<String> create_extra_byte_vlr_name = new ArrayList<>();
     public ArrayList<String> create_extra_byte_vlr_description = new ArrayList<>();
     public ArrayList<Integer> create_extra_byte_vlr_n_bytes = new ArrayList<>();
+
+    public double min_edge_length = 0.33;
 
     public boolean convolution_metrics_train = false;
     public boolean convolution_metrics = false;
@@ -546,6 +545,13 @@ public class argumentReader {
                 .longOpt("measured_trees")
                 .hasArg(true)
                 .desc("Field measured trees")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("min_edge_length")
+                .hasArg(true)
+                .desc("TIN min edge length (for ground filtering)")
                 .required(false)
                 .build());
 
@@ -2064,6 +2070,11 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("min_edge_length")) {
+
+                this.min_edge_length = Double.parseDouble(cmd.getOptionValue("min_edge_length"));
+
+            }
             if (cmd.hasOption("buffer")) {
 
                 this.buffer = Double.parseDouble(cmd.getOptionValue("buffer"));
