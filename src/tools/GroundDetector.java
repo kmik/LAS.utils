@@ -1011,7 +1011,7 @@ public class GroundDetector{
 
                     distance = Math.abs(distanceSigned);
 
-                    if(distance <= 0.1) {
+                    if(distance <= 0.05) {
                         doneInd[p + j] = true;
 
                         tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
