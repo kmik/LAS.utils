@@ -50,7 +50,7 @@ public class lasdz {
 
                     det.wipe();
                     det = null;
-                    System.gc();
+                    //System.gc();
                 }catch (Exception e){
                     e.printStackTrace();
                 }

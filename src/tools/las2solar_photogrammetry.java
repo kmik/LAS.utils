@@ -46,7 +46,7 @@ public class las2solar_photogrammetry {
 
     private static int solarradiation = 1366;
 
-    private static double xsigma=0.8, ysigma=0.8, zsigma=0.8;
+    private static double xsigma=1.0, ysigma=1.0, zsigma=1.0;
 
     Band chm_values;
     float[][] chm_values_f;
@@ -62,8 +62,6 @@ public class las2solar_photogrammetry {
     float rasterMaxValue = 0.0f;
 
     public las2solar_photogrammetry(String chm_name, argumentReader aR, LASReader pointCloud, boolean d3) throws Exception{
-
-
 
         this.pointCloud = pointCloud;
 
@@ -152,12 +150,8 @@ public class las2solar_photogrammetry {
             }
 
         System.out.println("ALL GOOD!");
-
-
         ogr.RegisterAll(); //Registering all the formats..
-
         gdal.AllRegister();
-
         System.out.println("max cache: " + gdal.GetCacheMax());
         //gdal.SetCacheMax(413375897 * 4);
         //gdal.SetCacheMax((int)(aR.gdal_cache_gb * 1073741824));
@@ -339,10 +333,13 @@ public class las2solar_photogrammetry {
 
         blur3D(imp, xsigma, ysigma, zsigma);
 
+
+
         if(true)
             for(int z = 1; z <= raster_z_size; z++){
 
                 ImageProcessor pros = imp.getImageStack().getProcessor(z);
+
                 for(int x = 0; x < chm.getRasterXSize(); x++) {
                     for (int y = 0; y < chm.getRasterYSize(); y++) {
 
@@ -400,6 +397,7 @@ public class las2solar_photogrammetry {
     }
 
     private void blur3D(ImagePlus imp, double sigmaX, double sigmaY, double sigmaZ) {
+
         imp.killRoi();
         ImageStack stack = imp.getStack();
         if (sigmaX==sigmaY) {

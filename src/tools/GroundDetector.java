@@ -159,8 +159,8 @@ public class GroundDetector{
         this.tin = null;
         this.tin2.clear();
         this.tin2 = null;
-        System.gc();
-        System.gc();
+        aR.gc();
+        //System.gc();
 
     }
 

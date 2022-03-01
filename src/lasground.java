@@ -31,7 +31,7 @@ public class lasground {
                 GroundDetector det = new GroundDetector(temp, false, aR.output, aR.odir, aR.getInclusionRule(), aR.angle, aR.numarg1, aR.axgrid, aR, 1);
                 det.detectSeedPoints();
                 det.detect();
-                //det.wipe();
+                det.wipe();
                 det = null;
                 //System.gc();
 
