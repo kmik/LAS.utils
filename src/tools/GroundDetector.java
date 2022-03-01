@@ -819,22 +819,21 @@ public class GroundDetector{
 
                                     foundGroundPoints++;
 
-                                    if (miniDist > 0.5) {
+                                    if (miniDist > aR.min_edge_length) {
 
                                         this.rolling_statistics.add(maxAngle);
 
-
                                         org.tinfour.common.Vertex tempVertex = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z);
                                         tempVertex.setIndex((p + j));
-
 
                                         tin.add(tempVertex);
                                         polator.resetForChangeToTin();
                                         navi.resetForChangeToTin();
                                         doneInd[p + j] = true;
 
-                                    }
-
+                                    }//else{
+                                    //        doneInd[p + j] = true;
+                                    //}
 
                                 } else if(aR.axelsson_mirror) {
 
@@ -942,9 +941,10 @@ public class GroundDetector{
                                             navi.resetForChangeToTin();
 
                                             doneInd[p + j] = true;
-                                        }else{
-                                            doneInd[p + j] = true;
                                         }
+                                        //else{
+                                        //    doneInd[p + j] = true;
+                                        //}
                                     }
                                 }
 

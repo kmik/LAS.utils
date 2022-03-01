@@ -13,7 +13,7 @@ import ij.plugin.ChannelSplitter;
 import ij.plugin.filter.GaussianBlur;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import javafx.util.Pair;
+//import javafx.util.Pair;
 import jdk.nashorn.internal.ir.Block;
 import net.e175.klaus.solarpositioning.*;
 import org.apache.commons.math3.distribution.AbstractRealDistribution;
@@ -37,7 +37,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.IntStream;
-
+import org.apache.commons.lang3.tuple.Pair;
 import static ij.IJ.createImage;
 import static net.e175.klaus.solarpositioning.PSA.calculateSolarPosition;
 
@@ -178,7 +178,7 @@ public class las2solar_photogrammetry {
         band2 = dataset.GetRasterBand(1);    // writable band
 
 
-        int steppi = 25;
+        int steppi = 10;
 
         int x_res = (int)Math.ceil((double)chm.getRasterXSize() / (double)steppi);
         int y_res = (int)Math.ceil((double)chm.getRasterYSize() / (double)steppi);
@@ -238,7 +238,9 @@ public class las2solar_photogrammetry {
         int n_funk_per_thread = (int)Math.ceil((double)y_size / (double)aR.cores);
 
         sunriseAndSunset.clear();
+        //ForkJoinPool myPool = new ForkJoinPool(aR.cores);
 
+        //myPool.submit(() ->
         IntStream.range(0, x_res).parallel().forEach(x -> {
             //for(int x = 0; x < x_res; x++){
             GregorianCalendar time_ = new GregorianCalendar(TimeZone.getTimeZone("GMT+2"));
@@ -277,14 +279,14 @@ public class las2solar_photogrammetry {
                     }
                 }
             }
-        });
+        });//);
 
         long start = System.currentTimeMillis();
 
         BlockingQueue<Pair<Integer, byte[][]>> provideRow = new LinkedBlockingQueue<>();
 
         for(int y = 0; y < chm_values_f_3d.length; y++)
-            provideRow.add(new Pair<>(y,chm_values_f_3d[y]));
+            provideRow.add(Pair.of(y,chm_values_f_3d[y]));
 
 
         for (int i = 0; i < aR.cores; i++) {
@@ -328,7 +330,6 @@ public class las2solar_photogrammetry {
             ImageProcessor pros = imp.getImageStack().getProcessor(z);
             for(int x = 0; x < chm.getRasterXSize(); x++) {
                 for (int y = 0; y < chm.getRasterYSize(); y++) {
-
 
                     pros.putPixelValue(x, y, rM.getValue(x, y, z-1));
 
@@ -628,7 +629,7 @@ public class las2solar_photogrammetry {
         //System.out.println(chm_values_f.length + " " + chm_values_f[0].length);
         //System.exit(1);
         for(int y = 0; y < chm_values_f.length; y++)
-            provideRow.add(new Pair<>(y,chm_values_f[y]));
+            provideRow.add(Pair.of(y,chm_values_f[y]));
 
 
         for (int i = 0; i < aR.cores; i++) {
@@ -1117,7 +1118,7 @@ class solarParallel extends Thread {
                 //}
             }
 
-            rM.setValue(row.getKey(),averageInsol  );
+            rM.setValue(row.getKey(),averageInsol);
 
             //System.out.println(y + " / " + this.max );
         }
@@ -1568,7 +1569,9 @@ class solarParallel_3d extends Thread {
             float[] averageInsol = new float[x_size];
 
             //for (int x = 0; x < x_size; x++) {
+            //ForkJoinPool myPool = new ForkJoinPool(2);
 
+            //myPool.submit(() ->
             IntStream.range(0, x_size).parallel().forEach(x -> {
 
                 for (int z = 0; z < z_size; z++) {
@@ -1689,7 +1692,7 @@ class solarParallel_3d extends Thread {
                     //}
                     rM.setValue(x, row.getKey(), z, (float) dailyAverageInsolation );
                 }
-            });
+            });//);
 
             //System.out.println(row.getKey());
             System.out.println(providerRow.size());

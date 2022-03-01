@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import err.toolException;
 import org.gdal.gdal.gdal;
@@ -1269,7 +1270,6 @@ class ai2las{
 
 		int data_type = datasets.get(0).GetRasterBand(1).getDataType();
 
-		pointAI tempP = new pointAI(n_bands, n_bytes, data_type);
 
 		double x_s = datasets.get(0).getRasterXSize();
 		double y_s = datasets.get(0).getRasterYSize();
@@ -1290,268 +1290,17 @@ class ai2las{
 
 		}
 
-
-
-
 		if(!aR.debug) {
 
+			//IntStream.range(0, tempList.size()).parallel().forEach(t -> {
 			for (int t = 0; t < tempList.size(); t++) {
 
-				int outsidePoint = 0;
+				process_file(aR, oparse, exteriors, interior, imageIDs, tempList, extents, datasets, n_bands, n_bytes, data_type, x_s, y_s, rotationMatrices, pix_threshold_x, pix_threshold_y, t);
 
-				File tempFile = new File(tempList.get(t));
-
-				//System.out.println(tempFile.getAbsolutePath());
-
-				File ofile2 = aR.createOutputFileWithExtension(tempFile, "_ai.txt");
-
-				if (ofile2.exists())
-					ofile2.delete();
-
-				ofile2.createNewFile();
-
-				LasPoint tempPoint = new LasPoint();
-
-				LASReader asd2 = new LASReader(tempFile);
-
-				File outputFile = null;
-				pointWriterMultiThread pw = null;
-				LasPointBufferCreator buf = null;
-
-				if (aR.olas) {
-
-					outputFile = aR.createOutputFile(asd2);
-					pw = new pointWriterMultiThread(outputFile, asd2, "ai2las", aR);
-
-					buf = new LasPointBufferCreator(1, pw);
-
-				}
-
-				tempFile = null;
-
-				long n = asd2.getNumberOfPointRecords();
-
-				int count = 0;
-
-				long lStartTime = 0;
-
-				long lEndTime = 0;
-
-				ArrayList<double[]> valmiit = new ArrayList<double[]>();
-
-				double[] temp;
-
-				int n_threads = 0;
-
-
-				Thread[] threads = new Thread[n_threads];
-
-				int n_img_per_thread = (int)Math.ceil((double)datasets.size() / (double)n_threads);
-
-				ArrayList<PriorityBlockingQueue<double[]>> thread_point_que = new ArrayList<>();
-/*
-				for (int i = 0; i < n_threads; i++) {
-
-					thread_point_que.add(new PriorityBlockingQueue<>());
-
-					int mini = i * n_img_per_thread;
-					int maxi1 = Math.min(datasets.size(), mini + n_img_per_thread);
-					threads[i] = new ai2lasParallel(mini, maxi1, tempP, thread_point_que.get(thread_point_que.size()-1), datasets, interior, exteriors, rotationMatrices,
-							x_s, y_s, pix_threshold_x, pix_threshold_y, imageIDs, extents);
-					threads[i].start();
-				}
-*/
-				int x_size = datasets.get(0).getRasterXSize();
-
-				try {
-
-					FileWriter fw = new FileWriter(ofile2);
-					BufferedWriter bw2 = new BufferedWriter(fw, (int) Math.pow(2, 10));
-
-					lStartTime = System.nanoTime();
-					boolean pointFound = false;
-
-					for (int p = 0; p < asd2.getNumberOfPointRecords(); p += 10000) {
-
-						int maxi = (int) Math.min(10000, Math.abs(asd2.getNumberOfPointRecords() - (p)));
-
-						try {
-							asd2.readRecord_noRAF(p, tempPoint, maxi);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-
-						for (int j = 0; j < maxi; j++) {
-
-							asd2.readFromBuffer(tempPoint);
-
-							if(!aR.inclusionRule.ask(tempPoint, p+j, true)){
-								continue;
-							}
-
-							pointFound = false;
-
-							if (j + p % 10000 == 0) {
-								lEndTime = System.nanoTime();
-								System.out.print("\033[2K"); // Erase line content
-								System.out.print((j + p) + "|" + n + " Time remaining: " + timeRemaining((int) n, j + p, (lEndTime - lStartTime)) + " ms/point: " + roundAvoid(((double) lEndTime - (double) lStartTime) / 1000000.0 / (double) (j + p), 2) + " o: " + outsidePoint + " " + gdal.GetCacheUsed() + "\r");
-							}
-
-							tempP.prepare();
-
-							String outWrite2 = "";
-
-							//int n_threads = 1;
-/*
-							Thread[] threads = new Thread[n_threads];
-
-							int n_img_per_thread = (int)Math.ceil((double)datasets.size() / (double)n_threads);
-
-							if(false) {
-								for (int i = 0; i < n_threads; i++) {
-
-									int mini = i * n_img_per_thread;
-									int maxi1 = Math.min(datasets.size(), mini + n_img_per_thread);
-									threads[i] = new ai2lasParallel(mini, maxi1, tempP, tempPoint, datasets, interior, exteriors, rotationMatrices,
-											x_s, y_s, pix_threshold_x, pix_threshold_y, imageIDs, extents);
-									threads[i].start();
-								}
-
-								for (int i = 0; i < threads.length; i++) {
-
-									try {
-										threads[i].join();
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
-								}
-							}
-
- */
-							/* CAN THIS BE PARALLELIZED?*/
-							//if(true)
-							int found = 0;
-
-							//long time_start = System.currentTimeMillis();
-
-							for (int j_ = 0; j_ < datasets.size(); j_++) {
-
-								//System.out.println(Arrays.toString(extents.get(j_)));
-								if (tempPoint.x >= extents.get(j_)[0] && tempPoint.x <= extents.get(j_)[1] && tempPoint.y >= extents.get(j_)[2] && tempPoint.y <= extents.get(j_)[3]) {
-
-
-									temp = collinearStuff2(tempPoint, interior, exteriors.get(j_), rotationMatrices.get(j_), x_s, y_s);
-
-									if (temp[0] > pix_threshold_x && temp[0] < (x_s - pix_threshold_x)
-											&& temp[1] > pix_threshold_y && temp[1] < (y_s - pix_threshold_y)) {
-
-										found++;
-
-										int key = (int)(temp[1] * x_size + temp[0]);
-
-										//if(!maps.get(j_).containsKey(key)) {
-											tempP.addObservation(datasets.get(j_), imageIDs.get(j_), temp[0], temp[1]);
-											//maps.get(j_).put(key, tempP.addObservation_return_array(datasets.get(j_), imageIDs.get(j_), temp[0], temp[1]));
-
-										//}else{
-											//System.out.println("OBS FROM ARRAY");
-											//tempP.addObservation_from_array(datasets.get(j_), maps.get(j_).get(key), imageIDs.get(j_));
-										//}
-
-										pointFound = true;
-
-									}
-								}
-							}
-
-							//long time_end = System.currentTimeMillis();
-
-							//System.out.println("TOOK: " + (time_end-time_start) + " ms " + found	);
-
-							valmiit.clear();
-
-							if (!pointFound) {
-
-								outsidePoint++;
-								tempP.done();
-								continue;
-							}
-
-							tempP.done();
-
-							if (aR.olas) {
-
-								if (aR.sequence.length < 1) {
-
-
-								} else if (aR.sequence.length < 2) {
-									tempPoint.R = (int) tempP.channelMeans[aR.sequence[0]];
-								} else if (aR.sequence.length < 3) {
-									tempPoint.R = (int) tempP.channelMeans[aR.sequence[0]];
-									tempPoint.G = (int) tempP.channelMeans[aR.sequence[1]];
-								} else if (aR.sequence.length < 4) {
-									tempPoint.R = (int) tempP.channelMeans[aR.sequence[0]];
-									tempPoint.G = (int) tempP.channelMeans[aR.sequence[1]];
-									tempPoint.B = (int) tempP.channelMeans[aR.sequence[2]];
-								}
-
-								buf.writePoint(tempPoint, aR.inclusionRule, (j + p));
-
-							}
-
-							if (!aR.olas) {
-
-								outWrite2 += LASwrite.LASpoint2String(tempPoint, oparse);
-
-								for (int l = 0; l < n_bands; l++) {
-
-									outWrite2 += "\t" + tempP.channelMeans[l];
-
-								}
-
-								bw2.write(outWrite2);
-								bw2.newLine();
-							}
-							outWrite2 = null;
-
-						}
-					}
-
-					//bw.close();
-					bw2.close();
-
-					//outti.close();
-					ofile2 = null;
-
-					tempPoint = null;
-
-					fw.close();
-
-				} catch (Exception e) {
-
-					System.out.println(count + "/" + n);
-
-					e.printStackTrace(System.out);
-				}
-
-				lEndTime = System.nanoTime();
-
-				long time = lEndTime - lStartTime;
-
-
-				System.out.print(n + "|" + n + " Filename: " + asd2.getFile().getName() + "\r");
-				asd2.close();
-				asd2 = null;
-				System.out.println("\nms/point: " + roundAvoid((double) time / 1000000.0 / (double) n, 2));
-				//n = null;
-				tempFile = null;
-
-				if(aR.olas){
-					buf.close();
-					pw.close(aR);
-				}
 			}
 		}else{
+
+			pointAI tempP = new pointAI(n_bands, n_bytes, data_type);
 
 			/* DEBUG CODE */
 			System.out.println(aR.debug_file);
@@ -1617,6 +1366,265 @@ class ai2las{
 
 			sourceReader.close();
 			outWriter.close();
+		}
+	}
+
+	private static void process_file(argumentReader aR, String oparse, ArrayList<double[]> exteriors, double[] interior, ArrayList<Integer> imageIDs, ArrayList<String> tempList, ArrayList<double[]> extents, ArrayList<Dataset> datasets, int n_bands, int n_bytes, int data_type, double x_s, double y_s, ArrayList<double[][]> rotationMatrices, int pix_threshold_x, int pix_threshold_y, int t) throws IOException {
+		pointAI tempP = new pointAI(n_bands, n_bytes, data_type);
+
+
+		int outsidePoint = 0;
+
+		File tempFile = new File(tempList.get(t));
+
+		//System.out.println(tempFile.getAbsolutePath());
+
+		File ofile2 = aR.createOutputFileWithExtension(tempFile, "_ai.txt");
+
+		if (ofile2.exists())
+			ofile2.delete();
+
+		ofile2.createNewFile();
+
+		LasPoint tempPoint = new LasPoint();
+
+		LASReader asd2 = new LASReader(tempFile);
+
+		File outputFile = null;
+		pointWriterMultiThread pw = null;
+		LasPointBufferCreator buf = null;
+
+		if (aR.olas) {
+
+			outputFile = aR.createOutputFile(asd2);
+			pw = new pointWriterMultiThread(outputFile, asd2, "ai2las", aR);
+
+			buf = new LasPointBufferCreator(1, pw);
+
+		}
+
+		tempFile = null;
+
+		long n = asd2.getNumberOfPointRecords();
+
+		int count = 0;
+
+		long lStartTime = 0;
+
+		long lEndTime = 0;
+
+		ArrayList<double[]> valmiit = new ArrayList<double[]>();
+
+		double[] temp;
+
+		int n_threads = 0;
+
+
+		Thread[] threads = new Thread[n_threads];
+
+		int n_img_per_thread = (int)Math.ceil((double) datasets.size() / (double)n_threads);
+
+		ArrayList<PriorityBlockingQueue<double[]>> thread_point_que = new ArrayList<>();
+/*
+				for (int i = 0; i < n_threads; i++) {
+
+					thread_point_que.add(new PriorityBlockingQueue<>());
+
+					int mini = i * n_img_per_thread;
+					int maxi1 = Math.min(datasets.size(), mini + n_img_per_thread);
+					threads[i] = new ai2lasParallel(mini, maxi1, tempP, thread_point_que.get(thread_point_que.size()-1), datasets, interior, exteriors, rotationMatrices,
+							x_s, y_s, pix_threshold_x, pix_threshold_y, imageIDs, extents);
+					threads[i].start();
+				}
+*/
+		int x_size = datasets.get(0).getRasterXSize();
+
+		try {
+
+			FileWriter fw = new FileWriter(ofile2);
+			BufferedWriter bw2 = new BufferedWriter(fw, (int) Math.pow(2, 10));
+
+			lStartTime = System.nanoTime();
+			boolean pointFound = false;
+
+			for (int p = 0; p < asd2.getNumberOfPointRecords(); p += 10000) {
+
+				int maxi = (int) Math.min(10000, Math.abs(asd2.getNumberOfPointRecords() - (p)));
+
+				try {
+					asd2.readRecord_noRAF(p, tempPoint, maxi);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				for (int j = 0; j < maxi; j++) {
+
+					asd2.readFromBuffer(tempPoint);
+
+					if(!aR.inclusionRule.ask(tempPoint, p+j, true)){
+						continue;
+					}
+
+					pointFound = false;
+
+					if (j + p % 10000 == 0) {
+						lEndTime = System.nanoTime();
+						System.out.print("\033[2K"); // Erase line content
+						System.out.print((j + p) + "|" + n + " Time remaining: " + timeRemaining((int) n, j + p, (lEndTime - lStartTime)) + " ms/point: " + roundAvoid(((double) lEndTime - (double) lStartTime) / 1000000.0 / (double) (j + p), 2) + " o: " + outsidePoint + " " + gdal.GetCacheUsed() + "\r");
+					}
+
+					tempP.prepare();
+
+					String outWrite2 = "";
+
+					//int n_threads = 1;
+/*
+					Thread[] threads = new Thread[n_threads];
+
+					int n_img_per_thread = (int)Math.ceil((double)datasets.size() / (double)n_threads);
+
+					if(false) {
+						for (int i = 0; i < n_threads; i++) {
+
+							int mini = i * n_img_per_thread;
+							int maxi1 = Math.min(datasets.size(), mini + n_img_per_thread);
+							threads[i] = new ai2lasParallel(mini, maxi1, tempP, tempPoint, datasets, interior, exteriors, rotationMatrices,
+									x_s, y_s, pix_threshold_x, pix_threshold_y, imageIDs, extents);
+							threads[i].start();
+						}
+
+						for (int i = 0; i < threads.length; i++) {
+
+							try {
+								threads[i].join();
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					}
+
+*/
+					/* CAN THIS BE PARALLELIZED?*/
+					//if(true)
+					int found = 0;
+
+					//long time_start = System.currentTimeMillis();
+
+					for (int j_ = 0; j_ < datasets.size(); j_++) {
+
+						//System.out.println(Arrays.toString(extents.get(j_)));
+						if (tempPoint.x >= extents.get(j_)[0] && tempPoint.x <= extents.get(j_)[1] && tempPoint.y >= extents.get(j_)[2] && tempPoint.y <= extents.get(j_)[3]) {
+
+
+							temp = collinearStuff2(tempPoint, interior, exteriors.get(j_), rotationMatrices.get(j_), x_s, y_s);
+
+							if (temp[0] > pix_threshold_x && temp[0] < (x_s - pix_threshold_x)
+									&& temp[1] > pix_threshold_y && temp[1] < (y_s - pix_threshold_y)) {
+
+								found++;
+
+								int key = (int)(temp[1] * x_size + temp[0]);
+
+								//if(!maps.get(j_).containsKey(key)) {
+									tempP.addObservation(datasets.get(j_), imageIDs.get(j_), temp[0], temp[1]);
+									//maps.get(j_).put(key, tempP.addObservation_return_array(datasets.get(j_), imageIDs.get(j_), temp[0], temp[1]));
+
+								//}else{
+									//System.out.println("OBS FROM ARRAY");
+									//tempP.addObservation_from_array(datasets.get(j_), maps.get(j_).get(key), imageIDs.get(j_));
+								//}
+
+								pointFound = true;
+
+							}
+						}
+					}
+
+					//long time_end = System.currentTimeMillis();
+
+					//System.out.println("TOOK: " + (time_end-time_start) + " ms " + found	);
+
+					valmiit.clear();
+
+					if (!pointFound) {
+
+						outsidePoint++;
+						tempP.done();
+						continue;
+					}
+
+					tempP.done();
+
+					if (aR.olas) {
+
+						if (aR.sequence.length < 1) {
+
+
+						} else if (aR.sequence.length < 2) {
+							tempPoint.R = (int) tempP.channelMeans[aR.sequence[0]];
+						} else if (aR.sequence.length < 3) {
+							tempPoint.R = (int) tempP.channelMeans[aR.sequence[0]];
+							tempPoint.G = (int) tempP.channelMeans[aR.sequence[1]];
+						} else if (aR.sequence.length < 4) {
+							tempPoint.R = (int) tempP.channelMeans[aR.sequence[0]];
+							tempPoint.G = (int) tempP.channelMeans[aR.sequence[1]];
+							tempPoint.B = (int) tempP.channelMeans[aR.sequence[2]];
+						}
+
+						buf.writePoint(tempPoint, aR.inclusionRule, (j + p));
+
+					}
+
+					if (!aR.olas) {
+
+						outWrite2 += LASwrite.LASpoint2String(tempPoint, oparse);
+
+						for (int l = 0; l < n_bands; l++) {
+
+							outWrite2 += "\t" + tempP.channelMeans[l];
+
+						}
+
+						bw2.write(outWrite2);
+						bw2.newLine();
+					}
+					outWrite2 = null;
+
+				}
+			}
+
+			//bw.close();
+			bw2.close();
+
+			//outti.close();
+			ofile2 = null;
+
+			tempPoint = null;
+
+			fw.close();
+
+		} catch (Exception e) {
+
+			System.out.println(count + "/" + n);
+
+			e.printStackTrace(System.out);
+		}
+
+		lEndTime = System.nanoTime();
+
+		long time = lEndTime - lStartTime;
+
+
+		System.out.print(n + "|" + n + " Filename: " + asd2.getFile().getName() + "\r");
+		asd2.close();
+		asd2 = null;
+		System.out.println("\nms/point: " + roundAvoid((double) time / 1000000.0 / (double) n, 2));
+		//n = null;
+		tempFile = null;
+
+		if(aR.olas){
+			buf.close();
+			pw.close(aR);
 		}
 	}
 

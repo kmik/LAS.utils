@@ -1,5 +1,6 @@
 import LASio.LASReader;
 import ch.qos.logback.core.encoder.EchoEncoder;
+import org.gdal.ogr.ogr;
 import tools.ToShp;
 import tools.createCHM;
 import tools.las2solar_photogrammetry;
@@ -17,6 +18,8 @@ public class las2solar {
 
 
     public static void main(String[] args) throws IOException {
+
+        ogr.RegisterAll();
 
         argumentReader aR = new argumentReader(args);
         ArrayList<File> inputFiles = prepareData(aR, "las2solar");

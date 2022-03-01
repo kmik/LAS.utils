@@ -29,7 +29,7 @@ public class argumentReader {
     public ArrayList<String> create_extra_byte_vlr_description = new ArrayList<>();
     public ArrayList<Integer> create_extra_byte_vlr_n_bytes = new ArrayList<>();
 
-    public double min_edge_length = 0.33;
+    public double min_edge_length = 0.25;
 
     public boolean convolution_metrics_train = false;
     public boolean convolution_metrics = false;
@@ -282,6 +282,31 @@ public class argumentReader {
     public int[] sequence = new int[]{0,1,2};
 
     public boolean output_only_stemAlignInput = false;
+
+    long startTimegc = 0L;
+    long endTimegc = 10000L;
+
+    /**
+     * A sort of a "thread-safe" gc. Avoid calling GC multiple
+     * times from different threads too many times (here, all
+     * threads share this argumentReader object).
+     * @return
+     */
+    public boolean gc(){
+
+        endTimegc = System.currentTimeMillis();
+
+        if(endTimegc - startTimegc < 10000){
+
+            System.gc();
+            startTimegc = System.currentTimeMillis();
+            return true;
+
+        }else{
+            return false;
+        }
+
+    }
 
     public argumentReader(){
 
