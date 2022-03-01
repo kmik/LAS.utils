@@ -163,19 +163,19 @@ public class las2solar_photogrammetry {
         //gdal.SetCacheMax((int)(aR.gdal_cache_gb * 1073741824));
 
 
-        Dataset dataset = null;
+        //Dataset dataset = null;
         Driver driver = null;
         driver = gdal.GetDriverByName("GTiff");
         driver.Register();
-        Band band2=null;
+        //Band band2=null;
 
-        dataset = driver.Create("testi.tif", chm.GetRasterXSize(), chm.GetRasterYSize(), 1, gdalconst.GDT_Float32);
-        dataset.SetGeoTransform(chm.GetGeoTransform());
-        dataset.SetProjection(chm.GetProjection());
+        //dataset = driver.Create("testi.tif", chm.GetRasterXSize(), chm.GetRasterYSize(), 1, gdalconst.GDT_Float32);
+        //dataset.SetGeoTransform(chm.GetGeoTransform());
+        //dataset.SetProjection(chm.GetProjection());
 
         System.out.println(chm.GetProjection());
         //System.exit(1);
-        band2 = dataset.GetRasterBand(1);    // writable band
+        //band2 = dataset.GetRasterBand(1);    // writable band
 
 
         int steppi = 10;
@@ -190,7 +190,7 @@ public class las2solar_photogrammetry {
         SpatialReference dst = new SpatialReference();
 
         dst.ImportFromProj4("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs");
-        src.ImportFromProj4("++proj=utm +zone=35 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ");
+        src.ImportFromProj4("+proj=utm +zone=35 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
 
         CoordinateTransformation ct = new CoordinateTransformation(src, dst);
 
@@ -394,7 +394,7 @@ public class las2solar_photogrammetry {
 
         System.out.println("processing took: " + (System.currentTimeMillis()-start) + " ms with " + aR.cores + " threads");
 
-        dataset.FlushCache();
+        //dataset.FlushCache();
         chm.FlushCache();
 
     }
