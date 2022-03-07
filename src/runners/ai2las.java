@@ -2168,7 +2168,11 @@ class ai2las{
 
 		LASReader asd2 = new LASReader(tempFile);
 
-		double resolution_3d = 0.25;
+		double resolution_3d = 0.5;
+		resolution_3d = aR.step;
+		if(resolution_3d == 15){
+			resolution_3d = 0.5;
+		}
 		double resolution_precomputed = 25;
 
 		int xDim = (int)Math.ceil((asd2.maxX - asd2.minX) / resolution_3d);
