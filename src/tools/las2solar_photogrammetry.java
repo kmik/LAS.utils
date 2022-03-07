@@ -396,6 +396,354 @@ public class las2solar_photogrammetry {
 
     }
 
+    public las2solar_photogrammetry(String chm_name, argumentReader aR, LASReader pointCloud, boolean d3, boolean this_is_binary) throws Exception{
+
+        this.pointCloud = pointCloud;
+        System.out.println(this.pointCloud.getMaxZ());
+        LasPoint tempPoint = new LasPoint();
+        int thread_n = aR.pfac.addReadThread(pointCloud);
+
+        int number_of_last_returns = 0;
+        int number_of_all_returns = 0;
+
+        int raster_z_size = (int)Math.ceil((pointCloud.getMaxZ() - pointCloud.getMinZ()) / aR.step);
+
+        Dataset chm = gdal.Open(chm_name);
+
+        this.chm_values_f_3d = new byte[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
+        this.chm_values_mean_y = new short[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
+        this.chm_values_mean_x = new short[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
+        this.chm_values_mean_z = new short[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
+
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
+
+            int maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+            aR.pfac.prepareBuffer(thread_n, i, 200000);
+
+            for (int j = 0; j < maxi; j++) {
+
+                pointCloud.readFromBuffer(tempPoint);
+
+                int x = Math.min((int)((tempPoint.x - pointCloud.getMinX()) / aR.step), chm.getRasterXSize()-1);
+                int y = Math.min((int)((pointCloud.getMaxY() - tempPoint.y) / aR.step), chm.getRasterYSize()-1);
+                int z = Math.min((int)((tempPoint.z - pointCloud.getMinZ()) / aR.step), raster_z_size-1);
+
+
+                float fraction_x = (float)((tempPoint.x - pointCloud.getMinX()) / aR.step) - (float)x;
+                float fraction_y = (float)((pointCloud.getMaxY() - tempPoint.y) / aR.step) - (float)y;
+                float fraction_z = (float)((tempPoint.z - pointCloud.getMinZ()) / aR.step) - (float)z;
+
+                short frac_x = (short)(int)((fraction_x / aR.step) * 1000);
+                short frac_y = (short)(int)((1.0f - fraction_y / aR.step) * 1000);
+                short frac_z = (short)(int)((fraction_z / aR.step) * 1000);
+
+                if(chm_values_f_3d[y][x][z] < 127) {
+                    chm_values_f_3d[y][x][z]++;
+                    //dailyAverageInsolation = dailyAverageInsolation + ((dailyAverageInsolation_ / 24.0) - dailyAverageInsolation)/(double)++n;
+                    /*New average = old average * (n-1)/n + new value /n */
+                    //chm_values_mean_x[y][x][z] = (short)(chm_values_mean_x[y][x][z] * ((short)chm_values_f_3d[y][x][z]-1)/(short)chm_values_f_3d[y][x][z] + frac_x / (short)chm_values_f_3d[y][x][z]);
+                    chm_values_mean_x[y][x][z] = (short)(chm_values_mean_x[y][x][z] + (frac_x - chm_values_mean_x[y][x][z]) / (double) chm_values_f_3d[y][x][z]);// ((short)chm_values_f_3d[y][x][z]-1)/(short)chm_values_f_3d[y][x][z] + frac_x / (short)chm_values_f_3d[y][x][z]);
+                    //chm_values_mean_y[y][x][z] = (short)(chm_values_mean_y[y][x][z] * ((short)chm_values_f_3d[y][x][z]-1)/(short)chm_values_f_3d[y][x][z] + frac_y / (short)chm_values_f_3d[y][x][z]);
+                    chm_values_mean_y[y][x][z] = (short)(chm_values_mean_y[y][x][z] + (frac_y - chm_values_mean_y[y][x][z]) / (double) chm_values_f_3d[y][x][z]);
+                    //chm_values_mean_z[y][x][z] = (short)(chm_values_mean_z[y][x][z] * ((short)chm_values_f_3d[y][x][z]-1)/(short)chm_values_f_3d[y][x][z] + frac_z / (short)chm_values_f_3d[y][x][z]);
+                    chm_values_mean_z[y][x][z] = (short)(chm_values_mean_z[y][x][z] + (frac_z - chm_values_mean_z[y][x][z]) / (double) chm_values_f_3d[y][x][z]);
+
+                }
+
+            }
+        }
+
+
+        if(false)
+            for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+
+                int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+                aR.pfac.prepareBuffer(thread_n, i, 10000);
+
+                for (int j = 0; j < maxi; j++) {
+
+                    pointCloud.readFromBuffer(tempPoint);
+
+                    int x = (int)((tempPoint.x - pointCloud.getMinX()) / aR.step);
+                    int y = (int)((pointCloud.getMaxY() - tempPoint.y) / aR.step);
+                    int z = (int)((tempPoint.z - pointCloud.getMinZ()) / aR.step);
+
+                    if(chm_values_f_3d[y][x][z] < 100)
+                        chm_values_f_3d[y][x][z]++;
+
+                }
+            }
+
+        System.out.println("ALL GOOD!");
+        ogr.RegisterAll(); //Registering all the formats..
+        gdal.AllRegister();
+        System.out.println("max cache: " + gdal.GetCacheMax());
+        //gdal.SetCacheMax(413375897 * 4);
+        //gdal.SetCacheMax((int)(aR.gdal_cache_gb * 1073741824));
+
+
+        //Dataset dataset = null;
+        Driver driver = null;
+        driver = gdal.GetDriverByName("GTiff");
+        driver.Register();
+        //Band band2=null;
+
+        //dataset = driver.Create("testi.tif", chm.GetRasterXSize(), chm.GetRasterYSize(), 1, gdalconst.GDT_Float32);
+        //dataset.SetGeoTransform(chm.GetGeoTransform());
+        //dataset.SetProjection(chm.GetProjection());
+
+        System.out.println(chm.GetProjection());
+        //System.exit(1);
+        //band2 = dataset.GetRasterBand(1);    // writable band
+
+
+        int steppi = 10;
+
+        int x_res = (int)Math.ceil((double)chm.getRasterXSize() / (double)steppi);
+        int y_res = (int)Math.ceil((double)chm.getRasterYSize() / (double)steppi);
+
+        int[] minutes = new int[]{0};        //float[][][][][][] precomputed = new float[x_res][y_res][12][32][24][2];
+        float[][][][][][][] precomputed = new float[x_res][y_res][12][32][24][minutes.length][2];
+
+        SpatialReference src = new SpatialReference();
+        SpatialReference dst = new SpatialReference();
+
+        dst.ImportFromProj4("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs");
+        src.ImportFromProj4("+proj=utm +zone=35 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+
+        CoordinateTransformation ct = new CoordinateTransformation(src, dst);
+
+        double[] gt = chm.GetGeoTransform();
+
+        //GregorianCalendar time = new GregorianCalendar(new SimpleTimeZone(-7 * 60 * 60 * 1000, "LST"));
+        GregorianCalendar time = new GregorianCalendar(TimeZone.getTimeZone("GMT+2"));
+
+        System.out.println(time.getTimeZone());
+
+        this.chm_values = chm.GetRasterBand(1);
+
+        chm_values_f = chm_to_array(chm_values);
+        int x_ = chm_values.getXSize();
+        int y_ = chm_values.getYSize();
+        chm_output_f = new float[1][1];
+
+
+
+        int[] calendar_month = new int[]{Calendar.JUNE, Calendar.JULY, Calendar.AUGUST};
+
+        int[] n_date_in_month = new int[]{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 , 31};
+
+
+        int x_size = chm_values.getXSize();
+        int y_size = chm_values.getYSize();
+
+        float[] raster_read = new float[x_size];
+        float value = 0;
+
+        double[] point = new double[3];
+        //double[] point_transformed = new double[2];
+
+        /*
+        Prepare sunrise and sunsets
+         */
+        ArrayList<int[]> sunriseAndSunset = new ArrayList<>();
+
+
+        double[] blockArray = new double[]{0.0,0.0};
+
+        solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size]);
+
+        Thread[] threads = new Thread[aR.cores];
+        int n_funk_per_thread = (int)Math.ceil((double)y_size / (double)aR.cores);
+
+        sunriseAndSunset.clear();
+        //ForkJoinPool myPool = new ForkJoinPool(aR.cores);
+        GregorianCalendar time__ = new GregorianCalendar(TimeZone.getTimeZone("GMT+2"));
+
+        time__.set(2020, 6, 14, 0, 0, 00);
+
+        System.out.println("Hour: "+time__.get(Calendar.HOUR_OF_DAY));
+        System.out.println("Date: "+time__.get(Calendar.DATE));
+        System.out.println("Month: "+time__.get(Calendar.MONTH));
+        System.out.println("Year: "+time__.get(Calendar.YEAR));
+        //System.out.println(time__);
+        time__.add(Calendar.SECOND, 231143);
+        System.out.println("Hour: "+time__.get(Calendar.HOUR_OF_DAY));
+        System.out.println("Date: "+time__.get(Calendar.DATE));
+        System.out.println("Month: "+time__.get(Calendar.MONTH));
+        System.out.println("Year: "+time__.get(Calendar.YEAR));
+        System.exit(1);
+
+        //myPool.submit(() ->
+        IntStream.range(0, x_res).parallel().forEach(x -> {
+            //for(int x = 0; x < x_res; x++){
+            GregorianCalendar time_ = new GregorianCalendar(TimeZone.getTimeZone("GMT+2"));
+
+            time_.set(2020, 6, 20, 0, 0, 00);
+
+            time_.add(Calendar.SECOND, 10000);
+
+
+            double[] point_ = new double[3];
+            for(int y = 0; y < y_res; y++){
+
+                int precompute_x = (int)((double)steppi * (double)x + (double)steppi / 2.0); // x_size / 2;
+                int precompute_y = (int)((double)steppi * (double)y + (double)steppi / 2.0); // x_size / 2;
+
+                point_[0] = gt[0] + precompute_x * gt[1] + precompute_y * gt[2];
+                point_[1] = gt[3] + precompute_x * gt[4] + precompute_y * gt[5];
+                point_[2] = value;
+
+                //System.out.println(Arrays.toString(point));
+                double[] point_transformed = ct.TransformPoint(point_[0], point_[1]);
+                //System.out.println(Arrays.toString(point_transformed));
+
+                //System.exit(1);
+                for(int month : calendar_month) {
+                    for (int day = 1; day <= n_date_in_month[month]; day += 1) {
+
+                        for (int hour = 0; hour <= 23; hour += 1) {
+
+                            for(int minute = 0; minute < minutes.length; minute++) {
+
+                                time_.set(2020, month, day, hour, minutes[minute], 00);
+
+                                AzimuthZenithAngle result = SPA.calculateSolarPosition(time_, point_transformed[1], point_transformed[0], 0, DeltaT.estimate(time_));
+
+                                precomputed[x][y][month][day][hour][minute][0] =  (float)result.getZenithAngle();
+                                precomputed[x][y][month][day][hour][minute][1] =  (float)result.getAzimuth();
+
+                            }
+                        }
+                    }
+                }
+            }
+        });//);
+
+        long start = System.currentTimeMillis();
+
+        BlockingQueue<Pair<Integer, byte[][]>> provideRow = new LinkedBlockingQueue<>();
+
+        for(int y = 0; y < chm_values_f_3d.length; y++)
+            provideRow.add(Pair.of(y,chm_values_f_3d[y]));
+
+
+        for (int i = 0; i < aR.cores; i++) {
+
+            int mini = i * n_funk_per_thread;
+            int maxi = Math.min(y_size, mini + n_funk_per_thread);
+
+            threads[i] = (new solarParallel_3d(mini, maxi, x_size,y_size, raster_z_size, rM, sunriseAndSunset, gt, ct, aR, chm_values_f, chm_output_f, precomputed, steppi, rasterMaxValue, provideRow, chm_values_f_3d,
+                    pointCloud, chm_values_mean_x, chm_values_mean_y, chm_values_mean_z));
+            threads[i].start();
+
+            //ForkJoinPool customThreadPool = new ForkJoinPool(5);
+
+            //customThreadPool.submit(() –> largeDataset.parallelStream().forEach(System.out::println));
+            //customThreadPool.shutdownNow();
+/*
+            IntStream.range(0, 10).parallel().forEach(i_ -> {
+// throw an exception if
+// a[] == null, b[] = null
+// i < 0, a.length <= i, b.length <= i
+
+            });
+
+ */
+        }
+
+        for (int i = 0; i < threads.length; i++) {
+
+            try {
+                threads[i].join();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        ImagePlus imp = IJ.createImage("KansasCityShuffle", "32-bit", chm.getRasterXSize(), chm.getRasterYSize(), raster_z_size);
+        System.out.println(imp.getImageStack().getSize());
+
+        for(int z = 1; z <= raster_z_size; z++){
+
+            ImageProcessor pros = imp.getImageStack().getProcessor(z);
+            for(int x = 0; x < chm.getRasterXSize(); x++) {
+                for (int y = 0; y < chm.getRasterYSize(); y++) {
+
+                    pros.putPixelValue(x, y, rM.getValue(x, y, z-1));
+
+                }
+            }
+        }
+
+        blur3D(imp, xsigma, ysigma, zsigma);
+
+
+
+        if(true)
+            for(int z = 1; z <= raster_z_size; z++){
+
+                ImageProcessor pros = imp.getImageStack().getProcessor(z);
+
+                for(int x = 0; x < chm.getRasterXSize(); x++) {
+                    for (int y = 0; y < chm.getRasterYSize(); y++) {
+
+
+                        rM.setValue(x, y, z-1, pros.getPixelValue(x, y));
+
+                    }
+                }
+            }
+
+        File outFile = aR.createOutputFile(pointCloud);
+
+        pointWriterMultiThread pw = new pointWriterMultiThread(outFile, pointCloud, "las2las", aR);
+
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
+
+        aR.pfac.addWriteThread(thread_n, pw, buf);
+
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+
+            int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+            aR.pfac.prepareBuffer(thread_n, i, 10000);
+
+            for (int j = 0; j < maxi; j++) {
+
+                pointCloud.readFromBuffer(tempPoint);
+
+                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
+
+                int x = Math.min((int)((tempPoint.x - pointCloud.getMinX()) / aR.step), chm.getRasterXSize()-1);
+                int y = Math.min((int)((pointCloud.getMaxY() - tempPoint.y) / aR.step), chm.getRasterYSize()-1);
+                int z = Math.min((int)((tempPoint.z - pointCloud.getMinZ()) / aR.step), raster_z_size-1);
+
+                tempPoint.intensity =  (int)(rM.getValue(x, y, z) / solarradiation * 65535.0);
+
+                try {
+
+                    aR.pfac.writePoint(tempPoint, i + j, thread_n);
+
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+        aR.pfac.closeThread(thread_n);
+
+        System.out.println("processing took: " + (System.currentTimeMillis()-start) + " ms with " + aR.cores + " threads");
+
+        //dataset.FlushCache();
+        chm.FlushCache();
+
+    }
+
+
     private void blur3D(ImagePlus imp, double sigmaX, double sigmaY, double sigmaZ) {
 
         imp.killRoi();

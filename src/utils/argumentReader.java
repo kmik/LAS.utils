@@ -111,7 +111,7 @@ public class argumentReader {
     public double orig_x = -1;
     public double orig_y = -1;
 
-    public double gdal_cache_gb = 2.5;
+    public double gdal_cache_gb = 7.5;
 
     public boolean interpolate = true;
 

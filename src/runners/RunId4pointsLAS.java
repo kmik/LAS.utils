@@ -858,15 +858,7 @@ public class RunId4pointsLAS{
 
         origo = LASindex.indexAll3(aR.inputFiles, indeksi_pathi_all);
 
-
-
         aR.add_extra_bytes(6, "polygon_id", "Polygon id from lasclip");
-
-
-
-
-
-
 
         boolean split = (aR.numarg1 == 1);
 
@@ -919,8 +911,6 @@ public class RunId4pointsLAS{
         }
 
         ArrayList<BlockingQueue<LasPoint>> quesLas = new ArrayList<>();
-
-
 
         FileOutput foutti = null;// new FileOutput(merged.getAbsolutePath());
         BlockingQueue<String> queue = null;
