@@ -873,6 +873,8 @@ public class MKid4pointsLAS{
 
                 //polyg.closePath();
 
+
+
                 double[] minmaxXY = findMinMax(tempPolygon);
 
                 ArrayList<Integer> valinta = new ArrayList<Integer>();
@@ -934,6 +936,8 @@ public class MKid4pointsLAS{
                                                 haku[0] = tempPoint.x;
                                                 haku[1] = tempPoint.y;
                                             //System.out.println(tempPoint);
+                                            if(tempPoint.x <= minmaxXY[1] || tempPoint.x >= minmaxXY[0] ||
+                                                    tempPoint.y <= minmaxXY[3] || tempPoint.y >= minmaxXY[2])
                                                 if (pointInPolygon(haku, tempPolygon)) {
 
                                                     if (otype.equals("las")) {
@@ -967,7 +971,13 @@ public class MKid4pointsLAS{
                                                                 gridPoints_i_f.add(tempPoint.intensity);
                                                                 gridPoints_xyz_f.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
-                                                                gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
+                                                                if(aR.sun_points) {
+                                                                    if(tempPoint.pointSourceId == 1)
+                                                                        gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
+
+                                                                }else
+                                                                    gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
+
 
                                                                 //System.out.println(tempPoint.getRGB());
                                                                 //System.out.println(Arrays.toString(gridPoints_RGB_f.get(gridPoints_RGB_f.size()-1)));
@@ -1077,9 +1087,9 @@ public class MKid4pointsLAS{
                                         haku[0] = tempPoint.x;
                                         haku[1] = tempPoint.y;
 
+                                    if(tempPoint.x <= minmaxXY[1] || tempPoint.x >= minmaxXY[0] ||
+                                            tempPoint.y <= minmaxXY[3] || tempPoint.y >= minmaxXY[2])
                                         if (pointInPolygon(haku, tempPolygon)) {
-
-                                            //doneIndexes.add( (p + s));
 
                                             if (otype.equals("las")) {
 
@@ -1089,8 +1099,6 @@ public class MKid4pointsLAS{
                                                 //System.out.println(tempPoint.gpsTime);
                                                 //LasPoint clonePoint = (LasPoint) tempPoint.clone();
                                                 //queueLAS.put(clonePoint);
-
-
                                                 if(aR.omet){
 
                                                     gridPoints_z_a.add(tempPoint.z);
@@ -1116,7 +1124,12 @@ public class MKid4pointsLAS{
                                                         gridPoints_i_f.add(tempPoint.intensity);
                                                         gridPoints_xyz_f.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z});
 
-                                                        gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
+                                                        if(aR.sun_points) {
+                                                            if(tempPoint.pointSourceId == 1)
+                                                                gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
+
+                                                        }else
+                                                            gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
                                                         sum_z_f += tempPoint.z;
                                                         sum_i_f += tempPoint.intensity;

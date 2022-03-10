@@ -2537,6 +2537,7 @@ class ai2las{
 					boolean shadowPoint = n_views_sun_blocked > 0.5 * n_total_views;
 					//boolean brightPoint = !shadowPoint;
 					tempPoint.pointSourceId = 0;
+
 					//This means the point is a
 					if(!shadowPoint) {
 						tempPoint.pointSourceId = 1;
