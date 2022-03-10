@@ -1986,6 +1986,198 @@ public class LASReader {
 
   }
 
+  public synchronized void readFromBuffer_only_x_y_z(LasPoint p){
+
+
+    if(pointDataRecordFormat <= 5) {
+
+      int lx = braf.buffer.getInt();
+      int ly = braf.buffer.getInt();
+      int lz = braf.buffer.getInt();
+
+      p.x = lx * xScaleFactor + xOffset;
+      p.y = ly * yScaleFactor + yOffset;
+      p.z = lz * zScaleFactor + zOffset;
+
+      if(true)
+        return;
+
+      p.intensity = Short.toUnsignedInt(braf.buffer.getShort());
+
+      int mask = braf.buffer.get();
+
+      p.returnNumber = mask & 0x07;
+      p.numberOfReturns = (mask >> 3) & 0x7;
+      p.scanDirectionFlag = (mask >> 5) & 0x01;
+      p.edgeOfFlightLine = (mask & 0x80) != 0;
+
+      mask = braf.buffer.get();
+      p.classification = mask & 0x1f; // bits 0:4, values 0 to 32
+      p.synthetic = (mask & 0x20) != 0;
+      p.keypoint = (mask & 0x40) != 0;
+      p.withheld = (mask & 0x80) != 0;
+
+      p.scanAngleRank = braf.buffer.get();
+      p.userData = braf.buffer.get();
+      p.pointSourceId = braf.buffer.getShort();
+
+      switch(pointDataRecordFormat){
+
+        case 1:
+          p.gpsTime = braf.buffer.getDouble();
+          break;
+
+        case 2:
+          p.R = (braf.buffer.getChar()) & 0xffff;
+          p.G = (braf.buffer.getChar()) & 0xffff;
+          p.B = (braf.buffer.getChar()) & 0xffff;
+          break;
+
+        case 3:
+          p.gpsTime = braf.buffer.getDouble();
+          p.R = (braf.buffer.getChar()) & 0xffff;
+          p.G = (braf.buffer.getChar()) & 0xffff;
+          p.B = (braf.buffer.getChar()) & 0xffff;
+          break;
+
+        case 4:
+          p.gpsTime = braf.buffer.getDouble();
+          p.WavePacketDescriptorIndex = braf.buffer.get();
+          p.ByteOffsetToWaveformData = braf.buffer.getLong();
+          p.WaveformPacketSizeInBytes = braf.buffer.getInt();
+          p.ReturnPointWaveformLocation = braf.buffer.getFloat();
+
+          p.x_t = braf.buffer.getFloat();
+          p.y_t = braf.buffer.getFloat();
+          p.z_t = braf.buffer.getFloat();
+          break;
+
+        case 5:
+          p.gpsTime = braf.buffer.getDouble();
+          p.R = (braf.buffer.getChar()) & 0xffff;
+          p.G = (braf.buffer.getChar()) & 0xffff;
+          p.B = (braf.buffer.getChar()) & 0xffff;
+          p.WavePacketDescriptorIndex = braf.buffer.get();
+          p.ByteOffsetToWaveformData = braf.buffer.getLong();
+          p.WaveformPacketSizeInBytes = braf.buffer.getInt();
+          p.ReturnPointWaveformLocation = braf.buffer.getFloat();
+
+          p.x_t = braf.buffer.getFloat();
+          p.y_t = braf.buffer.getFloat();
+          p.z_t = braf.buffer.getFloat();
+          break;
+
+        default:
+          break;
+      }
+    }
+    else{
+
+      int lx = braf.buffer.getInt();
+      int ly = braf.buffer.getInt();
+      int lz = braf.buffer.getInt();
+
+      p.x = lx * xScaleFactor + xOffset;
+      p.y = ly * yScaleFactor + yOffset;
+      p.z = lz * zScaleFactor + zOffset;
+
+      if(true)
+        return;
+
+      p.intensity = Short.toUnsignedInt(braf.buffer.getShort());
+
+      int mask = braf.buffer.get();
+
+      p.numberOfReturns = mask>>4;
+
+      p.returnNumber = mask&15;
+
+      mask = braf.buffer.get();
+
+      int classificationFlag = mask>>4;
+
+      /* NOT TESTED! */
+      p.synthetic =   ((classificationFlag >> 0) & 1) != 0;
+      p.keypoint  =   ((classificationFlag >> 1) & 1) != 0;
+      p.withheld  =   ((classificationFlag >> 2) & 1) != 0;
+      p.overlap   =   ((classificationFlag >> 3) & 1) != 0;
+
+      int lastPart = mask&15;
+
+      p.scannerCannel = lastPart&0b11;
+
+      p.scanDirectionFlag = ((lastPart >> 2) & 1);
+      p.edgeOfFlightLine = ((lastPart >> 3) & 1) != 0;
+
+      p.classification = braf.buffer.get();
+      p.userData = braf.buffer.get();
+      p.scanAngleRank = braf.buffer.getShort();
+      p.pointSourceId = braf.buffer.getShort();
+      p.gpsTime = braf.buffer.getDouble();
+
+      if(pointDataRecordFormat >= 7 && pointDataRecordFormat != 9){
+
+        p.R = (braf.buffer.getChar()) & 0xffff;
+        p.G = (braf.buffer.getChar()) & 0xffff;
+        p.B = (braf.buffer.getChar()) & 0xffff;
+
+        if(pointDataRecordFormat >= 8){
+          p.N = (braf.buffer.getChar()) & 0xffff;
+        }
+      }
+      if(pointDataRecordFormat == 10 || pointDataRecordFormat == 9){
+
+        p.WavePacketDescriptorIndex = braf.buffer.get();
+        p.ByteOffsetToWaveformData = braf.buffer.getLong();
+        p.WaveformPacketSizeInBytes = braf.buffer.getInt();
+        p.ReturnPointWaveformLocation = braf.buffer.getFloat();
+
+        p.x_t = braf.buffer.getFloat();
+        p.y_t = braf.buffer.getFloat();
+        p.z_t = braf.buffer.getFloat();
+
+
+      }
+
+
+
+    }
+
+    //System.out.println("EXTRA: " + this.extraBytesInPoint + " " + p.x + " " + p.y);
+
+    if (this.extraBytesInPoint.size() > 0) {
+
+      //System.out.println("whAT " + this.extraBytesInPoint.size());
+      /* IF WE DON'T CARE ABOUT THE CONTENTS */
+      for(int i = 0; i < extraBytesInPoint.size(); i++){
+
+        //System.out.println(braf.buffer.remaining());
+        try {
+          braf.buffer.get(p.extra_bytes.get(i));
+        }catch (Exception e){
+
+          p.addExraByte(extraBytesInPoint.get(i));
+
+          try{
+            braf.buffer.get(p.extra_bytes.get(i));
+          }catch (Exception e2){
+            e2.printStackTrace();
+            System.exit(1);
+          }
+
+        }
+      }
+      //System.exit(1);
+      //braf.buffer.get(readExtra);
+      //System.out.println("here");
+
+      //braf.buffer.get()
+
+    }
+
+  }
+
+
   public void skipPointInBuffer() throws IOException{
     braf.buffer.position( braf.buffer.position() + this.pointDataRecordLength); //   skipBytes(this.pointDataRecordLength);
   }

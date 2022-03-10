@@ -49,6 +49,8 @@ public class LasPointBufferCreator {
     long pointCount = 0;
     long pointCount_1_4 = 0;
 
+    public boolean closed = false;
+
     public LasPointBufferCreator(int bufferId, pointWriterMultiThread pwrite){
 
         this.pointLengthInBytes = pwrite.pointDataRecordLength;
@@ -947,8 +949,11 @@ public class LasPointBufferCreator {
 
     public void close() throws IOException{
 
-        pwrite.writeRemaining(allArray2, allArray2Index);
-        pwrite.setHeaderBlockData(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn);
+        //if(!closed) {
+        //    closed = true;
+            pwrite.writeRemaining(allArray2, allArray2Index);
+            //pwrite.setHeaderBlockData(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn);
+        //}
 
     }
 

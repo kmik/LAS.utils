@@ -996,6 +996,7 @@ public class RunId4pointsLAS{
 
                 }
 
+                pwrite.close(aR);
 
                 if(aR.omet) {
 

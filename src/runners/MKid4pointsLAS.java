@@ -851,6 +851,7 @@ public class MKid4pointsLAS{
                 double[][] tempPolygon = polyBank.get(j);
 
                 //in[i][0] > maxX
+                /*
                 Path2D polyg = new Path2D.Double();
                 Path2D polyg_for_index = new Path2D.Double();
 
@@ -869,6 +870,8 @@ public class MKid4pointsLAS{
                 polyg_for_index.lineTo(polyBank_index[j][0], polyBank_index[j][3]);
                 polyg_for_index.closePath();
                 polyg = polyg_for_index;
+
+                 */
                 //System.out.println(Arrays.toString(polyBank_index[j]));
 
                 //polyg.closePath();
@@ -928,6 +931,7 @@ public class MKid4pointsLAS{
 
                                         while(!asd.index_read_terminated){
 
+
                                             p = asd.fastReadFromQuery(tempPoint);
 
 
@@ -936,8 +940,10 @@ public class MKid4pointsLAS{
                                                 haku[0] = tempPoint.x;
                                                 haku[1] = tempPoint.y;
                                             //System.out.println(tempPoint);
-                                            if(tempPoint.x <= minmaxXY[1] || tempPoint.x >= minmaxXY[0] ||
-                                                    tempPoint.y <= minmaxXY[3] || tempPoint.y >= minmaxXY[2])
+
+
+                                            if(tempPoint.x <= minmaxXY[1] && tempPoint.x >= minmaxXY[0] &&
+                                                    tempPoint.y <= minmaxXY[3] && tempPoint.y >= minmaxXY[2])
                                                 if (pointInPolygon(haku, tempPolygon)) {
 
                                                     if (otype.equals("las")) {
@@ -1087,8 +1093,8 @@ public class MKid4pointsLAS{
                                         haku[0] = tempPoint.x;
                                         haku[1] = tempPoint.y;
 
-                                    if(tempPoint.x <= minmaxXY[1] || tempPoint.x >= minmaxXY[0] ||
-                                            tempPoint.y <= minmaxXY[3] || tempPoint.y >= minmaxXY[2])
+                                    if(tempPoint.x <= minmaxXY[1] && tempPoint.x >= minmaxXY[0] &&
+                                            tempPoint.y <= minmaxXY[3] && tempPoint.y >= minmaxXY[2])
                                         if (pointInPolygon(haku, tempPolygon)) {
 
                                             if (otype.equals("las")) {
@@ -1208,7 +1214,7 @@ public class MKid4pointsLAS{
 
                     asd.close();
                     asd = null;
-                    System.gc();
+                    //System.gc();
                 }
 
 
@@ -1251,7 +1257,7 @@ public class MKid4pointsLAS{
 
                 }
 
-                System.gc();
+                //System.gc();
 
                 aR.p_update.threadProgress[part-1]++;
                 aR.p_update.updateProgressClip();
@@ -1266,7 +1272,8 @@ public class MKid4pointsLAS{
         if(!aR.split) {
 
             pointBuffer.close();
-            pointBuffer.pwrite.close(aR);
+            //pointBuffer.pwrite.close(aR);
+
         }
         else{
             for(int i = 0; i < outputBuffers.size(); i++)
@@ -1274,6 +1281,28 @@ public class MKid4pointsLAS{
         }
 
     }
+
+    public void clipPlots_new(String coords, int shapeType, ArrayList<String> pilvi,String outieFile,
+                          ArrayList<String> indeksitiedosto, String delim, String outShape, int part, int cores, boolean statCalc, String output_txt_points,
+                          String all_index, double buffer, String plotOutName, String oparse, String output, boolean split, String otype,
+                          RunId4pointsLAS.FileOutput foutti, BlockingQueue<String> queue, BlockingQueue<LasPoint> queueLAS, argumentReader aR, BlockingQueue<byte[]> que,
+                          LASraf mergeOutput, ArrayList<BlockingQueue<byte[]>> qu, BlockingQueue<Integer> threadWrote, pointWriterMultiThread pwrite,
+                          ArrayList<pointWriterMultiThread> outputFiles)throws Exception{
+
+
+        polygonIndex[][] polygon_index;
+
+    }
+
+    class polygonIndex {
+        public ArrayList<Integer> polygonIds_inside;
+        public ArrayList<Integer> polygonIds_border;
+        public String LastName;
+        public int    BirthYear;
+
+
+    };
+
 
     public static void clipPlots_singleLASfile(String coords,
 

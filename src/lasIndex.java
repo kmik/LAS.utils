@@ -19,6 +19,10 @@ public class lasIndex {
         ArrayList<File> inputFiles = prepareData(aR, "lasindex");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
+        if(aR.step == 15){
+            aR.step = 50;
+        }
+
         if(aR.cores > 1){
             threadTool(aR, fD);
         }else{

@@ -79,7 +79,7 @@ public class process_las2las {
                 //in.readRecord(i+j, tempPoint);
                 in.readRecord(i, tempPoint);
 
-                System.out.println(tempPoint);
+                //System.out.println(tempPoint);
 
                 counter++;
                 //double x2 = tempPoint.x;

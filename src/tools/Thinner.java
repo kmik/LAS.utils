@@ -204,8 +204,16 @@ public class Thinner{
 
         outputFile.createNewFile();
 
-        LASraf br = new LASraf(outputFile);
-        LASwrite.writeHeader(br, "lasThin", this.pointCloud, aR);
+        //LASraf br = new LASraf(outputFile);
+        //LASwrite.writeHeader(br, "lasThin", this.pointCloud, aR);
+
+        int thread_n = aR.pfac.addReadThread(pointCloud);
+
+        pointWriterMultiThread pw = new pointWriterMultiThread(outputFile, pointCloud, "lasthin", aR);
+
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
+
+        aR.pfac.addWriteThread(thread_n, pw, buf);
 
         int pointCount = 0;
 
@@ -219,9 +227,19 @@ public class Thinner{
                 if(minIndex[x][y] != -1){
 
                     pointCloud.readRecord(minIndex[x][y], tempPoint);
-                    if(br.writePoint( tempPoint, rule, pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
-                            pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, minIndex[x][y]))
-                        pointCount++;
+                    //if(br.writePoint( tempPoint, rule, pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
+                    //        pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, minIndex[x][y]))
+                    //    pointCount++;
+
+                    try {
+
+                        aR.pfac.writePoint(tempPoint, minIndex[x][y], thread_n);
+
+                    }catch (Exception e){
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
+
 
                 }
                 aR.p_update.threadEnd[coreNumber-1]++;
@@ -233,8 +251,10 @@ public class Thinner{
             }
         }
 
-        br.writeBuffer2();
-        br.updateHeader2();
+        //br.writeBuffer2();
+        //br.updateHeader2();
+
+        aR.pfac.closeThread(thread_n);
 
         aR.p_update.updateProgressThin();
 
@@ -310,7 +330,7 @@ public class Thinner{
 
         long voxelCount = numberOfPixelsX * numberOfPixelsY * numberOfPixelsZ;
 
-        int[] vox = new int[1000000];
+        //int[] vox = new int[1000000];
 
         int maxi = 0;
 
@@ -485,7 +505,6 @@ public class Thinner{
                 }
 
                 if(includeOrNot[i+j]){
-
                     buf.writePoint(tempPoint, aR.inclusionRule, i+j);
                     pointCount++;
 
