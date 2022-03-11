@@ -978,7 +978,7 @@ public class MKid4pointsLAS{
                                                                 gridPoints_xyz_f.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
                                                                 if(aR.sun_points) {
-                                                                    if(tempPoint.pointSourceId == 1)
+                                                                    if(tempPoint.pointSourceId == 1 && tempPoint.z > aR.z_cutoff)
                                                                         gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
                                                                 }else
@@ -1131,7 +1131,7 @@ public class MKid4pointsLAS{
                                                         gridPoints_xyz_f.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z});
 
                                                         if(aR.sun_points) {
-                                                            if(tempPoint.pointSourceId == 1)
+                                                            if(tempPoint.pointSourceId == 1 && tempPoint.z > aR.z_cutoff)
                                                                 gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
                                                         }else
@@ -1236,7 +1236,13 @@ public class MKid4pointsLAS{
                     }
                     else {
                         ArrayList<Double> metrics_a = pCM.calc(gridPoints_z_a, gridPoints_i_a, sum_z_a, sum_i_a, "_a", colnames_a);
-                        ArrayList<Double> metrics_f = pCM.calc_with_RGB(gridPoints_z_f, gridPoints_i_f, sum_z_f, sum_i_f, "_f", colnames_f, gridPoints_RGB_f);
+                        ArrayList<Double> metrics_f = null;
+
+                        if(!aR.sun_points)
+                            metrics_f = pCM.calc_with_RGB(gridPoints_z_f, gridPoints_i_f, sum_z_f, sum_i_f, "_f", colnames_f, gridPoints_RGB_f);
+                        else
+                            metrics_f = pCM.calc_with_RGB_only_sunny(gridPoints_z_f, gridPoints_i_f, sum_z_f, sum_i_f, "_f", colnames_f, gridPoints_RGB_f);
+
                         ArrayList<Double> metrics_l = pCM.calc(gridPoints_z_l, gridPoints_i_l, sum_z_l, sum_i_l, "_l", colnames_l);
                         ArrayList<Double> metrics_i = pCM.calc(gridPoints_z_i, gridPoints_i_i, sum_z_i, sum_i_i, "_i", colnames_i);
 
