@@ -2413,6 +2413,7 @@ class ai2las{
 
 					//long time_start = System.currentTimeMillis();
 					int n_views_sun_blocked = 0;
+					int n_views_sun_visible = 0;
 					int n_views_camera_visible = 0;
 					int n_total_views = 0;
 
@@ -2496,9 +2497,11 @@ class ai2las{
 									/* If the sun is blocked */
 									if(sun_blocked) {
 										n_views_sun_blocked++;
-										//tempP.addObservation_obstructed(datasets.get(j_), imageIDs.get(j_), temp[0], temp[1]);
-									}else
+										tempP.addObservation_obstructed(datasets.get(j_), imageIDs.get(j_), temp[0], temp[1]);
+									}else {
+										n_views_sun_visible++;
 										tempP.addObservation(datasets.get(j_), imageIDs.get(j_), temp[0], temp[1]);
+									}
 
 								}
 									//maps.get(j_).put(key, tempP.addObservation_return_array(datasets.get(j_), imageIDs.get(j_), temp[0], temp[1]));
@@ -2534,7 +2537,7 @@ class ai2las{
 
 					tempP.done();
 
-					boolean shadowPoint = n_views_sun_blocked > 0.5 * n_total_views;
+					boolean shadowPoint = n_views_sun_blocked > n_views_sun_visible;
 					//boolean brightPoint = !shadowPoint;
 					tempPoint.pointSourceId = 0;
 
@@ -2561,7 +2564,7 @@ class ai2las{
 					if (aR.olas) {
 
 						/* If less than half of the views are in shadow */
-						if(!shadowPoint) {
+						if(!shadowPoint || true) {
 							if (aR.sequence.length < 1) {
 
 

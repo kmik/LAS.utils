@@ -2260,6 +2260,8 @@ public class pointCloudMetrics {
 
         int min_i = Integer.MAX_VALUE;
 
+        System.out.println("RGB SIZE: " + RGB.size());
+
         for(int i = 0; i < RGB.size(); i++){
 
             R_val = RGB.get(i)[0];
