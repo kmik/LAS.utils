@@ -2643,17 +2643,21 @@ public class pointCloudMetrics {
         Collections.sort(B_above_threshold);
         Collections.sort(N_above_threshold);
 
-        if(n_above_t_hold_spectral % 2 == 0){
-            median_R = ( (R_above_threshold.get(R_above_threshold.size() / 2) + R_above_threshold.get(R_above_threshold.size() / 2 - 1)) / 2.0);
-            median_G = ( (G_above_threshold.get(G_above_threshold.size() / 2) + G_above_threshold.get(G_above_threshold.size() / 2 - 1)) / 2.0);
-            median_B = ( (B_above_threshold.get(B_above_threshold.size() / 2) + B_above_threshold.get(B_above_threshold.size() / 2 - 1)) / 2.0);
-            median_N = ( (N_above_threshold.get(N_above_threshold.size() / 2) + N_above_threshold.get(N_above_threshold.size() / 2 - 1)) / 2.0);
-        }else{
-            median_R = R_above_threshold.get(R_above_threshold.size() / 2);
-            median_G = G_above_threshold.get(G_above_threshold.size() / 2);
-            median_B = B_above_threshold.get(B_above_threshold.size() / 2);
-            median_N = N_above_threshold.get(N_above_threshold.size() / 2);
+        try {
+            if (n_above_t_hold_spectral % 2 == 0) {
+                median_R = ((R_above_threshold.get(R_above_threshold.size() / 2) + R_above_threshold.get(R_above_threshold.size() / 2 - 1)) / 2.0);
+                median_G = ((G_above_threshold.get(G_above_threshold.size() / 2) + G_above_threshold.get(G_above_threshold.size() / 2 - 1)) / 2.0);
+                median_B = ((B_above_threshold.get(B_above_threshold.size() / 2) + B_above_threshold.get(B_above_threshold.size() / 2 - 1)) / 2.0);
+                median_N = ((N_above_threshold.get(N_above_threshold.size() / 2) + N_above_threshold.get(N_above_threshold.size() / 2 - 1)) / 2.0);
+            } else {
+                median_R = R_above_threshold.get(R_above_threshold.size() / 2);
+                median_G = G_above_threshold.get(G_above_threshold.size() / 2);
+                median_B = B_above_threshold.get(B_above_threshold.size() / 2);
+                median_N = N_above_threshold.get(N_above_threshold.size() / 2);
 
+            }
+        }catch (Exception e){
+            System.out.println("Plot without any sunny points");
         }
 
 

@@ -29,7 +29,7 @@ public class argumentReader {
     public ArrayList<String> create_extra_byte_vlr_description = new ArrayList<>();
     public ArrayList<Integer> create_extra_byte_vlr_n_bytes = new ArrayList<>();
 
-    public boolean sun_points = false;
+    public boolean ray_trace = false;
 
     public double min_edge_length = 0.5;
 
@@ -539,7 +539,7 @@ public class argumentReader {
                 .required(false)
                 .build());
         options.addOption(Option.builder()
-                .longOpt("sun_points")
+                .longOpt("ray_trace")
                 .hasArg(false)
                 .desc("Exclude shadow points in computation of metrics")
                 .required(false)
@@ -1895,9 +1895,9 @@ public class argumentReader {
                 this.pitFree = true;
 
             }
-            if (cmd.hasOption("sun_points")) {
+            if (cmd.hasOption("ray_trace")) {
 
-                this.sun_points = true;
+                this.ray_trace = true;
 
             }
             if (cmd.hasOption("classify")) {

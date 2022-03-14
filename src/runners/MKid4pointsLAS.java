@@ -977,12 +977,10 @@ public class MKid4pointsLAS{
                                                                 gridPoints_i_f.add(tempPoint.intensity);
                                                                 gridPoints_xyz_f.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
-                                                                if(aR.sun_points) {
-                                                                    if(tempPoint.pointSourceId == 1 && tempPoint.z > aR.z_cutoff) {
-                                                                        System.out.println(tempPoint.R + " " + tempPoint.G + " " + tempPoint.B + " " + tempPoint.N);
+                                                                if(aR.ray_trace) {
+                                                                    if(tempPoint.pointSourceId != 3 && tempPoint.z > aR.z_cutoff) {
                                                                         gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
                                                                     }
-
                                                                 }else
                                                                     gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
@@ -1132,8 +1130,8 @@ public class MKid4pointsLAS{
                                                         gridPoints_i_f.add(tempPoint.intensity);
                                                         gridPoints_xyz_f.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z});
 
-                                                        if(aR.sun_points) {
-                                                            if(tempPoint.pointSourceId == 1 && tempPoint.z > aR.z_cutoff)
+                                                        if(aR.ray_trace) {
+                                                            if(tempPoint.pointSourceId != 3 && tempPoint.z > aR.z_cutoff)
                                                                 gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
                                                         }else
@@ -1240,7 +1238,7 @@ public class MKid4pointsLAS{
                         ArrayList<Double> metrics_a = pCM.calc(gridPoints_z_a, gridPoints_i_a, sum_z_a, sum_i_a, "_a", colnames_a);
                         ArrayList<Double> metrics_f = null;
 
-                        if(!aR.sun_points)
+                        if(!aR.ray_trace)
                             metrics_f = pCM.calc_with_RGB(gridPoints_z_f, gridPoints_i_f, sum_z_f, sum_i_f, "_f", colnames_f, gridPoints_RGB_f);
                         else
                             metrics_f = pCM.calc_with_RGB_only_sunny(gridPoints_z_f, gridPoints_i_f, sum_z_f, sum_i_f, "_f", colnames_f, gridPoints_RGB_f);
