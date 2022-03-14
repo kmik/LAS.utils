@@ -978,7 +978,8 @@ public class MKid4pointsLAS{
                                                                 gridPoints_xyz_f.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
                                                                 if(aR.ray_trace) {
-                                                                    if(tempPoint.pointSourceId != 3 && tempPoint.z > aR.z_cutoff) {
+                                                                    if(tempPoint.pointSourceId == 2 && tempPoint.z > aR.z_cutoff) {
+                                                                            System.out.println(tempPoint.R + " " + tempPoint.G + " " + tempPoint.B + " " + tempPoint.pointSourceId);
                                                                         gridPoints_RGB_f.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
                                                                     }
                                                                 }else

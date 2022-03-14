@@ -2564,7 +2564,7 @@ class ai2las{
 					if (aR.olas) {
 
 						/* If less than half of the views are in shadow */
-						if(!shadowPoint || true) {
+						if(!shadowPoint) {
 							if (aR.sequence.length < 1) {
 
 
