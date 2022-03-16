@@ -2564,7 +2564,11 @@ class ai2las{
 					if (aR.olas) {
 
 						/* If less than half of the views are in shadow */
-						if(!shadowPoint) {
+
+						if(n_views_camera_visible == 0){
+							buf.writePoint(tempPoint, aR.inclusionRule, (j + p));
+						}
+						else if(!shadowPoint) {
 							if (aR.sequence.length < 1) {
 
 
@@ -2578,6 +2582,9 @@ class ai2las{
 								tempPoint.G = (int) tempP.channelMeans[aR.sequence[1]];
 								tempPoint.B = (int) tempP.channelMeans[aR.sequence[2]];
 							}
+
+							if(tempPoint.R == 0 && tempPoint.G == 0 && tempPoint.B == 0)
+								tempPoint.pointSourceId = 3;
 
 							buf.writePoint(tempPoint, aR.inclusionRule, (j + p));
 						}else{
@@ -2594,6 +2601,10 @@ class ai2las{
 								tempPoint.G = (int) tempP.channelMeans_obstructed[aR.sequence[1]];
 								tempPoint.B = (int) tempP.channelMeans_obstructed[aR.sequence[2]];
 							}
+
+
+							if(tempPoint.R == 0 && tempPoint.G == 0 && tempPoint.B == 0)
+								tempPoint.pointSourceId = 3;
 
 							buf.writePoint(tempPoint, aR.inclusionRule, (j + p));
 						}
