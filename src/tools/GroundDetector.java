@@ -1111,6 +1111,7 @@ public class GroundDetector{
     }
 
     private void update_progress(int loo) {
+
         if (this.dynamic_angle_threshold)
             this.angleThreshold = this.rolling_statistics.average_rolling_stats + this.rolling_statistics.stdDev_rolling_stats * aR.std_threshold;
 

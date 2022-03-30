@@ -466,7 +466,6 @@ public class ITDstatistics{
 
         //System.out.println("HERE! " + treeTop.length + " " + p2.size());
         if(treeTop == null || p2.size() == 0){
-
             return;
         }
 
@@ -547,11 +546,8 @@ public class ITDstatistics{
 
         PriorityQueue<Float> zetas = new PriorityQueue<>();
 
-
         double sum_z = 0.0;
-
         double std_z = 0.0;
-
         double euc_dist_z = 0.0;
 
         TDoubleArrayList euc_dist_z_list = new TDoubleArrayList();
@@ -1371,8 +1367,6 @@ public class ITDstatistics{
         int textureResolution_z = 40;
 
  */
-        //BufferedImage image =
-
 
         double[] densities = new double[x_ * y_ * z_];
         int[] densities_count = new int[x_ * y_ * z_];
@@ -2626,14 +2620,14 @@ public class ITDstatistics{
 
                 /* HERE WE MOVE THE FILE "index".tif to directory (treeBank[index][4]-1) */
 
-                String fileToBeMoved = "/home/koomikko/Documents/research/3d_tree_species/convolution_data/" + indeksi + ".tif";
-                String moveTo = "/home/koomikko/Documents/research/3d_tree_species/convolution_data/" + (int)(treeBank[index][4]-1) + "/" + indeksi + ".tif";
+                //String fileToBeMoved = "/home/koomikko/Documents/research/3d_tree_species/convolution_data/" + indeksi + ".tif";
+                //String moveTo = "/home/koomikko/Documents/research/3d_tree_species/convolution_data/" + (int)(treeBank[index][4]-1) + "/" + indeksi + ".tif";
 
-                try {
-                    Files.move(Paths.get(fileToBeMoved), Paths.get(moveTo), StandardCopyOption.REPLACE_EXISTING);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
+               // try {
+                //    Files.move(Paths.get(fileToBeMoved), Paths.get(moveTo), StandardCopyOption.REPLACE_EXISTING);
+               // }catch (Exception e){
+                //    e.printStackTrace();
+               // }
 
                 temp += 1 + "\t";
 

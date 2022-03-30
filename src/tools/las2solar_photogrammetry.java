@@ -94,6 +94,9 @@ public class las2solar_photogrammetry {
 
                 pointCloud.readFromBuffer(tempPoint);
 
+                if(tempPoint.z > this.rasterMaxValue)
+                    this.rasterMaxValue = (float)tempPoint.z;
+
                 int x = Math.min((int)((tempPoint.x - pointCloud.getMinX()) / aR.step), chm.getRasterXSize()-1);
                 int y = Math.min((int)((pointCloud.getMaxY() - tempPoint.y) / aR.step), chm.getRasterYSize()-1);
                 int z = Math.min((int)((tempPoint.z - pointCloud.getMinZ()) / aR.step), raster_z_size-1);
@@ -1918,8 +1921,10 @@ class solarParallel_3d extends Thread {
             //ForkJoinPool myPool = new ForkJoinPool(2);
 
             //myPool.submit(() ->
-            IntStream.range(0, x_size).parallel().forEach(x -> {
 
+
+            IntStream.range(0, x_size).parallel().forEach(x -> {
+                int blocked_n = 0;
                 for (int z = 0; z < z_size; z++) {
 
                     int precomputed_x = (int) Math.floor((double) x / (double) precomputed_resolution);
@@ -2004,10 +2009,13 @@ class solarParallel_3d extends Thread {
                                         // }
 
                                     } else {
+                                        hour_mean_insolation += 0;
                                         //dailyAverageInsolation = dailyAverageInsolation + (insolation - dailyAverageInsolation)/(double)++n;
                                         //dailyAverageInsolation_ += insolation;
                                         //hour_mean_insolation += insolation;
                                         //n_++;
+                                        blocked_n++;
+
                                     }
                                     //System.out.println("ave: " + dailyAverageInsolation);
                                     /* This means there is nothing blocking the sunray */
@@ -2042,6 +2050,7 @@ class solarParallel_3d extends Thread {
 
             //System.out.println(row.getKey());
             System.out.println(providerRow.size());
+            //System.out.println("n_blocked: " + blocked_n);
             //System.out.println(y + " / " + this.max );
         }
     }
@@ -2372,6 +2381,10 @@ class solarParallel_3d extends Thread {
 
     public boolean isBlocked_ray_trace(int x, int y, int z_vox, byte z, double resolution, double zenith_angle, double slope, float direction_angle, int hour, float chm_max){
 
+        int penetration = 0;
+
+        int minPenetration = 0;
+
         double distance_threshold = 100000;
         int current_x = x;
         int current_y = y;
@@ -2516,7 +2529,7 @@ class solarParallel_3d extends Thread {
                 if(current_z != z_vox)
                     n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
 
-                if(n_points_in_voxel > (1)){
+                if(n_points_in_voxel > (1) && ++penetration >= minPenetration){
 
                     x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
                     y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
@@ -2542,7 +2555,7 @@ class solarParallel_3d extends Thread {
                     //System.out.println(distance + " == " + distance2);
                     //System.out.println(distance);
                     if(distance < distance_threshold){
-
+                       // System.out.println("BLOCKED!");
                         return true;
                     }
 
@@ -2553,6 +2566,7 @@ class solarParallel_3d extends Thread {
 
         else if(direction_angle < 180.0f){
 
+           // System.out.println("HERE!!");
             step_x = 1;
             step_y = 1;
 
@@ -2617,6 +2631,8 @@ class solarParallel_3d extends Thread {
 
                 }
 
+                //System.out.println(this.rasterMaxValue + " " + (this.p_cloud_min_z + current_z * resolution));
+
 
                 if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
                     return false;
@@ -2629,7 +2645,10 @@ class solarParallel_3d extends Thread {
                 if(current_z != z_vox)
                     n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
 
-                if(n_points_in_voxel > (1)){
+
+                if(n_points_in_voxel > (1) && ++penetration >= minPenetration){
+
+
 
                     x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
                     y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
@@ -2654,10 +2673,12 @@ class solarParallel_3d extends Thread {
                     point_quick.cross(point_quick, line_quick);
                     float distance = (float)(point_quick.norm() / line_quick.norm());
                     //float distance = 0;
-                    //System.out.println(distance + " == " + distance2);
+                    //System.out.println(distance);
                     //float distance = 0;
                     if(distance < distance_threshold){
+                        //System.out.println("HERE2");
 
+                       // System.out.println("BLOCKED!");
                         return true;
                     }
 
@@ -2752,7 +2773,7 @@ class solarParallel_3d extends Thread {
                 if(current_z != z_vox)
                     n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
 
-                if(n_points_in_voxel > (1)){
+                if(n_points_in_voxel > (1) && ++penetration >= minPenetration){
 
                     x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
                     y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
@@ -2781,7 +2802,7 @@ class solarParallel_3d extends Thread {
 
                     //float distance = 0;
                     if(distance < distance_threshold){
-
+                        //System.out.println("BLOCKED!");
                         return true;
                     }
 
@@ -2881,7 +2902,7 @@ class solarParallel_3d extends Thread {
                 if(current_z != z_vox)
                     n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
 
-                if(n_points_in_voxel > (1)){
+                if(n_points_in_voxel > (1) && ++penetration >= minPenetration       ){
 
                     x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
                     y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
