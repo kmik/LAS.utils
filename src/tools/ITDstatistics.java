@@ -1713,6 +1713,12 @@ public class ITDstatistics{
         int xy_counter = 0;
         //double sum = 0.0d;
 
+
+        double mean_intensity_all = 0;
+        double mean_intensity_all_ocunter = 0;
+        double mean_intensity = 0;
+        double mean_intensity_counter = 0;
+
         for(int i = 0; i < z.length; i++){
             //System.out.println(zetas.size() + " == " + zetas.size());
             z[i] = zetas.poll();
@@ -1730,10 +1736,17 @@ public class ITDstatistics{
                 double y_dist_to_center = (y_value - treeTop[1]);
                 double z_dist_to_center = (maxZ - z_value);
 
+                mean_intensity_all += intens;
+                mean_intensity_all_ocunter++;
 
                 xy_counter++;
 
                 if(x_value < maxx && x_value > minx && y_value < maxy && y_value > miny) {
+
+
+                    mean_intensity += intens;
+                    mean_intensity_counter++;
+
 
                     int x_coor = Math.min((int) Math.floor((x_value - minx) / densities_size_x), x_ - 1);
                     int y_coor = Math.min((int) Math.floor((maxy - y_value) / densities_size_y), y_ - 1);
@@ -1827,6 +1840,11 @@ public class ITDstatistics{
             sumGB += GB[i];
 
         }
+
+
+        mean_intensity /= mean_intensity_counter;
+        mean_intensity_all /= mean_intensity_all_ocunter;
+
 
         stdR = Math.sqrt(stdR / ((double)z.length-1));
         stdG = Math.sqrt(stdG / ((double)z.length-1));
@@ -2116,6 +2134,12 @@ public class ITDstatistics{
             String printti = "";
 
             if((isIsolated)){ // && label < 3){ //  && plotId_major == plotId_major2 && plotId_minor == plotId_minor2)
+
+
+
+                printti = printti.concat(mean_intensity + "\t");
+                printti = printti.concat(mean_intensity_all + "\t");
+
 
                 printti = printti.concat(std_z + "\t");
                 colnames.add("std_z");
