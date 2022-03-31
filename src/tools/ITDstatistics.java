@@ -9,6 +9,7 @@ import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 import org.apache.commons.math3.stat.descriptive.moment.Kurtosis;
 import org.apache.commons.math3.stat.descriptive.moment.Skewness;
+import org.apache.commons.math3.util.FastMath;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.Driver;
@@ -155,6 +156,7 @@ public class ITDstatistics{
 
     public KdTree kd_tree1 = new KdTree();
     public KdTree kd_tree2 = new KdTree();
+    public KdTree kd_tree_all_segments = new KdTree();
 
     HashSet<Integer> pointSourceSubset = null;
 
@@ -1278,6 +1280,8 @@ public class ITDstatistics{
 
         //System.out.println("START!");
 
+
+
         ArrayList<String> colnames = new ArrayList<>();
 
         if(treeTop == null || p2.size() == 0){
@@ -1285,6 +1289,10 @@ public class ITDstatistics{
             return;
         }
 
+
+        KdTree.XYZPoint tempTreePoint_ = new KdTree.XYZPoint(treeTop[0], treeTop[1], treeTop[2]);
+        tempTreePoint_.setIndex(-99);
+        kd_tree_all_segments.add(tempTreePoint_);
 
         //System.out.println("SUCCESS! " + Arrays.toString(glcm.features));
         //System.exit(1);
@@ -2479,6 +2487,11 @@ public class ITDstatistics{
                 colnames.add("plot_id");
 
                 KdTree.XYZPoint tempTreePoint = new KdTree.XYZPoint(treeTop[0], treeTop[1], treeTop[2]);
+
+
+                //tempTreePoint.setExtra_value1( (float)Math.sqrt(tinArea / Math.PI) );
+
+
                 tempTreePoint.setIndex(output.size());
                 kd_tree1.add(tempTreePoint);
 
@@ -2611,6 +2624,7 @@ public class ITDstatistics{
 
             KdTree.XYZPoint tem = (KdTree.XYZPoint)it.next();
 
+            /* kd_tree2 contains the field measured trees */
             nearest = (List<KdTree.XYZPoint>)kd_tree2.nearestNeighbourSearch(1, tem);
 
             int indeksi = 0;
@@ -2621,6 +2635,30 @@ public class ITDstatistics{
             else{
                 indeksi = tem.getIndex();
             }
+
+            nearest2 = (List<KdTree.XYZPoint>)kd_tree_all_segments.nearestNeighbourSearch2d(50, tem);
+
+            //System.out.println("nearest within 10m: " + nearest2.size());
+
+            double c11 = 0, c12 = 0, c13 = 0, c9 = 0, n = 0;
+
+            /* Start from 1 because 0 is always the point itself (0 distance) */
+            for(int i = 1; i < nearest2.size(); i++){
+                double distance_ =  tem.euclideanDistance(nearest2.get(i));
+
+                if(distance_ < 7.0) {
+                    n++;
+                    c9 += nearest2.get(i).getZ() / (tem.getZ() * distance_);
+                    c12 += FastMath.atan(nearest2.get(i).getZ() / distance_);
+                    c13 += nearest2.get(i).getZ() / tem.getZ() * FastMath.atan(nearest2.get(i).getZ() / distance_);
+                }else
+                    break;
+                //System.out.println("dist " + i + " " + distance_);
+
+
+            }
+
+            //System.out.println("n: " + n + " c13: " + c13 + " c12: " + c12 + " c9: " + c9);
 
             distance = tem.euclideanDistance(nearest.get(0));
             boolean isInside = false;
@@ -2635,6 +2673,11 @@ public class ITDstatistics{
                 index = nearest.get(0).getIndex();
 
                 String temp = output.get(tem.getIndex());
+
+                temp = nearest2.size() + "\t" + temp;
+                temp = c13 + "\t" + temp;
+                temp = c12 + "\t" + temp;
+                temp = c9 + "\t" + temp;
 
                 temp += treeBank[index][7] + "\t";
                 temp += treeBank[index][8] + "\t";
@@ -2665,6 +2708,11 @@ public class ITDstatistics{
 
                 String temp = output.get(tem.getIndex());
 
+                temp = nearest2.size() + "\t" + temp;
+                temp = c13 + "\t" + temp;
+                temp = c12 + "\t" + temp;
+                temp = c9 + "\t" + temp;
+
                 temp += treeBank[index][7] + "\t";
                 temp += "-1\t";
                 temp += "-1\t";
@@ -2680,6 +2728,11 @@ public class ITDstatistics{
 
                 String temp = output.get(tem.getIndex());
 
+                temp = nearest2.size() + "\t" + temp;
+                temp = c13 + "\t" + temp;
+                temp = c12 + "\t" + temp;
+                temp = c9 + "\t" + temp;
+
                 temp += treeBank[index][7] + "\t";
                 temp += "-1\t";
                 temp += "-1\t";
@@ -2690,6 +2743,11 @@ public class ITDstatistics{
             }else{ // if(nearest.size() == 0){
 
                 String temp = output.get(tem.getIndex());
+
+                temp = nearest2.size() + "\t" + temp;
+                temp = c13 + "\t" + temp;
+                temp = c12 + "\t" + temp;
+                temp = c9 + "\t" + temp;
 
                 temp += "-1\t";
                 temp += "-1\t";
