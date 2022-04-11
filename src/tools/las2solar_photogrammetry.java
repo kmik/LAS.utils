@@ -46,7 +46,7 @@ public class las2solar_photogrammetry {
 
     private static int solarradiation = 1366;
 
-    private static double xsigma=1.0, ysigma=1.0, zsigma=1.0;
+    private static double xsigma=0.5, ysigma=0.5, zsigma=0.5;
 
     Band chm_values;
     float[][] chm_values_f;
@@ -229,7 +229,7 @@ public class las2solar_photogrammetry {
 
         double[] blockArray = new double[]{0.0,0.0};
 
-        solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size]);
+        solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size], aR.step);
 
         Thread[] threads = new Thread[aR.cores];
         int n_funk_per_thread = (int)Math.ceil((double)y_size / (double)aR.cores);
@@ -319,14 +319,16 @@ public class las2solar_photogrammetry {
             }
         }
 
+        rM.get_sky_prop();
+
         ImagePlus imp = IJ.createImage("KansasCityShuffle", "32-bit", chm.getRasterXSize(), chm.getRasterYSize(), raster_z_size);
         System.out.println(imp.getImageStack().getSize());
 
         for(int z = 1; z <= raster_z_size; z++){
 
             ImageProcessor pros = imp.getImageStack().getProcessor(z);
-            for(int x = 0; x < chm.getRasterXSize(); x++) {
-                for (int y = 0; y < chm.getRasterYSize(); y++) {
+            for(int x = 0; x < x_size; x++) {
+                for (int y = 0; y < y_size; y++) {
 
                     pros.putPixelValue(x, y, rM.getValue(x, y, z-1));
 
@@ -334,7 +336,8 @@ public class las2solar_photogrammetry {
             }
         }
 
-        blur3D(imp, xsigma, ysigma, zsigma);
+
+        //blur3D(imp, xsigma, ysigma, zsigma);
 
 
 
@@ -343,8 +346,8 @@ public class las2solar_photogrammetry {
 
                 ImageProcessor pros = imp.getImageStack().getProcessor(z);
 
-                for(int x = 0; x < chm.getRasterXSize(); x++) {
-                    for (int y = 0; y < chm.getRasterYSize(); y++) {
+                for(int x = 0; x < x_size; x++) {
+                    for (int y = 0; y < y_size; y++) {
 
 
                         rM.setValue(x, y, z-1, pros.getPixelValue(x, y));
@@ -352,6 +355,8 @@ public class las2solar_photogrammetry {
                     }
                 }
             }
+
+
 
         File outFile = aR.createOutputFile(pointCloud);
 
@@ -375,11 +380,21 @@ public class las2solar_photogrammetry {
                     continue;
                 }
 
-                int x = Math.min((int)((tempPoint.x - pointCloud.getMinX()) / aR.step), chm.getRasterXSize()-1);
-                int y = Math.min((int)((pointCloud.getMaxY() - tempPoint.y) / aR.step), chm.getRasterYSize()-1);
-                int z = Math.min((int)((tempPoint.z - pointCloud.getMinZ()) / aR.step), raster_z_size-1);
+                double x__ = Math.min(((tempPoint.x - pointCloud.getMinX()) / aR.step), chm.getRasterXSize()-1);
+                double y__ = Math.min(((pointCloud.getMaxY() - tempPoint.y) / aR.step), chm.getRasterYSize()-1);
+                double z__ = Math.min(((tempPoint.z - pointCloud.getMinZ()) / aR.step), raster_z_size-1);
 
-                tempPoint.intensity =  (int)(rM.getValue(x, y, z) / solarradiation * 65535.0);
+                int x = (int)x__;
+                int y = (int)y__;
+                int z = (int)z__;
+
+                float[] idw_value = rM.IDW(x__, y__, z__);
+
+                //System.out.println("iterpolated: " + idw_value + " orig: " + rM.getValue(x, y, z));
+                //tempPoint.intensity =  (int)(rM.getValue(x, y, z) / solarradiation * 65535.0);
+                //tempPoint.intensity =  (int)(idw_value / solarradiation * 65535.0);
+                tempPoint.intensity =  (int)(idw_value[0] / solarradiation * 65535.0);
+                tempPoint.pointSourceId =  (short) (idw_value[1]);
 
                 try {
 
@@ -556,7 +571,7 @@ public class las2solar_photogrammetry {
 
         double[] blockArray = new double[]{0.0,0.0};
 
-        solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size]);
+        solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size], aR.step);
 
         Thread[] threads = new Thread[aR.cores];
         int n_funk_per_thread = (int)Math.ceil((double)y_size / (double)aR.cores);
@@ -682,8 +697,6 @@ public class las2solar_photogrammetry {
         }
 
         blur3D(imp, xsigma, ysigma, zsigma);
-
-
 
         if(true)
             for(int z = 1; z <= raster_z_size; z++){
@@ -1819,8 +1832,7 @@ class solarParallel extends Thread {
 class solarParallel_3d extends Thread {
 
     LASReader pointCloud;
-    Vector3d line_quick = new Vector3d(0,0,0);
-    Vector3d point_quick = new Vector3d(0,0,0);
+
 
 
     float[][] chm;
@@ -2383,7 +2395,7 @@ class solarParallel_3d extends Thread {
 
         int penetration = 0;
 
-        int minPenetration = 0;
+        int minPenetration = 2;
 
         double distance_threshold = 100000;
         int current_x = x;
@@ -2395,6 +2407,8 @@ class solarParallel_3d extends Thread {
         float y_offset = chm_values_mean_y[y][x][z_vox] / 1000.0f;
         float z_offset = chm_values_mean_z[y][x][z_vox] / 1000.0f;
 
+        Vector3d line_quick = new Vector3d(0,0,0);
+        Vector3d point_quick = new Vector3d(0,0,0);
 
         float outside_x = 10000, outside_y = 10000, outside_z = 10000;
 
@@ -2529,7 +2543,10 @@ class solarParallel_3d extends Thread {
                 if(current_z != z_vox)
                     n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
 
-                if(n_points_in_voxel > (1) && ++penetration >= minPenetration){
+                if(n_points_in_voxel > 1)
+                    penetration++;
+
+                if(n_points_in_voxel > (1) && penetration >= minPenetration){
 
                     x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
                     y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
@@ -2645,8 +2662,10 @@ class solarParallel_3d extends Thread {
                 if(current_z != z_vox)
                     n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
 
+                if(n_points_in_voxel > 1)
+                    penetration++;
 
-                if(n_points_in_voxel > (1) && ++penetration >= minPenetration){
+                if(n_points_in_voxel > (1) && penetration >= minPenetration){
 
 
 
@@ -2723,9 +2742,6 @@ class solarParallel_3d extends Thread {
                 z_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_z, outside_x, outside_z, center_of_pixel_x - 10000,  (int)(center_of_pixel_z), center_of_pixel_x + 10000,  (int)(center_of_pixel_z));
 
 
-            //System.out.println(Arrays.toString(y_intersect));
-            //System.out.println(Arrays.toString(x_intersect));
-
             float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
             float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
             //float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
@@ -2761,7 +2777,6 @@ class solarParallel_3d extends Thread {
 
                 }
 
-
                 if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
                     return false;
                 }
@@ -2773,7 +2788,10 @@ class solarParallel_3d extends Thread {
                 if(current_z != z_vox)
                     n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
 
-                if(n_points_in_voxel > (1) && ++penetration >= minPenetration){
+                if(n_points_in_voxel > 1)
+                    penetration++;
+
+                if(n_points_in_voxel > (1) && penetration >= minPenetration){
 
                     x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
                     y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
@@ -2902,7 +2920,10 @@ class solarParallel_3d extends Thread {
                 if(current_z != z_vox)
                     n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
 
-                if(n_points_in_voxel > (1) && ++penetration >= minPenetration       ){
+                if(n_points_in_voxel > 1)
+                    penetration++;
+
+                if(n_points_in_voxel > (1) && penetration >= minPenetration       ){
 
                     x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
                     y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
@@ -2946,6 +2967,12 @@ class solarParallel_3d extends Thread {
 
         return false;
 
+    }
+
+    public double skyLight(){
+
+
+        return 1.0;
     }
 
 

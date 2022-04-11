@@ -91,6 +91,7 @@ public class GLCM {
         normalize(cooccurrenceMatrix, coocurrence.getCooccurenceSums());
 
         calculateStatistics(cooccurrenceMatrix);
+
         double[][] p = cooccurrenceMatrix;
         double[][] Q = new double[NUM_GRAY_VALUES][NUM_GRAY_VALUES];
         for (int i = 0; i < NUM_GRAY_VALUES; i++) {

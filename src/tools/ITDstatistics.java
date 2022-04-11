@@ -1278,10 +1278,6 @@ public class ITDstatistics{
     /** TESTING CONVOLUTION INPUT */
     public void profile(double[] treeTop, TDoubleArrayList p2, int treeId) throws IOException{
 
-        //System.out.println("START!");
-
-
-
         ArrayList<String> colnames = new ArrayList<>();
 
         if(treeTop == null || p2.size() == 0){
@@ -1294,8 +1290,6 @@ public class ITDstatistics{
         tempTreePoint_.setIndex(-99);
         kd_tree_all_segments.add(tempTreePoint_);
 
-        //System.out.println("SUCCESS! " + Arrays.toString(glcm.features));
-        //System.exit(1);
 
         org.tinfour.standard.IncrementalTin tin = new org.tinfour.standard.IncrementalTin();
         TriangularFacetInterpolator nni = new TriangularFacetInterpolator(tin);

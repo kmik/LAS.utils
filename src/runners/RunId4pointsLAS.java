@@ -849,9 +849,11 @@ public class RunId4pointsLAS{
 
         String workingDir = indeksi_pathi_all;
 
+        //System.out.println(aR.files[0]);
         indeksi_pathi_all += pathSep + "all.lasxALL";
         File allFile = new File(indeksi_pathi_all);
 
+        //System.out.println(allFile.getAbsolutePath());
         allFile.delete();
         allFile.createNewFile();
 

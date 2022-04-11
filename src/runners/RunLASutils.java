@@ -79,6 +79,12 @@ public class RunLASutils {
         }
         aR.setInputFiles(inputFiles);
         aR.p_update.totalFiles = aR.pointClouds.size();
+
+        /* This tool only converts txt2las */
+        if(aR.tool == 8){
+            System.exit(1);
+        }
+
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
         if (aR.tool == 1) {

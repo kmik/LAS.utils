@@ -109,6 +109,8 @@ public class ToShp{
         shpDriver = ogr.GetDriverByName(driverName);
         DataSource outShp;
         outShp = shpDriver.CreateDataSource(out_file);
+
+        System.out.println(out_name);
         Layer outShpLayer = outShp.CreateLayer(out_name, null, 1);
         FieldDefn layerFieldDef = new FieldDefn("z",2);
         outShpLayer.CreateField(layerFieldDef);

@@ -16,6 +16,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.IntStream;
 
+import org.tinfour.common.IIncrementalTinNavigator;
 import org.tinfour.common.IQuadEdge;
 import org.tinfour.common.SimpleTriangle;
 import org.tinfour.interpolation.TriangularFacetInterpolator;
@@ -2838,9 +2839,11 @@ public class createCHM{
         boolean dz_on_the_fly = false;
 
         org.tinfour.standard.IncrementalTin tin = new org.tinfour.standard.IncrementalTin();
+        org.tinfour.standard.IncrementalTin pit_free_tin = new org.tinfour.standard.IncrementalTin();
 
         org.tinfour.interpolation.VertexValuatorDefault valuator = new org.tinfour.interpolation.VertexValuatorDefault();
         TriangularFacetInterpolator polator  = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);
+        TriangularFacetInterpolator polator_pit_free  = new org.tinfour.interpolation.TriangularFacetInterpolator(pit_free_tin);
 
         public chm(){
 
@@ -2926,6 +2929,10 @@ public class createCHM{
 
 		public void establish() throws IOException{
 
+
+            double freezeDistance = 0.5;
+            double triangleBuffer = 0.5;
+
 			minX = Math.floor(pointCloud.getMinX());
 			maxX = Math.ceil(pointCloud.getMaxX());
 			minY = Math.floor(pointCloud.getMinY());
@@ -2985,7 +2992,51 @@ public class createCHM{
             long n = pointCloud.getNumberOfPointRecords();
             LasPoint tempPoint = new LasPoint();
 
+            TreeMap<Double, ArrayList<Integer>> order_small_large = new TreeMap<>();
 
+            if(aR.pitFree) {
+                for (int i = 0; i < n; i += 10000) {
+
+                    int maxi = (int) Math.min(10000, Math.abs(n - i));
+
+                    try {
+                        pointCloud.readRecord_noRAF(i, tempPoint, 10000);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    //pointCloud.braf.buffer.position(0);
+
+                    for (int j = 0; j < maxi; j++) {
+                        //Sstem.out.println(j);
+                        //count++;
+                        pointCloud.readFromBuffer(tempPoint);
+
+                        /* Reading, so ask if this point is ok, or if
+                        it should be modified.
+                         */
+                        if (!aR.inclusionRule.ask(tempPoint, i + j, true)) {
+                            continue;
+                        }
+
+                        if(!order_small_large.containsKey(-tempPoint.z)) {
+                            order_small_large.put(-tempPoint.z, new ArrayList<Integer>());
+                            order_small_large.get(-tempPoint.z).add(i+j);
+                        }else{
+                            order_small_large.get(-tempPoint.z).add(i+j);
+
+                        }
+
+                    }
+                }
+
+                //for(Double d : order_small_large.keySet()){
+
+                //    System.out.println(d);
+
+                //}
+            }
+
+            //System.out.println("SORTED!");
 
             if(dz_on_the_fly) {
 
@@ -3041,6 +3092,12 @@ public class createCHM{
             long tStart = System.currentTimeMillis();
 
             MaxSizeHashMap<Integer, Float> map = new MaxSizeHashMap<>(100000);
+            IIncrementalTinNavigator navi = pit_free_tin.getNavigator();
+            SimpleTriangle triang = null;
+            Vertex[] closest = new Vertex[3];
+            IQuadEdge[] closest_edges = new IQuadEdge[3];
+
+
 
             for(int i = 0; i < n; i += 200000) {
 
@@ -3228,7 +3285,163 @@ public class createCHM{
 
 			}
 
+            int counter = 0;
+            int counter2 = 0;
 
+            pit_free_tin.preAllocateEdges(1000000);
+
+
+            if(aR.pitFree){
+
+                for(Double d : order_small_large.keySet()) {
+
+
+                    ArrayList<Integer> indices = order_small_large.get(d);
+
+                    //System.out.println("indices size: " + indices.size());
+
+                    for (int i = 0; i < indices.size(); i++) {
+
+                        int index = indices.get(i);
+
+                        pointCloud.readRecord((long) index, tempPoint);
+
+                        if (counter++ <= 5) {
+
+                            pit_free_tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+                            polator_pit_free.resetForChangeToTin();
+                            navi.resetForChangeToTin();
+                            continue;
+
+                        }
+
+                        triang = navi.getContainingTriangle(tempPoint.x, tempPoint.y);
+
+                        //List<Vertex> neighs = pit_free_tin.getNeighborhoodPointsCollector().collectNeighboringVertices(tempPoint.x, tempPoint.y, 1, 1);
+
+                        //double dist_first = euclideanDistance(tempPoint.x, tempPoint.y, neighs.get(0).x, neighs.get(0).y);
+
+                        //if(dist_first > 0.5){
+                        //    pit_free_tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+                        //    continue;
+                        //}
+
+
+                        //
+
+                        boolean test = navi.isPointInsideTin(tempPoint.x, tempPoint.y);
+
+                        //System.out.println("boolean: " + test);
+                        if (!test) {
+                           // System.out.println("null");
+                            //System.exit(1);
+                            pit_free_tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+                            polator_pit_free.resetForChangeToTin();
+                            navi.resetForChangeToTin();
+                            continue;
+                        }
+
+                        closest[0] = triang.getVertexA();
+                        closest[1] = triang.getVertexB();
+                        closest[2] = triang.getVertexC();
+
+                        closest_edges[0] = triang.getEdgeA();
+                        closest_edges[1] = triang.getEdgeB();
+                        closest_edges[2] = triang.getEdgeC();
+
+                        if(closest_edges[0].getLength() < freezeDistance && closest_edges[1].getLength() < freezeDistance && closest_edges[2].getLength() < freezeDistance){
+
+                            double interpolatedZ = polator_pit_free.interpolate(tempPoint.x, tempPoint.y, valuator);
+
+                            if(interpolatedZ > triangleBuffer){
+
+                                continue;
+
+                            }else{
+
+                                pit_free_tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+                                polator_pit_free.resetForChangeToTin();
+                                navi.resetForChangeToTin();
+                                continue;
+                            }
+
+                        }
+                        //System.out.println(pit_free_tin.getVertices().size());
+
+                        // System.out.println(Arrays.toString(Arrays.stream(closest).toArray()));
+
+                        double minDistance = Double.MAX_VALUE;
+/*
+                        for (Vertex V : closest) {
+
+                            if (V == null)
+                                continue;
+
+
+                            double distance = euclideanDistance(V.x, V.y, tempPoint.x, tempPoint.y);
+
+                            if (distance < minDistance)
+                                minDistance = distance;
+
+                        }
+
+                        if (minDistance < 0.75) {
+                            //System.out.println("TOO CLOSE");
+                            continue;
+                        }
+*/
+
+                        //navi.resetForChangeToTin();
+                       // double interpolatedZ = polator_pit_free.interpolate(tempPoint.x, tempPoint.y, valuator);
+                        //System.out.println(Math.abs(interpolatedZ - tempPoint.z));
+                        //if (Math.abs(interpolatedZ - tempPoint.z) > 0.5) {
+                            //System.out.println("TOO FAR AWAY");
+                        //    continue;
+                        //}
+
+                        pit_free_tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+                        polator_pit_free.resetForChangeToTin();
+                        navi.resetForChangeToTin();
+                        //counter++;
+                        //System.out.println("tempz " + tempPoint.z);
+                        //polator_pit_free.resetForChangeToTin();
+                        //navi.resetForChangeToTin();
+
+                    }
+                    counter2++;
+
+                    System.out.println(counter2 + " " + order_small_large.size());
+                    //System.out.println(d);
+                    //if(counter++ % 100 == 0)
+                    //    System.out.println(d + " " + pit_free_tin.getVertices().size());
+                }
+
+            }
+            //System.exit(1);
+
+
+
+            if(aR.pitFree)
+                for(int x = 0; x < numberOfPixelsX; x++){
+                    for(int y = 0; y < numberOfPixelsY; y++) {
+
+                        //temppi[0] = Math.min((int)((tempPoint.x - minX) / resolution), numberOfPixelsX-1);   //X INDEX
+                        //                    temppi[1] = Math.min((int)((maxY - tempPoint.y) / resolution), numberOfPixelsY-1);
+                        double coord_x = x * resolution + minX + resolution / 2;
+                        double coord_y = maxY - y * resolution - resolution / 2;
+
+                        double value = polator_pit_free.interpolate(coord_x, coord_y, valuator);
+
+                        chm_array[x][y] = value;
+
+                        //System.out.println(chm_array[x][y] + " ?? " + value);
+                    }
+
+                }
+
+            //System.exit(1);
+
+            //System.exit(1);
             long tEnd = System.currentTimeMillis();
             long tDelta = tEnd - tStart;
 
@@ -3303,7 +3516,7 @@ public class createCHM{
             chauvenets.put(9, 1.915f);
 
             float maxDifference = 2.0f;
-            if(aR.pitFree)
+            if(aR.pitFree && false)
             for(int iter = 0; iter < num_iter; iter++){
 
                 ArrayList<int[]> indexes_to_set_nan = new ArrayList<>();

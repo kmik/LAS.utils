@@ -297,6 +297,7 @@ public class Boundary extends tool{
                     calcPerim();
                 }
             }
+            //System.out.println("ASD");
         }
 
         if(!tin.isBootstrapped()){

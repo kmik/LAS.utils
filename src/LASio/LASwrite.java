@@ -627,12 +627,14 @@ public class LASwrite {
 
 				}
 
-
+				//System.out.println(tempPoint.pointSourceId);
+				/* Should we catch these? Probably not */
 				if(tempPoint.returnNumber <= 0 || tempPoint.numberOfReturns <= 0){
 
-					System.exit(1);
-					continue;
-
+					//System.exit(1);
+					//continue;
+					tempPoint.returnNumber = 1;
+					tempPoint.numberOfReturns = 1;
 
 
 				}
