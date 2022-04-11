@@ -15,7 +15,7 @@ public class solar3dManipulator {
     float[][][] space;
     float[][][] space_closure;
     int x_dim, y_dim, z_dim;
-
+    int[][] maxValueInChm;
     double resolution;
 
     int counter = 0;
@@ -33,13 +33,28 @@ public class solar3dManipulator {
 
     }
 
-    public synchronized void setValue(int x, int y, int z, float value){
+    public solar3dManipulator(int x_dim, int y_dim, int z_dim, float[][][] data, double resolution, int[][] maxValueInChm){
+
+        this.y_dim = y_dim;
+        this.x_dim = x_dim;
+        this.z_dim = z_dim;
+        this.maxValueInChm = maxValueInChm;
+
+        this.resolution = resolution;
+        space_closure = new float[y_dim][x_dim][z_dim];
+
+        this.space = data;
+
+    }
+
+
+    public void setValue(int x, int y, int z, float value){
 
         this.space[y][x][z] = value;
 
     }
 
-    public synchronized void setValue_closure(int x, int y, int z, float value){
+    public void setValue_closure(int x, int y, int z, float value){
 
         this.space_closure[y][x][z] = value;
 
@@ -72,10 +87,23 @@ public class solar3dManipulator {
                         int max_x = (int)Math.min(x_dim-1, x + length);
                         int max_y = (int)Math.min(y_dim-1, y + length);
 
+                        int max_z = Integer.MAX_VALUE;
+
+
                         for(int x_ = min_x; x_ < max_x; x_++) {
                             for (int y_ = min_y; y_ < max_y; y_++) {
 
-                                boolean blocked = rayTrace(x, y, z, x_, y_, z_dim-1);
+                                if(maxValueInChm[y_][x_] < max_z)
+                                    max_z = maxValueInChm[y_][x_];
+
+                            }
+                        }
+                        for(int x_ = min_x; x_ < max_x; x_++) {
+                            for (int y_ = min_y; y_ < max_y; y_++) {
+
+
+                                //boolean blocked = rayTrace(x, y, z, x_, y_, z_dim-1);
+                                boolean blocked = rayTrace(x, y, z, x_, y_, max_z);
 
                                 if(!blocked)
                                     count++;
@@ -83,6 +111,7 @@ public class solar3dManipulator {
                         }
 
                         //System.out.println((double)((double)count / (double)(x_dim * y_dim)));
+                        //System.out.println("n: " + ((max_x - min_x) * (max_y - min_y)));
                         this.setValue_closure(x, y, z, (float)count / (float)((max_x - min_x) * (max_y - min_y)) * 65535.0f);
                         //space[y][x][z] = (float)();
                     }
@@ -102,7 +131,6 @@ public class solar3dManipulator {
     public boolean rayTrace(int from_x, int from_y, int from_z, int to_x, int to_y, int to_z){
 
         boolean debug = false;
-
 
         if(debug){
 

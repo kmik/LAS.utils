@@ -2655,18 +2655,18 @@ public class createCHM{
                                 }
 
                                 /** This WILL overflow at larger areas */
-                                tempPoint.pointSourceId = (short) (floatArray[0] + 1);
+                                //tempPoint.pointSourceId = (short) (floatArray[0] + 1);
 
                                 /** This will definitely not overflow at larger areas */
-                                tempPoint.gpsTime = (double) (floatArray[0] + 1);
+                                //tempPoint.gpsTime = (double) (floatArray[0] + 1);
 
                                 tempPoint.setExtraByteINT((int)(floatArray[0] + 1), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
 
                             } else {
                                 tempPoint.setExtraByteINT(0, aR.create_extra_byte_vlr_n_bytes.get(0), 0);
 
-                                tempPoint.pointSourceId = 0;
-                                tempPoint.gpsTime = 0;
+                                //tempPoint.pointSourceId = 0;
+                                //tempPoint.gpsTime = 0;
 
                             }
                         }else{

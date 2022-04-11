@@ -84,6 +84,10 @@ public class las2solar_photogrammetry {
         this.chm_values_mean_x = new short[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
         this.chm_values_mean_z = new short[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
 
+
+        int[][] maxValueInChm = new int[chm.getRasterYSize()][chm.getRasterXSize()];
+
+
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
 
             int maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
@@ -112,6 +116,10 @@ public class las2solar_photogrammetry {
 
                 //System.out.println(frac_x + " " + frac_y + " " + frac_z);
                 //System.out.println(x + " " + frac_x + " " + tempPoint.x + " " + aR.step*x);
+
+                if(z > maxValueInChm[y][x]){
+                    maxValueInChm[y][x] = z;
+                }
 
                 if(chm_values_f_3d[y][x][z] < 127) {
                     chm_values_f_3d[y][x][z]++;
@@ -229,7 +237,7 @@ public class las2solar_photogrammetry {
 
         double[] blockArray = new double[]{0.0,0.0};
 
-        solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size], aR.step);
+        solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size], aR.step, maxValueInChm);
 
         Thread[] threads = new Thread[aR.cores];
         int n_funk_per_thread = (int)Math.ceil((double)y_size / (double)aR.cores);
