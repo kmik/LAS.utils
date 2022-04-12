@@ -515,6 +515,11 @@ public class PointInclusionRule{
 				if(Math.abs(tempPoint.scanAngleRank) < drop_scan_angle_below)
 					return false;
 
+			if(first_only){
+				if(tempPoint.returnNumber != 1){
+					return false;
+				}
+			}
 			if(drop_first)
 				if(tempPoint.returnNumber == 1)
 					return false;

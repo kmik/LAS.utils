@@ -2211,6 +2211,11 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("first_only")) {
+                this.noModify = false;
+                this.inclusionRule.firstOnly();
+            }
+
             if (cmd.hasOption("keep_last")) {
                 this.noModify = false;
                 this.inclusionRule.keepLast();
