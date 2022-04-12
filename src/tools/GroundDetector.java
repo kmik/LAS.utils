@@ -2680,7 +2680,7 @@ public class GroundDetector{
                 aR.p_update.threadProgress[coreNumber-1] = this.progress_current;
 
                 //if(tin.isPointInsideTin(tempPoint.x, tempPoint.y)) {
-                if(isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Inside) {
+               // if(isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Inside) {
                     distance = (tempPoint.z - polator.interpolate(tempPoint.x, tempPoint.y, valuator));
                     //distance = 0.0;
 
@@ -2688,16 +2688,19 @@ public class GroundDetector{
                         tempPoint.z = distance;
                         //buf.writePoint(tempPoint, aR.inclusionRule, i);
                         aR.pfac.writePoint(tempPoint, i + j, thread_n);
+                    }else{
+                        this.pointsOutsideTin++;
+                        aR.p_update.threadInt[coreNumber-1] = this.pointsOutsideTin;
                     }
 
                     if (progress_current % 10000 == 0) {
                         aR.p_update.updateProgressNormalize();
                         //this.updateProgress_normalize();
                     }
-                }else {
-                    this.pointsOutsideTin++;
-                    aR.p_update.threadInt[coreNumber-1] = this.pointsOutsideTin;
-                }
+                //}else {
+               //     this.pointsOutsideTin++;
+               //     aR.p_update.threadInt[coreNumber-1] = this.pointsOutsideTin;
+               // }
 
             }
         }
@@ -2792,25 +2795,30 @@ public class GroundDetector{
 
                     aR.p_update.threadProgress[coreNumber-1] = this.progress_current;
 
-                    if(isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Inside) {
+                    //if(isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Inside) {
 
                         counter_debug++;
 
-                        interpolatedvalue = polator.interpolate(tempPoint.x, tempPoint.y, valuator);
+                        distance = (tempPoint.z - polator.interpolate(tempPoint.x, tempPoint.y, valuator));
+                        //distance = 0.0;
 
-                        distance = (tempPoint.z - interpolatedvalue);
-
-                        tempPoint.z = distance;
-
-                        aR.pfac.writePoint(tempPoint, i + j, thread_n);
+                        if(!Double.isNaN(distance)) {
+                            tempPoint.z = distance;
+                            //buf.writePoint(tempPoint, aR.inclusionRule, i);
+                            aR.pfac.writePoint(tempPoint, i + j, thread_n);
+                        }else{
+                            this.pointsOutsideTin++;
+                            aR.p_update.threadInt[coreNumber-1] = this.pointsOutsideTin;
+                        }
 
                         if (progress_current % 10000 == 0) {
                             aR.p_update.updateProgressNormalize();
+                            //this.updateProgress_normalize();
                         }
-                    }else {
-                        this.pointsOutsideTin++;
-                        aR.p_update.threadInt[coreNumber - 1] = this.pointsOutsideTin;
-                    }
+                    //}else {
+                    //    this.pointsOutsideTin++;
+                    //    aR.p_update.threadInt[coreNumber - 1] = this.pointsOutsideTin;
+                    //}
 
                 }
             }
@@ -2916,7 +2924,7 @@ public class GroundDetector{
 
         int thread_n = aR.pfac.addReadThread(pointCloud);
 
-        int decimate_res = aR.decimate_tin;
+        double decimate_res = aR.decimate_tin;
 
         boolean decimate = decimate_res > 0;
         List<Vertex> closest;

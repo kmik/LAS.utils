@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 
 public class solar3dManipulator {
 
-    static double angleThreshold = 60;
+    double angleThreshold = 60;
 
     static double TWOPI = 6.2831853071795865;
     static double RAD2DEG = 57.2957795130823209;
@@ -33,13 +33,13 @@ public class solar3dManipulator {
 
     }
 
-    public solar3dManipulator(int x_dim, int y_dim, int z_dim, float[][][] data, double resolution, int[][] maxValueInChm){
+    public solar3dManipulator(int x_dim, int y_dim, int z_dim, float[][][] data, double resolution, int[][] maxValueInChm, double angle){
 
         this.y_dim = y_dim;
         this.x_dim = x_dim;
         this.z_dim = z_dim;
         this.maxValueInChm = maxValueInChm;
-
+        this.angleThreshold = angle;
         this.resolution = resolution;
         space_closure = new float[y_dim][x_dim][z_dim];
 
@@ -71,7 +71,7 @@ public class solar3dManipulator {
         double prop = 0.0;
 
         IntStream.range(0, z_dim-1).parallel().forEach(z -> {
-        //for(int z = 1; z < z_dim-1; z++){
+            //for(int z = 1; z < z_dim-1; z++){
             for(int x = 1; x < x_dim-1; x++){
                 for(int y = 1; y < y_dim-1; y++) {
 
@@ -86,24 +86,26 @@ public class solar3dManipulator {
 
                         int max_x = (int)Math.min(x_dim-1, x + length);
                         int max_y = (int)Math.min(y_dim-1, y + length);
-
+/*
                         int max_z = Integer.MAX_VALUE;
 
 
                         for(int x_ = min_x; x_ < max_x; x_++) {
                             for (int y_ = min_y; y_ < max_y; y_++) {
 
-                                if(maxValueInChm[y_][x_] < max_z)
+                                if(maxValueInChm[y_][x_] > max_z)
                                     max_z = maxValueInChm[y_][x_];
 
                             }
                         }
+
+ */
                         for(int x_ = min_x; x_ < max_x; x_++) {
                             for (int y_ = min_y; y_ < max_y; y_++) {
 
 
-                                //boolean blocked = rayTrace(x, y, z, x_, y_, z_dim-1);
-                                boolean blocked = rayTrace(x, y, z, x_, y_, max_z);
+                                boolean blocked = rayTrace(x, y, z, x_, y_, z_dim-1);
+                                //boolean blocked = rayTrace(x, y, z, x_, y_, max_z);
 
                                 if(!blocked)
                                     count++;
@@ -112,6 +114,8 @@ public class solar3dManipulator {
 
                         //System.out.println((double)((double)count / (double)(x_dim * y_dim)));
                         //System.out.println("n: " + ((max_x - min_x) * (max_y - min_y)));
+                        //System.out.println((count));
+
                         this.setValue_closure(x, y, z, (float)count / (float)((max_x - min_x) * (max_y - min_y)) * 65535.0f);
                         //space[y][x][z] = (float)();
                     }
@@ -175,7 +179,7 @@ public class solar3dManipulator {
         float cosAngle, sinAngle;
 
         int step_x = -2, step_y = -2;
-        byte n_points_in_voxel = 0;
+        float n_points_in_voxel = 0;
 
         float direction_angle = (float)bearing(from_x, from_y, to_x, to_y);
         int step_z = 1;
@@ -266,7 +270,7 @@ public class solar3dManipulator {
 
 
                 if(current_z > from_z+1)
-                    n_points_in_voxel = (byte)space[(int)current_y][(int)current_x][(int)current_z];
+                    n_points_in_voxel = space[(int)current_y][(int)current_x][(int)current_z];
 
                 if(n_points_in_voxel > 1)
                     penetration++;
@@ -320,7 +324,7 @@ public class solar3dManipulator {
             sinAngle = sin((180.0f - direction_angle));
 
 
-           // outside_y = -center_of_pixel_y - cosAngle * 10000;
+            // outside_y = -center_of_pixel_y - cosAngle * 10000;
             //outside_x = center_of_pixel_x + sinAngle * 10000;
 
             //Vector3D line = new Vector3D(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
@@ -390,7 +394,7 @@ public class solar3dManipulator {
 
 
                 if(current_z > from_z+1)
-                    n_points_in_voxel = (byte)space[(int)current_y][(int)current_x][(int)current_z];
+                    n_points_in_voxel = space[(int)current_y][(int)current_x][(int)current_z];
 
                 if(n_points_in_voxel > 1)
                     penetration++;
@@ -516,7 +520,7 @@ public class solar3dManipulator {
 
 
                 if(current_z > from_z+1)
-                    n_points_in_voxel = (byte)space[(int)current_y][(int)current_x][(int)current_z];
+                    n_points_in_voxel = space[(int)current_y][(int)current_x][(int)current_z];
 
                 if(n_points_in_voxel > 1)
                     penetration++;
@@ -649,7 +653,7 @@ public class solar3dManipulator {
 
 
                 if(current_z > from_z+1)
-                    n_points_in_voxel = (byte)space[(int)current_y][(int)current_x][(int)current_z];
+                    n_points_in_voxel = space[(int)current_y][(int)current_x][(int)current_z];
 
                 if(n_points_in_voxel > 1)
                     penetration++;

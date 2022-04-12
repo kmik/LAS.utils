@@ -29,6 +29,8 @@ public class argumentReader {
     public ArrayList<String> create_extra_byte_vlr_description = new ArrayList<>();
     public ArrayList<Integer> create_extra_byte_vlr_n_bytes = new ArrayList<>();
 
+    public boolean use_p_source = false;
+
     public boolean ray_trace = false;
 
     public double min_edge_length = 0.5;
@@ -100,7 +102,7 @@ public class argumentReader {
     public ArrayList<File> outputFiles = new ArrayList<File>();
 
 
-    public int decimate_tin = -1;
+    public double decimate_tin = -1;
 
     public int tool = -1;
     public String tool_string = null;
@@ -655,6 +657,13 @@ public class argumentReader {
                 .longOpt("decimate_tin")
                 .hasArg(true)
                 .desc("Use a decimated TIN")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("use_p_source")
+                .hasArg(false)
+                .desc("special use case")
                 .required(false)
                 .build());
 
@@ -1761,7 +1770,7 @@ public class argumentReader {
 
             if(cmd.hasOption("decimate_tin")){
 
-                this.decimate_tin = Integer.parseInt(cmd.getOptionValue("decimate_tin"));
+                this.decimate_tin = Double.parseDouble(cmd.getOptionValue("decimate_tin"));
             }
 
             if(cmd.hasOption("args")){
@@ -1876,6 +1885,10 @@ public class argumentReader {
 
             if(cmd.hasOption("skip_global")){
                 this.skip_global = true;
+            }
+
+            if(cmd.hasOption("use_p_source")){
+                this.use_p_source = true;
             }
 
             if (cmd.hasOption("drop_noise")) {

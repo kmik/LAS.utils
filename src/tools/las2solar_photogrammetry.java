@@ -237,7 +237,13 @@ public class las2solar_photogrammetry {
 
         double[] blockArray = new double[]{0.0,0.0};
 
-        solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size], aR.step, maxValueInChm);
+        double angleThreshold = aR.angle;
+
+        if(angleThreshold == -999)
+            angleThreshold = 60;
+
+
+        solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size], aR.step, maxValueInChm, angleThreshold);
 
         Thread[] threads = new Thread[aR.cores];
         int n_funk_per_thread = (int)Math.ceil((double)y_size / (double)aR.cores);
@@ -349,7 +355,7 @@ public class las2solar_photogrammetry {
 
 
 
-        if(true)
+        if(false)
             for(int z = 1; z <= raster_z_size; z++){
 
                 ImageProcessor pros = imp.getImageStack().getProcessor(z);
@@ -403,6 +409,8 @@ public class las2solar_photogrammetry {
                 //tempPoint.intensity =  (int)(idw_value / solarradiation * 65535.0);
                 tempPoint.intensity =  (int)(idw_value[0] / solarradiation * 65535.0);
                 tempPoint.pointSourceId =  (short) (idw_value[1]);
+
+                //System.out.println(tempPoint.pointSourceId);
 
                 try {
 
@@ -578,6 +586,11 @@ public class las2solar_photogrammetry {
 
 
         double[] blockArray = new double[]{0.0,0.0};
+
+        double angleThreshold = aR.angle;
+
+        if(angleThreshold == -999)
+            angleThreshold = 45;
 
         solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size], aR.step);
 

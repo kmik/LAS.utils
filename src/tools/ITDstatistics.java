@@ -3675,7 +3675,12 @@ public class ITDstatistics{
                         mappi13.get(treeId).add(tempPoint.R);
                         mappi13.get(treeId).add(tempPoint.G);
                         mappi13.get(treeId).add(tempPoint.B);
-                        mappi13.get(treeId).add(tempPoint.intensity);
+
+                        if(!aR.use_p_source)
+                            mappi13.get(treeId).add(tempPoint.intensity);
+                        else
+                            mappi13.get(treeId).add(tempPoint.pointSourceId);
+
                         mappi13.get(treeId).add(tempPoint.returnNumber);
                     }else{
 
@@ -3686,7 +3691,12 @@ public class ITDstatistics{
                         mappi13.get(treeId).add(tempPoint.R);
                         mappi13.get(treeId).add(tempPoint.G);
                         mappi13.get(treeId).add(tempPoint.B);
-                        mappi13.get(treeId).add(tempPoint.intensity);
+
+                        if(!aR.use_p_source)
+                            mappi13.get(treeId).add(tempPoint.intensity);
+                        else
+                            mappi13.get(treeId).add(tempPoint.pointSourceId);
+
                         mappi13.get(treeId).add(tempPoint.returnNumber);
                     }
 
