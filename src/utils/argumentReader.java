@@ -81,6 +81,7 @@ public class argumentReader {
     public int layers = 1;
 
     public File measured_trees = null;
+    public File measured_trees_2 = null;
 
     public boolean mode_3d = false;
 
@@ -582,7 +583,12 @@ public class argumentReader {
                 .desc("Field measured trees")
                 .required(false)
                 .build());
-
+        options.addOption(Option.builder()
+                .longOpt("measured_trees_2")
+                .hasArg(true)
+                .desc("Field measured trees_2")
+                .required(false)
+                .build());
         options.addOption(Option.builder()
                 .longOpt("min_edge_length")
                 .hasArg(true)
@@ -1844,6 +1850,15 @@ public class argumentReader {
                 this.measured_trees = new File(cmd.getOptionValue("measured_trees"));
 
                 if(!this.measured_trees.exists())
+                    throw new argumentException("-measured_trees does not exist!");
+
+            }
+
+            if (cmd.hasOption("measured_trees_2")) {
+
+                this.measured_trees_2 = new File(cmd.getOptionValue("measured_trees_2"));
+
+                if(!this.measured_trees_2.exists())
                     throw new argumentException("-measured_trees does not exist!");
 
             }

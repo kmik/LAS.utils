@@ -1727,6 +1727,7 @@ public class ITDstatistics{
 
             /* IMPORTANT, THIS IS NOT THE X Y VALUE OF THE Z ABOVE, THE Z IS SORTED; THIS IS NOT!!!! */
 
+            /* These are first of many and only echoes, order does NOT matter */
             if(xy_counter < x.size()) {
 
                 double x_value = x.get(xy_counter);
