@@ -2,13 +2,22 @@ package tools;
 
 import LASio.LASReader;
 import LASio.LasPoint;
+import org.tinfour.common.Vertex;
+import org.tinfour.interpolation.TriangularFacetInterpolator;
+import org.tinfour.interpolation.VertexValuatorDefault;
+import org.tinfour.standard.IncrementalTin;
 import utils.KdTree;
 import utils.argumentReader;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.List;
+
+import static tools.ITDstatistics.euclideanDistance;
 
 public class solar2trees {
+
+    IncrementalTin tin = new IncrementalTin();
 
     argumentReader aR;
     int coreNumber = 0;
@@ -25,6 +34,7 @@ public class solar2trees {
     File outputFile;
     FileOutputStream fos;
     BufferedWriter bw;
+    int x_dim, y_dim, z_dim;
 
     public solar2trees(argumentReader aR, int coreNumber) throws Exception {
 
@@ -45,18 +55,28 @@ public class solar2trees {
 
     public void processPointCloud(LASReader pointCloud) throws Exception{
 
+
         int kernel_div_2 = (int)Math.ceil (( kernel_in_meters / 2.0 - this.resolution / 2.0 ) / this.resolution);
 
+        //System.out.println(kernel_div_2);
         double minx = pointCloud.getMinX();
         double maxx = pointCloud.getMaxX();
 
         double miny = pointCloud.getMinY();
         double maxy = pointCloud.getMaxY();
 
-        double minz = pointCloud.getMinY();
-        double maxz = pointCloud.getMaxY();
+        double minz = pointCloud.getMinZ();
+        double maxz = pointCloud.getMaxZ();
 
         prep(pointCloud);
+
+        tin.clear();
+        tin = new IncrementalTin();
+        createTin(2, pointCloud);
+
+        TriangularFacetInterpolator polator = new TriangularFacetInterpolator(this.tin);
+        VertexValuatorDefault valuator = new VertexValuatorDefault();
+
 
         for(int i = 0; i < trees.length; i++){
 
@@ -70,8 +90,12 @@ public class solar2trees {
 
                     int x_coord = (int)((x - minx) / this.resolution);
                     int y_coord = (int)((maxy - y) / this.resolution);
-                    int z_coord = (int)(z / resolution);
 
+                    double tin_value = polator.interpolate(x, y, valuator);
+
+                    int z_coord = (int)((z + tin_value - minz) / this.resolution);
+
+                    //System.out.println(z_coord + " " + this.z_dim + " " + z);
                     double average_irradiance = 0;
                     double average_closure = 0;
                     int counter = 0;
@@ -80,7 +104,7 @@ public class solar2trees {
                         for(int y_ = (y_coord - kernel_div_2); y_ <= (y_coord + kernel_div_2); y_++) {
                             for(int z_ = 1; z_ <= z_coord; z_++) {
 
-                                if(averageIrradiance[x_][y_][z_] > 0){
+                                if(count[x_][y_][z_] > 0){
                                     counter++;
                                     average_irradiance += (averageIrradiance[x_][y_][z_] / count[x_][y_][z_]);
                                     average_closure += (averageClosure[x_][y_][z_] / count[x_][y_][z_]);
@@ -89,16 +113,19 @@ public class solar2trees {
                         }
                     }
 
+                    //System.out.println(counter);
                     //bw.write("\tplot_id\ttree_id\taverage_irradiance\taverage_closure\tdiameter\theight\tspecies\tvolume");
 
                     String out = trees[i][7] + "\t" + trees[i][8] + "\t" + (average_irradiance / (double)counter) + "\t" + (average_closure / (double)counter) +
                             "\t" + trees[i][3] + "\t" + trees[i][2] + "\t" + trees[i][4] + "\t" + trees[i][6] + "\t" + trees_2017[i][3] + "\t" + trees_2017[i][2] + "\t" + trees_2017[i][6];
                     //System.out.println("HERE!! " + (average_irradiance / (double)counter));
                     //String outputString = trees[i][]
-                    System.out.println(out);
+                    //System.out.println(out);
                     bw.write(out);
                     bw.newLine();
                     //bw.write();
+                }else{
+
                 }
             }
         }
@@ -128,9 +155,9 @@ public class solar2trees {
         double maxz = pointCloud.getMaxZ();
 
 
-        int x_dim = (int)Math.ceil((maxx - minx) / this.resolution);
-        int y_dim = (int)Math.ceil((maxy - miny) / this.resolution);
-        int z_dim = (int)Math.ceil((maxz - minz) / this.resolution);
+        this.x_dim = (int)Math.ceil((maxx - minx) / this.resolution);
+        this.y_dim = (int)Math.ceil((maxy - miny) / this.resolution);
+        this.z_dim = (int)Math.ceil((maxz - minz) / this.resolution);
 
         this.averageClosure = new float[x_dim][y_dim][z_dim];
         this.averageIrradiance = new float[x_dim][y_dim][z_dim];
@@ -334,6 +361,62 @@ public class solar2trees {
         this.trees_2017 = trees.clone();
         this.doneTrees = new boolean[trees.length];
 
+    }
+
+
+    public void createTin(int groundClassification, LASReader pointCloud) throws Exception{
+
+        LasPoint tempPoint = new LasPoint();
+
+        int thread_n = aR.pfac.addReadThread(pointCloud);
+
+        double decimate_res = aR.decimate_tin;
+
+        boolean decimate = decimate_res > 0;
+        List<org.tinfour.common.Vertex> closest;
+        Vertex closest_vertex;
+
+        boolean tin_is_bootstrapped = false;
+
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
+
+            int maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+            aR.pfac.prepareBuffer(thread_n, i, 200000);
+
+            for (int j = 0; j < maxi; j++) {
+
+                pointCloud.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
+
+                if(tempPoint.classification == groundClassification) {
+
+                    if(decimate && tin_is_bootstrapped){
+
+                        closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(tempPoint.x, tempPoint.y, 0, 0);
+                        closest_vertex = closest.get(0);
+
+                        if(euclideanDistance(tempPoint.x, tempPoint.y, closest_vertex.x, closest_vertex.y) > decimate_res){
+                            tin.add(new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+
+                        }
+
+                    }else{
+                        tin.add(new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+                        if(!tin_is_bootstrapped){
+                            tin_is_bootstrapped = tin.isBootstrapped();
+                        }
+                    }
+                }
+
+            }
+        }
     }
 
 
