@@ -104,6 +104,8 @@ public class solar2trees {
                         for(int y_ = (y_coord - kernel_div_2); y_ <= (y_coord + kernel_div_2); y_++) {
                             for(int z_ = 1; z_ <= z_coord; z_++) {
 
+                                if(z_coord < this.z_dim && y_coord < this.y_dim && x_coord < this.x_dim
+                                && z_coord > 0 && y_coord > 0 && x_coord > 0)
                                 if(count[x_][y_][z_] > 0){
                                     counter++;
                                     average_irradiance += (averageIrradiance[x_][y_][z_] / count[x_][y_][z_]);
