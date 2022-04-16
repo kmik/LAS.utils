@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 
 public class solar3dManipulator {
 
-    double angleThreshold = 60;
+    double angleThreshold = 45;
 
     static double TWOPI = 6.2831853071795865;
     static double RAD2DEG = 57.2957795130823209;

@@ -106,11 +106,11 @@ public class solar2trees {
 
                                 if(z_coord < this.z_dim && y_coord < this.y_dim && x_coord < this.x_dim
                                 && z_coord > 0 && y_coord > 0 && x_coord > 0)
-                                if(count[x_][y_][z_] > 0){
-                                    counter++;
-                                    average_irradiance += (averageIrradiance[x_][y_][z_] / count[x_][y_][z_]);
-                                    average_closure += (averageClosure[x_][y_][z_] / count[x_][y_][z_]);
-                                }
+                                    if(count[x_][y_][z_] > 0){
+                                        counter++;
+                                        average_irradiance += (averageIrradiance[x_][y_][z_] / count[x_][y_][z_]);
+                                        average_closure += (averageClosure[x_][y_][z_] / count[x_][y_][z_]);
+                                    }
                             }
                         }
                     }
