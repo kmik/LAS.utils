@@ -102,7 +102,7 @@ public class solar2trees {
 
                     for(int x_ = (x_coord - kernel_div_2); x_ <= (x_coord + kernel_div_2); x_++){
                         for(int y_ = (y_coord - kernel_div_2); y_ <= (y_coord + kernel_div_2); y_++) {
-                            for(int z_ = 1; z_ <= z_coord; z_++) {
+                            for(int z_ = (int)(z_coord / 2.0); z_ <= z_coord; z_++) {
 
                                 if(z_coord < this.z_dim && y_coord < this.y_dim && x_coord < this.x_dim
                                 && z_coord > 0 && y_coord > 0 && x_coord > 0)
