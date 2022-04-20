@@ -178,15 +178,17 @@ public class solar2trees {
 
                 pointCloud.readFromBuffer(tempPoint);
 
-                int x_coord = (int)((tempPoint.x - minx) / this.resolution);
-                int y_coord = (int)((maxy - tempPoint.y) / this.resolution);
-                int z_coord = (int)((tempPoint.z - minz) / this.resolution);
+                if(tempPoint.returnNumber == 1){
+                    int x_coord = (int)((tempPoint.x - minx) / this.resolution);
+                    int y_coord = (int)((maxy - tempPoint.y) / this.resolution);
+                    int z_coord = (int)((tempPoint.z - minz) / this.resolution);
 
-                //System.out.println(x_coord + " " + y_coord + " " + z_coord);
-                count[x_coord][y_coord][z_coord]++;
-                averageClosure[x_coord][y_coord][z_coord] += tempPoint.pointSourceId;
-                averageIrradiance[x_coord][y_coord][z_coord] += tempPoint.intensity;
-                //System.out.println(tempPoint.intensity);
+                    //System.out.println(x_coord + " " + y_coord + " " + z_coord);
+                    count[x_coord][y_coord][z_coord]++;
+                    averageClosure[x_coord][y_coord][z_coord] += tempPoint.pointSourceId;
+                    averageIrradiance[x_coord][y_coord][z_coord] += tempPoint.intensity;
+                    //System.out.println(tempPoint.intensity);
+                }
             }
         }
     }
