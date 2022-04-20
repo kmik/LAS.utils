@@ -17,6 +17,7 @@ public class solar3dManipulator {
     int x_dim, y_dim, z_dim;
     int[][] maxValueInChm;
     double resolution;
+    byte[][][] contains_points;
 
     int counter = 0;
 
@@ -31,6 +32,10 @@ public class solar3dManipulator {
 
         this.space = data;
 
+    }
+
+    public void setContains_points(byte[][][] contains_points){
+        this.contains_points = contains_points;
     }
 
     public solar3dManipulator(int x_dim, int y_dim, int z_dim, float[][][] data, double resolution, int[][] maxValueInChm, double angle){
@@ -75,7 +80,7 @@ public class solar3dManipulator {
             for(int x = 1; x < x_dim-1; x++){
                 for(int y = 1; y < y_dim-1; y++) {
 
-                    if(space[y][x][z] > 0){
+                    if(contains_points[y][x][z] > 0){
 
                         int length = (int)(FastMath.tan(FastMath.toRadians(angleThreshold)) * ((z_dim-1) - z));
                         //System.out.println("length: " + (length * resolution) + "m " + (((z_dim-1) - z)*resolution));
@@ -181,7 +186,7 @@ public class solar3dManipulator {
         int step_x = -2, step_y = -2;
         float n_points_in_voxel = 0;
 
-        float direction_angle = (float)bearing(from_x, from_y, to_x, to_y);
+        float direction_angle = (float)bearing(center_of_pixel_x, center_of_pixel_y, to_x, to_y);
         int step_z = 1;
 
         if(debug){
@@ -202,15 +207,14 @@ public class solar3dManipulator {
             //outside_y = -center_of_pixel_y + sinAngle * 10000;
             //outside_x = center_of_pixel_x + cosAngle * 10000;
 
-            line_quick.set(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
+            line_quick.set(outside_x-center_of_pixel_x, outside_y-(center_of_pixel_y), outside_z-center_of_pixel_z);
 
             float t_d_x = (float) (resolution / cosAngle / sinAngle2);
             float t_d_y = (float) (resolution / sinAngle / sinAngle2);
             float t_d_z = (float) (resolution / cosAngle2);
 
-
-            float[] y_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, center_of_pixel_x - 10000, (int)(-center_of_pixel_y), center_of_pixel_x + 10000, (int)(-center_of_pixel_y));
-            float[] x_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x+1), -(float) center_of_pixel_y + 10000, (int)(center_of_pixel_x+1), -center_of_pixel_y - 10000);
+            float[] y_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_y, outside_x, outside_y, center_of_pixel_x - 10000, (int)(center_of_pixel_y), center_of_pixel_x + 10000, (int)(center_of_pixel_y));
+            float[] x_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x+1), (float) center_of_pixel_y + 10000, (int)(center_of_pixel_x+1), center_of_pixel_y - 10000);
 
             float[] z_intersect;
 
@@ -222,8 +226,8 @@ public class solar3dManipulator {
             if(y_intersect == null || x_intersect == null || z_intersect == null)
                 return true;
 
-            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
-            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, center_of_pixel_y) / sinAngle2;
+            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, center_of_pixel_y) / sinAngle2;
             //float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
             float t_max_z = FastMath.abs(center_of_pixel_z - z_intersect[1]) / cosAngle2;
 
@@ -270,7 +274,7 @@ public class solar3dManipulator {
 
 
                 if(current_z > from_z+1)
-                    n_points_in_voxel = space[(int)current_y][(int)current_x][(int)current_z];
+                    n_points_in_voxel = contains_points[(int)current_y][(int)current_x][(int)current_z];
 
                 if(n_points_in_voxel > 1)
                     penetration++;
@@ -328,14 +332,14 @@ public class solar3dManipulator {
             //outside_x = center_of_pixel_x + sinAngle * 10000;
 
             //Vector3D line = new Vector3D(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
-            line_quick.set(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
+            line_quick.set(outside_x-center_of_pixel_x, outside_y-(center_of_pixel_y), outside_z-center_of_pixel_z);
 
             float t_d_x = (float) (resolution / sinAngle / sinAngle2);
             float t_d_y = (float) (resolution / cosAngle / sinAngle2);
             float t_d_z = (float) (resolution / cosAngle2);
 
-            float[] y_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, center_of_pixel_x - 10000, (int)(-center_of_pixel_y-1), center_of_pixel_x + 10000, (int)(-center_of_pixel_y-1));
-            float[] x_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x+1), -center_of_pixel_y + 10000, (int)(center_of_pixel_x+1), -center_of_pixel_y - 10000);
+            float[] y_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_y, outside_x, outside_y, center_of_pixel_x - 10000, (int)(center_of_pixel_y+1), center_of_pixel_x + 10000, (int)(center_of_pixel_y+1));
+            float[] x_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x+1), center_of_pixel_y + 10000, (int)(center_of_pixel_x+1), center_of_pixel_y - 10000);
 
             float[] z_intersect;
 
@@ -348,8 +352,8 @@ public class solar3dManipulator {
             if(y_intersect == null || x_intersect == null || z_intersect == null)
                 return true;
 
-            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
-            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, center_of_pixel_y) / sinAngle2;
+            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, center_of_pixel_y) / sinAngle2;
             //float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
             float t_max_z = FastMath.abs(center_of_pixel_z - z_intersect[1]) / cosAngle2;
 
@@ -394,7 +398,7 @@ public class solar3dManipulator {
 
 
                 if(current_z > from_z+1)
-                    n_points_in_voxel = space[(int)current_y][(int)current_x][(int)current_z];
+                    n_points_in_voxel = contains_points[(int)current_y][(int)current_x][(int)current_z];
 
                 if(n_points_in_voxel > 1)
                     penetration++;
@@ -460,10 +464,10 @@ public class solar3dManipulator {
             float t_d_z = (float) (resolution / cosAngle2);
 
             //Vector3D line = new Vector3D(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
-            line_quick.set(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
+            line_quick.set(outside_x-center_of_pixel_x, outside_y-(center_of_pixel_y), outside_z-center_of_pixel_z);
 
-            float[] y_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, from_x - 10000, (int)(-center_of_pixel_y-1), from_x + 10000, (int)(-center_of_pixel_y-1));
-            float[] x_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x), -center_of_pixel_y + 10000, (int)(center_of_pixel_x), -center_of_pixel_y - 10000);
+            float[] y_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_y, outside_x, outside_y, from_x - 10000, (int)(center_of_pixel_y+1), from_x + 10000, (int)(center_of_pixel_y+1));
+            float[] x_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x-1), center_of_pixel_y + 10000, (int)(center_of_pixel_x-1), center_of_pixel_y - 10000);
 
             float[] z_intersect;
 
@@ -477,8 +481,8 @@ public class solar3dManipulator {
             if(y_intersect == null || x_intersect == null || z_intersect == null)
                 return true;
 
-            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
-            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, center_of_pixel_y) / sinAngle2;
+            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, center_of_pixel_y) / sinAngle2;
             //float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
             float t_max_z = FastMath.abs(center_of_pixel_z - z_intersect[1]) / cosAngle2;
 
@@ -520,7 +524,7 @@ public class solar3dManipulator {
 
 
                 if(current_z > from_z+1)
-                    n_points_in_voxel = space[(int)current_y][(int)current_x][(int)current_z];
+                    n_points_in_voxel = contains_points[(int)current_y][(int)current_x][(int)current_z];
 
                 if(n_points_in_voxel > 1)
                     penetration++;
@@ -586,12 +590,12 @@ public class solar3dManipulator {
             float t_d_z = (float) (resolution / cosAngle2);
 
             // Vector3D line = new Vector3D(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
-            line_quick.set(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
+            line_quick.set(outside_x-center_of_pixel_x, outside_y-(center_of_pixel_y), outside_z-center_of_pixel_z);
 
 
-            float[] y_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, from_x - 10000, (int)(-center_of_pixel_y), from_x + 10000, (int)(-center_of_pixel_y));
+            float[] y_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_y, outside_x, outside_y, from_x - 10000, (int)(center_of_pixel_y), from_x + 10000, (int)(center_of_pixel_y));
             //float[] y_intersect_z = lineIntersect(-center_of_pixel_y, center_of_pixel_z, outside_y, outside_z, z - 10000, (int)(-center_of_pixel_y), x + 10000, (int)(-center_of_pixel_y));
-            float[] x_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x), -from_y + 10000, (int)(center_of_pixel_x), -from_y - 10000);
+            float[] x_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x-1), center_of_pixel_y + 10000, (int)(center_of_pixel_x-1), center_of_pixel_y - 10000);
 
 
             float[] z_intersect;
@@ -608,8 +612,8 @@ public class solar3dManipulator {
             if(y_intersect == null || x_intersect == null || z_intersect == null)
                 return true;
 
-            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
-            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, center_of_pixel_y) / sinAngle2;
+            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, center_of_pixel_y) / sinAngle2;
             //float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
             float t_max_z = FastMath.abs(center_of_pixel_z - z_intersect[1]) / cosAngle2;
 
@@ -653,7 +657,7 @@ public class solar3dManipulator {
 
 
                 if(current_z > from_z+1)
-                    n_points_in_voxel = space[(int)current_y][(int)current_x][(int)current_z];
+                    n_points_in_voxel = contains_points[(int)current_y][(int)current_x][(int)current_z];
 
                 if(n_points_in_voxel > 1)
                     penetration++;
@@ -694,9 +698,6 @@ public class solar3dManipulator {
                 }
 
             }
-
-
-
         }
 
         return false;

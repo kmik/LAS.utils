@@ -244,6 +244,7 @@ public class las2solar_photogrammetry {
 
 
         solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size], aR.step, maxValueInChm, angleThreshold);
+        rM.setContains_points(chm_values_f_3d);
 
         Thread[] threads = new Thread[aR.cores];
         int n_funk_per_thread = (int)Math.ceil((double)y_size / (double)aR.cores);
@@ -3471,7 +3472,7 @@ class solarParallel_3d extends Thread {
 
             float[] y_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, x - 10000, (int)(-center_of_pixel_y), x + 10000, (int)(-center_of_pixel_y));
             //float[] y_intersect_z = lineIntersect(-center_of_pixel_y, center_of_pixel_z, outside_y, outside_z, z - 10000, (int)(-center_of_pixel_y), x + 10000, (int)(-center_of_pixel_y));
-            float[] x_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x), -y + 10000, (int)(center_of_pixel_x), -y - 10000);
+            float[] x_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x-1), -y + 10000, (int)(center_of_pixel_x-1), -y - 10000);
 
 
             float[] z_intersect;
