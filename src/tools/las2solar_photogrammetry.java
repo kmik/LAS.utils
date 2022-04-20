@@ -3002,7 +3002,7 @@ class solarParallel_3d extends Thread {
     public double isBlocked_ray_trace_dampening(int x, int y, int z_vox, byte z, double resolution, double zenith_angle, double slope, float direction_angle, int hour, float chm_max){
 
 
-        double dampening_factor_per_meter = 0.15;
+        double dampening_factor_per_meter = 0.2;
 
         double dampening_factor_per_voxel = resolution * dampening_factor_per_meter;
         double dampening = 1.0;
