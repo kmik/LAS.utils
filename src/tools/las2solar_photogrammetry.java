@@ -242,7 +242,8 @@ public class las2solar_photogrammetry {
         if(angleThreshold == -999)
             angleThreshold = 45;
 
-
+        //System.out.println(angleThreshold);
+        //System.exit(1);
         solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size], aR.step, maxValueInChm, angleThreshold);
         rM.setContains_points(chm_values_f_3d);
 
@@ -1897,7 +1898,6 @@ class solarParallel_3d extends Thread {
         this.pointCloud = pointCloud;
         this.z_size = z_size;
 
-
         this.p_cloud_max_y = pointCloud.getMaxY();
         this.p_cloud_min_z = pointCloud.getMinZ();
         this.p_cloud_min_x = pointCloud.getMinX();
@@ -3002,7 +3002,7 @@ class solarParallel_3d extends Thread {
     public double isBlocked_ray_trace_dampening(int x, int y, int z_vox, byte z, double resolution, double zenith_angle, double slope, float direction_angle, int hour, float chm_max){
 
 
-        double dampening_factor_per_meter = 0.2;
+        double dampening_factor_per_meter = 0.1;
 
         double dampening_factor_per_voxel = resolution * dampening_factor_per_meter;
         double dampening = 1.0;
