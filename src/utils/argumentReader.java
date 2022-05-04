@@ -29,6 +29,9 @@ public class argumentReader {
     public ArrayList<String> create_extra_byte_vlr_description = new ArrayList<>();
     public ArrayList<Integer> create_extra_byte_vlr_n_bytes = new ArrayList<>();
 
+
+    public boolean save_to_p_id = false;
+
     public boolean use_p_source = false;
 
     public boolean ray_trace = false;
@@ -593,6 +596,13 @@ public class argumentReader {
                 .longOpt("min_edge_length")
                 .hasArg(true)
                 .desc("TIN min edge length (for ground filtering)")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("save_to_pointSourceId")
+                .hasArg(true)
+                .desc("Save polygon id to pointSourceId")
                 .required(false)
                 .build());
 
@@ -1822,6 +1832,13 @@ public class argumentReader {
                 this.output_only_stemAlignInput = true;
 
             }
+
+            if (cmd.hasOption("save_to_pointSourceId")) {
+
+                this.save_to_p_id = true;
+
+            }
+
 
             if (cmd.hasOption("poly")) {
 

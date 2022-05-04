@@ -948,7 +948,9 @@ public class MKid4pointsLAS{
 
                                                     if (otype.equals("las")) {
 
-                                                        //tempPoint.pointSourceId = plotID.get(j).shortValue();
+                                                        if(aR.save_to_p_id)
+                                                            tempPoint.pointSourceId = plotID.get(j).shortValue();
+
                                                         tempPoint.setExtraByteINT(plotID.get(j), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
 
                                                         if (aR.omet) {
@@ -1100,7 +1102,8 @@ public class MKid4pointsLAS{
 
                                             if (otype.equals("las")) {
 
-                                                //tempPoint.pointSourceId = plotID.get(j).shortValue();
+                                                if(aR.save_to_p_id)
+                                                    tempPoint.pointSourceId = plotID.get(j).shortValue();
                                                 //tempPoint.gpsTime = plotID.get(j).doubleValue();
                                                 tempPoint.setExtraByteINT(plotID.get(j), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
                                                 //System.out.println(tempPoint.gpsTime);
