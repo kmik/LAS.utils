@@ -461,7 +461,7 @@ public class lasGridStats {
                                          */
                                         gridPoints_z_f.get(order.get(stand_id)).add(tempPoint.z);
 
-                                        gridPoints_RGB_f.get(order.get(stand_id)).add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B});
+                                        gridPoints_RGB_f.get(order.get(stand_id)).add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
                                         gridPoints_i_f.get(order.get(stand_id)).add(tempPoint.intensity);
 
@@ -1676,7 +1676,7 @@ public class lasGridStats {
                                          */
                                 gridPoints_z_f.get(order.get(stand_id)).add(tempPoint.z);
 
-                                gridPoints_RGB_f.get(order.get(stand_id)).add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B});
+                                gridPoints_RGB_f.get(order.get(stand_id)).add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
                                 gridPoints_i_f.get(order.get(stand_id)).add(tempPoint.intensity);
 
@@ -2676,7 +2676,7 @@ public class lasGridStats {
                                     gridPoints_z_f.add(tempPoint.z);
                                     gridPoints_i_f.add(tempPoint.intensity);
 
-                                    gridPoints_rgb.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B});
+                                    gridPoints_rgb.add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
                                     sum_z_f += tempPoint.z;
                                     sum_i_f += tempPoint.intensity;

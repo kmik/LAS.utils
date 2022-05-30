@@ -601,7 +601,7 @@ public class argumentReader {
 
         options.addOption(Option.builder()
                 .longOpt("save_to_pointSourceId")
-                .hasArg(true)
+                .hasArg(false)
                 .desc("Save polygon id to pointSourceId")
                 .required(false)
                 .build());
