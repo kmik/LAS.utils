@@ -2239,18 +2239,21 @@ public class lasGridStats {
         writer_i.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
 
         for(int i = 0; i < colnames_metrics_a.size(); i++){
-
             writer_a.write(colnames_metrics_a.get(i) + "\t");
+        }
 
+        for(int i = 0; i < colnames_metrics_l.size(); i++) {
             writer_l.write(colnames_metrics_l.get(i) + "\t");
-            writer_i.write(colnames_metrics_i.get(i) + "\t");
 
         }
 
-        /* First and only contain RGB, so we need to do it separately */
+        for(int i = 0; i < colnames_metrics_i.size(); i++) {
+            writer_i.write(colnames_metrics_i.get(i) + "\t");
+        }
+
+            /* First and only contain RGB, so we need to do it separately */
         for(int i = 0; i < colnames_metrics_f.size(); i++) {
             writer_f.write(colnames_metrics_f.get(i) + "\t");
-
         }
 
 
