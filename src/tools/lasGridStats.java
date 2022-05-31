@@ -89,7 +89,7 @@ public class lasGridStats {
         bin_l = new gridRAF(this.aR.createOutputFileWithExtension(pointCloud, "_temp_l.bin"));
         bin_i = new gridRAF(this.aR.createOutputFileWithExtension(pointCloud, "_temp_i.bin"));
 
-        this.start();
+        this.start_2();
 
         aR.p_update.fileProgress++;
 
@@ -1467,6 +1467,7 @@ public class lasGridStats {
 
             pointCloud.readRecord(i, tempPoint);
 
+            //System.out.println(tempPoint.R + " " + tempPoint.G + " " + tempPoint.B + " " + tempPoint.N);
             if(stands_delineated){
                 stand_id = tempPoint.getExtraByteInt(polygon_id);
             }else{
@@ -1481,9 +1482,11 @@ public class lasGridStats {
 
             if(grid_of_points[x][y] == null){
                 grid_of_points[x][y] = new ArrayList<>();
-                grid_of_points[x][y].add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.intensity, tempPoint.numberOfReturns, tempPoint.returnNumber, stand_id});
+                grid_of_points[x][y].add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.intensity, tempPoint.numberOfReturns, tempPoint.returnNumber, stand_id,
+                tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
             }else
-                grid_of_points[x][y].add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.intensity, tempPoint.numberOfReturns, tempPoint.returnNumber, stand_id});
+                grid_of_points[x][y].add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.intensity, tempPoint.numberOfReturns, tempPoint.returnNumber, stand_id,
+                        tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
             if(number_of_points_per_cell[x][y] == 0){
 
@@ -1566,6 +1569,11 @@ public class lasGridStats {
                         tempPoint.numberOfReturns = (int)grid_of_points[x][y].get(p_)[4];
                         tempPoint.returnNumber = (int)grid_of_points[x][y].get(p_)[5];
                         stand_id = (int)grid_of_points[x][y].get(p_)[6];
+
+                        tempPoint.R = (int)grid_of_points[x][y].get(p_)[7];
+                        tempPoint.G = (int)grid_of_points[x][y].get(p_)[8];
+                        tempPoint.B = (int)grid_of_points[x][y].get(p_)[9];
+                        tempPoint.N = (int)grid_of_points[x][y].get(p_)[10];
                         //pointCloud.readFromBuffer(tempPoint);
 /*
                                 if (tempPoint.z <= z_cutoff)
@@ -1791,6 +1799,8 @@ public class lasGridStats {
                     /* If this plot id within this grid cell has more than 10 points */
                     if(gridPoints_z_a.get(ii).size() > aR.min_points) {
 
+
+
                         metrics = pCM.calc(gridPoints_z_a.get(ii), gridPoints_i_a.get(ii), sum_z_a.get(ii), sum_i_a.get(ii), "_a", colnames);
 
                         if(colnames_metrics_a.size() == 0)
@@ -1828,6 +1838,14 @@ public class lasGridStats {
 
                     if(gridPoints_z_f.get(ii).size() > aR.min_points) {
 
+                        if(false)
+                        for(int i__ = 0; i__ < gridPoints_RGB_f.get(ii).size(); i__++){
+
+                            System.out.println(Arrays.toString(gridPoints_RGB_f.get(ii).get(i__)));
+                        }
+
+
+                        //System.out.println(gridPoints_RGB_f.get(ii).size());
                         metrics = pCM.calc_with_RGB(gridPoints_z_f.get(ii), gridPoints_i_f.get(ii), sum_z_f.get(ii), sum_i_f.get(ii), "_f", colnames, gridPoints_RGB_f.get(ii));
 
                         if(colnames_metrics_f.size() == 0)
