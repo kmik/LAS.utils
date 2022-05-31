@@ -89,7 +89,7 @@ public class lasGridStats {
         bin_l = new gridRAF(this.aR.createOutputFileWithExtension(pointCloud, "_temp_l.bin"));
         bin_i = new gridRAF(this.aR.createOutputFileWithExtension(pointCloud, "_temp_i.bin"));
 
-        this.start_2();
+        this.start();
 
         aR.p_update.fileProgress++;
 
