@@ -744,7 +744,8 @@ public class printHelp {
                 "\t-otype\t\tOutput file type, \"txt\" or \"las\"\n" +
                 "\t-poly\t\tInput polygon (.shp, wkt, txt)\n" +
                 "\t-sep \t\ttxt file field separator\n" +
-                "\t-omet\t\tOutput statistical metrics");
+                "\t-omet\t\tOutput statistical metrics\n" +
+                "\t     **this too has the following parameters:");
     }
 
     public static void las2las(){
