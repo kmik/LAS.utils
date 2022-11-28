@@ -996,7 +996,7 @@ public class pointCloudMetrics {
 
             }
 
-            if(z_val <= cutoff) {
+            if(z_val < cutoff) {
                 continue;
             }
 
@@ -1518,7 +1518,8 @@ public class pointCloudMetrics {
 
             }
 
-            if(z_val <= cutoff) {
+            // MADE A CHANGE HERE //
+            if(z_val < cutoff) {
                 continue;
             }
 
@@ -2317,7 +2318,7 @@ public class pointCloudMetrics {
 
             }
 
-            if(z_val <= cutoff) {
+            if(z_val < cutoff) {
                 continue;
             }
 
