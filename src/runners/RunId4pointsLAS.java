@@ -845,16 +845,16 @@ public class RunId4pointsLAS{
 
         String indeksi_pathi_all = "";//pathi.split(pathSep)[pathi.split(pathSep).length - 2] + pathSep + "all.lasxALL";
 
-        indeksi_pathi_all = new File(aR.files[0]).getParent();
+        indeksi_pathi_all = aR.inputFiles.get(0).getAbsoluteFile().getParent();
 
         String workingDir = indeksi_pathi_all;
 
 
-        //System.out.println(aR.files[0]);
+        //System.out.println();
         indeksi_pathi_all += pathSep + "all.lasxALL";
         File allFile = new File(indeksi_pathi_all);
 
-        //System.out.println(allFile.getAbsolutePath());
+        System.out.println(allFile.getAbsolutePath());
         allFile.delete();
         allFile.createNewFile();
 
