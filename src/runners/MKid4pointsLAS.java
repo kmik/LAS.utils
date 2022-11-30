@@ -244,8 +244,6 @@ public class MKid4pointsLAS{
 
         if(holes.containsKey(poly_id)){
 
-            //System.out.println("here " + poly_id);
-
             ArrayList<double[][]> holet = holes.get(poly_id);
             double[][] polyHole = null;
 
@@ -473,12 +471,29 @@ public class MKid4pointsLAS{
         return output;
     }
 
+    // Returns true if two rectangles (l1, r1) and (l2, r2) overlap
+    boolean doOverlap(Point l1, Point r1, Point l2, Point r2)
+    {
+        // If one rectangle is on left side of other
+        if (l1.x > r2.x || l2.x > r1.x)
+            return false;
+
+        // If one rectangle is above other
+        if (l1.y < r2.y || l2.y < r1.y)
+            return false;
+
+        return true;
+    }
+
     public void clipPlots(String coords, int shapeType, ArrayList<String> pilvi,String outieFile,
                                  ArrayList<String> indeksitiedosto, String delim, String outShape, int part, int cores, boolean statCalc, String output_txt_points,
                                  String all_index, double buffer, String plotOutName, String oparse, String output, boolean split, String otype,
                                  RunId4pointsLAS.FileOutput foutti, BlockingQueue<String> queue, BlockingQueue<LasPoint> queueLAS, argumentReader aR, BlockingQueue<byte[]> que,
                           LASraf mergeOutput, ArrayList<BlockingQueue<byte[]>> qu, BlockingQueue<Integer> threadWrote, pointWriterMultiThread pwrite,
                           ArrayList<pointWriterMultiThread> outputFiles)throws Exception{
+
+
+        boolean clip_out = true;
 
         pointCloudMetrics pCM = new pointCloudMetrics(aR);
 
@@ -918,17 +933,17 @@ public class MKid4pointsLAS{
         /* Shapefile */
         if(shapeType == 2) {
 
+
             ArrayList<Integer> plotID;
 
             ArrayList<double[][]> polyBank1 = new ArrayList<double[][]>();
             ArrayList<double[][]> polyBank = new ArrayList<double[][]>();
             ArrayList<double[][]> polyBank_for_indexing = new ArrayList<double[][]>();
-            HashMap<Integer, ArrayList<double[][]>> holes = null;
+            HashMap<Integer, ArrayList<double[][]>> holes = new HashMap<>();
 
             polyBank1 = readPolygonsFromWKT(coords, plotID1);
             holes = readPolygonHolesFromWKT(coords, plotID1);
 
-            System.out.println(holes.keySet().size());
 
             aR.p_update.totalFiles = plotID1.size();
 
@@ -1055,7 +1070,17 @@ public class MKid4pointsLAS{
 
                 double[] minmaxXY = findMinMax(tempPolygon);
 
+                /*
+                output[0] = minX;
+                output[1] = maxX;
+                output[2] = minY;
+                output[3] = maxY;
+                 */
+                //Point poly_p1 = new Point(minmaxXY[0], minmaxXY[3]);
+
                 ArrayList<Integer> valinta = new ArrayList<Integer>();
+
+
 
                 for (int th = 0; th < pilvi.size(); th++) {
 
@@ -1065,11 +1090,33 @@ public class MKid4pointsLAS{
                     extentti2[2] = all_min_y.get(th);
                     extentti2[3] = all_max_y.get(th);
 
+                    /*
+                     If one rectangle is on left side of other
+                    if (l1.x > r2.x || l2.x > r1.x)
+                        return false;
+
+                     If one rectangle is above other
+                    if (l1.y < r2.y || l2.y < r1.y)
+                        return false;
+
+                    */
                     if (buffer == 0.0) {
 
+                        boolean accept = true;
+
+                        if(all_min_x.get(th) > minmaxXY[1] || minmaxXY[0] > all_max_x.get(th))
+                            accept = false;
+                        if(all_min_y.get(th) > minmaxXY[3] || minmaxXY[2] > all_max_y.get(th))
+                            accept = false;
+
+                        if(false)
                         if (isWithin(extentti2, minmaxXY[0], minmaxXY[3]) || isWithin(extentti2, minmaxXY[0], minmaxXY[2]) ||
                                 isWithin(extentti2, minmaxXY[1], minmaxXY[3]) || isWithin(extentti2, minmaxXY[1], minmaxXY[2]))
                             valinta.add(th);
+
+                        if(accept)
+                            valinta.add(th);
+
 
                     } else {
 
@@ -1079,6 +1126,8 @@ public class MKid4pointsLAS{
                     }
 
                 }
+
+
                 if (valinta.size() == 0) {
 
                 }
@@ -1086,10 +1135,17 @@ public class MKid4pointsLAS{
 
 
 
+
+                System.out.println("hERE " + pilvi.size());
+
+
+
                 for (int va = 0; va < valinta.size(); va++) {
 
                     doneIndexes.clear();
                     LASReader asd = new LASReader(aR.inputFiles.get(valinta.get(va))); //pointClouds.get(valinta.get(va));
+
+
 
                     if (asd.isIndexed) {
 
@@ -1119,7 +1175,11 @@ public class MKid4pointsLAS{
 
                                             if(tempPoint.x <= minmaxXY[1] && tempPoint.x >= minmaxXY[0] &&
                                                     tempPoint.y <= minmaxXY[3] && tempPoint.y >= minmaxXY[2])
+
+
                                                 if (pointInPolygon(haku, tempPolygon, holes, plotID.get(j))) {
+
+
                                                 //if (pointInPolygon(haku, tempPolygon)) {
 
                                                     if (otype.equals("las")) {
@@ -1239,7 +1299,10 @@ public class MKid4pointsLAS{
                     }
                     // NOT INDEXED
                     else{
+
+
                         LasPoint tempPoint = new LasPoint();
+
 
                         try {
 
@@ -1274,6 +1337,8 @@ public class MKid4pointsLAS{
 
                                     if(tempPoint.x <= minmaxXY[1] && tempPoint.x >= minmaxXY[0] &&
                                             tempPoint.y <= minmaxXY[3] && tempPoint.y >= minmaxXY[2])
+
+
                                         if (pointInPolygon(haku, tempPolygon, holes, plotID.get(j))) {
                                         //if (pointInPolygon(haku, tempPolygon)) {
 
