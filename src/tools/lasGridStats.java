@@ -1300,6 +1300,8 @@ public class lasGridStats {
 
     public void start_2() throws Exception{
 
+        boolean coordinate_center_of_cell = true;
+        boolean do_merge = false;
 
         long tStart = System.currentTimeMillis();
 
@@ -1791,6 +1793,12 @@ public class lasGridStats {
                 double x_coord = orig_x + resolution * x;
                 double y_coord = orig_y - resolution * y;
 
+                if(coordinate_center_of_cell){
+                    x_coord += this.resolution / 2.0;
+                    y_coord -= this.resolution / 2.0;
+                }
+
+
                 boolean addedBecauseTooSmall = false;
 
                 /* Iterate over all the plot ids within this grid cell */
@@ -1963,10 +1971,9 @@ public class lasGridStats {
         HashSet<Integer> grid_ids_merged = new HashSet<>();
 
 
-
         double optimalSize = resolution * resolution;
 
-        if(false)
+        if(do_merge)
             for(int i : do_overs){
 
                 System.out.println("-----------------------------");
@@ -2281,12 +2288,12 @@ public class lasGridStats {
         writer_i.write("\n");
 
         /* This is for if we want to do the merging thingy */
-        if(false)
-            for(int x = 0; x < grid_x_size; x++) {
+        if(do_merge) {
+            for (int x = 0; x < grid_x_size; x++) {
                 for (int y = 0; y < grid_y_size; y++) {
 
                     /* this means no points in that grid cell */
-                    if(gridLocationInRaf_a.get(x).get(y).size() == 0)
+                    if (gridLocationInRaf_a.get(x).get(y).size() == 0)
                         continue;
 
                     int siz_a = gridLocationInRaf_a.get(x).get(y).size();
@@ -2326,16 +2333,16 @@ public class lasGridStats {
                             //System.out.print(value + " ");
                             writer_a.write(value + "\t");
 
-                            if(i_ < 7){
+                            if (i_ < 7) {
                                 emptyArrayList.add(value);
-                            }else{
+                            } else {
                                 emptyArrayList.add(Double.NaN);
                             }
                         }
                         writer_a.write("\n");
 
 
-                        if(siz_f > 0) {
+                        if (siz_f > 0) {
                             bin_f.readLine(doubles_per_cell_rgb * 8, gridLocationInRaf_f.get(x).get(y).get(0) * (doubles_per_cell_rgb * 8));
                             for (int i_ = 0; i_ < doubles_per_cell_rgb; i_++) {
                                 value = bin_f.buffer.getDouble();
@@ -2343,7 +2350,7 @@ public class lasGridStats {
                                 writer_f.write(value + "\t");
                             }
                             writer_f.write("\n");
-                        }else{
+                        } else {
                             for (int i_ = 0; i_ < doubles_per_cell_rgb; i_++) {
 
                                 writer_f.write(emptyArrayList.get(i_) + "\t");
@@ -2351,7 +2358,7 @@ public class lasGridStats {
                             writer_f.write("\n");
                         }
 
-                        if(siz_l > 0) {
+                        if (siz_l > 0) {
                             bin_l.readLine(doubles_per_cell * 8, gridLocationInRaf_l.get(x).get(y).get(0) * (doubles_per_cell * 8));
                             for (int i_ = 0; i_ < doubles_per_cell; i_++) {
                                 value = bin_l.buffer.getDouble();
@@ -2360,14 +2367,14 @@ public class lasGridStats {
                             }
 
                             writer_l.write("\n");
-                        }else{
+                        } else {
                             for (int i_ = 0; i_ < doubles_per_cell; i_++) {
 
                                 writer_l.write(emptyArrayList.get(i_) + "\t");
                             }
                             writer_l.write("\n");
                         }
-                        if(siz_i > 0) {
+                        if (siz_i > 0) {
                             bin_i.readLine(doubles_per_cell * 8, gridLocationInRaf_i.get(x).get(y).get(0) * (doubles_per_cell * 8));
                             for (int i_ = 0; i_ < doubles_per_cell; i_++) {
                                 value = bin_i.buffer.getDouble();
@@ -2376,7 +2383,7 @@ public class lasGridStats {
                             }
 
                             writer_i.write("\n");
-                        }else{
+                        } else {
                             for (int i_ = 0; i_ < doubles_per_cell; i_++) {
 
                                 writer_i.write(emptyArrayList.get(i_) + "\t");
@@ -2386,6 +2393,7 @@ public class lasGridStats {
                     }
                 }
             }
+        }
 
         for(int x = 0; x < grid_x_size; x++) {
             for (int y = 0; y < grid_y_size; y++) {
@@ -2427,14 +2435,11 @@ public class lasGridStats {
 
                     for(int p = 0; p < gridLocationInRaf_a.get(x).get(y).size(); p++) {
 
-
-
                         bin_a.readLine(doubles_per_cell * 8, gridLocationInRaf_a.get(x).get(y).get(p) * (doubles_per_cell * 8));
                         for (int i_ = 0; i_ < doubles_per_cell; i_++) {
                             value = bin_a.buffer.getDouble();
                             //System.out.print(value + " ");
                             writer_a.write(value + "\t");
-
                             if (i_ < 7) {
                                 emptyArrayList.add(value);
                             } else {

@@ -225,6 +225,64 @@ public class MKid4pointsLAS{
         return isInside;
     }
 
+    public static boolean pointInPolygon(double[] point, double[][] poly, HashMap<Integer, ArrayList<double[][]>> holes, int poly_id) {
+
+
+
+        int numPolyCorners = poly.length;
+        int j = numPolyCorners - 1;
+        boolean isInside = false;
+
+        for (int i = 0; i < numPolyCorners; i++) {
+            if (poly[i][1] < point[1] && poly[j][1] >= point[1] || poly[j][1] < point[1] && poly[i][1] >= point[1]) {
+                if (poly[i][0] + (point[1] - poly[i][1]) / (poly[j][1] - poly[i][1]) * (poly[j][0] - poly[i][0]) < point[0]) {
+                    isInside = !isInside;
+                }
+            }
+            j = i;
+        }
+
+        if(holes.containsKey(poly_id)){
+
+            //System.out.println("here " + poly_id);
+
+            ArrayList<double[][]> holet = holes.get(poly_id);
+            double[][] polyHole = null;
+
+            for(int i_ = 0; i_ < holet.size(); i_++){
+
+                numPolyCorners = holet.get(i_).length;
+
+                //System.out.println(holet.get(i_)[0][0] + " == " + holet.get(i_)[holet.get(i_).length-1][0]);
+                //System.out.println(holet.get(i_)[0][1] + " == " + holet.get(i_)[holet.get(i_).length-1][1]);
+                j = numPolyCorners - 1;
+                boolean is_inside_hole = false;
+                polyHole = holet.get(i_);
+
+                for (int i = 0; i < numPolyCorners; i++) {
+
+                    //System.out.println(polyHole[i][0] + " " + polyHole[i][1]);
+
+                    if (polyHole[i][1] < point[1] && polyHole[j][1] >= point[1] || polyHole[j][1] < point[1] && polyHole[i][1] >= point[1]) {
+                        if (polyHole[i][0] + (point[1] - polyHole[i][1]) / (polyHole[j][1] - polyHole[i][1]) * (polyHole[j][0] - polyHole[i][0]) < point[0]) {
+                            is_inside_hole = !is_inside_hole;
+                        }
+                    }
+                    j = i;
+                }
+
+                //System.out.println("-------------------------");
+                if(is_inside_hole) {
+
+                    //System.out.println("YES YES YES!");
+                    return false;
+                }
+            }
+        }
+
+        return isInside;
+    }
+
 
     public static ArrayList<double[][]> readPolygonsFromWKT(String fileName, ArrayList<Integer> plotID1) throws Exception{
 
@@ -238,16 +296,37 @@ public class MKid4pointsLAS{
             while((line1 = sc.readLine())!= null){
 
                 String[] tokens =  line1.split(",");
+                String[] tokens2 =  line1.split("\\),\\(");
                 //System.out.println(Arrays.toString(tokens));
                 //if(tokens[tokens.length - 1] != -999){
+                boolean holes = false;
+
+                if(tokens2.length > 1){
+                    holes = true;
+                }
+
+                if(holes) {
+                    tokens = line1.split(",\\(");
+                    tokens[0] += ")";
+                    tokens = tokens[0].split(",");
+                    //System.out.println(tokens[0]);
+                    //System.exit(1);
+                }
+
+                String[] iidee_ = line1.split("\",");
+                String id = iidee_[iidee_.length-1];
+
+                //System.out.println(Integer.parseInt(tokens[tokens.length - 1]) + " " + tokens2.length);
 
                     try {
-                        plotID1.add(Integer.parseInt(tokens[tokens.length - 1]));
+                        //plotID1.add(Integer.parseInt(tokens[tokens.length - 1]));
+                        plotID1.add(Integer.parseInt(id));
+
                     }catch (NumberFormatException e){
 
                         //Not directly comvertable to a number
 
-                        String str = tokens[tokens.length - 1].replaceAll("\\D+","");
+                        String str = id.replaceAll("\\D+","");
 
                         try {
                             plotID1.add(Integer.parseInt(str));
@@ -260,6 +339,9 @@ public class MKid4pointsLAS{
                         }
 
                     }
+
+                    //System.out.println(plotID1.get(plotID1.size()-1));
+
 
                     double[][] tempPoly = new double[tokens.length - 1][2];
                     int n = (tokens.length) - 2;
@@ -292,6 +374,94 @@ public class MKid4pointsLAS{
                     if(!breikki)
                         output.add(tempPoly);
                 //}
+
+            }
+
+
+        }catch( IOException ioException ) {
+            //ioException.printStackTrace();
+        }
+
+        return output;
+    }
+
+    public static HashMap<Integer, ArrayList<double[][]>> readPolygonHolesFromWKT(String fileName, ArrayList<Integer> plotID1) throws Exception{
+
+        HashMap<Integer, ArrayList<double[][]>> output = new HashMap<Integer, ArrayList<double[][]>>();
+
+        String line1;
+        int id_number = 1;
+
+        try{
+            BufferedReader sc = new BufferedReader( new FileReader(new File(fileName)));
+            sc.readLine();
+            while((line1 = sc.readLine())!= null){
+
+                String[] tokens =  line1.split(",");
+                String[] tokens2 =  line1.split("\\),\\(");
+
+                if(tokens2.length <= 1){
+                    continue;
+                }
+
+                int plot_id = -1;
+
+                try {
+                    plot_id = Integer.parseInt(tokens[tokens.length - 1]);
+                }catch (NumberFormatException e){
+
+                    //Not directly comvertable to a number
+
+                    String str = tokens[tokens.length - 1].replaceAll("\\D+","");
+
+                    try {
+                        plot_id = Integer.parseInt(str);
+                    }catch (Exception ee){
+
+                        //Still no numbers, let's make our own then I guess
+                        plot_id = id_number++;
+
+                    }
+
+                }
+
+                //System.out.println(tokens2[0]);
+
+                String string_here = null;
+
+                output.put(plot_id, new ArrayList<>());
+
+
+                for(int i = 1; i < tokens2.length; i++){
+
+                    string_here = tokens2[i];
+
+                    if(i == tokens2.length-1){
+
+                        String[] tokens_here = string_here.split("\\)\\)");
+                        //String[] coords = tokens_here[0].split()
+                        //System.out.println(tokens_here[0]);
+                        string_here = tokens_here[0];
+
+                    }else{
+                        string_here = tokens2[i];
+                    }
+
+                    String[] toks = string_here.split(",");
+
+                    double[][] tempPoly = new double[toks.length][2];
+                    int n = toks.length;
+                    int counteri = 0;
+
+                    for(int i_ = 0; i_ < n; i_++){
+
+                        tempPoly[counteri][0] = Double.parseDouble(toks[i_].split(" ")[0]);
+                        tempPoly[counteri][1] = Double.parseDouble(toks[i_].split(" ")[1]);
+                        counteri++;
+                    }
+
+                    output.get(plot_id).add(tempPoly);
+                }
 
             }
 
@@ -753,8 +923,13 @@ public class MKid4pointsLAS{
             ArrayList<double[][]> polyBank1 = new ArrayList<double[][]>();
             ArrayList<double[][]> polyBank = new ArrayList<double[][]>();
             ArrayList<double[][]> polyBank_for_indexing = new ArrayList<double[][]>();
+            HashMap<Integer, ArrayList<double[][]>> holes = null;
 
             polyBank1 = readPolygonsFromWKT(coords, plotID1);
+            holes = readPolygonHolesFromWKT(coords, plotID1);
+
+            System.out.println(holes.keySet().size());
+
             aR.p_update.totalFiles = plotID1.size();
 
             int pienin = -1;
@@ -944,7 +1119,8 @@ public class MKid4pointsLAS{
 
                                             if(tempPoint.x <= minmaxXY[1] && tempPoint.x >= minmaxXY[0] &&
                                                     tempPoint.y <= minmaxXY[3] && tempPoint.y >= minmaxXY[2])
-                                                if (pointInPolygon(haku, tempPolygon)) {
+                                                if (pointInPolygon(haku, tempPolygon, holes, plotID.get(j))) {
+                                                //if (pointInPolygon(haku, tempPolygon)) {
 
                                                     if (otype.equals("las")) {
 
@@ -1098,7 +1274,8 @@ public class MKid4pointsLAS{
 
                                     if(tempPoint.x <= minmaxXY[1] && tempPoint.x >= minmaxXY[0] &&
                                             tempPoint.y <= minmaxXY[3] && tempPoint.y >= minmaxXY[2])
-                                        if (pointInPolygon(haku, tempPolygon)) {
+                                        if (pointInPolygon(haku, tempPolygon, holes, plotID.get(j))) {
+                                        //if (pointInPolygon(haku, tempPolygon)) {
 
                                             if (otype.equals("las")) {
 
