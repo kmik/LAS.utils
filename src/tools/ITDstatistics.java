@@ -43,6 +43,8 @@ import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
+import org.opencv.core.*;
+
 import javax.imageio.stream.ImageOutputStream;
 
 import static org.tinfour.utils.Polyside.isPointInPolygon;
