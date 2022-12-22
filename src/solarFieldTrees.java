@@ -21,7 +21,7 @@ public class solarFieldTrees {
         solar2trees s2t = new solar2trees(aR, 1);
 
         s2t.readMeasuredTrees(aR.measured_trees);
-        s2t.readMeasuredTrees_2(aR.measured_trees_2);
+        //s2t.readMeasuredTrees_2(aR.measured_trees_2);
 
         for (int i = 0; i < inputFiles.size(); i++) {
 
