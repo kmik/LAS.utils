@@ -3278,6 +3278,7 @@ public class ITDstatistics{
             while ((line = br.readLine()) != null) {
 
                 if(lineCount != 0 || true){
+                //if(lineCount != 0){
                     //if(Double.parseDouble(line.split(",")[5]) == -1.0){
                     //System.out.println(line);
                     //System.exit(1);

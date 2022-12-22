@@ -4,6 +4,7 @@ import LASio.*;
 //import jdk.jfr.events.ExceptionThrownEvent;
 import err.toolException;
 import gnu.trove.list.array.TIntArrayList;
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.util.FastMath;
 import org.gdal.ogr.Geometry;
 import org.locationtech.jts.geom.Coordinate;
@@ -336,6 +337,28 @@ public class GroundDetector{
 
     }
 
+    public double length(Vector3D a){
+
+        return Math.sqrt(Math.pow(a.getX(), 2) + Math.pow(a.getY(), 2) + Math.pow(a.getZ(), 2));
+
+    }
+
+    public double AngleBetween(Vector3D a, Vector3D b) {
+        return 2.0d * Math.atan(length((a.subtract(b)))/length((a.add(b))));
+
+    }
+
+    public static Vertex normal(Vertex a, Vertex b, Vertex c) {
+        double ax = a.x - c.x;
+        double ay = a.y - c.y;
+        double az = a.getZ() - c.getZ();
+        double bx = b.x - c.x;
+        double by = b.y - c.y;
+        double bz = b.getZ() - c.getZ();
+        return new Vertex(ay * bz - az * by, az * bx - ax * bz, ax * by
+                - ay * bx);
+    }
+
 
     /**
      * Calculates the average slope of the TIN network.
@@ -351,8 +374,59 @@ public class GroundDetector{
 
     public double calcSurfaceNormal(boolean remove){
 
+
+        //double[] data = new double[3][capacity];
+        double[][] data = new double[3][3];
+        double[] colmeans = new double[3];
+
+
         TriangularFacetInterpolator polator2 = new TriangularFacetInterpolator(tin);
         polator2.resetForChangeToTin();
+
+        //SimpleTriangleIterator triangleIterator = new SimpleTriangleIterator(tin);
+
+        for(SimpleTriangle st : tin.triangles()){
+
+            Vertex normalVertex = normal(st.getVertexA(), st.getVertexB(), st.getVertexC());
+
+            double norm_angle = 90.0d - Math.abs(Math.toDegrees(FastMath.atan(Math.abs(normalVertex.getZ()) / Math.sqrt(normalVertex.x * normalVertex.x + normalVertex.y * normalVertex.y))));
+
+            //System.out.println("angle: " + norm_angle);
+
+            rolling_statistics.add(norm_angle);
+
+            if(true)
+                continue;
+
+            System.out.println(normalVertex);
+
+            data[0][0] = st.getVertexA().x; colmeans[0] += st.getVertexA().x;
+            data[1][0] = st.getVertexA().y; colmeans[1] += st.getVertexA().y;
+            data[2][0] = st.getVertexA().getZ(); colmeans[2] += st.getVertexA().getZ();
+
+            data[0][1] = st.getVertexB().x; colmeans[0] += st.getVertexB().x;
+            data[1][1] = st.getVertexB().y; colmeans[1] += st.getVertexB().y;
+            data[2][1] = st.getVertexB().getZ(); colmeans[2] += st.getVertexB().getZ();
+
+            data[0][2] = st.getVertexC().x; colmeans[0] += st.getVertexC().x;
+            data[1][2] = st.getVertexC().y; colmeans[1] += st.getVertexC().y;
+            data[2][2] = st.getVertexC().getZ(); colmeans[2] += st.getVertexC().getZ();
+
+            colmeans[0] /= 3.0d; colmeans[1] /= 3.0d; colmeans[2] /= 3.0d;
+
+            Data dat = new Data(data, colmeans);
+
+            dat.center();
+            EigenSet eigen = dat.getCovarianceEigenSet();
+
+            double angle = Math.toDegrees(Math.acos(eigen.vectors[2][2]/1.0));
+
+            //System.out.println(angle);
+
+            colmeans[0] = 0; colmeans[1] = 0; colmeans[2] = 0;
+
+        }
+
 
         double[] predictionInterval = null;
         double[] beta = null;
@@ -399,8 +473,13 @@ public class GroundDetector{
 
                     double[] normal = polator2.getSurfaceNormal();
 
+
+
                     if(normal.length > 0) {
+
                         double norm_angle = 90.0d - Math.abs(Math.toDegrees(FastMath.atan(normal[2] / Math.sqrt(normal[0] * normal[0] + normal[1] * normal[1]))));
+
+                        //System.out.println(norm_angle);
 
                         this.rolling_statistics.add(norm_angle);
 
@@ -801,6 +880,7 @@ public class GroundDetector{
                                         reject = true;
                                         break;
                                     }
+
                                     if (angle > maxAngle)
                                         maxAngle = angle;
 
@@ -1012,10 +1092,12 @@ public class GroundDetector{
                     distance = Math.abs(distanceSigned);
 
                     if(distance <= 0.05) {
+
+                        //System.out.println("HERE!!");
                         doneInd[p + j] = true;
 
-                        tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
-                        polator.resetForChangeToTin();
+                        //tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+                        //polator.resetForChangeToTin();
                     }
 
                 }

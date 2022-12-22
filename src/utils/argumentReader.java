@@ -29,6 +29,7 @@ public class argumentReader {
     public ArrayList<String> create_extra_byte_vlr_description = new ArrayList<>();
     public ArrayList<Integer> create_extra_byte_vlr_n_bytes = new ArrayList<>();
 
+    public File amapVoxFile = null;
 
     public boolean save_to_p_id = false;
 
@@ -66,7 +67,7 @@ public class argumentReader {
 
     public boolean classify = false;
 
-    public double std_threshold = 3.0;
+    public double std_threshold = 1.75;
 
     public int EPSG = 3067;
 
@@ -480,6 +481,13 @@ public class argumentReader {
     public void createOpts(){
 
         options = new Options();
+
+        options.addOption(Option.builder()
+                .longOpt("amapVoxFile")
+                .hasArg(true)
+                .desc("AmapVox file path")
+                .required(false)
+                .build());
 
         options.addOption( org.apache.commons.cli.Option.builder("i")
                 .longOpt("input")
@@ -1798,6 +1806,13 @@ public class argumentReader {
                 this.prepare_nn_input = Integer.parseInt(cmd.getOptionValue("prep_nn_input"));
 
             }
+
+            if (cmd.hasOption("amapVoxFile")) {
+
+                this.amapVoxFile = new File(cmd.getOptionValue("amapVoxFile"));
+
+            }
+
 
             if (cmd.hasOption("few")) {
 

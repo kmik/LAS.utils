@@ -146,7 +146,7 @@ public class trunkDBH {
         double ransac_distance_threshold = 0.03;
 
 
-        readFieldPlots(new File("GridPlots_2020.shp"));
+        readFieldPlots(new File("/home/koomikko/Documents/codes/silvai/GridPlots_2020.shp"));
 
         KdTree kd_tree_trunks = new KdTree();
         double resolution = 0.5;

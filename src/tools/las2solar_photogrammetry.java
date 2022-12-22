@@ -14,9 +14,12 @@ import ij.plugin.filter.GaussianBlur;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 //import javafx.util.Pair;
+import javafx.geometry.Point3D;
 import jdk.nashorn.internal.ir.Block;
 import net.e175.klaus.solarpositioning.*;
 import org.apache.commons.math3.distribution.AbstractRealDistribution;
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.math3.util.FastMath;
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
@@ -28,9 +31,11 @@ import org.gdal.gdalconst.gdalconst;
 import org.gdal.ogr.ogr;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
+import quickhull3d.Point3d;
 import quickhull3d.Vector3d;
 import utils.*;
 
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -40,10 +45,12 @@ import java.util.stream.IntStream;
 import org.apache.commons.lang3.tuple.Pair;
 import static ij.IJ.createImage;
 import static net.e175.klaus.solarpositioning.PSA.calculateSolarPosition;
-
+import org.apache.commons.math3.geometry.euclidean.threed.Line;
+import org.apache.commons.math3.geometry.euclidean.threed.Plane;
 
 public class las2solar_photogrammetry {
 
+    amapVox aV;
     private static int solarradiation = 1366;
 
     private static double xsigma=0.5, ysigma=0.5, zsigma=0.5;
@@ -63,6 +70,23 @@ public class las2solar_photogrammetry {
 
     public las2solar_photogrammetry(String chm_name, argumentReader aR, LASReader pointCloud, boolean d3) throws Exception{
 
+
+        aR.add_extra_bytes(6, "normal", "Surface normal");
+        aR.add_extra_bytes(6, "flatness", "Surface flatness");
+        aR.add_extra_bytes(6, "insolation", "Solar insolation");
+
+
+        boolean amapVox_mode = false;
+
+        if(aR.amapVoxFile != null){
+
+            aV = new amapVox(aR.amapVoxFile);
+            aV.readHeader();
+            aV.readVoxels();
+            amapVox_mode = true;
+
+        }
+
         this.pointCloud = pointCloud;
 
         System.out.println(this.pointCloud.getMaxZ());
@@ -77,16 +101,65 @@ public class las2solar_photogrammetry {
 
         int raster_z_size = (int)Math.ceil((pointCloud.getMaxZ() - pointCloud.getMinZ()) / aR.step);
 
+        if(amapVox_mode){
+            raster_z_size = (int)Math.ceil((aV.max_z - aV.min_z) / aR.step);
+        }
         Dataset chm = gdal.Open(chm_name);
+        int[][] maxValueInChm;
 
-        this.chm_values_f_3d = new byte[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
-        this.chm_values_mean_y = new short[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
-        this.chm_values_mean_x = new short[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
-        this.chm_values_mean_z = new short[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
+        if(!amapVox_mode) {
+            this.chm_values_f_3d = new byte[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
+            this.chm_values_mean_y = new short[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
+            this.chm_values_mean_x = new short[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
+            this.chm_values_mean_z = new short[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
+            maxValueInChm = new int[chm.getRasterYSize()][chm.getRasterXSize()];
+        }else{
+            this.chm_values_f_3d = new byte[aV.y_dim][aV.x_dim][raster_z_size];
+            this.chm_values_mean_y = new short[aV.y_dim][aV.x_dim][raster_z_size];
+            this.chm_values_mean_x = new short[aV.y_dim][aV.x_dim][raster_z_size];
+            this.chm_values_mean_z = new short[aV.y_dim][aV.x_dim][raster_z_size];
+            maxValueInChm = new int[aV.y_dim][aV.x_dim];
+        }
 
 
-        int[][] maxValueInChm = new int[chm.getRasterYSize()][chm.getRasterXSize()];
+        double this_min_x, this_min_y, this_min_z;
+        double this_max_x, this_max_y, this_max_z;
 
+        int this_x_size, this_y_size, this_z_size;
+
+        if(!amapVox_mode){
+            this_min_x = pointCloud.getMinX();
+            this_max_x = pointCloud.getMaxX();
+
+            this_min_y = pointCloud.getMinY();
+            this_max_y = pointCloud.getMaxY();
+
+            this_min_z = pointCloud.getMinZ();
+            this_max_z = pointCloud.getMaxZ();
+
+            this_x_size = chm.getRasterXSize();
+            this_y_size = chm.getRasterYSize();
+            this_z_size = raster_z_size;
+
+        }else{
+
+            this_min_x = aV.min_x;
+            this_max_x = aV.max_x;
+
+            this_min_y = aV.min_y;
+            this_max_y = aV.max_y;
+
+            this_min_z = aV.min_z;
+            this_max_z = aV.max_z;
+
+            this_x_size = aV.x_dim;
+            this_y_size = aV.y_dim;
+            this_z_size = aV.z_dim;
+
+
+        }
+
+        VoxelNeighborhood[][][] vox_ = new VoxelNeighborhood[this_x_size][this_y_size][this_z_size];
 
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
 
@@ -98,17 +171,55 @@ public class las2solar_photogrammetry {
 
                 pointCloud.readFromBuffer(tempPoint);
 
+                if(amapVox_mode){
+
+                    if(!aV.checkPoint(tempPoint))
+                        continue;
+
+                }
+
                 if(tempPoint.z > this.rasterMaxValue)
                     this.rasterMaxValue = (float)tempPoint.z;
 
-                int x = Math.min((int)((tempPoint.x - pointCloud.getMinX()) / aR.step), chm.getRasterXSize()-1);
-                int y = Math.min((int)((pointCloud.getMaxY() - tempPoint.y) / aR.step), chm.getRasterYSize()-1);
-                int z = Math.min((int)((tempPoint.z - pointCloud.getMinZ()) / aR.step), raster_z_size-1);
+                int x = Math.min((int)((tempPoint.x - this_min_x) / aR.step), this_x_size-1);
+                int y = Math.min((int)((this_max_y - tempPoint.y) / aR.step), this_y_size-1);
+                int z = Math.min((int)((tempPoint.z - this_min_z) / aR.step), raster_z_size-1);
 
 
-                float fraction_x = (float)((tempPoint.x - pointCloud.getMinX()) / aR.step) - (float)x;
-                float fraction_y = (float)((pointCloud.getMaxY() - tempPoint.y) / aR.step) - (float)y;
-                float fraction_z = (float)((tempPoint.z - pointCloud.getMinZ()) / aR.step) - (float)z;
+
+
+                if(vox_[x][y][z] == null){
+                    vox_[x][y][z] = new VoxelNeighborhood(x, y, z);
+                }
+
+                vox_[x][y][z].addObservable();
+
+
+                if(false)
+                for (int x_ = -1; x_ < 2; x_++)
+                    for (int y_ = -1; y_ < 2; y_++)
+                        for (int z_ = -1; z_ < 2; z_++) {
+
+
+                            if( (x+x_) >= 0 && (x+x_) < this_x_size &&
+                                    (y+y_) >= 0 && (y+y_) < this_y_size &&
+                                    (z+z_) >= 0 && (z+z_) < this_z_size) {
+                                if (vox_[x + x_][y + y_][z + z_] == null) {   // vox_[x + x_][y + y_][z + z_].capacity > 0 &&
+                                    vox_[x + x_][y + y_][z + z_] = new VoxelNeighborhood(x + x_, y + y_, z + z_);
+                                    vox_[x + x_][y + y_][z + z_].addObservable();
+                                } else {
+                                    //System.out.println("HERE!");
+                                    vox_[x + x_][y + y_][z + z_].addObservable();
+                                }
+                            }
+
+                        }
+
+                //System.out.println(vox_[x][y][z].capacity);
+
+                float fraction_x = (float)((tempPoint.x - this_min_x) / aR.step) - (float)x;
+                float fraction_y = (float)((this_max_y - tempPoint.y) / aR.step) - (float)y;
+                float fraction_z = (float)((tempPoint.z - this_min_z) / aR.step) - (float)z;
 
                 short frac_x = (short)(int)((fraction_x / aR.step) * 1000);
                 short frac_y = (short)(int)((1.0f - fraction_y / aR.step) * 1000);
@@ -138,8 +249,9 @@ public class las2solar_photogrammetry {
             }
         }
 
+        System.out.println("LOOP 1 COMPLETE!");
 
-        if(false)
+        if(true)
             for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
                 int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
@@ -150,15 +262,53 @@ public class las2solar_photogrammetry {
 
                     pointCloud.readFromBuffer(tempPoint);
 
-                    int x = (int)((tempPoint.x - pointCloud.getMinX()) / aR.step);
-                    int y = (int)((pointCloud.getMaxY() - tempPoint.y) / aR.step);
-                    int z = (int)((tempPoint.z - pointCloud.getMinZ()) / aR.step);
+                    if(amapVox_mode){
 
-                    if(chm_values_f_3d[y][x][z] < 100)
-                        chm_values_f_3d[y][x][z]++;
+                        if(!aV.checkPoint(tempPoint))
+                            continue;
+
+                    }
+
+
+
+                    int x = (int)((tempPoint.x - this_min_x) / aR.step);
+                    int y = (int)((this_max_y - tempPoint.y) / aR.step);
+                    int z = (int)((tempPoint.z - this_min_z) / aR.step);
+
+                    vox_[x][y][z].addPoint(tempPoint.x, tempPoint.y, tempPoint.z, i+j);
+
+                    if(tempPoint.classification == 4){
+
+                        vox_[x][y][z].n_solid_points++;
+
+                    }
+
+                    if(false)
+                    for (int x_ = -1; x_ < 2; x_++)
+                        for (int y_ = -1; y_ < 2; y_++)
+                            for (int z_ = -1; z_ < 2; z_++) {
+
+
+                                if( (x+x_) >= 0 && (x+x_) < this_x_size &&
+                                        (y+y_) >= 0 && (y+y_) < this_y_size &&
+                                        (z+z_) >= 0 && (z+z_) < this_z_size) {
+                                    if (vox_[x + x_][y + y_][z + z_] != null) {   // vox_[x + x_][y + y_][z + z_].capacity > 0 &&
+                                        //vox_[x + x_][y + y_][z + z_] = new VoxelNeighborhood(x + x_, y + y_, z + z_);
+                                        vox_[x + x_][y + y_][z + z_].addPoint(tempPoint.x, tempPoint.y, tempPoint.z, i+j);
+                                    } else {
+                                        //System.out.println("HERE!");
+                                        //vox_[x + x_][y + y_][z + z_].addObservable();
+                                    }
+                                }
+
+                            }
+
+                    //if(chm_values_f_3d[y][x][z] < 100)
+                    //    chm_values_f_3d[y][x][z]++;
 
                 }
             }
+
 
         System.out.println("ALL GOOD!");
         ogr.RegisterAll(); //Registering all the formats..
@@ -185,8 +335,8 @@ public class las2solar_photogrammetry {
 
         int steppi = 10;
 
-        int x_res = (int)Math.ceil((double)chm.getRasterXSize() / (double)steppi);
-        int y_res = (int)Math.ceil((double)chm.getRasterYSize() / (double)steppi);
+        int x_res = (int)Math.ceil((double)this_x_size / (double)steppi);
+        int y_res = (int)Math.ceil((double)this_y_size / (double)steppi);
 
         int[] minutes = new int[]{0};        //float[][][][][][] precomputed = new float[x_res][y_res][12][32][24][2];
         float[][][][][][][] precomputed = new float[x_res][y_res][12][32][24][minutes.length][2];
@@ -209,8 +359,8 @@ public class las2solar_photogrammetry {
         this.chm_values = chm.GetRasterBand(1);
 
         chm_values_f = chm_to_array(chm_values);
-        int x_ = chm_values.getXSize();
-        int y_ = chm_values.getYSize();
+        int x_ = this_x_size;
+        int y_ = this_y_size;
         chm_output_f = new float[1][1];
 
 
@@ -220,8 +370,8 @@ public class las2solar_photogrammetry {
         int[] n_date_in_month = new int[]{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 , 31};
 
 
-        int x_size = chm_values.getXSize();
-        int y_size = chm_values.getYSize();
+        int x_size = this_x_size;
+        int y_size = this_y_size;
 
         float[] raster_read = new float[x_size];
         float value = 0;
@@ -244,8 +394,20 @@ public class las2solar_photogrammetry {
 
         //System.out.println(angleThreshold);
         //System.exit(1);
-        solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size], aR.step, maxValueInChm, angleThreshold);
+
+
+        solar3dManipulator rM = new solar3dManipulator(this_x_size, this_y_size, raster_z_size, new float[this_y_size][this_x_size][raster_z_size], aR.step, maxValueInChm, angleThreshold);
         rM.setContains_points(chm_values_f_3d);
+
+        rM.setVox_(vox_);
+
+        if(aR.amapVoxFile != null){
+
+            //rM.read_amapvox_1_6(aR.amapVoxFile);
+            rM.setAmapVox(aV);
+
+        }
+
 
         Thread[] threads = new Thread[aR.cores];
         int n_funk_per_thread = (int)Math.ceil((double)y_size / (double)aR.cores);
@@ -294,6 +456,9 @@ public class las2solar_photogrammetry {
             }
         });//);
 
+        System.out.println("PRECOMPUTATION COMPLETE!");
+
+
         long start = System.currentTimeMillis();
 
         BlockingQueue<Pair<Integer, byte[][]>> provideRow = new LinkedBlockingQueue<>();
@@ -335,18 +500,23 @@ public class las2solar_photogrammetry {
             }
         }
 
-        rM.get_sky_prop();
+        System.out.println("LOOP 2 COMPLETE!");
 
-        ImagePlus imp = IJ.createImage("KansasCityShuffle", "32-bit", chm.getRasterXSize(), chm.getRasterYSize(), raster_z_size);
-        System.out.println(imp.getImageStack().getSize());
+        //rM.get_sky_prop();
 
+        System.out.println("SKY PROP COMPLETE!");
+        //ImagePlus imp = IJ.createImage("KansasCityShuffle", "32-bit", chm.getRasterXSize(), chm.getRasterYSize(), raster_z_size);
+
+        //System.out.println(imp.getImageStack().getSize());
+
+        if(false)
         for(int z = 1; z <= raster_z_size; z++){
 
-            ImageProcessor pros = imp.getImageStack().getProcessor(z);
+            //ImageProcessor pros = imp.getImageStack().getProcessor(z);
             for(int x = 0; x < x_size; x++) {
                 for (int y = 0; y < y_size; y++) {
 
-                    pros.putPixelValue(x, y, rM.getValue(x, y, z-1));
+                    //pros.putPixelValue(x, y, rM.getValue(x, y, z-1));
 
                 }
             }
@@ -360,13 +530,13 @@ public class las2solar_photogrammetry {
         if(false)
             for(int z = 1; z <= raster_z_size; z++){
 
-                ImageProcessor pros = imp.getImageStack().getProcessor(z);
+                //ImageProcessor pros = imp.getImageStack().getProcessor(z);
 
                 for(int x = 0; x < x_size; x++) {
                     for (int y = 0; y < y_size; y++) {
 
 
-                        rM.setValue(x, y, z-1, pros.getPixelValue(x, y));
+                        //rM.setValue(x, y, z-1, pros.getPixelValue(x, y));
 
                     }
                 }
@@ -382,6 +552,13 @@ public class las2solar_photogrammetry {
 
         aR.pfac.addWriteThread(thread_n, pw, buf);
 
+        System.out.println("START WRITING!");
+
+        float min_angle = Float.MAX_VALUE;
+        float min_flatness = Float.MAX_VALUE;
+        float max_angle = Float.MIN_VALUE;
+        float max_flatness = Float.MIN_VALUE;
+
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
             int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
@@ -392,13 +569,21 @@ public class las2solar_photogrammetry {
 
                 pointCloud.readFromBuffer(tempPoint);
 
+
+                if(amapVox_mode){
+
+                    if(!aV.checkPoint(tempPoint))
+                        continue;
+
+                }
+
                 if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
                     continue;
                 }
 
-                double x__ = Math.min(((tempPoint.x - pointCloud.getMinX()) / aR.step), chm.getRasterXSize()-1);
-                double y__ = Math.min(((pointCloud.getMaxY() - tempPoint.y) / aR.step), chm.getRasterYSize()-1);
-                double z__ = Math.min(((tempPoint.z - pointCloud.getMinZ()) / aR.step), raster_z_size-1);
+                double x__ = Math.min(((tempPoint.x - this_min_x) / aR.step), this_x_size-1);
+                double y__ = Math.min(((this_max_y - tempPoint.y) / aR.step), this_y_size-1);
+                double z__ = Math.min(((tempPoint.z - this_min_z) / aR.step), raster_z_size-1);
 
                 int x = (int)x__;
                 int y = (int)y__;
@@ -410,7 +595,35 @@ public class las2solar_photogrammetry {
                 //tempPoint.intensity =  (int)(rM.getValue(x, y, z) / solarradiation * 65535.0);
                 //tempPoint.intensity =  (int)(idw_value / solarradiation * 65535.0);
                 tempPoint.intensity =  (int)(idw_value[0] / solarradiation * 65535.0);
+
+                //tempPoint.intensity = (int)(vox_[x][y][z].normal / 180.0f * 65535.0);
+                //tempPoint.intensity = (int)(vox_[x][y][z].flatness / 1.0f * 65535.0);
+
+                tempPoint.setExtraByteINT((int)(vox_[x][y][z].normal / 180.0f * 65535.0), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
+                //tempPoint.setExtraByteINT((int)(idw_value[2] / 180.0f * 65535.0), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
+                tempPoint.setExtraByteINT((int)(vox_[x][y][z].flatness / 1.0f * 65535.0), aR.create_extra_byte_vlr_n_bytes.get(0), 1);
+                //tempPoint.setExtraByteINT((int)(idw_value[3] / 1.0f * 65535.0), aR.create_extra_byte_vlr_n_bytes.get(0), 1);
+                tempPoint.setExtraByteINT((int)(idw_value[0] / solarradiation * 65535.0), aR.create_extra_byte_vlr_n_bytes.get(0), 2);
+
+
+
+                // This is insolation
                 tempPoint.pointSourceId =  (short) (idw_value[1]);
+
+                if(vox_[x][y][z].normal < min_angle)
+                    min_angle = vox_[x][y][z].normal;
+
+                if(vox_[x][y][z].flatness < min_flatness)
+                    min_flatness = vox_[x][y][z].flatness;
+
+                if(vox_[x][y][z].normal > max_angle)
+                    max_angle = vox_[x][y][z].normal;
+
+                if(vox_[x][y][z].flatness > max_flatness)
+                    max_flatness = vox_[x][y][z].flatness;
+
+                // this is closure
+                //tempPoint.pointSourceId =  (short) (idw_value[1]);
 
                 //System.out.println(tempPoint.pointSourceId);
 
@@ -423,6 +636,12 @@ public class las2solar_photogrammetry {
                 }
             }
         }
+
+        System.out.println("FINISHED WRITING!");
+
+        System.out.println("min_angle: " + min_angle + " max_angle: " + max_angle);
+        System.out.println("min_flatness: " + min_flatness + " max_flatness: " + max_flatness);
+
         aR.pfac.closeThread(thread_n);
 
         System.out.println("processing took: " + (System.currentTimeMillis()-start) + " ms with " + aR.cores + " threads");
@@ -593,6 +812,7 @@ public class las2solar_photogrammetry {
 
         if(angleThreshold == -999)
             angleThreshold = 45;
+
 
         solar3dManipulator rM = new solar3dManipulator(x_size, y_size, raster_z_size, new float[y_size][x_size][raster_z_size], aR.step);
 
@@ -1952,12 +2172,12 @@ class solarParallel_3d extends Thread {
             float[] averageInsol = new float[x_size];
 
             //for (int x = 0; x < x_size; x++) {
-            //ForkJoinPool myPool = new ForkJoinPool(2);
+                //ForkJoinPool myPool = new ForkJoinPool(2);
 
-            //myPool.submit(() ->
+                //myPool.submit(() ->
 
 
-            IntStream.range(0, x_size).parallel().forEach(x -> {
+                IntStream.range(0, x_size).parallel().forEach(x -> {
                 int blocked_n = 0;
                 for (int z = 0; z < z_size; z++) {
 
@@ -2014,19 +2234,26 @@ class solarParallel_3d extends Thread {
                                     //double[] blockArray = isBlocked(x, y, value, aR.step,(result.getZenithAngle()), Math.tan(Math.toRadians(90.0-result.getZenithAngle())), (float) (result.getAzimuth()));
                                     //minuteSum += (minutes[1] - minutes[0]);
 
-                                    double slope = FastMath.tan(FastMath.toRadians(90.0f - precomp[0]));
+                                    double slope = FastMath.tan(FastMath.toRadians(precomp[0]));
 
                                     //System.out.println("angle: " + slope + " slope: " + precomp[0]);
                                     //System.out.println("chm:value: " + rasterMaxValue);
                                     //double[] blockArray = isBlocked(x, row.getKey(), z, value, aR.step, (precomp[0]), slope, (float) (precomp[1]), hour);
                                     boolean blockArray = true;
                                     double dampening = 0.0;
+                                    double dampening_2 = 0.0;
                                     try {
                                         //blockArray = isBlocked_ray_trace(x, row.getKey(), z, value, aR.step, (precomp[0]), slope, (float) (precomp[1]), hour, rasterMaxValue);
-                                        dampening = isBlocked_ray_trace_dampening(x, row.getKey(), z, value, aR.step, (precomp[0]), slope, (float) (precomp[1]), hour, rasterMaxValue);
-                                    }catch (Exception e){
+
+                                        if (!rM.hasAmapVox)
+                                            dampening = isBlocked_ray_trace_dampening(x, row.getKey(), z, value, aR.step, (precomp[0]), slope, (float) (precomp[1]), hour, rasterMaxValue, rM);
+                                        else
+                                            dampening = isBlocked_ray_trace_amapVox(x, row.getKey(), z, value, aR.step, (precomp[0]), slope, (float) (precomp[1]), hour, rasterMaxValue, rM);
+                                    } catch (Exception e) {
 
                                     }
+
+
                                     //System.out.println("insolation: " + slope + " " + (90.0f - precomp[0])) ;
                                     //if (debug)
                                     //    if (x == 130 && y == 1640)
@@ -2034,16 +2261,21 @@ class solarParallel_3d extends Thread {
 
                                     if (!blockArray || true) {
 
+                                        dampening = Math.max(0, dampening);
+                                        //System.out.println("dampening: " + dampening);
+
+                                        //dampening_2 = Math.max(0, dampening_2);
+
+                                        //System.out.println(dampening + " " + dampening_2);
                                         /* If the average obstructed depth is less than one meter */
                                         // if ((blockArray[0] / blockArray[1]) < 0.5 && false) {
 
                                         //dailyAverageInsolation = (dailyAverageInsolation + insolation) / 2.0;
                                         //dailyAverageInsolation = dailyAverageInsolation + (insolation - dailyAverageInsolation)/(double)++n;
                                         //dailyAverageInsolation_ += insolation;
-                                        if(dampening < 0)
-                                            dampening = 0;
 
-                                        hour_mean_insolation += insolation;
+
+                                        //hour_mean_insolation += insolation;
                                         hour_mean_insolation += insolation * dampening;
                                         // }
 
@@ -2083,7 +2315,7 @@ class solarParallel_3d extends Thread {
                     // System.out.println("AVERAGE_DEBUF: " + dailyAverageInsolation + " val: " + value);
                     //System.exit(1);
                     //}
-                    rM.setValue(x, row.getKey(), z, (float) dailyAverageInsolation );
+                    rM.setValue(x, row.getKey(), z, (float) dailyAverageInsolation);
                 }
             });//);
 
@@ -2092,6 +2324,13 @@ class solarParallel_3d extends Thread {
             //System.out.println("n_blocked: " + blocked_n);
             //System.out.println(y + " / " + this.max );
         }
+    }
+
+    public float euclideanDistance3d(float x1, float y1, float z1, float x2, float y2, float z2){
+
+
+        return (float)Math.sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2) + (z1 - z2)*(z1 - z2) );
+
     }
 
     public double[] isBlocked(int x, int y, int z_vox, byte z, double resolution, double zenith_angle, double slope, float direction_angle, int hour){
@@ -2999,13 +3238,1305 @@ class solarParallel_3d extends Thread {
 
     }
 
-    public double isBlocked_ray_trace_dampening(int x, int y, int z_vox, byte z, double resolution, double zenith_angle, double slope, float direction_angle, int hour, float chm_max){
+    public static Vector2D getIntersectionPoint(Line line, Plane plane) {
+        Vector3D intersection = plane.intersection(line);
+        return new Vector2D(intersection.getX(), intersection.getY());
+    }
+
+    public double isBlocked_ray_trace_dampening(int x, int y, int z_vox, byte z, double resolution, double zenith_angle, double slope,
+                                                float direction_angle, int hour, float chm_max, solar3dManipulator rM){
 
 
-        double dampening_factor_per_meter = 0.1;
+        //Plane pla = new Plane();
+        //direction_angle = 225;
+        //zenith_angle = 35.264;
+        //zenith_angle = 50;
+
+
+        boolean debug = false;
+        double dampening_factor_per_meter = 0.33;
 
         double dampening_factor_per_voxel = resolution * dampening_factor_per_meter;
         double dampening = 1.0;
+
+        int penetration = 0;
+
+        float[] point = new float[3];
+        float[] lineStart = new float[3];
+        float[] lineEnd = new float[3];
+
+
+        int minPenetration = 1;
+
+        double distance_threshold_solid = 100000;
+        double distance_threshold = 1;
+        double length_threshold = 0.0;
+
+
+        int current_x = x;
+        int current_y = y;
+        int current_z = z_vox;
+
+        //System.out.println(y + " " + x + " " + z + " " + this.z_size );
+        float x_offset = chm_values_mean_x[y][x][z_vox] / 1000.0f;
+        float y_offset = chm_values_mean_y[y][x][z_vox] / 1000.0f;
+        float z_offset = chm_values_mean_z[y][x][z_vox] / 1000.0f;
+
+        //x_offset = 0.5f;
+        //y_offset = 0.5f;
+        //z_offset = 0.5f;
+
+        Vector3d line_quick = new Vector3d(0,0,0);
+        Vector3d point_quick = new Vector3d(0,0,0);
+
+        float outside_x = 10000, outside_y = 10000, outside_z = 10000;
+
+        int step_z;
+
+        //double[] output = new double[]{0.0d, 0.0d};
+        double increment_in_meters = resolution / 2.0;
+
+        //float center_of_pixel_x = (float)x + 0.5f * (float)resolution;
+        float center_of_pixel_x = (float)x + x_offset;
+
+        //float center_of_pixel_y = (float)y + 0.5f * (float)resolution;
+        float center_of_pixel_y = (float)y + y_offset;
+
+        //float center_of_pixel_z = (float)z_vox + 0.5f * (float)resolution;
+        float center_of_pixel_z = (float)z_vox + z_offset;
+
+        int right_x = (int)(center_of_pixel_x + 1);
+        int left_x = (int)(center_of_pixel_x);
+
+        int top_y = (int)(-center_of_pixel_y + 1);
+        int bottom_y = (int)(center_of_pixel_x);
+
+        //System.out.println(center_of_pixel_x + " " + center_of_pixel_y + " " + center_of_pixel_z);
+        //System.out.println(x_offset + " " + y_offset + " " + z_offset);
+
+        if(slope > 0) {
+            step_z = 1;
+            outside_z = center_of_pixel_z + (float)Math.tan( Math.toRadians((float)zenith_angle)) * 10000;
+            //System.out.println(outside_z);
+            //System.out.println(center_of_pixel_z);
+            //System.exit(1);
+        }
+        else {
+            outside_z = center_of_pixel_z - cos(90.0f - (float)zenith_angle) * 10000;
+            step_z = -1;
+        }
+
+        if(false) {
+            System.out.println("......................................");
+            System.out.println("......................................");
+            System.out.println("......................................");
+            System.out.println("STARTING: " + current_x + " " + current_y + " " + current_z);
+        }
+
+
+        float cosAngle = 0;
+        float sinAngle = 0;
+        float sinAngle2 = 0;
+        float cosAngle2 = 0;
+        float cosAngle2_2 = 0;
+
+        //cosAngle2 = (float)Math.cos((FastMath.abs((float)zenith_angle)));
+        cosAngle2 = (float)cos((FastMath.abs((float)zenith_angle)));
+        cosAngle2_2 = (float)cos((FastMath.abs( 90.0f - (float)zenith_angle)));
+        //sinAngle2 = (float)Math.sin((FastMath.abs((float)zenith_angle)));
+        sinAngle2 = (float)sin((FastMath.abs((float)zenith_angle)));
+
+        int step_x = -2, step_y = -2;
+        byte n_points_in_voxel = 0;
+
+        float delta_t_last = -1;
+
+
+        // Point3D point, Point3D linePoint1, Point3D linePoint2
+
+        Point3d point_ = new Point3d(0,0,0);
+        Point3d linePoint1 = new Point3d(0,0,0);
+        Point3d linePoint2 = new Point3d(0,0,0);
+
+
+        if(direction_angle < 90.0f){
+
+            step_x = 1;
+            step_y = -1;
+
+            cosAngle = cos((90.0f - direction_angle));
+            sinAngle = sin((90.0f - direction_angle));
+
+            outside_y = -center_of_pixel_y + sinAngle * 10000;
+            outside_x = center_of_pixel_x + cosAngle * 10000;
+
+            line_quick.set(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
+
+            float t_d_x = (float) (resolution / cosAngle / sinAngle2);
+            float t_d_y = (float) (resolution / sinAngle / sinAngle2);
+            float t_d_z = (float) (resolution / cosAngle2);
+
+
+            t_d_x = (float) (resolution / cosAngle / cosAngle2);
+            t_d_y = (float) (resolution / sinAngle / cosAngle2);
+            t_d_z = (float) (resolution / sinAngle2);
+
+            float[] y_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, center_of_pixel_x - 10000, (int)(-center_of_pixel_y), center_of_pixel_x + 10000, (int)(-center_of_pixel_y));
+            float[] x_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x+1), -(float) center_of_pixel_y + 10000, (int)(center_of_pixel_x+1), -center_of_pixel_y - 10000);
+
+            float[] z_intersect;
+
+            if(step_z > 0){
+                z_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_z, outside_x, outside_z, x - 10000,  (int)(center_of_pixel_z+1), x + 10000,  (int)(center_of_pixel_z+1));
+            }else
+                z_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_z, outside_x, outside_z, x - 10000,  (int)(center_of_pixel_z), x + 10000,  (int)(center_of_pixel_z));
+
+/*
+            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            //float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
+            float t_max_z = FastMath.abs(center_of_pixel_z - z_intersect[1]) / cosAngle2;
+
+
+ */
+            float x_ = (float)Math.ceil(center_of_pixel_x) - center_of_pixel_x;
+            float x_hypo = x_ / cosAngle;
+            float x_length = x_hypo / cosAngle2;
+
+            float y_ =  center_of_pixel_y - (float)Math.floor(center_of_pixel_y);
+            float y_hypo = y_ / sinAngle;
+            float y_length = y_hypo / cosAngle2;
+
+
+            float z_;
+            float z_hypo;
+            float z_length;
+
+            if(slope > 0) {
+                z_ = (float) Math.ceil(center_of_pixel_z) - center_of_pixel_z;
+                z_hypo = z_ / cosAngle2_2;
+                z_length = z_hypo;
+            }else{
+                z_ = center_of_pixel_z - (float) Math.floor(center_of_pixel_z);
+                z_hypo = z_ / cosAngle2_2;
+                z_length = z_hypo;
+            }
+
+
+
+            //float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / cosAngle2;
+            //float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / cosAngle2;
+            //float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
+            //float t_max_z = FastMath.abs(center_of_pixel_z - z_intersect[1]) / cosAngle2;
+            float t_max_z = euclideanDistance(center_of_pixel_x, center_of_pixel_z, z_intersect[0], z_intersect[1]) / cosAngle;
+            //System.out.println("DEG: " + FastMath.abs(center_of_pixel_z - z_intersect[1]));
+            //System.out.println("t_max_x: " + t_max_x + " t_max_z: " + t_max_z + " t_max_y: " + t_max_y + " " + direction_angle + " " + zenith_angle);
+
+            t_max_x = x_length;
+            t_max_y = y_length;
+            t_max_z = z_length;
+
+            lineStart[0] = center_of_pixel_x;lineEnd[0] = outside_x;
+            lineStart[1] = -center_of_pixel_y; lineEnd[1] = outside_y;
+            lineStart[2] = center_of_pixel_z; lineEnd[2] = outside_z;
+
+
+
+            if(false)
+                if(direction_angle > 85f){
+
+                    System.out.println(t_max_x + " " + t_max_y + " " + t_max_z + " " + zenith_angle + " " + direction_angle);
+
+                }
+
+            boolean breakki = false;
+            int counter = 0;
+            /* RAY TRACE ITERATIONS */
+            while (true) {
+
+                float t_current = -1;
+
+                if (t_max_x < t_max_y) {
+                    if (t_max_x < t_max_z) {
+                        t_current = t_max_x;
+                        t_max_x = t_max_x + t_d_x;
+                        current_x += step_x;
+                    }else{
+                        t_current = t_max_z;
+                        t_max_z = t_max_z + t_d_z;
+                        current_z += step_z;
+                    }
+
+                } else {
+                    if (t_max_y < t_max_z) {
+                        t_current = t_max_y;
+                        t_max_y = t_max_y + t_d_y;
+                        current_y += step_y;
+                    }else{
+                        t_current = t_max_z;
+                        t_max_z = t_max_z + t_d_z;
+                        current_z += step_z;
+                    }
+
+                }
+                counter++;
+
+
+                if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
+                    return dampening;
+                }
+
+                if (current_x >= this.x_size || current_y >= this.y_size || current_x < 0 || current_y < 0 || current_z < 0 || current_z >= this.z_size)
+                    return dampening;
+
+
+                if(current_z != z_vox)
+                    n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
+
+                if(n_points_in_voxel > 1)
+                    penetration++;
+
+                if(n_points_in_voxel > (1) && penetration >= minPenetration){
+
+                    double length = getLengthInCurrentVoxel(t_max_x, t_max_y, t_max_z, t_d_x, t_d_y, t_d_z, t_current, current_x, current_y, current_z, step_x,
+                            step_y, step_z, delta_t_last);
+
+                    if(length > length_threshold) {
+
+                        length *= resolution;
+
+                        x_offset = (float) chm_values_mean_x[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;
+                        y_offset = (float) chm_values_mean_y[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;
+                        z_offset = (float) chm_values_mean_z[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;
+
+                        //System.out.println(x_offset + " " + y_offset + " " + z_offset);
+
+                        //Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
+                        // point.crossProduct(point);
+                        //Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
+                        //        (float)-current_y+y_offset-(-center_of_pixel_y),
+                        //        (float)current_z+z_offset-center_of_pixel_z);
+
+                        point_quick.set((float) current_x + x_offset - center_of_pixel_x,
+                                (float) -current_y + y_offset - (-center_of_pixel_y),
+                                (float) current_z + z_offset - center_of_pixel_z);
+
+                        //float distance = (float)(Vector3D.crossProduct(point, line).getNorm() / line.getNorm());
+
+
+                        point_quick.cross(point_quick, line_quick);
+
+
+                        float distance = (float) (point_quick.norm() / line_quick.norm());
+
+
+                        point[0] = (float) current_x + x_offset;
+                        point[1] = (float) -current_y + y_offset;
+                        point[2] = (float) current_z + z_offset;
+
+                        distance = betweenPointAndLine(point, lineStart, lineEnd);
+
+
+                        //System.out.println("dist_90: " + distance);
+                        //float distance = 0;
+                        //System.out.println(distance + " == " + distance2);
+                        //System.out.println(distance);
+
+                        //System.out.println("length: " + length + " " + (length / resolution));
+
+                        //System.exit(1);
+
+
+                        if (distance < distance_threshold) {
+
+                            if (rM.vox_[current_x][current_y][current_z].isSolid)
+                                return 0.0;
+
+                            // System.out.println("BLOCKED!");
+
+                            //if(rM.vox_[current_x][current_y][current_z].flatness < 0.20){
+                            //    return 0.0;
+                            //}
+
+                            float neg = 1.0f - rM.vox_[current_x][current_y][current_z].flatness;
+
+                            //dampening -= dampening_factor_per_voxel; // * neg;
+                            dampening -= dampening_factor_per_meter * length; // * neg;
+                        }
+                    }
+                }
+
+                delta_t_last = t_current;
+
+                if(dampening <= 0.0)
+                    return dampening;
+            }
+
+        }
+
+        else if(direction_angle < 180.0f){
+
+            if(false){
+                if(direction_angle < 130 || direction_angle > 140)
+                    return 0.0;
+            }
+            // System.out.println("HERE!!");
+            step_x = 1;
+            step_y = 1;
+
+            //cosAngle = cos((180.0f - direction_angle));
+            cosAngle = cos((180.0f - direction_angle));
+            //sinAngle = sin((180.0f - direction_angle));
+            sinAngle = sin(180.0f - direction_angle);
+
+
+            outside_y = -center_of_pixel_y - cosAngle * 10000;
+            outside_x = center_of_pixel_x + sinAngle * 10000;
+
+            //Vector3D line = new Vector3D(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
+            line_quick.set(outside_x-center_of_pixel_x, outside_y + center_of_pixel_y, outside_z-center_of_pixel_z);
+            //line_quick.set(outside_x, outside_y, outside_z);
+
+            float t_d_x = (float) (resolution / sinAngle / sinAngle2);
+            float t_d_y = (float) (resolution / cosAngle / sinAngle2);
+            float t_d_z = (float) (resolution / cosAngle2);
+
+            //System.out.println(t_d_x);
+            //System.out.println(t_d_y);
+            //System.out.println(t_d_z);
+
+            t_d_x = (float) (resolution / sinAngle / cosAngle2);
+            t_d_y = (float) (resolution / cosAngle / cosAngle2);
+            t_d_z = (float) (resolution / sinAngle2);
+
+            //System.out.println("new");
+            //System.out.println(t_d_x);
+            //System.out.println(t_d_y);
+            //System.out.println(t_d_z);
+
+
+            float[] x_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, center_of_pixel_x - 10000, (int)(-center_of_pixel_y-1), center_of_pixel_x + 10000, (int)(-center_of_pixel_y-1));
+            float[] y_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x+1), -center_of_pixel_y + 10000, (int)(center_of_pixel_x+1), -center_of_pixel_y - 10000);
+
+            float[] z_intersect;
+            float[] z_intersect_2 = null;
+
+            if(step_z > 0){
+                z_intersect = lineIntersect((float) center_of_pixel_x, center_of_pixel_z, outside_x, outside_z, center_of_pixel_x - 10000,  (int)(center_of_pixel_z+1), center_of_pixel_x + 10000,  (int)(center_of_pixel_z+1));
+                z_intersect_2 = lineIntersect((float) -center_of_pixel_y, center_of_pixel_z, outside_y, outside_z, -center_of_pixel_y - 10000,  (int)(center_of_pixel_z+1), -center_of_pixel_y + 10000,  (int)(center_of_pixel_z+1));
+                //System.out.println("SHOULD BE HERE!");
+            }else
+                z_intersect = lineIntersect((float) center_of_pixel_x, center_of_pixel_z, outside_x, outside_z, center_of_pixel_x - 10000,  (int)(center_of_pixel_z), center_of_pixel_x + 10000,  (int)(center_of_pixel_z));
+
+
+            float x_ = (float)Math.ceil(center_of_pixel_x) - center_of_pixel_x;
+            float x_hypo = x_ / sinAngle;
+            float x_length = x_hypo / cosAngle2;
+
+            float y_ =  center_of_pixel_y - (float)Math.floor(center_of_pixel_y);
+            float y_hypo = y_ / cosAngle;
+            float y_length = y_hypo / cosAngle2;
+
+            float z_;
+            float z_hypo;
+            float z_length;
+
+
+
+            if(slope > 0) {
+                z_ = (float) Math.ceil(center_of_pixel_z) - center_of_pixel_z;
+                z_hypo = z_ / cosAngle2_2;
+                z_length = z_hypo;
+            }else{
+                z_ = center_of_pixel_z - (float) Math.floor(center_of_pixel_z);
+                z_hypo = z_ / cosAngle2_2;
+                z_length = z_hypo;
+            }
+
+            //System.out.println(x_length);
+            //System.out.println(y_length);
+            //System.out.println(z_length);
+            //System.exit(1);
+
+/*
+            System.out.println("x_le: " + x_length);
+            System.out.println("y_le: " + y_length);
+            System.out.println("z_le: " + z_length);
+
+
+            System.out.println(center_of_pixel_x + " " + center_of_pixel_y + " " + center_of_pixel_z);
+            System.out.println(cosAngle2);
+            System.out.println(Arrays.toString(x_intersect));
+            System.out.println(Arrays.toString(y_intersect));
+            System.out.println(Arrays.toString(z_intersect));
+            System.out.println(Arrays.toString(z_intersect_2));
+
+            //float x_distance = euclideanDistance3d(x_intersect[0], x_intersect[1], z_intersect)
+
+            //outside_y = y_intersect[1] - cosAngle * 10000;
+            //outside_x = x_intersect[0] + sinAngle * 10000;
+
+            System.out.println(euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y));
+*/
+            //float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / cosAngle2;
+            //float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / cosAngle2;
+            //float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / cosAngle2;
+            //float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
+            //float t_max_z = FastMath.abs(center_of_pixel_z - z_intersect[1]) / cosAngle2;
+            float t_max_z = euclideanDistance(center_of_pixel_x, center_of_pixel_z, z_intersect[0], z_intersect[1]) / cosAngle;
+
+
+            t_max_x = x_length;
+            t_max_y = y_length;
+            t_max_z = z_length;
+
+/*
+            System.out.println("slope: " + slope);
+            System.out.println(t_max_x + " x ");
+            System.out.println(t_max_y + " y ");
+            System.out.println(t_max_z + " z ");
+            System.out.println(zenith_angle);
+
+            //System.exit(1);
+*/
+
+            boolean breakki = false;
+
+            lineStart[0] = center_of_pixel_x;lineEnd[0] = outside_x;
+            lineStart[1] = -center_of_pixel_y; lineEnd[1] = outside_y;
+            lineStart[2] = center_of_pixel_z; lineEnd[2] = outside_z;
+
+            linePoint1.set(center_of_pixel_x, -center_of_pixel_y, center_of_pixel_z);
+            linePoint1.set(center_of_pixel_x, -center_of_pixel_y, center_of_pixel_z);
+            //linePoint1.set(x_intersect[0], y_intersect[1], z_intersect[1]);
+            linePoint2.set(outside_x, outside_y, outside_z);
+
+            point[0] = center_of_pixel_x;
+            point[1] = -center_of_pixel_y;
+            point[2] = center_of_pixel_z;
+
+            float distance_test = betweenPointAndLine(point, lineStart, lineEnd);
+
+            ArrayList<Integer> sides = new ArrayList<>();
+            ArrayList<Float> distances = new ArrayList<>();
+            ArrayList<Float> correction_plus = new ArrayList<>();
+            ArrayList<Integer> x_s = new ArrayList<>();
+            ArrayList<Integer> y_s = new ArrayList<>();
+            ArrayList<Float> x_coor = new ArrayList<>();
+            ArrayList<Float> y_coor = new ArrayList<>();
+            ArrayList<Float> lengths = new ArrayList<>();
+
+
+            //System.out.println("TEST DISTANCE: " + distance_test);
+            //sSystem.exit(1);
+
+            while (true) {
+
+                float t_current = -1;
+
+                if (t_max_x < t_max_y) {
+                    if (t_max_x < t_max_z) {
+                        t_current = t_max_x;
+                        t_max_x = t_max_x + t_d_x;
+                        current_x += step_x;
+                        sides.add(1);
+                    }else{
+                        t_current = t_max_z;
+                        t_max_z = t_max_z + t_d_z;
+                        current_z += step_z;
+                    }
+
+                } else {
+                    if (t_max_y < t_max_z) {
+                        t_current = t_max_y;
+                        t_max_y = t_max_y + t_d_y;
+                        current_y += step_y;
+                        sides.add(2);
+                    }else{
+                        t_current = t_max_z;
+                        t_max_z = t_max_z + t_d_z;
+                        current_z += step_z;
+                    }
+
+                }
+
+                //System.out.println(x + " " + y + " " + z_vox);
+                //System.out.println("debug: " + current_x + "\t" + current_y + "\t" + current_z + " " + t_current + " " + delta_t_last + " " + (t_current - delta_t_last));
+                //System.exit(1);
+                //System.out.println(this.rasterMaxValue + " " + (this.p_cloud_min_z + current_z * resolution));
+
+
+                if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
+
+                    if(debug) {
+                        System.out.println(Arrays.toString(sides.toArray()));
+                        System.out.println(Arrays.toString(distances.toArray()));
+                        System.out.println(Arrays.toString(correction_plus.toArray()));
+
+                        System.out.println(Arrays.toString(x_s.toArray()));
+                        System.out.println(Arrays.toString(y_s.toArray()));
+                        System.out.println(Arrays.toString(x_coor.toArray()));
+                        System.out.println(Arrays.toString(y_coor.toArray()));
+                        System.out.println(Arrays.toString(lengths.toArray()));
+                        System.exit(1);
+                    }
+
+                    return dampening;
+                }
+
+
+                if (current_x >= this.x_size || current_y >= this.y_size || current_x < 0 || current_y < 0 || current_z < 0 || current_z >= this.z_size) {
+
+                    if(debug) {
+                        System.out.println(Arrays.toString(sides.toArray()));
+                        System.out.println(Arrays.toString(distances.toArray()));
+                        System.out.println(Arrays.toString(correction_plus.toArray()));
+                        System.out.println(Arrays.toString(x_s.toArray()));
+                        System.out.println(Arrays.toString(y_s.toArray()));
+                        System.out.println(Arrays.toString(x_coor.toArray()));
+                        System.out.println(Arrays.toString(y_coor.toArray()));
+                        System.out.println(Arrays.toString(lengths.toArray()));
+                        System.exit(1);
+                    }
+
+                    return dampening;
+                }
+
+                if(current_z != z_vox)
+                    n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
+
+                if(n_points_in_voxel > 1)
+                    penetration++;
+
+
+
+                if(debug){
+
+                    x_s.add(current_x);
+                    y_s.add(current_y);
+
+                    double length = getLengthInCurrentVoxel(t_max_x, t_max_y, t_max_z, t_d_x, t_d_y, t_d_z, t_current, current_x, current_y, current_z, step_x,
+                            step_y, step_z, delta_t_last);
+
+                    lengths.add((float)length);
+                    System.out.println("orig: " + x + " " + y + " " + z_vox);
+                    System.out.println("CENTER: " + center_of_pixel_x + " " + center_of_pixel_y + " " + center_of_pixel_z);
+                    System.out.println("intersect: " + x_intersect[0] + " " + y_intersect[1] + " " + z_intersect[1]);
+                    System.out.println(Arrays.toString(z_intersect));
+                    System.out.println("Zenith: " + zenith_angle + " dir: " + direction_angle);
+
+                    x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
+                    y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
+                    z_offset = (float)chm_values_mean_z[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
+
+
+                    //x_offset = 0.5f;
+                    //y_offset = 0.5f;
+                    //z_offset = 0.5f;
+
+                    point_quick.set((float)current_x+x_offset,
+                            (float)-current_y-y_offset,
+                            (float)current_z+z_offset);
+
+                    //float distance = (float)(Vector3D.crossProduct(point, line).getNorm() / line.getNorm())
+
+                    //point_quick.cross(point_quick, line_quick);
+                    point_quick.cross(line_quick, point_quick);
+
+                    float distance = (float)(point_quick.norm() / line_quick.norm());
+                    System.out.println("dist: " + distance + " " + current_x + " " + current_y + " " + current_z);
+                    System.out.println("canter: " + center_of_pixel_x + " " + center_of_pixel_y + " " + center_of_pixel_z);
+                    System.out.println("current: " + current_x + " " + current_y + " " + current_z);
+                    System.out.println("Tcurrent: " + t_current);
+                    System.out.println("outside: " + outside_x + " " + outside_y + " " + outside_z);
+                    System.out.println("offs: " + x_offset  +  " " + y_offset + " " + z_offset );
+
+                    point[0] = (float)current_x+x_offset;
+                    point[1] = (float)-current_y+y_offset;
+                    point[2] = (float)current_z+z_offset;
+
+                    point_.set((float)current_x+x_offset, (float)current_y+y_offset, (float)current_z+z_offset);
+
+                    System.out.println("point: " + point[0] + " " + point[1] + " " + point[2] );
+
+                    distance = betweenPointAndLine(point, lineStart, lineEnd);
+                    distances.add(distance);
+                    point[2] -= distance;
+                    distance = betweenPointAndLine(point, lineStart, lineEnd);
+                    correction_plus.add(distance);
+                    System.out.println("dist2: " + distance + " " + t_current   );
+                    x_coor.add(point[0]);
+                    y_coor.add(point[1]);
+                    distance = (float)distancePointLine(point_, linePoint1, linePoint2);
+
+
+                    System.out.println("dist3: " + distance  );
+                    //System.out.println("dist3: " + point_quick.cross(point_quick, line_quick) + " " + t_current   );
+
+                    //distance = (float)distancePointLine(point_, linePoint1, linePoint2);
+
+                    //System.out.println("dist3: " + distance);
+                    System.out.println(point[0] + " " + point[1] + " " + point[2]);
+                    System.out.println("-----------------------------------");
+
+                }
+
+                if(!debug)
+                    if(n_points_in_voxel > (1) && penetration >= minPenetration){
+
+                        double length = getLengthInCurrentVoxel(t_max_x, t_max_y, t_max_z, t_d_x, t_d_y, t_d_z, t_current, current_x, current_y, current_z, step_x,
+                                step_y, step_z, delta_t_last);
+
+                        if(length > length_threshold) {
+
+                            length *= resolution;
+
+                            x_offset = (float) chm_values_mean_x[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;
+                            y_offset = (float) chm_values_mean_y[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;
+                            z_offset = (float) chm_values_mean_z[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;
+
+                            //System.out.println(x_offset + " " + y_offset + " " + z_offset);
+
+                            //Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
+                            // point.crossProduct(point);
+                            //Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
+                            //        (float)-current_y+y_offset-(-center_of_pixel_y),
+                            //        (float)current_z+z_offset-center_of_pixel_z);
+
+                            point_quick.set((float) current_x + x_offset - center_of_pixel_x,
+                                    (float) -current_y + y_offset - (-center_of_pixel_y),
+                                    (float) current_z + z_offset - center_of_pixel_z);
+
+                            //float distance = (float)(Vector3D.crossProduct(point, line).getNorm() / line.getNorm());
+
+
+                            point_quick.cross(point_quick, line_quick);
+
+
+                            float distance = (float) (point_quick.norm() / line_quick.norm());
+
+
+                            point[0] = (float) current_x + x_offset;
+                            point[1] = (float) -current_y + y_offset;
+                            point[2] = (float) current_z + z_offset;
+
+                            distance = betweenPointAndLine(point, lineStart, lineEnd);
+
+
+                            //System.out.println("dist_90: " + distance);
+                            //float distance = 0;
+                            //System.out.println(distance + " == " + distance2);
+                            //System.out.println(distance);
+
+                            //System.out.println("length: " + length + " " + (length / resolution));
+
+                            //System.exit(1);
+
+
+                            if (distance < distance_threshold) {
+
+                                if (rM.vox_[current_x][current_y][current_z].isSolid)
+                                    return 0.0;
+
+                                // System.out.println("BLOCKED!");
+
+                                //if(rM.vox_[current_x][current_y][current_z].flatness < 0.20){
+                                //    return 0.0;
+                                //}
+
+                                float neg = 1.0f - rM.vox_[current_x][current_y][current_z].flatness;
+
+                                //dampening -= dampening_factor_per_voxel; // * neg;
+                                dampening -= dampening_factor_per_meter * length; // * neg;
+                            }
+                        }
+                    }
+
+                delta_t_last = t_current;
+
+                if(dampening <= 0.0)
+                    return dampening;
+
+            }
+
+
+
+
+        }
+
+        else if(direction_angle < 270.0f){
+
+            step_x = -1;
+            step_y = 1;
+
+            //cosAngle = (float)Math.cos(Math.toRadians(270.0 - direction_angle));
+            //sinAngle = (float)Math.sin(Math.toRadians(270.0 - direction_angle));
+
+            cosAngle = cos((270.0f - direction_angle));
+            sinAngle = sin((270.0f - direction_angle));
+
+            outside_y = -center_of_pixel_y - sinAngle * 10000;
+            outside_x = center_of_pixel_x - cosAngle * 10000;
+
+            float t_d_x = (float) (resolution / cosAngle / sinAngle2);
+            float t_d_y = (float) (resolution / sinAngle / sinAngle2);
+            float t_d_z = (float) (resolution / cosAngle2);
+
+
+            t_d_x = (float) (resolution / cosAngle / cosAngle2);
+            t_d_y = (float) (resolution / sinAngle / cosAngle2);
+            t_d_z = (float) (resolution / sinAngle2);
+
+
+
+            //Vector3D line = new Vector3D(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
+            line_quick.set(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
+
+            float[] y_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, x - 10000, (int)(-center_of_pixel_y-1), x + 10000, (int)(-center_of_pixel_y-1));
+            float[] x_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x), -center_of_pixel_y + 10000, (int)(center_of_pixel_x), -center_of_pixel_y - 10000);
+
+            float[] z_intersect;
+
+            if(step_z > 0){
+                z_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_z, outside_x, outside_z, center_of_pixel_x - 10000,  (int)(center_of_pixel_z+1), center_of_pixel_x + 10000,  (int)(center_of_pixel_z+1));
+                //System.out.println("SHOULD!");
+            }else
+                z_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_z, outside_x, outside_z, center_of_pixel_x - 10000,  (int)(center_of_pixel_z), center_of_pixel_x + 10000,  (int)(center_of_pixel_z));
+
+
+            /*
+            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            //float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
+            float t_max_z = FastMath.abs(center_of_pixel_z - z_intersect[1]) / cosAngle2;
+
+
+             */
+/*
+            float x_ =  center_of_pixel_x - (float)Math.floor(center_of_pixel_x);
+            float x_hypo = x_ / cosAngle2;
+            float x_length = x_hypo / cosAngle;
+
+            float y_ =  center_of_pixel_y - (float)Math.floor(center_of_pixel_y);
+            float y_hypo = y_ / cosAngle2;
+            float y_length = y_hypo / cosAngle;
+
+*/
+            float x_ = center_of_pixel_x - (float)Math.floor(center_of_pixel_x);
+            float x_hypo = x_ / sinAngle;
+            float x_length = x_hypo / cosAngle2;
+
+            float y_ =  center_of_pixel_y - (float)Math.floor(center_of_pixel_y);
+            float y_hypo = y_ / cosAngle;
+            float y_length = y_hypo / cosAngle2;
+
+
+            float z_;
+            float z_hypo;
+            float z_length;
+
+            if(slope > 0) {
+                z_ = (float) Math.ceil(center_of_pixel_z) - center_of_pixel_z;
+                z_hypo = z_ / cosAngle2_2;
+                z_length = z_hypo;
+            }else{
+                z_ = center_of_pixel_z - (float) Math.floor(center_of_pixel_z);
+                z_hypo = z_ / cosAngle2_2;
+                z_length = z_hypo;
+            }
+
+
+
+
+            //float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / cosAngle2;
+            //float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / cosAngle2;
+            //float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
+            //float t_max_z = FastMath.abs(center_of_pixel_z - z_intersect[1]) / cosAngle2;
+            float t_max_z = euclideanDistance(center_of_pixel_x, center_of_pixel_z, z_intersect[0], z_intersect[1]) / cosAngle;
+
+            lineStart[0] = center_of_pixel_x;lineEnd[0] = outside_x;
+            lineStart[1] = -center_of_pixel_y; lineEnd[1] = outside_y;
+            lineStart[2] = center_of_pixel_z; lineEnd[2] = outside_z;
+
+            t_max_x = x_length;
+            t_max_y = y_length;
+            t_max_z = z_length;
+
+
+            //System.out.println(t_max_x);
+            //System.out.println(t_max_y);
+            //System.out.println(t_max_z);
+
+            //System.exit(1);
+
+
+
+            boolean breakki = false;
+
+            while (true) {
+
+                float t_current = -1;
+
+                if (t_max_x < t_max_y) {
+                    if (t_max_x < t_max_z) {
+                        t_current = t_max_x;
+                        t_max_x = t_max_x + t_d_x;
+                        current_x += step_x;
+                    }else{
+                        t_current = t_max_z;
+                        t_max_z = t_max_z + t_d_z;
+                        current_z += step_z;
+                    }
+
+                } else {
+                    if (t_max_y < t_max_z) {
+                        t_current = t_max_y;
+                        t_max_y = t_max_y + t_d_y;
+                        current_y += step_y;
+                    }else{
+                        t_current = t_max_z;
+                        t_max_z = t_max_z + t_d_z;
+                        current_z += step_z;
+                    }
+
+                }
+
+                if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
+                    return dampening;
+                }
+
+                if (current_x >= this.x_size || current_y >= this.y_size || current_x < 0 || current_y < 0 || current_z < 0 || current_z >= this.z_size)
+                    return dampening;
+
+
+                if(current_z != z_vox)
+                    n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
+
+                if(n_points_in_voxel > 1)
+                    penetration++;
+
+                if(n_points_in_voxel > (1) && penetration >= minPenetration){
+
+                    double length = getLengthInCurrentVoxel(t_max_x, t_max_y, t_max_z, t_d_x, t_d_y, t_d_z, t_current, current_x, current_y, current_z, step_x,
+                            step_y, step_z, delta_t_last);
+
+                    if(length > length_threshold) {
+
+                        length *= resolution;
+
+                        x_offset = (float) chm_values_mean_x[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;
+                        y_offset = (float) chm_values_mean_y[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;
+                        z_offset = (float) chm_values_mean_z[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;
+
+                        //System.out.println(x_offset + " " + y_offset + " " + z_offset);
+
+                        //Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
+                        // point.crossProduct(point);
+                        //Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
+                        //        (float)-current_y+y_offset-(-center_of_pixel_y),
+                        //        (float)current_z+z_offset-center_of_pixel_z);
+
+                        point_quick.set((float) current_x + x_offset - center_of_pixel_x,
+                                (float) -current_y + y_offset - (-center_of_pixel_y),
+                                (float) current_z + z_offset - center_of_pixel_z);
+
+                        //float distance = (float)(Vector3D.crossProduct(point, line).getNorm() / line.getNorm());
+
+
+                        point_quick.cross(point_quick, line_quick);
+
+
+                        float distance = (float) (point_quick.norm() / line_quick.norm());
+
+
+                        point[0] = (float) current_x + x_offset;
+                        point[1] = (float) -current_y + y_offset;
+                        point[2] = (float) current_z + z_offset;
+
+                        distance = betweenPointAndLine(point, lineStart, lineEnd);
+
+
+                        //System.out.println("dist_90: " + distance);
+                        //float distance = 0;
+                        //System.out.println(distance + " == " + distance2);
+                        //System.out.println(distance);
+
+                        //System.out.println("length: " + length + " " + (length / resolution));
+
+                        //System.exit(1);
+
+
+                        if (distance < distance_threshold) {
+
+                            if (rM.vox_[current_x][current_y][current_z].isSolid)
+                                return 0.0;
+
+                            // System.out.println("BLOCKED!");
+
+                            //if(rM.vox_[current_x][current_y][current_z].flatness < 0.20){
+                            //    return 0.0;
+                            //}
+
+                            float neg = 1.0f - rM.vox_[current_x][current_y][current_z].flatness;
+
+                            //dampening -= dampening_factor_per_voxel; // * neg;
+                            dampening -= dampening_factor_per_meter * length; // * neg;
+                        }
+                    }
+                }
+
+                delta_t_last = t_current;
+
+                if(dampening <= 0.0)
+                    return dampening;
+
+            }
+
+
+
+        }
+
+        else if(direction_angle < 360.0f){
+
+            step_x = -1;
+            step_y = -1;
+
+            //cosAngle = (float)Math.cos(Math.toRadians(360.0 - direction_angle));
+            //sinAngle = (float)Math.sin(Math.toRadians(360.0 - direction_angle));
+
+            cosAngle = cos((360.0f - direction_angle));
+            sinAngle = sin((360.0f - direction_angle));
+
+            outside_y = -center_of_pixel_y + cosAngle * 10000;
+            outside_x = center_of_pixel_x - sinAngle * 10000;
+
+
+            float t_d_x = (float) (resolution / sinAngle / sinAngle2);
+            float t_d_y = (float) (resolution / cosAngle / sinAngle2);
+            float t_d_z = (float) (resolution / cosAngle2);
+
+            t_d_x = (float) (resolution / sinAngle / cosAngle2);
+            t_d_y = (float) (resolution / cosAngle / cosAngle2);
+            t_d_z = (float) (resolution / sinAngle2);
+
+            // Vector3D line = new Vector3D(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
+            line_quick.set(outside_x-center_of_pixel_x, outside_y-(-center_of_pixel_y), outside_z-center_of_pixel_z);
+
+
+            float[] y_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, x - 10000, (int)(-center_of_pixel_y), x + 10000, (int)(-center_of_pixel_y));
+            //float[] y_intersect_z = lineIntersect(-center_of_pixel_y, center_of_pixel_z, outside_y, outside_z, z - 10000, (int)(-center_of_pixel_y), x + 10000, (int)(-center_of_pixel_y));
+            float[] x_intersect = lineIntersect(center_of_pixel_x, -center_of_pixel_y, outside_x, outside_y, (int)(center_of_pixel_x-1), -y + 10000, (int)(center_of_pixel_x-1), -y - 10000);
+
+
+            float[] z_intersect;
+
+            if(step_z > 0){
+                z_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_z, outside_x, outside_z, x - 10000,  (int)(center_of_pixel_z+1), x + 10000, (int)(center_of_pixel_z+1));
+                //System.out.println("SHOULD!");
+            }else
+                z_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_z, outside_x, outside_z, x - 10000, (int)(center_of_pixel_z), x + 10000,  (int)(center_of_pixel_z));
+
+
+            //System.out.println(Arrays.toString(y_intersect));
+            //System.out.println(Arrays.toString(x_intersect));
+
+/*
+            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            //float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
+            float t_max_z = FastMath.abs(center_of_pixel_z - z_intersect[1]) / cosAngle2;
+
+
+ */
+
+
+            float x_ =  center_of_pixel_x - (float)Math.floor(center_of_pixel_x);
+            float x_hypo = x_ / sinAngle;
+            float x_length = x_hypo / cosAngle;
+
+            float y_ =  (float)Math.floor(center_of_pixel_y);
+            float y_hypo = y_ / cosAngle;
+            float y_length = y_hypo / cosAngle;
+
+
+            float z_;
+            float z_hypo;
+            float z_length;
+
+            if(slope > 0) {
+                z_ = (float) Math.ceil(center_of_pixel_z) - center_of_pixel_z;
+                z_hypo = z_ / cosAngle2_2;
+                z_length = z_hypo;
+            }else{
+                z_ = center_of_pixel_z - (float) Math.floor(center_of_pixel_z);
+                z_hypo = z_ / cosAngle2_2;
+                z_length = z_hypo;
+            }
+
+
+            //float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / cosAngle2;
+            //float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
+            float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / cosAngle2;
+            //float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
+            //float t_max_z = FastMath.abs(center_of_pixel_z - z_intersect[1]) / cosAngle2;
+            float t_max_z = euclideanDistance(center_of_pixel_x, center_of_pixel_z, z_intersect[0], z_intersect[1]) / cosAngle;
+
+            lineStart[0] = center_of_pixel_x;lineEnd[0] = outside_x;
+            lineStart[1] = -center_of_pixel_y; lineEnd[1] = outside_y;
+            lineStart[2] = center_of_pixel_z; lineEnd[2] = outside_z;
+
+
+            t_max_x = x_length;
+            t_max_y = y_length;
+            t_max_z = z_length;
+
+            boolean breakki = false;
+
+            while (true) {
+
+                float t_current = -1;
+
+                if (t_max_x < t_max_y) {
+
+                    if (t_max_x < t_max_z) {
+                        t_current = t_max_x;
+                        t_max_x = t_max_x + t_d_x;
+                        current_x += step_x;
+                    }else{
+                        t_current = t_max_z;
+                        t_max_z = t_max_z + t_d_z;
+                        current_z += step_z;
+                    }
+
+                } else {
+                    if (t_max_y < t_max_z) {
+                        t_current = t_max_y;
+                        t_max_y = t_max_y + t_d_y;
+                        current_y += step_y;
+                    }else{
+                        t_current = t_max_z;
+                        t_max_z = t_max_z + t_d_z;
+                        current_z += step_z;
+                    }
+
+                }
+
+
+                if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
+                    return dampening;
+                }
+                if (current_x >= this.x_size || current_y >= this.y_size || current_x < 0 || current_y < 0 || current_z < 0 || current_z >= this.z_size)
+                    return dampening;
+
+
+                if(current_z != z_vox)
+                    n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
+
+                if(n_points_in_voxel > 1)
+                    penetration++;
+
+                if(n_points_in_voxel > (1) && penetration >= minPenetration){
+
+                    double length = getLengthInCurrentVoxel(t_max_x, t_max_y, t_max_z, t_d_x, t_d_y, t_d_z, t_current, current_x, current_y, current_z, step_x,
+                            step_y, step_z, delta_t_last);
+
+                    if(length > length_threshold) {
+
+                        length *= resolution;
+
+                        x_offset = (float) chm_values_mean_x[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;
+                        y_offset = (float) chm_values_mean_y[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;
+                        z_offset = (float) chm_values_mean_z[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;
+
+                        //System.out.println(x_offset + " " + y_offset + " " + z_offset);
+
+                        //Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
+                        // point.crossProduct(point);
+                        //Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
+                        //        (float)-current_y+y_offset-(-center_of_pixel_y),
+                        //        (float)current_z+z_offset-center_of_pixel_z);
+
+                        point_quick.set((float) current_x + x_offset - center_of_pixel_x,
+                                (float) -current_y + y_offset - (-center_of_pixel_y),
+                                (float) current_z + z_offset - center_of_pixel_z);
+
+                        //float distance = (float)(Vector3D.crossProduct(point, line).getNorm() / line.getNorm());
+
+
+                        point_quick.cross(point_quick, line_quick);
+
+
+                        float distance = (float) (point_quick.norm() / line_quick.norm());
+
+
+                        point[0] = (float) current_x + x_offset;
+                        point[1] = (float) -current_y + y_offset;
+                        point[2] = (float) current_z + z_offset;
+
+                        distance = betweenPointAndLine(point, lineStart, lineEnd);
+
+
+                        //System.out.println("dist_90: " + distance);
+                        //float distance = 0;
+                        //System.out.println(distance + " == " + distance2);
+                        //System.out.println(distance);
+
+                        //System.out.println("length: " + length + " " + (length / resolution));
+
+                        //System.exit(1);
+
+
+                        if (distance < distance_threshold) {
+
+                            if (rM.vox_[current_x][current_y][current_z].isSolid)
+                                return 0.0;
+
+                            // System.out.println("BLOCKED!");
+
+                            //if(rM.vox_[current_x][current_y][current_z].flatness < 0.20){
+                            //    return 0.0;
+                            //}
+
+                            float neg = 1.0f - rM.vox_[current_x][current_y][current_z].flatness;
+
+                            //dampening -= dampening_factor_per_voxel; // * neg;
+                            dampening -= dampening_factor_per_meter * length; // * neg;
+                        }
+                    }
+                }
+
+                delta_t_last = t_current;
+
+                if(dampening <= 0.0)
+                    return dampening;
+            }
+
+
+
+        }
+
+        return dampening;
+
+    }
+
+    public double getLengthInCurrentVoxel(float t_max_x, float t_max_y, float t_max_z,
+                                          float t_d_x, float t_d_y, float t_d_z,
+                                          float t_current,
+                                          float current_x, float current_y, float current_z,
+                                          float step_x, float step_y, float step_z,
+                                          float delta_t_last){
+
+        delta_t_last = t_current;
+
+        if (t_max_x < t_max_y) {
+            if (t_max_x < t_max_z) {
+                t_current = t_max_x;
+                t_max_x = t_max_x + t_d_x;
+                current_x += step_x;
+            }else{
+                t_current = t_max_z;
+                t_max_z = t_max_z + t_d_z;
+                current_z += step_z;
+            }
+
+        } else {
+            if (t_max_y < t_max_z) {
+                t_current = t_max_y;
+                t_max_y = t_max_y + t_d_y;
+                current_y += step_y;
+            } else {
+                t_current = t_max_z;
+                t_max_z = t_max_z + t_d_z;
+                current_z += step_z;
+            }
+        }
+
+            return t_current - delta_t_last;
+    }
+
+    public static double distancePointLine(Point3d point, Point3d linePoint1, Point3d linePoint2) {
+        // Vector from linePoint1 to linePoint2
+        Vector3D lineVector = new Vector3D(linePoint2.x - linePoint1.x, linePoint2.y - linePoint1.y, linePoint2.z - linePoint1.z);
+        // Vector from linePoint1 to point
+        Vector3D pointVector = new Vector3D(point.x - linePoint1.x, point.y - linePoint1.y, point.z - linePoint1.z);
+
+        // Find the projection of the pointVector onto the lineVector
+        double projection = pointVector.dotProduct(lineVector) / lineVector.dotProduct(lineVector);
+
+        // Find the point on the line that is closest to the point
+        Point3d closestPoint;
+        if (projection < 0) {
+            // Closest point is linePoint1
+            closestPoint = linePoint1;
+        } else if (projection > 1) {
+            // Closest point is linePoint2
+            closestPoint = linePoint2;
+        } else {
+            // Closest point is on the line segment between linePoint1 and linePoint2
+            double x = linePoint1.x + projection * lineVector.getX();
+            double y = linePoint1.y + projection * lineVector.getY();
+            double z = linePoint1.z + projection * lineVector.getZ();
+            closestPoint = new Point3d(x, y, z);
+        }
+
+        // Calculate the distance between the point and the closest point on the line
+        double dx = point.x - closestPoint.x;
+        double dy = point.y - closestPoint.y;
+        double dz = point.z - closestPoint.z;
+        double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        return distance;
+    }
+
+    public static float betweenPointAndLine(float[] point, float[] lineStart, float[] lineEnd){
+        float[] PointThing = new float[3];
+        float[] TotalThing = new float[3];
+        PointThing[0] = lineStart[0] - point[0];
+        PointThing[1] = lineStart[1] - point[1];
+        PointThing[2] = lineStart[2] - point[2];
+
+        TotalThing[0] = (PointThing[1]*lineEnd[2] - PointThing[2]*lineEnd[1]);
+        TotalThing[1] = -(PointThing[0]*lineEnd[2] - PointThing[2]*lineEnd[0]);
+        TotalThing[2] = (PointThing[0]*lineEnd[1] - PointThing[1]*lineEnd[0]);
+
+        float distance = (float) (Math.sqrt(TotalThing[0]*TotalThing[0] + TotalThing[1]*TotalThing[1] + TotalThing[2]*TotalThing[2]) /
+                Math.sqrt(lineEnd[0] * lineEnd[0] + lineEnd[1] * lineEnd[1] + lineEnd[2] * lineEnd[2] ));
+
+
+        return distance;
+    }
+
+    public static double distance(double x1, double y1, double z1,
+                                  double x2, double y2, double z2,
+                                  double x3, double y3, double z3) {
+        double b = Math.sqrt(Math.pow((x2 - x3), 2)
+                + Math.pow((y2 - y3), 2)
+                + Math.pow((z2 - z3), 2));
+
+        double S = Math.sqrt(Math.pow((y2 - y1) * (z3 - z1) - (z2 - z1) * (y3 - y1), 2) +
+                Math.pow((z2 - z1) * (x3 - x1) - (x2 - x1) * (z3 - z1), 2) +
+                Math.pow((x2 - x1) * (y3 - y1) - (y2 - y1) * (x3 - x1), 2)) / 2;
+
+        return 2 * S / b;
+    }
+
+
+    public double isBlocked_ray_trace_amapVox(int x, int y, int z_vox, byte z, double resolution, double zenith_angle, double slope,
+                                                float direction_angle, int hour, float chm_max, solar3dManipulator rM){
+
+        double dampening_factor_per_meter = 1.1;
+
+        double dampening_factor_per_voxel = resolution * dampening_factor_per_meter;
+        double dampening = 1.0;
+
+        float transmittance = 1.0f;
 
         int penetration = 0;
 
@@ -3147,19 +4678,28 @@ class solarParallel_3d extends Thread {
 
 
                 if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
-                    return dampening;
+                    return transmittance;
                 }
 
                 if (current_x >= this.x_size || current_y >= this.y_size || current_x < 0 || current_y < 0 || current_z < 0 || current_z >= this.z_size)
-                    return dampening;
+                    return transmittance;
 
 
-                if(current_z != z_vox)
-                    n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
+                if(current_z != z_vox) {
+                    n_points_in_voxel = chm_3d[(int) current_y][(int) current_x][(int) current_z];
+                    transmittance -= (1.0f - rM.aV.data[(int) current_x][(int) current_y][(int) current_z]);
 
+                }
                 if(n_points_in_voxel > 1)
                     penetration++;
 
+                if(transmittance <= 0.0f){
+
+                    return 0.0;
+
+                }
+
+                if(false)
                 if(n_points_in_voxel > (1) && penetration >= minPenetration){
 
                     x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
@@ -3186,10 +4726,10 @@ class solarParallel_3d extends Thread {
                     //System.out.println(distance + " == " + distance2);
                     //System.out.println(distance);
 
-                        if(distance < distance_threshold){
-                            // System.out.println("BLOCKED!");
-                            dampening -= dampening_factor_per_voxel;
-                        }
+                    if(distance < distance_threshold){
+                        // System.out.println("BLOCKED!");
+                        dampening -= dampening_factor_per_voxel;
+                    }
 
                 }
             }
@@ -3267,56 +4807,60 @@ class solarParallel_3d extends Thread {
 
 
                 if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
-                    return dampening;
+                    return transmittance;
                 }
 
-
                 if (current_x >= this.x_size || current_y >= this.y_size || current_x < 0 || current_y < 0 || current_z < 0 || current_z >= this.z_size)
-                    return dampening;
+                    return transmittance;
 
-                if(current_z != z_vox)
-                    n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
 
+                if(current_z != z_vox) {
+                    n_points_in_voxel = chm_3d[(int) current_y][(int) current_x][(int) current_z];
+                    transmittance -= (1.0f - rM.aV.data[(int) current_x][(int) current_y][(int) current_z]);
+
+                }
                 if(n_points_in_voxel > 1)
                     penetration++;
 
-                if(n_points_in_voxel > (1) && penetration >= minPenetration){
+                if(transmittance <= 0.0f){
 
-
-
-                    x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
-                    y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
-                    z_offset = (float)chm_values_mean_z[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
-
-                    //System.out.println(x_offset + " " + y_offset + " " + z_offset);
-
-                    //Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
-                    // point.crossProduct(point);
-                    //Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
-                    // point.crossProduct(point);
-                    //Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
-                    //        (float)-current_y+y_offset-(-center_of_pixel_y),
-                    //        (float)current_z+z_offset-center_of_pixel_z);
-
-                    point_quick.set((float)current_x+x_offset-center_of_pixel_x,
-                            (float)-current_y+y_offset-(-center_of_pixel_y),
-                            (float)current_z+z_offset-center_of_pixel_z);
-
-                    //float distance = (float)(Vector3D.crossProduct(point, line).getNorm() / line.getNorm());
-
-                    point_quick.cross(point_quick, line_quick);
-                    float distance = (float)(point_quick.norm() / line_quick.norm());
-                    //float distance = 0;
-                    //System.out.println(distance);
-                    //float distance = 0;
-                    if(distance < distance_threshold){
-                        //System.out.println("HERE2");
-
-                        // System.out.println("BLOCKED!");
-                        dampening -= dampening_factor_per_voxel;;
-                    }
+                    return 0.0;
 
                 }
+
+                if(false)
+                    if(n_points_in_voxel > (1) && penetration >= minPenetration){
+
+                        x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
+                        y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
+                        z_offset = (float)chm_values_mean_z[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
+
+                        //System.out.println(x_offset + " " + y_offset + " " + z_offset);
+
+                        //Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
+                        // point.crossProduct(point);
+                        //Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
+                        //        (float)-current_y+y_offset-(-center_of_pixel_y),
+                        //        (float)current_z+z_offset-center_of_pixel_z);
+
+                        point_quick.set((float)current_x+x_offset-center_of_pixel_x,
+                                (float)-current_y+y_offset-(-center_of_pixel_y),
+                                (float)current_z+z_offset-center_of_pixel_z);
+
+                        //float distance = (float)(Vector3D.crossProduct(point, line).getNorm() / line.getNorm());
+
+                        point_quick.cross(point_quick, line_quick);
+                        float distance = (float)(point_quick.norm() / line_quick.norm());
+                        //float distance = 0;
+                        //System.out.println(distance + " == " + distance2);
+                        //System.out.println(distance);
+
+                        if(distance < distance_threshold){
+                            // System.out.println("BLOCKED!");
+                            dampening -= dampening_factor_per_voxel;
+                        }
+
+                    }
 
             }
 
@@ -3393,53 +4937,60 @@ class solarParallel_3d extends Thread {
                 }
 
                 if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
-                    return dampening;
+                    return transmittance;
                 }
 
                 if (current_x >= this.x_size || current_y >= this.y_size || current_x < 0 || current_y < 0 || current_z < 0 || current_z >= this.z_size)
-                    return dampening;
+                    return transmittance;
 
 
-                if(current_z != z_vox)
-                    n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
+                if(current_z != z_vox) {
+                    n_points_in_voxel = chm_3d[(int) current_y][(int) current_x][(int) current_z];
+                    transmittance -= (1.0f - rM.aV.data[(int) current_x][(int) current_y][(int) current_z]);
 
+                }
                 if(n_points_in_voxel > 1)
                     penetration++;
 
-                if(n_points_in_voxel > (1) && penetration >= minPenetration){
+                if(transmittance <= 0.0f){
 
-                    x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
-                    y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
-                    z_offset = (float)chm_values_mean_z[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
-
-                    //System.out.println(x_offset + " " + y_offset + " " + z_offset);
-
-                    //Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
-                    // point.crossProduct(point);
-                    //Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
-                    // point.crossProduct(point);
-                    //Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
-                    //        (float)-current_y+y_offset-(-center_of_pixel_y),
-                    //        (float)current_z+z_offset-center_of_pixel_z);
-
-                    point_quick.set((float)current_x+x_offset-center_of_pixel_x,
-                            (float)-current_y+y_offset-(-center_of_pixel_y),
-                            (float)current_z+z_offset-center_of_pixel_z);
-
-                    //float distance = (float)(Vector3D.crossProduct(point, line).getNorm() / line.getNorm());
-
-                    point_quick.cross(point_quick, line_quick);
-                    float distance = (float)(point_quick.norm() / line_quick.norm());
-                    //float distance = 0;
-                    //System.out.println(distance + " == " + distance2);
-
-                    //float distance = 0;
-                    if(distance < distance_threshold){
-                        //System.out.println("BLOCKED!");
-                        dampening -= dampening_factor_per_voxel;
-                    }
+                    return 0.0;
 
                 }
+
+                if(false)
+                    if(n_points_in_voxel > (1) && penetration >= minPenetration){
+
+                        x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
+                        y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
+                        z_offset = (float)chm_values_mean_z[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
+
+                        //System.out.println(x_offset + " " + y_offset + " " + z_offset);
+
+                        //Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
+                        // point.crossProduct(point);
+                        //Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
+                        //        (float)-current_y+y_offset-(-center_of_pixel_y),
+                        //        (float)current_z+z_offset-center_of_pixel_z);
+
+                        point_quick.set((float)current_x+x_offset-center_of_pixel_x,
+                                (float)-current_y+y_offset-(-center_of_pixel_y),
+                                (float)current_z+z_offset-center_of_pixel_z);
+
+                        //float distance = (float)(Vector3D.crossProduct(point, line).getNorm() / line.getNorm());
+
+                        point_quick.cross(point_quick, line_quick);
+                        float distance = (float)(point_quick.norm() / line_quick.norm());
+                        //float distance = 0;
+                        //System.out.println(distance + " == " + distance2);
+                        //System.out.println(distance);
+
+                        if(distance < distance_threshold){
+                            // System.out.println("BLOCKED!");
+                            dampening -= dampening_factor_per_voxel;
+                        }
+
+                    }
 
             }
 
@@ -3526,53 +5077,60 @@ class solarParallel_3d extends Thread {
 
 
                 if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
-                    return dampening;
+                    return transmittance;
                 }
+
                 if (current_x >= this.x_size || current_y >= this.y_size || current_x < 0 || current_y < 0 || current_z < 0 || current_z >= this.z_size)
-                    return dampening;
+                    return transmittance;
 
 
-                if(current_z != z_vox)
-                    n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
+                if(current_z != z_vox) {
+                    n_points_in_voxel = chm_3d[(int) current_y][(int) current_x][(int) current_z];
+                    transmittance -= (1.0f - rM.aV.data[(int) current_x][(int) current_y][(int) current_z]);
 
+                }
                 if(n_points_in_voxel > 1)
                     penetration++;
 
-                if(n_points_in_voxel > (1) && penetration >= minPenetration       ){
+                if(transmittance <= 0.0f){
 
-                    x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
-                    y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
-                    z_offset = (float)chm_values_mean_z[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
-
-                    //System.out.println(x_offset + " " + y_offset + " " + z_offset);
-
-                    //Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
-                    // point.crossProduct(point);
-                    //Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
-                    // point.crossProduct(point);
-                    //Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
-                    //        (float)-current_y+y_offset-(-center_of_pixel_y),
-                    //        (float)current_z+z_offset-center_of_pixel_z);
-
-                    point_quick.set((float)current_x+x_offset-center_of_pixel_x,
-                            (float)-current_y+y_offset-(-center_of_pixel_y),
-                            (float)current_z+z_offset-center_of_pixel_z);
-
-                    //float distance = (float)(Vector3D.crossProduct(point, line).getNorm() / line.getNorm());
-
-                    point_quick.cross(point_quick, line_quick);
-                    float distance = (float)(point_quick.norm() / line_quick.norm());
-                    //float distance = 0;
-                    //System.out.println(distance + " == " + distance2);
-
-                    //float distance = 0;
-
-                    if(distance < distance_threshold){
-
-                        dampening -= dampening_factor_per_voxel;;
-                    }
+                    return 0.0;
 
                 }
+
+                if(false)
+                    if(n_points_in_voxel > (1) && penetration >= minPenetration){
+
+                        x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
+                        y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
+                        z_offset = (float)chm_values_mean_z[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
+
+                        //System.out.println(x_offset + " " + y_offset + " " + z_offset);
+
+                        //Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
+                        // point.crossProduct(point);
+                        //Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
+                        //        (float)-current_y+y_offset-(-center_of_pixel_y),
+                        //        (float)current_z+z_offset-center_of_pixel_z);
+
+                        point_quick.set((float)current_x+x_offset-center_of_pixel_x,
+                                (float)-current_y+y_offset-(-center_of_pixel_y),
+                                (float)current_z+z_offset-center_of_pixel_z);
+
+                        //float distance = (float)(Vector3D.crossProduct(point, line).getNorm() / line.getNorm());
+
+                        point_quick.cross(point_quick, line_quick);
+                        float distance = (float)(point_quick.norm() / line_quick.norm());
+                        //float distance = 0;
+                        //System.out.println(distance + " == " + distance2);
+                        //System.out.println(distance);
+
+                        if(distance < distance_threshold){
+                            // System.out.println("BLOCKED!");
+                            dampening -= dampening_factor_per_voxel;
+                        }
+
+                    }
 
             }
 
@@ -3580,11 +5138,9 @@ class solarParallel_3d extends Thread {
 
         }
 
-        return dampening;
+        return transmittance;
 
     }
-
-
     public double skyLight(){
 
 

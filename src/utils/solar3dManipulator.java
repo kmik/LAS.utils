@@ -3,8 +3,18 @@ package utils;
 import org.apache.commons.math3.util.FastMath;
 import quickhull3d.Vector3d;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.IntStream;
+
+import utils.amapVox;
+import err.toolException;
+
+import org.apache.commons.io.FilenameUtils;
 
 public class solar3dManipulator {
 
@@ -19,6 +29,20 @@ public class solar3dManipulator {
     double resolution;
     byte[][][] contains_points;
 
+    public VoxelNeighborhood[][][] vox_;
+
+    public boolean hasAmapVox = false;
+    double amapVox_min_corner_x;
+    double amapVox_min_corner_y;
+    double amapVox_min_corner_z;
+    double amapVox_max_corner_x;
+    double amapVox_max_corner_y;
+    double amapVox_max_corner_z;
+
+    int amapVox_dim_x, amapVox_dim_y, amapVox_dim_z;
+    float[][][] amapVox;
+
+    public amapVox aV;
     int counter = 0;
 
     public solar3dManipulator(int x_dim, int y_dim, int z_dim, float[][][] data, double resolution){
@@ -38,6 +62,11 @@ public class solar3dManipulator {
         this.contains_points = contains_points;
     }
 
+    public void setVox_(VoxelNeighborhood[][][] in){
+
+        this.vox_ = in;
+
+    }
     public solar3dManipulator(int x_dim, int y_dim, int z_dim, float[][][] data, double resolution, int[][] maxValueInChm, double angle){
 
         this.y_dim = y_dim;
@@ -49,6 +78,57 @@ public class solar3dManipulator {
         space_closure = new float[y_dim][x_dim][z_dim];
 
         this.space = data;
+
+    }
+
+    public void setAmapVox(amapVox in){
+
+        this.hasAmapVox = true;
+        this.aV = in;
+
+    }
+
+    public void read_amapvox_1_6(File amapVoxFile){
+
+        if(!FilenameUtils.getExtension(amapVoxFile.getAbsoluteFile().getName()).equals("vox")){
+            System.out.println("Input is not a .vox file");
+            System.exit(1);
+        }
+
+        BufferedReader in = null;
+
+        String line = null;
+        String[] tokens = null;
+
+        this.aV = new amapVox(amapVoxFile);
+
+        this.aV.readHeader();
+
+        this.aV.readVoxels();
+
+        System.out.println(this.x_dim + " ==? " + aV.x_dim);
+        System.out.println(this.y_dim + " ==? " + aV.y_dim);
+        System.out.println(this.z_dim + " ==? " + aV.z_dim);
+
+        //System.exit(1);
+        this.hasAmapVox = true;
+
+        if(false)
+        try {
+            in = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(amapVoxFile.getAbsolutePath()), StandardCharsets.UTF_8));
+
+
+            in.close();
+
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+
+        }
+
 
     }
 
@@ -708,33 +788,42 @@ public class solar3dManipulator {
 
         int x_ = (int)x; int y_ = (int)y; int z_ = (int)z;
 
-        if(space[y_][x_][z_] <= 0){
-            return new float[]{0.0f, 0.0f};
+        //if(space[y_][x_][z_] <= 0){
+        if(vox_[x_][y_][z_] == null){
+            return new float[]{0.0f, 0.0f, 0.0f, 0.0f};
         }
+
+
 
         int min_x = Math.max(0, x_ - 1); int min_y = Math.max(0, y_ - 1); int min_z = Math.max(0, z_ - 1);
 
         int max_x = Math.min(this.x_dim-1, x_ + 1); int max_y = Math.min(this.y_dim-1, y_ + 1);
         int max_z = Math.min(this.z_dim-1, z_ + 1);
 
-        float denominator = 0.0f, numerator = 0.0f, numerator_2 = 0.0f;
+        float denominator = 0.0f, numerator = 0.0f, numerator_2 = 0.0f, numerator_3 = 0.0f, numerator_4 = 0.0f;
 
         for(int x__ = min_x; x__ <= max_x; x__++){
             for(int y__ = min_y; y__ <= max_y; y__++) {
                 for (int z__ = min_z; z__ <= max_z; z__++) {
 
-                    if( space[y__][x__][z__] > 0){
+                    // Can't include normal and flatness here because space[y__][x__][z__] > 0
+                    // means voxels that are illuminated, not voxels that have points.
+                    //if( space[y__][x__][z__] > 0){
+                    if( vox_[x__][y__][z__] != null )
+                    if( !vox_[x__][y__][z__].garbage ){
 
                         double distance = euclideanDistance3d(x, y, z, x__ + 0.5, y__ + 0.5, z__ + 0.5);
                         denominator += 1.0 / distance;
                         numerator += space[y__][x__][z__] / distance;
                         numerator_2 += space_closure[y__][x__][z__] / distance;
+                        numerator_3 += vox_[x__][y__][z__].normal / distance;
+                        numerator_4 += vox_[x__][y__][z__].flatness / distance;
 
                     }
                 }
             }
         }
-        return  new float[]{numerator / denominator, numerator_2 / denominator};
+        return  new float[]{numerator / denominator, numerator_2 / denominator, numerator_3 / denominator, numerator_4 / denominator};
     }
 
 

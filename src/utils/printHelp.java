@@ -1002,7 +1002,10 @@ public class printHelp {
                 "\t-axGrid\t\tSize of the kernel for seed point search\n" +
                 "\t       \t\t(default 20.0 m)\n" +
                 "\t       \t\t\n" +
-                "\t-num_iter\tNumber of iterations");
+                "\t-num_iter\tNumber of iterations\n" +
+                "\t-min_edge_length\tMin triangle edge length\n" +
+                "\t-std_threshold\t Controls how outliers are dealth with\n" +
+                "\t       \t\t(default 1.75)");
     }
 
     public void noise(){

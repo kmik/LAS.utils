@@ -29,6 +29,7 @@ public class lasLayer {
     int coreNumber;
     double resolution;
 
+    double delta;
     double theta = 1.0;
     double thetaSqrt;
 
@@ -45,7 +46,7 @@ public class lasLayer {
 
     //PolynomialFunction funk_poly;
 
-    double delta;
+
 
     double minCanopyLength = 1.5;
 

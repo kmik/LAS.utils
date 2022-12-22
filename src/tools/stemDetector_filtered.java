@@ -667,7 +667,9 @@ public class stemDetector_filtered{
 
         HashSet<Integer> goodIndices = new HashSet<>();
 
+
         //for(int x = 0; x < this.xDim; x++)
+        if(false)
         IntStream.range(0, this.xDim).parallel().forEach(x -> {
                     for (int y = 0; y < this.yDim; y++)
 

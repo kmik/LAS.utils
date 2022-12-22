@@ -130,11 +130,13 @@ public class stemDetector{
         this.z_cutoff = z_cutoff;
 
         this.z_cutoff_max = 10.0;
+        this.z_cutoff_max = 12.5;
 
         this.xDim = (int)Math.ceil((this.pointCloud.getMaxX() - this.pointCloud.getMinX()) / y_interval) + 1;
         this.yDim = (int)Math.ceil((this.pointCloud.getMaxY() - this.pointCloud.getMinY()) / y_interval) + 1;
         //this.zDim = (int)Math.ceil((this.pointCloud.getMaxZ() - this.pointCloud.getMinZ()) / y_interval) + 1;
         this.zDim = (int)Math.ceil((this.z_cutoff_max - this.pointCloud.getMinZ()) / y_interval) + 1;
+        this.zDim = (int)Math.ceil((this.z_cutoff_max - 0) / y_interval) + 1;
 
         //voxels = new short[xDim][yDim][zDim];
 
@@ -396,6 +398,7 @@ public class stemDetector{
         this.miniZ = minz;
 
         this.zDim = (int)Math.ceil((this.z_cutoff_max - this.cloudMinZ) / y_interval) + 1;
+        this.zDim = (int)Math.ceil((this.z_cutoff_max - this.cloudMinZ) / y_interval) + 1;
         //System.out.println("zdim " + this.zDim);
     }
 
@@ -643,6 +646,7 @@ public class stemDetector{
 
         HashSet<Integer> goodIndices = new HashSet<>();
 
+        if(false)
         for(int x = 0; x < this.xDim; x++)
             for(int y = 0; y < this.yDim; y++)
                 for(int z = 0; z < this.zDim; z++) {

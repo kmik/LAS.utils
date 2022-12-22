@@ -25,16 +25,24 @@ public class las2trunk_dbh {
         if(aR.cores > 1){
             threadTool(aR, fD);
         }else{
-            for (int i = 0; i < inputFiles.size(); i++) {
-                LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+            HashMap<Integer, int[]> trunkMatches = new HashMap<>();
+            int[] n_trunks = new int[]{1};
+
                 try {
-                    stemDetector sd = new stemDetector(temp, 0.1, 0.5, 1, aR);
-                    sd.setUpOutputFiles(temp);
-                    sd.detect(false);
+
+                    for (int i = 0; i < aR.inputFiles.size(); i++) {
+
+                        LASReader temp = new LASReader(aR.inputFiles.get(i));
+                        trunkDBH t_DBH = new trunkDBH(temp, aR, trunkMatches, n_trunks);
+                        t_DBH.process();
+
+                    }
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }
+
         }
 
     }
