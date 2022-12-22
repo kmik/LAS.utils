@@ -3269,7 +3269,7 @@ class solarParallel_3d extends Thread {
         int minPenetration = 1;
 
         double distance_threshold_solid = 100000;
-        double distance_threshold = 1;
+        double distance_threshold = 10000;
         double length_threshold = 0.0;
 
 
