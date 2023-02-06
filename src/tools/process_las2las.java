@@ -64,6 +64,7 @@ public class process_las2las {
         int counter = 0;
 
         //for(int i = 0; i < in.getNumberOfPointRecords(); i += 200000) {
+
         for(int i = 0; i < in.getNumberOfPointRecords(); i++) {
 
             //maxi = (int) Math.min(200000, Math.abs(in.getNumberOfPointRecords() - i));
@@ -79,6 +80,8 @@ public class process_las2las {
                 //in.readRecord(i+j, tempPoint);
                 in.readRecord(i, tempPoint);
 
+                //if(tempPoint.pointSourceId == 111)
+                //    System.out.println(tempPoint.pointSourceId);
                 //System.out.println(tempPoint);
 
                 counter++;

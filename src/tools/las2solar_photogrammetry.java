@@ -159,6 +159,7 @@ public class las2solar_photogrammetry {
 
         }
 
+
         VoxelNeighborhood[][][] vox_ = new VoxelNeighborhood[this_x_size][this_y_size][this_z_size];
 
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
@@ -357,6 +358,7 @@ public class las2solar_photogrammetry {
         System.out.println(time.getTimeZone());
 
         this.chm_values = chm.GetRasterBand(1);
+
 
         chm_values_f = chm_to_array(chm_values);
         int x_ = this_x_size;

@@ -9,6 +9,7 @@ import java.awt.geom.Path2D;
 import java.util.concurrent.BlockingQueue;
 
 import LASio.*;
+import err.toolException;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import tools.*;
@@ -226,8 +227,6 @@ public class MKid4pointsLAS{
     }
 
     public static boolean pointInPolygon(double[] point, double[][] poly, HashMap<Integer, ArrayList<double[][]>> holes, int poly_id) {
-
-
 
         int numPolyCorners = poly.length;
         int j = numPolyCorners - 1;
@@ -1070,12 +1069,6 @@ public class MKid4pointsLAS{
 
                 double[] minmaxXY = findMinMax(tempPolygon);
 
-                /*
-                output[0] = minX;
-                output[1] = maxX;
-                output[2] = minY;
-                output[3] = maxY;
-                 */
                 //Point poly_p1 = new Point(minmaxXY[0], minmaxXY[3]);
 
                 ArrayList<Integer> valinta = new ArrayList<Integer>();
@@ -1084,12 +1077,36 @@ public class MKid4pointsLAS{
 
                 for (int th = 0; th < pilvi.size(); th++) {
 
+                    if(aR.eaba)
+                        buffer = 5.0;
+
                     double[] extentti2 = new double[4];
+
                     extentti2[0] = all_min_x.get(th);
                     extentti2[1] = all_max_x.get(th);
                     extentti2[2] = all_min_y.get(th);
                     extentti2[3] = all_max_y.get(th);
 
+                    if(buffer > 0){
+
+                        extentti2[0] -= buffer;
+                        extentti2[1] += buffer;
+                        extentti2[2] -= buffer;
+                        extentti2[3] += buffer;
+
+
+                /*
+                output[0] = minX;
+                output[1] = maxX;
+                output[2] = minY;
+                output[3] = maxY;
+                 */
+                        minmaxXY[0] -= buffer;
+                        minmaxXY[1] += buffer;
+                        minmaxXY[2] -= buffer;
+                        minmaxXY[3] += buffer;
+
+                    }
                     /*
                      If one rectangle is on left side of other
                     if (l1.x > r2.x || l2.x > r1.x)
@@ -1100,6 +1117,9 @@ public class MKid4pointsLAS{
                         return false;
 
                     */
+
+
+
                     if (buffer == 0.0) {
 
                         boolean accept = true;
@@ -1120,8 +1140,24 @@ public class MKid4pointsLAS{
 
                     } else {
 
-                        if (minmaxXY[1] >= (all_min_x.get(th) + buffer) && minmaxXY[0] <= (all_max_x.get(th) - buffer) && minmaxXY[3] >= (all_min_y.get(th) + buffer) && minmaxXY[2] <= (all_max_y.get(th) - buffer))
+                        // TODO FIX THIS UP
+                        boolean accept = true;
+
+                        if(all_min_x.get(th) > minmaxXY[1] || minmaxXY[0] > all_max_x.get(th))
+                            accept = false;
+                        if(all_min_y.get(th) > minmaxXY[3] || minmaxXY[2] > all_max_y.get(th))
+                            accept = false;
+
+                        if(false)
+                            if (isWithin(extentti2, minmaxXY[0], minmaxXY[3]) || isWithin(extentti2, minmaxXY[0], minmaxXY[2]) ||
+                                    isWithin(extentti2, minmaxXY[1], minmaxXY[3]) || isWithin(extentti2, minmaxXY[1], minmaxXY[2]))
+                                valinta.add(th);
+
+                        if(accept)
                             valinta.add(th);
+
+                        //if (minmaxXY[1] >= (all_min_x.get(th) + buffer) && minmaxXY[0] <= (all_max_x.get(th) - buffer) && minmaxXY[3] >= (all_min_y.get(th) + buffer) && minmaxXY[2] <= (all_max_y.get(th) - buffer))
+                          //  valinta.add(th);
 
                     }
 
@@ -1133,10 +1169,11 @@ public class MKid4pointsLAS{
                 }
                 npoints = 0;
 
-
+                int debugCounter = 0;
 
 
                 System.out.println("hERE " + pilvi.size());
+
 
 
 
@@ -1145,9 +1182,26 @@ public class MKid4pointsLAS{
                     doneIndexes.clear();
                     LASReader asd = new LASReader(aR.inputFiles.get(valinta.get(va))); //pointClouds.get(valinta.get(va));
 
+                    /* Define the variables that we need */
+                    int tree_id = -1, treeId = -1;
 
+                    boolean tree_id_found_ = false;
+                    boolean eaba_but_ground = false;
+                    boolean point_inside_polygon = false;
+
+
+                    if(aR.eaba) {
+
+                        try {
+                            tree_id = asd.extraBytes_names.get("ITC_id");
+                        } catch (Exception e) {
+                            throw new toolException("Cannot find ITC_id extra byte VLR. Maybe you don't want eaba?");
+                        }
+                    }
 
                     if (asd.isIndexed) {
+
+                        // TODO ADD BUFFER HERE IF aR.eaba
 
                         asd.queryPoly2(minmaxXY[0], minmaxXY[1], minmaxXY[2], minmaxXY[3]);
 
@@ -1162,33 +1216,56 @@ public class MKid4pointsLAS{
 
                                         while(!asd.index_read_terminated){
 
-
                                             p = asd.fastReadFromQuery(tempPoint);
 
-
+                                            if(aR.eaba){
+                                                treeId = tempPoint.getExtraByteInt(tree_id);
+                                            }
                                             //if(tempPoint.R == 0 || tempPoint.G == 0 || tempPoint.B == 0 || tempPoint.N == 0)
                                             //    System.out.println("ZERO SPECTRAL POINT! SHOULD NOT HAPPEN!");
                                                 haku[0] = tempPoint.x;
                                                 haku[1] = tempPoint.y;
                                             //System.out.println(tempPoint);
 
-
                                             if(tempPoint.x <= minmaxXY[1] && tempPoint.x >= minmaxXY[0] &&
                                                     tempPoint.y <= minmaxXY[3] && tempPoint.y >= minmaxXY[2])
 
+                                                eaba_but_ground = false;
+                                                tree_id_found_ = false;
 
-                                                if (pointInPolygon(haku, tempPolygon, holes, plotID.get(j))) {
+                                                if(aR.eaba && treeId > 0){
 
+                                                    tree_id_found_ = aR.checkIfTree(treeId, plotID.get(j));
+
+                                                }else if(aR.eaba && treeId == 0){
+
+                                                    eaba_but_ground = true;
+
+                                                }
+
+                                                point_inside_polygon = pointInPolygon(haku, tempPolygon, holes, plotID.get(j));
+
+                                                if ( (aR.eaba && eaba_but_ground && point_inside_polygon) ||    // ground
+                                                        (aR.eaba && tree_id_found_) ||                          // tree within extending outside
+                                                        (!aR.eaba && point_inside_polygon)) {                   // Basic without eaba
 
                                                 //if (pointInPolygon(haku, tempPolygon)) {
 
                                                     if (otype.equals("las")) {
 
                                                         if(aR.save_to_p_id)
-                                                            tempPoint.pointSourceId = plotID.get(j).shortValue();
+                                                            tempPoint.pointSourceId = (short)plotID.get(j).intValue();
+
+                                                        if(tempPoint.pointSourceId < 0)
+                                                            throw new toolException("PointSourceId is negative: " + tempPoint.pointSourceId);
+
+                                                        if(plotID.get(j) == 149)
+                                                            System.out.println("149 " + tempPoint.pointSourceId);
 
                                                         tempPoint.setExtraByteINT(plotID.get(j), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
 
+                                                        //if(plotID.get(j) == 111)
+                                                        //    System.out.println(debugCounter++);
                                                         if (aR.omet) {
 
 
@@ -1265,7 +1342,8 @@ public class MKid4pointsLAS{
                                                                 try {
                                                                     pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), p);
                                                                 }catch (Exception e){
-
+                                                                    e.printStackTrace();
+                                                                    System.out.println("pointBuffer.writePoint(tempPoint, aR.getInclusionRule(), p);");
                                                                 }
                                                         }else
                                                             outputBuffers.get(valinta.get(va)).writePoint(tempPoint, aR.getInclusionRule(), p);
@@ -1328,6 +1406,12 @@ public class MKid4pointsLAS{
 
                                         asd.readFromBuffer(tempPoint);
 
+                                        if(aR.eaba){
+
+                                            treeId = tempPoint.getExtraByteInt(tree_id);
+
+                                        }
+
                                         if(!aR.inclusionRule.ask(tempPoint, p+s, true)){
                                             continue;
                                         }
@@ -1335,17 +1419,37 @@ public class MKid4pointsLAS{
                                         haku[0] = tempPoint.x;
                                         haku[1] = tempPoint.y;
 
-                                    if(tempPoint.x <= minmaxXY[1] && tempPoint.x >= minmaxXY[0] &&
-                                            tempPoint.y <= minmaxXY[3] && tempPoint.y >= minmaxXY[2])
+                                        if(tempPoint.x <= minmaxXY[1] && tempPoint.x >= minmaxXY[0] &&
+                                                tempPoint.y <= minmaxXY[3] && tempPoint.y >= minmaxXY[2])
+
+                                            eaba_but_ground = false;
+                                        tree_id_found_ = false;
+
+                                        if(aR.eaba && treeId > 0){
+
+                                            tree_id_found_ = aR.checkIfTree(treeId, plotID.get(j));
+
+                                        }else if(aR.eaba && treeId == 0){
+
+                                            eaba_but_ground = true;
+
+                                        }
+
+                                        point_inside_polygon = pointInPolygon(haku, tempPolygon, holes, plotID.get(j));
 
 
-                                        if (pointInPolygon(haku, tempPolygon, holes, plotID.get(j))) {
+                                        if ( (aR.eaba && eaba_but_ground && point_inside_polygon) ||    // ground
+                                                (aR.eaba && tree_id_found_) ||                          // tree within extending outside
+                                                (!aR.eaba && point_inside_polygon)) {                   // Basic without eaba
                                         //if (pointInPolygon(haku, tempPolygon)) {
 
                                             if (otype.equals("las")) {
 
                                                 if(aR.save_to_p_id)
-                                                    tempPoint.pointSourceId = plotID.get(j).shortValue();
+                                                    tempPoint.pointSourceId = (short)plotID.get(j).intValue();
+
+                                                if(tempPoint.pointSourceId < 0)
+                                                    throw new toolException("PointSourceId is negative: " + tempPoint.pointSourceId);
                                                 //tempPoint.gpsTime = plotID.get(j).doubleValue();
                                                 tempPoint.setExtraByteINT(plotID.get(j), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
                                                 //System.out.println(tempPoint.gpsTime);
@@ -1356,7 +1460,8 @@ public class MKid4pointsLAS{
                                                     gridPoints_z_a.add(tempPoint.z);
                                                     gridPoints_i_a.add(tempPoint.intensity);
 
-                                                    gridPoints_xyz_a.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z});
+                                                    //gridPoints_xyz_a.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z});
+                                                    gridPoints_xyz_a.add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
 
                                                     sum_z_a += tempPoint.z;
                                                     sum_i_a += tempPoint.intensity;
@@ -1470,12 +1575,12 @@ public class MKid4pointsLAS{
                     boolean train = aR.convolution_metrics_train;
 
                     if(aR.convolution_metrics_train) {
-                        ArrayList<ArrayList<Double>> metrics_convolution = pCM.calc_nn_input_train_spectral(gridPoints_xyz_f, "_convo_f", colnames_convo, minmaxXY[0], minmaxXY[3],
+                        ArrayList<ArrayList<Double>> metrics_convolution = pCM.calc_nn_input_train_spectral(gridPoints_xyz_a, "_convo_f", colnames_convo, minmaxXY[0], minmaxXY[3],
                                 minmaxXY[1], minmaxXY[2]);
                         aR.lCMO.writeLine_convo( metrics_convolution, colnames_convo, plotID.get(j));
                         //System.out.println("HERE!!");
                     }else if(aR.convolution_metrics){
-                        ArrayList<Double> metrics_convolution = pCM.calc_nn_input_test_spectral(gridPoints_xyz_f, "_convo_f", colnames_convo, minmaxXY[0], minmaxXY[3],
+                        ArrayList<Double> metrics_convolution = pCM.calc_nn_input_test_spectral(gridPoints_xyz_a, "_convo_f", colnames_convo, minmaxXY[0], minmaxXY[3],
                                 minmaxXY[1], minmaxXY[2]);
                         aR.lCMO.writeLine_convo_test( metrics_convolution, colnames_convo, plotID.get(j));
                         //System.out.println("HERE_test_data!!");

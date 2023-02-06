@@ -805,7 +805,7 @@ public class createCHM{
 
  		}
 
- 		public void deleteTempFiles(){
+ 		public void releaseMemory(){
 
         }
 
@@ -1852,6 +1852,10 @@ public class createCHM{
         HashSet<Long> pixelBank = new HashSet<Long>();
         ArrayList<int[]> treeTopLocations = new ArrayList<int[]>();
 
+        ArrayList<Integer> key_to_treetop = new ArrayList<>(0);
+        HashMap<Integer, Integer> key_to_treetop_map = new HashMap<>(1000);
+        ArrayList<Integer> key_to_treetop_2 = new ArrayList<>(0);
+
         int coreNumber = 0;
 
         float[] floatArray = new float[1];
@@ -1866,6 +1870,37 @@ public class createCHM{
 
 
 		}
+
+        public void releaseMemory(){
+
+                this.altaat = null;
+                this.jono = null;
+                this.jono2 = null;
+                this.jono2_tif = null;
+                this.key_to_treetop = null;
+                this.key_to_treetop_map = null;
+                this.key_to_treetop_2 = null;
+                this.polyBank = null;
+                this.treeTops = null;
+                this.treeTopLocations = null;
+                this.waterbodyAreas = null;
+                this.waterRaster = null;
+                this.waterRaster_band = null;
+                this.waterRaster_band_mask = null;
+                this.waterRaster_ds = null;
+                this.raster = null;
+                this.raster_band = null;
+                this.raster_ds = null;
+                this.image = null;
+                this.imageOrig = null;
+                this.floatArray = null;
+                this.floatArray3x3 = null;
+                this.floatArray3x3_2 = null;
+                this.floatArray3x3_3 = null;
+                this.aR = null;
+                this.canopy = null;
+                this.pixelBank = null;
+        }
 
 		public WaterShed(HashSet<double[]> in, double speed2, Dataset inMat, chm inChm, argumentReader aR, int coreNumber) throws Exception{
 
@@ -1922,12 +1957,18 @@ public class createCHM{
 
 			for(double[] key : in){
 
+                //aidee = (int)key[3];
+
+                //System.out.println("key[3] " + key[3] + " " + aidee);
                 floatArray[0] = 0.0f;
+                this.key_to_treetop.add((int)key[3]);
+                //this.key_to_treetop_map.put(aidee, (int)key[3]);
                 waterRaster[(int)key[0]][(int)key[1]] = 0.0f;
 				altaat.add(new WaterBody(aidee, key[0], key[1], key[2], image ));
 				waterbodyAreas.put(aidee, 0.0f);
                 filledPixels++;
                 image.attach( (int)key[0], (int)key[1], aidee);
+
                 treeTopLocations.add(new int[]{(int)key[0], (int)key[1]});
                 aidee++;
                 image.priority((int)key[0], (int)key[1], (float)-key[2]);
@@ -1935,6 +1976,8 @@ public class createCHM{
                 image.queue((int)key[0], (int)key[1]);
 
 			}
+
+
 
             aR.p_update.updateProgressITD();
 			start2();
@@ -2384,6 +2427,8 @@ public class createCHM{
             }
 
             image.raster_id_array = temp.clone();
+            temp = null;
+
 
         }
 			
@@ -2436,9 +2481,9 @@ public class createCHM{
             boolean[][] mask = new boolean[image.xDim][image.yDim];
             //boolean[][] mask = new boolean[image.xDim][image.yDim];
 
-            for(int i = 0; i < altaat.size(); i++){
-                this_id_to_unique_id.put(altaat.get(i).id, aR.get_thread_safe_id());
-            }
+            //for(int i = 0; i < altaat.size(); i++){
+            //    this_id_to_unique_id.put(key_to_treetop.get(altaat.get(i).id), aR.get_thread_safe_id());
+            //}
 
 				for(int y = 0; y < image.yDim; y++){
                     for(int x = 0; x < image.xDim; x++){
@@ -2448,7 +2493,11 @@ public class createCHM{
                         floatArrayRow_mask[x] = 0;
                         mask[x][y] = false;
                     }else {
-                        floatArrayRow[x] = this_id_to_unique_id.get(image.raster_id_array[x][y]);
+                        //System.out.println(image.raster_id_array[x][y]);
+                        //floatArrayRow[x] = this_id_to_unique_id.get( key_to_treetop.get(image.raster_id_array[x][y]));
+                        //floatArrayRow[x] = this_id_to_unique_id.get( key_to_treetop.get(image.raster_id_array[x][y]));
+                        floatArrayRow[x] = key_to_treetop.get(image.raster_id_array[x][y]);
+                        //floatArrayRow[x] = this_id_to_unique_id.get( key_to_treetop_map.get(image.raster_id_array[x][y]));
                         floatArrayRow_mask[x] = 1;
                         mask[x][y] = true;
                     }
@@ -2469,6 +2518,7 @@ public class createCHM{
                     waterRaster_band.WriteRaster(0, y, image.xDim, 1, floatArrayRow);
                     waterRaster_band_mask.WriteRaster(0, y, image.xDim, 1, floatArrayRow_mask);
 			}
+
 
             String tempName = "tempWater" + coreNumber + ".tif";
             String tempName2 = "tempWater2" + coreNumber + ".tif";
@@ -2547,7 +2597,11 @@ public class createCHM{
             deleteFile2.delete();
             deleteFile22.delete();
 
+
+
+
             if(!aR.skeleton_output) {
+
                 if (outFile.exists())
                     outFile.delete();
 
@@ -2555,12 +2609,9 @@ public class createCHM{
 
                 LASReader p_cloud = new LASReader(new File(pointCloudName));
 
-
                 int thread_n = aR.pfac.addReadThread(p_cloud);
 
-
                 aR.add_extra_bytes(6, "ITC_id", "ID for an ITC segment");
-
 
                 pointWriterMultiThread pw = new pointWriterMultiThread(outFile, p_cloud, "lasITC", aR);
 
@@ -2569,6 +2620,8 @@ public class createCHM{
                 aR.pfac.addWriteThread(thread_n, pw, buf);
 
                 LasPoint tempPoint = new LasPoint();
+
+
 
                 long pointCount = 0;
 
@@ -2660,7 +2713,10 @@ public class createCHM{
                                 /** This will definitely not overflow at larger areas */
                                 //tempPoint.gpsTime = (double) (floatArray[0] + 1);
 
-                                tempPoint.setExtraByteINT((int)(floatArray[0] + 1), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
+                                //tempPoint.setExtraByteINT((int)(floatArray[0] + 1), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
+                                //tempPoint.setExtraByteINT( key_to_treetop.get((int)(floatArray[0])), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
+                                tempPoint.setExtraByteINT( key_to_treetop.get((int)(floatArray[0])), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
+                                //tempPoint.setExtraByteINT( key_to_treetop_map.get((int)(floatArray[0])), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
 
                             } else {
                                 tempPoint.setExtraByteINT(0, aR.create_extra_byte_vlr_n_bytes.get(0), 0);
@@ -2707,18 +2763,14 @@ public class createCHM{
 
                 }
 
-
-/*
-            raOutput.writeBuffer2();
-            raOutput.updateHeader2();
-            raOutput.close();
-*/
                 aR.pfac.closeThread(thread_n);
+                p_cloud = null;
+
 
 
             }
 
-            image.deleteTempFiles();
+            image.releaseMemory();
             aR.p_update.fileProgress++;
 
 
@@ -2866,7 +2918,6 @@ public class createCHM{
 
 		public chm(LASReader in, String method, int layers2, argumentReader aR, int coreNumber) throws IOException{
 
-
 		    this.coreNumber = coreNumber;
 
 		    treeKernel = new float[(int)(aR.dist * 2 + 1) * (int)(aR.dist * 2 + 1)];
@@ -2930,7 +2981,7 @@ public class createCHM{
 		public void establish() throws IOException{
 
 
-            double freezeDistance = 0.5;
+            double freezeDistance = 1.5;
             double triangleBuffer = 0.5;
 
 			minX = Math.floor(pointCloud.getMinX());
@@ -3410,7 +3461,7 @@ public class createCHM{
                     }
                     counter2++;
 
-                    System.out.println(counter2 + " " + order_small_large.size());
+                    //System.out.println(counter2 + " " + order_small_large.size());
                     //System.out.println(d);
                     //if(counter++ % 100 == 0)
                     //    System.out.println(d + " " + pit_free_tin.getVertices().size());
@@ -4936,7 +4987,9 @@ public class createCHM{
     		outShp = shpDriver.CreateDataSource(out_file);
     		Layer outShpLayer = outShp.CreateLayer(out_name, null, 1);
     		FieldDefn layerFieldDef = new FieldDefn("z",2);
+    		FieldDefn layerFieldDef_2 = new FieldDefn("id",2);
     		outShpLayer.CreateField(layerFieldDef);
+    		outShpLayer.CreateField(layerFieldDef_2);
     		FeatureDefn outShpFeatDefn=outShpLayer.GetLayerDefn();
 			Feature outShpFeat = new Feature(outShpFeatDefn);      
 
@@ -4946,6 +4999,8 @@ public class createCHM{
 				Geometry outShpGeom = new Geometry(1);
 		        outShpGeom.SetPoint(0, minX + ( (temp[0] + 0.5) * resolution) , maxY - ( (temp[1] + 0.5) * resolution));
 				outShpFeat.SetField("z", temp[2]);
+				outShpFeat.SetField("id", temp[3]);
+
 				outShpFeat.SetGeometryDirectly(outShpGeom);
 				outShpLayer.CreateFeature(outShpFeat);
     		}
@@ -4969,6 +5024,10 @@ public class createCHM{
 
         }
 
+        public void releaseMemory(){
+
+        }
+
 		public void detectTreeTops(int kernelSize){
 
             //kernelSize = 1;
@@ -4984,6 +5043,9 @@ public class createCHM{
 
            // System.out.println("kernel: " + kernelSize);
 
+            int id = 0;
+
+
             for(int i = startX; i <= endX; i++){
 				for(int j = startY; j <= endY; j++){
 
@@ -4998,12 +5060,15 @@ public class createCHM{
 
                         floatArray[0] = (float)chm_array[i][j];
 
-						double[] temp = new double[3];
+						double[] temp = new double[4];
 						temp[0] = i;
 						temp[1] = j;
 						//temp[2] = output.get(j, i)[0];
                         //temp[2] = output2[i][j];
 						temp[2] = floatArray[0];
+
+                        //temp[3] = id++;
+                        temp[3] = aR.getGlobalId();
                         long[] temp2 = new long[2];
 						temp2[0] = i;
 						temp2[1] = j;

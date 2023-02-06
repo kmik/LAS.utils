@@ -283,6 +283,8 @@ public class LASraf implements Closeable {
       mbb.get(i).clear();
     }
 
+    allArray2 = null;
+
   }
 
   /**

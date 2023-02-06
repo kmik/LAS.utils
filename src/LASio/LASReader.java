@@ -390,7 +390,7 @@ public class LASReader {
 
     LasPoint tempPoint = new LasPoint();
 
-    int maxi;
+    long maxi;
 
     int counter = 0;
     long paritus ;
@@ -400,9 +400,9 @@ public class LASReader {
 
     int indeksi = 0;
 
-    for(int i = 0; i < this.getNumberOfPointRecords(); i += 10000){
+    for(long i = 0; i < this.getNumberOfPointRecords(); i += 10000){
 
-      maxi = (int)Math.min(10000, Math.abs(this.getNumberOfPointRecords() - i));
+      maxi = (long)Math.min(10000, Math.abs(this.getNumberOfPointRecords() - i));
 
       this.readRecord_noRAF(i, tempPoint, 10000);
 
@@ -2282,7 +2282,7 @@ public class LASReader {
   public void close() throws IOException {
 
     braf.close();
-
+    braf = null;
   }
 
   /**

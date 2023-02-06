@@ -369,7 +369,7 @@ public class progressUpdater {
     public synchronized void updateProgressGridStats(){
 
 
-        if(false)
+        if(true)
             return;
 
         int first = 12;
@@ -512,6 +512,8 @@ public class progressUpdater {
 
     public synchronized void updateProgressSplit(){
 
+        if(true)
+            return;
         int first = 12;
 
         first += aR.cores;

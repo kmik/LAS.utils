@@ -24,12 +24,19 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public HashMap<Integer, HashSet<Integer>> tree_belongs_to_this_plot = null;
+
     public ArrayList<Integer> create_extra_byte_vlr = new ArrayList<>();
     public ArrayList<String> create_extra_byte_vlr_name = new ArrayList<>();
     public ArrayList<String> create_extra_byte_vlr_description = new ArrayList<>();
     public ArrayList<Integer> create_extra_byte_vlr_n_bytes = new ArrayList<>();
 
+    public boolean overWrite = false;
     public File amapVoxFile = null;
+
+    public File ITC_metrics_file = null;
+
+    public boolean eaba = false;
 
     public boolean save_to_p_id = false;
 
@@ -40,11 +47,13 @@ public class argumentReader {
     public double min_edge_length = 0.5;
 
     public boolean convolution_metrics_train = false;
-    public boolean convolution_metrics = false;
+    public boolean convolution_metrics = true;
 
     public boolean output_only_itc_segments = false;
 
     public int thread_safe_id = 0;
+
+    public File treeTops = null;
 
     public boolean noLas = false;
 
@@ -198,7 +207,7 @@ public class argumentReader {
     public boolean by_z_order = false;
 
     public String poly = "null";
-
+    public String[] poly_2;
     public double[] densities = new double[]{1.3, 2.5, 5.0, 7.5, 10.0, 15.0, 20.0, 25.0};
     public double percentiles = 0.05;
 
@@ -292,6 +301,8 @@ public class argumentReader {
 
     public boolean output_only_stemAlignInput = false;
 
+    public int globalId = 0;
+
     long startTimegc = 0L;
     long endTimegc = 10000L;
 
@@ -330,6 +341,12 @@ public class argumentReader {
         this.execDir_file = new File(dir);
 
     }
+
+
+    public synchronized int getGlobalId(){
+        return this.globalId++;
+    }
+
     public argumentReader(String[] args){
         this.args = args;
 
@@ -533,6 +550,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("overWrite")
+                .hasArg(false)
+                .desc("Overwrite output file")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("drop_z_above")
                 .hasArg(true)
                 .desc("Drop z above threshold")
@@ -566,6 +590,12 @@ public class argumentReader {
                 .required(false)
                 .build());
 
+        options.addOption(Option.builder()
+                .longOpt("itc_metrics")
+                .hasArg(true)
+                .desc("ITC_metrics output file")
+                .required(false)
+                .build());
 
         options.addOption(Option.builder()
                 .longOpt("concavity")
@@ -622,6 +652,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("tree_tops")
+                .hasArg(true)
+                .desc("Tree tops shp file")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("learning_rate")
                 .hasArg(true)
                 .desc("neural network learning rate")
@@ -664,6 +701,14 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("poly2")
+                .hasArg(true)
+                .desc("Second polyon file")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("test")
                 .hasArg(true)
                 .desc("neural network test set")
@@ -674,6 +719,13 @@ public class argumentReader {
                 .longOpt("validation")
                 .hasArg(true)
                 .desc("neural network validation set")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("eaba")
+                .hasArg(false)
+                .desc("Petteris eaba")
                 .required(false)
                 .build());
 
@@ -1653,6 +1705,16 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("poly2")) {
+
+                poly_2 = cmd.getOptionValues("poly2");
+                if(poly_2[0].split(";").length > 1){
+                    poly_2 = poly_2[0].split(";");
+                }
+
+            }
+
+
             if (cmd.hasOption("seq")) {
 
                 String sequ = cmd.getOptionValue("seq");
@@ -1739,6 +1801,12 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("eaba")) {
+
+                this.eaba = true;
+
+            }
+
             if (cmd.hasOption("iparse")) {
 
                 this.iparse = cmd.getOptionValue("iparse");
@@ -1807,6 +1875,10 @@ public class argumentReader {
 
             }
 
+            if( cmd.hasOption("overWrite") ){
+                this.overWrite = true;
+            }
+
             if (cmd.hasOption("amapVoxFile")) {
 
                 this.amapVoxFile = new File(cmd.getOptionValue("amapVoxFile"));
@@ -1837,6 +1909,14 @@ public class argumentReader {
                 this.input_in_radians = true;
 
             }
+
+            if (cmd.hasOption("tree_tops")) {
+
+                this.treeTops = new File(cmd.getOptionValue("tree_tops"));
+
+            }
+
+
             if (cmd.hasOption("extra_byte")) {
 
                 //this.create_extra_byte_vlr = Integer.parseInt(cmd.getOptionValue("extra_byte"));
@@ -1864,6 +1944,8 @@ public class argumentReader {
 
 
             }
+
+
 
             if (cmd.hasOption("convolution_option")) {
 
@@ -1895,6 +1977,10 @@ public class argumentReader {
 
             }
 
+            if( cmd.hasOption("itc_metrics")){
+                this.ITC_metrics_file = new File(cmd.getOptionValue("itc_metrics"));
+
+            }
             if (cmd.hasOption("dist")) {
 
                 this.dist = Double.parseDouble(cmd.getOptionValue("dist"));
@@ -2801,6 +2887,7 @@ public class argumentReader {
 
     public File createOutputFile(LASReader in) throws IOException {
 
+
         File tempFile = null;
         String tempPath = this.output;
 
@@ -2814,13 +2901,19 @@ public class argumentReader {
             File diri = new File(odir);
 
             tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
+
         }
 
         String extensionHere = tempFile.getName().substring(tempFile.getName().lastIndexOf("."));
 
         if(tempFile.exists()){
-            tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
+            if(!this.overWrite)
+                tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
+
         }
+
+        if(tempFile.getAbsolutePath().equals(in.getFile().getAbsolutePath()))
+            throw new toolException("Input and output files are the same.  Please change the output file name.");
 
         if(tempFile.exists())
             tempFile.delete();
@@ -2984,6 +3077,18 @@ public class argumentReader {
 
     }
 
+    public boolean checkIfTree(int tree_id, int plot_id){
+
+        if(!tree_belongs_to_this_plot.containsKey(plot_id))
+            return false;
+
+        if(tree_belongs_to_this_plot.get(plot_id).contains(tree_id))
+            return true;
+
+        return false;
+
+    }
+
     @SuppressWarnings("unchecked")
     public void addIndexFiles() throws Exception{
 
@@ -3060,7 +3165,6 @@ public class argumentReader {
 
 
     }
-
 
 
 

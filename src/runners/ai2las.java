@@ -1801,6 +1801,21 @@ class ai2las{
 
 	}
 
+	public static String timeRemaining(int n, long i, long elapsed){
+
+
+		double perUnit = (double)elapsed / (double)i;
+
+		String remaining = ( roundAvoid(perUnit * ((double)n - (double)i) / 1000000000.0,2)) + " s ";
+
+
+
+		return remaining;
+
+
+	}
+
+
 	public static boolean notClose(double x1, double y1, ArrayList<double[]> reference, double threshold){
 
 		double deltaX;
@@ -2190,9 +2205,9 @@ class ai2las{
 
 		int thread_n = aR.pfac.addReadThread(asd2);
 
-		for(int i = 0; i < asd2.getNumberOfPointRecords(); i += 200000) {
+		for(long i = 0; i < asd2.getNumberOfPointRecords(); i += 200000) {
 
-			int maxi = (int) Math.min(200000, Math.abs(asd2.getNumberOfPointRecords() - i));
+			long maxi = (int) Math.min(200000, Math.abs(asd2.getNumberOfPointRecords() - i));
 
 			aR.pfac.prepareBuffer(thread_n, i, 200000);
 
@@ -2347,7 +2362,7 @@ class ai2las{
 
 			int n_shadow = 0, n_bright = 0;
 
-			for (int p = 0; p < asd2.getNumberOfPointRecords(); p += 10000) {
+			for (long p = 0; p < asd2.getNumberOfPointRecords(); p += 10000) {
 
 				int maxi = (int) Math.min(10000, Math.abs(asd2.getNumberOfPointRecords() - (p)));
 

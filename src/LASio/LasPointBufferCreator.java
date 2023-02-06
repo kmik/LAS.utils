@@ -71,6 +71,11 @@ public class LasPointBufferCreator {
 
     }
 
+    public void releaseMemory(){
+
+            allArray2 = null;
+
+    }
 
 
     public void output() throws IOException {
@@ -113,14 +118,32 @@ public class LasPointBufferCreator {
 
     }
 
+    public static int byteArrayToUnsignedShort(byte[] bytes) {
+        return ((bytes[0] & 0xff) << 8) | (bytes[1] & 0xff);
+    }
+
     public void writeUnsignedShort(int in) throws IOException {   // POSSIBLY WRONG!!!!!
         //buffer.clear();
+
+        //int unsignedShortValue = in & 0xFFFF;
         //int unsignedValue = in&0xffff;
         //short unsignedValueS = (short)unsignedValue;
         //unsignedShortArray = new byte[2];//buffer.allocate(2).putShort(unsignedValueS).array();
 
-        unsignedShortArray[0] = (byte)(in & 0xff);
-        unsignedShortArray[1] = (byte)((in >> 8) & 0xff);
+        try {
+            unsignedShortArray[0] = (byte) (in & 0xff);
+            unsignedShortArray[1] = (byte) ((in >> 8) & 0xff);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.exit(0);
+        }
+        //if(in < 160)
+        //    System.out.println(byteArrayToUnsignedShort(unsignedShortArray) + " == " + in);
+
+        //unsignedShortArray[0] = (byte)(unsignedShortValue >>> 8);
+        //unsignedShortArray[1] = (byte)unsignedShortValue;
+
+
         //System.out.println(unsignedValueS);
     /*
     buffer.wrap(array);
@@ -198,7 +221,7 @@ public class LasPointBufferCreator {
             return in &= ~(1 << bit);
     }
 
-        public synchronized boolean writePoint(LasPoint tempPoint, PointInclusionRule rule, int i)throws IOException {
+        public synchronized boolean writePoint(LasPoint tempPoint, PointInclusionRule rule, long i) throws IOException {
 
         /* Written or not */
         boolean output = false;
@@ -313,6 +336,7 @@ public class LasPointBufferCreator {
                 this.writeUnsignedByte((byte) tempPoint.userData);
 
                 /* Write point source ID */
+
                 this.writeUnsignedShort(tempPoint.pointSourceId);
 
 
@@ -427,7 +451,7 @@ public class LasPointBufferCreator {
                 this.writeUnsignedShort((byte) tempPoint.scanAngleRank);
 
                 /* Write pointSourceId */
-                this.writeUnsignedShort((byte) tempPoint.pointSourceId);
+                this.writeUnsignedShort((short)tempPoint.pointSourceId);
 
                 /* Write gps time */
                 this.writeDouble(tempPoint.gpsTime);
@@ -954,7 +978,7 @@ public class LasPointBufferCreator {
             pwrite.writeRemaining(allArray2, allArray2Index);
             pwrite.setHeaderBlockData(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn);
         //}
-
+            this.releaseMemory();
     }
 
 }

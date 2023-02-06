@@ -1286,6 +1286,7 @@ public class ITDstatistics{
         if(treeTop == null || p2.size() == 0){
 
             return;
+
         }
 
 
@@ -1418,6 +1419,7 @@ public class ITDstatistics{
         double hullMaxZ = Double.NEGATIVE_INFINITY;
 
         PriorityQueue<Double> zetas = new PriorityQueue<>();
+        ArrayList<Double> zetas_unordere = new ArrayList<>();
 
         ArrayList<Double> x = new ArrayList<>();
         ArrayList<Double> y = new ArrayList<>();
@@ -1515,7 +1517,7 @@ public class ITDstatistics{
                 pointCounti++;
 
                 zetas.add(tempPointArray[2]);
-
+                zetas_unordere.add(tempPointArray[2]);
                 if(tempPointArray[7] == 1){
                 //if(tempPointArray[7] != 1 && tempPointArray[7] == tempPointArray[5]){
                 //if(true){
@@ -2580,7 +2582,7 @@ public class ITDstatistics{
         List<KdTree.XYZPoint> nearest;
         List<KdTree.XYZPoint> nearest2;
 
-        double maxDistance = 2.0;
+        double maxDistance = 3.0;
         double distance = 0.0;
 
         boolean terminate = true;

@@ -243,7 +243,7 @@ public class Tiler{
 
             int thread_n = aR.pfac.addReadThread(temp);
 
-            for(int i = 0; i < temp.getNumberOfPointRecords(); i += 200000) {
+            for(long i = 0; i < temp.getNumberOfPointRecords(); i += 200000) {
 
                 int maxi2 = (int) Math.min(200000, Math.abs(temp.getNumberOfPointRecords() - i));
 
@@ -393,7 +393,7 @@ public class Tiler{
             
             int maxi = 0;
 
-            for (int p = 0; p < temp.getNumberOfPointRecords(); p += 10000) {
+            for (long p = 0; p < temp.getNumberOfPointRecords(); p += 10000) {
 
                 maxi = (int) Math.min(10000, Math.abs(temp.getNumberOfPointRecords() - (p)));
 

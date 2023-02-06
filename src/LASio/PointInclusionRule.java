@@ -487,7 +487,7 @@ public class PointInclusionRule{
 	 */
 
 
-	public synchronized boolean ask(LasPoint tempPoint, int i, boolean areYouReading){
+	public synchronized boolean ask(LasPoint tempPoint, long i, boolean areYouReading){
 
 
 		if(areYouReading == applyWhenReading){

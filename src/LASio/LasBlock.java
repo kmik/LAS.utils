@@ -660,8 +660,8 @@ public class LasBlock {
 
         progeBar.setName("Creating tins...");
         progeBar.setEnd(this.order.size());
-        int n1;
-        int n2;
+        long n1;
+        long n2;
 
         LASReader file1 = null;
         LASReader file2 = null;

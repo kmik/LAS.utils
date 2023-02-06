@@ -1,5 +1,8 @@
 package tools;
 import LASio.*;
+import err.toolException;
+import org.gdal.gdal.gdal;
+import org.gdal.ogr.*;
 import org.tinfour.common.IQuadEdge;
 import org.tinfour.common.Vertex;
 import org.tinfour.standard.IncrementalTin;
@@ -13,6 +16,7 @@ import org.tinfour.utils.Polyside;
 import utils.*;
 
 import static org.tinfour.utils.Polyside.isPointInPolygon;
+import static runners.MKid4pointsLAS.pointInPolygon;
 import static tools.cellStats.polygonArea;
 
 public class lasGridStats {
@@ -89,6 +93,9 @@ public class lasGridStats {
         bin_l = new gridRAF(this.aR.createOutputFileWithExtension(pointCloud, "_temp_l.bin"));
         bin_i = new gridRAF(this.aR.createOutputFileWithExtension(pointCloud, "_temp_i.bin"));
 
+
+
+
         this.start_2();
 
         aR.p_update.fileProgress++;
@@ -140,6 +147,7 @@ public class lasGridStats {
         PriorityQueue<Integer> que_gridPoints_i_i = new PriorityQueue<>();
 
 */
+
         ArrayList<Double> sum_z_a = new ArrayList<>();
         ArrayList<Double> sum_i_a = new ArrayList<>();
         ArrayList<Double> sum_z_f = new ArrayList<>();
@@ -234,6 +242,7 @@ public class lasGridStats {
         }
 
         int counter = 0;
+
         ArrayList<LasPoint>[][] grid_of_points = (ArrayList<LasPoint>[][]) new ArrayList[grid_x_size][grid_y_size] ;
 
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
@@ -1298,6 +1307,42 @@ public class lasGridStats {
         //System.out.println("TOOK: " + minutes + " min " + seconds + " sec");
     }
 
+
+    public void checkCell(ArrayList<double[]>[][] points, boolean[][] cells, int start_x, int start_y){
+
+        System.out.println("CALL ONCE");
+        boolean terminate = false;
+
+        for(int x = start_x-1; x <= start_x+1; x++){
+            for(int y = start_y-1; y <= start_y+1; y++){
+
+                if( x == start_x && y == start_y)
+                    continue;
+
+                if(x < 0 || y < 0)
+                    continue;
+
+                if(x >= points.length || y >= points[0].length)
+                    continue;
+
+               System.out.println(cells[x][y] + " " + x + " " + y);
+                if(cells[x][y])
+                    checkCell(points, cells, x, y);
+                else {
+                    return;
+                }
+            }
+            if(terminate)
+                break;
+        }
+
+        points[start_x][start_y].clear();
+        points[start_x][start_y] = null;
+        System.out.println("CLEARING: " + start_x + " " + start_y);
+
+    }
+
+
     public void start_2() throws Exception{
 
         boolean coordinate_center_of_cell = true;
@@ -1404,6 +1449,10 @@ public class lasGridStats {
 
         int[][] number_of_points_per_cell = new int[grid_x_size][grid_y_size];
 
+        boolean[][] cellDone = new boolean[grid_x_size][grid_y_size];
+        boolean[][] cellPointsRead = new boolean[grid_x_size][grid_y_size];
+        boolean[][] cellSurrounded = new boolean[grid_x_size][grid_y_size];
+
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
 
             pointCloud.readRecord(i, tempPoint);
@@ -1420,6 +1469,53 @@ public class lasGridStats {
 
         }
 
+        ogr.RegisterAll(); //Registering all the formats..
+        gdal.AllRegister();
+
+        HashMap<Integer, HashSet<Integer>> tree_belongs_to_this_plot = new HashMap<>();
+
+        File treetops = null;
+        DataSource ds2 = null;
+        double[] haku = new double[]{0,0};
+
+        ArrayList<double[][]> polyBank = new ArrayList<double[][]>();
+        HashMap<Integer, ArrayList<double[][]>> holes = new HashMap<>();
+
+        if(aR.eaba){
+
+            treetops = aR.treeTops;
+
+            ds2 = ogr.Open(treetops.getAbsolutePath(), 0);
+            Layer layeri = ds2.GetLayer(0);
+
+            for(long i = 0; i < layeri.GetFeatureCount(); i++ ) {
+
+                Feature tempF = layeri.GetFeature(i);
+                Geometry tempG = tempF.GetGeometryRef();
+
+                haku[0] = tempG.GetX();
+                haku[1] = tempG.GetY();
+
+                int x = ((int)((haku[0] - pointCloud.minX) / resolution));
+                int y = ((int)((pointCloud.maxY - haku[1]) / resolution));
+
+                int key = grid_x_size * y + x;
+
+                if(x >= 0 && y >= 0 && x < grid_x_size && y < grid_y_size){
+
+                    if(!tree_belongs_to_this_plot.containsKey(key))
+                        tree_belongs_to_this_plot.put(key, new HashSet<>());
+
+                    tree_belongs_to_this_plot.get(key).add(tempF.GetFieldAsInteger("id"));
+
+                }
+
+            }
+
+        }
+
+        aR.tree_belongs_to_this_plot = tree_belongs_to_this_plot;
+
         int counter = 0;
         ArrayList<double[]>[][] grid_of_points = (ArrayList<double[]>[][]) new ArrayList[grid_x_size][grid_y_size] ;
 
@@ -1430,8 +1526,6 @@ public class lasGridStats {
 
             int x = Math.min((int)((tempPoint.x - pointCloud.minX) / resolution), grid_x_size-1);
             int y = Math.min((int)((pointCloud.maxY - tempPoint.y) / resolution), grid_y_size-1);
-
-            //long c = (long)x << 32 | y & 0xFFFFFFFFL;
 
             number_of_points_per_cell[x][y]--;
 
@@ -1463,8 +1557,20 @@ public class lasGridStats {
         aR.p_update.threadEnd[coreNumber-1] = grid_y_size*grid_x_size;
         aR.p_update.updateProgressITD();
 
+        int tree_id = -1;
+
+        if(aR.eaba) {
+
+            try {
+                tree_id = pointCloud.extraBytes_names.get("ITC_id");
+            } catch (Exception e) {
+                throw new toolException("Cannot find ITC_id extra byte VLR. Maybe you don't want eaba?");
+            }
+        }
+
         int stand_id = 1;
 
+        if(!aR.eaba)
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
 
             pointCloud.readRecord(i, tempPoint);
@@ -1954,6 +2060,570 @@ public class lasGridStats {
 
             }
         }
+
+        PriorityQueue<Integer> readyToComputeCells = new PriorityQueue<>();
+
+        HashMap<Integer, Integer> map_points_read = new HashMap<>();
+        HashMap<Integer, Integer> map_complete = new HashMap<>();
+
+
+        if(aR.eaba)
+
+            for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
+
+                pointCloud.readRecord(i, tempPoint);
+
+                if(stands_delineated){
+                    stand_id = tempPoint.getExtraByteInt(polygon_id);
+                }else{
+
+                }
+
+                int x = Math.min((int)((tempPoint.x - pointCloud.minX) / resolution), grid_x_size-1);
+                int y = Math.min((int)((pointCloud.maxY - tempPoint.y) / resolution), grid_y_size-1);
+
+                number_of_points_per_cell[x][y]--;
+
+                if(grid_of_points[x][y] == null){
+                    grid_of_points[x][y] = new ArrayList<>();
+                    grid_of_points[x][y].add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.intensity, tempPoint.numberOfReturns, tempPoint.returnNumber, stand_id,
+                            tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
+                }else
+                    grid_of_points[x][y].add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.intensity, tempPoint.numberOfReturns, tempPoint.returnNumber, stand_id,
+                            tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
+
+                int right = Math.min(x + 1, grid_x_size-1);
+                int left = Math.max(x - 1, 0);
+                int top = Math.min(y + 1, grid_y_size-1);
+                int bottom = Math.max(y - 1, grid_y_size-1);
+
+                if(number_of_points_per_cell[x][y] == 0)
+                    cellPointsRead[x][y] = true;
+
+
+                if(number_of_points_per_cell[x][y] == 0 &&
+                    number_of_points_per_cell[right][y] == 0 &&
+                        number_of_points_per_cell[right][bottom] == 0 &&
+                        number_of_points_per_cell[x][bottom] == 0 &&
+                        number_of_points_per_cell[left][bottom] == 0 &&
+                        number_of_points_per_cell[left][y] == 0 &&
+                        number_of_points_per_cell[left][top] == 0 &&
+                        number_of_points_per_cell[x][top] == 0 &&
+                        number_of_points_per_cell[right][top] == 0) {
+
+                    cellSurrounded[x][y] = true;
+
+                }
+
+                if(false){
+                    readyToComputeCells.add(grid_x_size * y + x);
+
+
+                    counter++;
+                    cell_only_id[x][y] = -1;
+
+                    gridPoints_z_a.clear();
+                    gridPoints_i_a.clear();
+
+                    gridPoints_z_f.clear();
+                    gridPoints_i_f.clear();
+
+                    gridPoints_RGB_f.clear();
+
+                    points.clear();
+
+                    gridPoints_z_l.clear();
+                    gridPoints_i_l.clear();
+
+                    gridPoints_z_i.clear();
+                    gridPoints_i_i.clear();
+
+                    ids.clear();
+
+                    sum_z_a.clear(); sum_z_f.clear(); sum_z_l.clear(); sum_z_i.clear();
+                    sum_i_a.clear(); sum_i_f.clear(); sum_i_l.clear(); sum_i_i.clear();
+
+                    gridLocationInRaf_a.get(x).get(y).clear();
+                    gridLocationInRaf_f.get(x).get(y).clear();
+                    gridLocationInRaf_l.get(x).get(y).clear();
+                    gridLocationInRaf_i.get(x).get(y).clear();
+
+                    foundStands.clear();
+
+                    if (true) {
+
+                        int p = 0;
+
+                        long startTime = System.currentTimeMillis();
+
+                        // First iterate the surroundings to find trees that are EXTENDING outside the cell
+
+                        for(int x_ = x-1; x_ <= x+1; x_++){
+                            for(int y_ = y-1; y_ <= y+1; y_++){
+
+                                if(x_ == x && y_ == y)
+                                    continue;
+
+                                if(x_ < 0 || y_ < 0)
+                                    continue;
+
+                                if(x_ >= grid_x_size || y_ >= grid_y_size)
+                                    continue;
+
+                                if(grid_of_points[x_][y_] == null)
+                                    continue;
+
+                                for(int p_ = 0; p_ < grid_of_points[x_][y_].size(); p_++){
+
+                                    tempPoint.x = grid_of_points[x_][y_].get(p_)[0];
+                                    tempPoint.y = grid_of_points[x_][y_].get(p_)[1];
+                                    tempPoint.z = grid_of_points[x_][y_].get(p_)[2];
+                                    tempPoint.intensity = (int)grid_of_points[x_][y_].get(p_)[3];
+                                    tempPoint.numberOfReturns = (int)grid_of_points[x_][y_].get(p_)[4];
+                                    tempPoint.returnNumber = (int)grid_of_points[x_][y_].get(p_)[5];
+                                    stand_id = (int)grid_of_points[x_][y_].get(p_)[6];
+
+                                    tempPoint.R = (int)grid_of_points[x_][y_].get(p_)[7];
+                                    tempPoint.G = (int)grid_of_points[x_][y_].get(p_)[8];
+                                    tempPoint.B = (int)grid_of_points[x_][y_].get(p_)[9];
+                                    tempPoint.N = (int)grid_of_points[x_][y_].get(p_)[10];
+
+                                    if (tempPoint.x >= (orig_x + resolution * x_) && tempPoint.x < (orig_x + resolution * x_ + resolution) &&
+                                            tempPoint.y <= (orig_y - resolution * y_) && tempPoint.y > (orig_y - resolution * y_ - resolution)) {
+
+                                        int ITC_id = tempPoint.getExtraByteInt(tree_id);
+
+                                        // If this ITC tree is inside the current center cell
+                                        if(tree_belongs_to_this_plot.containsKey(grid_x_size * y + x))
+                                        if(tree_belongs_to_this_plot.get(grid_x_size * y + x).contains(ITC_id)){
+
+                                            if(!foundStands.contains(stand_id)) {
+
+                                                ids.add(stand_id);
+
+                                                points.add(new ArrayList<>());
+
+                                                gridPoints_z_a.add(new ArrayList<>());
+                                                gridPoints_i_a.add(new ArrayList<>());
+
+                                                gridPoints_z_f.add(new ArrayList<>());
+                                                gridPoints_RGB_f.add(new ArrayList<>());
+
+                                                gridPoints_i_f.add(new ArrayList<>());
+
+                                                gridPoints_z_l.add(new ArrayList<>());
+                                                gridPoints_i_l.add(new ArrayList<>());
+
+                                                gridPoints_z_i.add(new ArrayList<>());
+                                                gridPoints_i_i.add(new ArrayList<>());
+
+                                                sum_z_a.add(0.0);
+                                                sum_i_a.add(0.0);
+
+                                                sum_z_f.add(0.0);
+                                                sum_i_f.add(0.0);
+
+                                                sum_z_l.add(0.0);
+                                                sum_i_l.add(0.0);
+
+                                                sum_z_i.add(0.0);
+                                                sum_i_i.add(0.0);
+
+                                                order.put(stand_id, gridPoints_z_a.size()-1);
+                                                foundStands.add(stand_id);
+
+                                            }
+
+                                            gridPoints_z_a.get(order.get(stand_id)).add(tempPoint.z);
+                                            gridPoints_i_a.get(order.get(stand_id)).add(tempPoint.intensity);
+
+                                            sum_z_a.set(order.get(stand_id), sum_z_a.get(order.get(stand_id)) + tempPoint.z);
+                                            sum_i_a.set(order.get(stand_id), sum_i_a.get(order.get(stand_id)) + tempPoint.intensity);
+
+                                            points.get(order.get(stand_id)).add(new Point(tempPoint.x, tempPoint.y));
+
+                                            if (tempPoint.returnNumber == 1) {
+
+                                                gridPoints_z_f.get(order.get(stand_id)).add(tempPoint.z);
+
+                                                gridPoints_RGB_f.get(order.get(stand_id)).add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
+
+                                                gridPoints_i_f.get(order.get(stand_id)).add(tempPoint.intensity);
+
+                                                sum_z_f.set(order.get(stand_id), sum_z_f.get(order.get(stand_id)) + tempPoint.z);
+                                                sum_i_f.set(order.get(stand_id), sum_i_f.get(order.get(stand_id)) + tempPoint.intensity);
+
+                                            }
+                                            if (tempPoint.returnNumber == tempPoint.numberOfReturns) {
+
+                                                gridPoints_z_l.get(order.get(stand_id)).add(tempPoint.z);
+                                                gridPoints_i_l.get(order.get(stand_id)).add(tempPoint.intensity);
+
+                                                sum_z_l.set(order.get(stand_id), sum_z_l.get(order.get(stand_id)) + tempPoint.z);
+                                                sum_i_l.set(order.get(stand_id), sum_i_l.get(order.get(stand_id)) + tempPoint.intensity);
+
+                                            }
+                                            if (tempPoint.returnNumber > 1 && tempPoint.returnNumber != tempPoint.numberOfReturns) {
+
+                                                gridPoints_z_i.get(order.get(stand_id)).add(tempPoint.z);
+                                                gridPoints_i_i.get(order.get(stand_id)).add(tempPoint.intensity);
+
+                                                sum_z_i.set(order.get(stand_id), sum_z_i.get(order.get(stand_id)) + tempPoint.z);
+                                                sum_i_i.set(order.get(stand_id), sum_i_i.get(order.get(stand_id)) + tempPoint.intensity);
+
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        for(int p_ = 0; p_ < grid_of_points[x][y].size(); p_++){
+
+                            tempPoint.x = grid_of_points[x][y].get(p_)[0];
+                            tempPoint.y = grid_of_points[x][y].get(p_)[1];
+                            tempPoint.z = grid_of_points[x][y].get(p_)[2];
+                            tempPoint.intensity = (int)grid_of_points[x][y].get(p_)[3];
+                            tempPoint.numberOfReturns = (int)grid_of_points[x][y].get(p_)[4];
+                            tempPoint.returnNumber = (int)grid_of_points[x][y].get(p_)[5];
+                            stand_id = (int)grid_of_points[x][y].get(p_)[6];
+
+                            tempPoint.R = (int)grid_of_points[x][y].get(p_)[7];
+                            tempPoint.G = (int)grid_of_points[x][y].get(p_)[8];
+                            tempPoint.B = (int)grid_of_points[x][y].get(p_)[9];
+                            tempPoint.N = (int)grid_of_points[x][y].get(p_)[10];
+
+                            if (tempPoint.x >= (orig_x + resolution * x) && tempPoint.x < (orig_x + resolution * x + resolution) &&
+                                    tempPoint.y <= (orig_y - resolution * y) && tempPoint.y > (orig_y - resolution * y - resolution)) {
+
+                                int ITC_id = tempPoint.getExtraByteInt(tree_id);
+
+                                if(!tree_belongs_to_this_plot.containsKey(grid_x_size * y + x))
+                                    continue;
+                                // If this ITC tree is inside the current center cell
+                                if(!tree_belongs_to_this_plot.get(grid_x_size * y + x).contains(ITC_id))
+                                    continue;
+
+                                    //if(!foundStands.contains(tempPoint.pointSourceId)) {
+                                //stand_id = 1;
+                                //if(stands_delineated){
+                                //    stand_id = tempPoint.getExtraByteInt(polygon_id);
+                                //}else{
+                                // }
+                                //if(!foundStands.contains(tempPoint.pointSourceId)) {
+                                if(!foundStands.contains(stand_id)) {
+
+                                    //tins.add(new IncrementalTin());
+                                    // tin_perimeters.add(null);
+
+                                    ids.add(stand_id);
+
+                                    points.add(new ArrayList<>());
+
+                                    gridPoints_z_a.add(new ArrayList<>());
+                                    gridPoints_i_a.add(new ArrayList<>());
+
+                                    gridPoints_z_f.add(new ArrayList<>());
+                                    gridPoints_RGB_f.add(new ArrayList<>());
+
+                                    gridPoints_i_f.add(new ArrayList<>());
+
+                                    gridPoints_z_l.add(new ArrayList<>());
+                                    gridPoints_i_l.add(new ArrayList<>());
+
+                                    gridPoints_z_i.add(new ArrayList<>());
+                                    gridPoints_i_i.add(new ArrayList<>());
+
+                                    sum_z_a.add(0.0);
+                                    sum_i_a.add(0.0);
+
+                                    sum_z_f.add(0.0);
+                                    sum_i_f.add(0.0);
+
+                                    sum_z_l.add(0.0);
+                                    sum_i_l.add(0.0);
+
+                                    sum_z_i.add(0.0);
+                                    sum_i_i.add(0.0);
+
+                                    order.put(stand_id, gridPoints_z_a.size()-1);
+                                    foundStands.add(stand_id);
+
+                                }
+
+                                gridPoints_z_a.get(order.get(stand_id)).add(tempPoint.z);
+                                gridPoints_i_a.get(order.get(stand_id)).add(tempPoint.intensity);
+
+                                sum_z_a.set(order.get(stand_id), sum_z_a.get(order.get(stand_id)) + tempPoint.z);
+                                sum_i_a.set(order.get(stand_id), sum_i_a.get(order.get(stand_id)) + tempPoint.intensity);
+
+                                points.get(order.get(stand_id)).add(new Point(tempPoint.x, tempPoint.y));
+
+                                if (tempPoint.returnNumber == 1) {
+
+                                    gridPoints_z_f.get(order.get(stand_id)).add(tempPoint.z);
+
+                                    gridPoints_RGB_f.get(order.get(stand_id)).add(new int[]{tempPoint.R, tempPoint.G, tempPoint.B, tempPoint.N});
+
+                                    gridPoints_i_f.get(order.get(stand_id)).add(tempPoint.intensity);
+
+                                    sum_z_f.set(order.get(stand_id), sum_z_f.get(order.get(stand_id)) + tempPoint.z);
+                                    sum_i_f.set(order.get(stand_id), sum_i_f.get(order.get(stand_id)) + tempPoint.intensity);
+
+                                }
+                                if (tempPoint.returnNumber == tempPoint.numberOfReturns) {
+
+                                    gridPoints_z_l.get(order.get(stand_id)).add(tempPoint.z);
+                                    gridPoints_i_l.get(order.get(stand_id)).add(tempPoint.intensity);
+
+                                    sum_z_l.set(order.get(stand_id), sum_z_l.get(order.get(stand_id)) + tempPoint.z);
+                                    sum_i_l.set(order.get(stand_id), sum_i_l.get(order.get(stand_id)) + tempPoint.intensity);
+
+                                }
+                                if (tempPoint.returnNumber > 1 && tempPoint.returnNumber != tempPoint.numberOfReturns) {
+
+                                    gridPoints_z_i.get(order.get(stand_id)).add(tempPoint.z);
+                                    gridPoints_i_i.get(order.get(stand_id)).add(tempPoint.intensity);
+
+                                    sum_z_i.set(order.get(stand_id), sum_z_i.get(order.get(stand_id)) + tempPoint.z);
+                                    sum_i_i.set(order.get(stand_id), sum_i_i.get(order.get(stand_id)) + tempPoint.intensity);
+
+                                }
+                            }
+                            //grid_of_points[x][y].set(p_, null);
+
+                        }
+
+                        long stopTime = System.currentTimeMillis();
+                        //System.out.println(stopTime - startTime);
+                    }else{
+                        //System.out.println("WHAT THE FUCK!!");
+                    }
+
+                    cellDone[x][y] = true;
+
+                    checkCell(grid_of_points, cellDone, x, y);
+                    //grid_of_points[x][y].clear();
+                    grid_of_points[x][y] = null;
+
+                    System.out.println("computing " + x + " " + y + " ");
+                    aR.p_update.threadProgress[0]++;
+
+                    /* No points in this rectangle */
+                    if(ids.size() == 0)
+                        continue;
+
+                    ArrayList<Double> areas = new ArrayList<>();
+
+                    int divided = foundStands.size() > 1 ? 1 : 0;
+
+                    doubles_per_cell = 0;
+
+                    if(divided == 1 ){
+
+                        do_overs.add( x * grid_y_size + y );
+
+                    }else{
+
+                        cell_only_id[x][y] = ids.get(0);
+
+                    }
+
+                    double grid_cell_id = y * grid_x_size + x;
+/*
+                for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
+
+                    areas.add(tins.get(ii).countTriangles().getAreaSum());
+                    tins.get(ii).clear();
+                    tins.get(ii).dispose();
+                    tins.set(ii, new IncrementalTin());
+                    tin_perimeters.set(ii, null);
+
+                }
+                System.gc();
+
+ */
+
+                    for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
+                        QuickHull qh = new QuickHull();
+                        ArrayList<Point> p = null;
+
+                        if (points.get(ii).size() > 3) {
+                            p = qh.quickHull(points.get(ii));
+                            areas.add(polygonArea(p));
+                        } else {
+                            areas.add(-99.9);
+                        }
+                    }
+
+
+
+                    double x_coord = orig_x + resolution * x;
+                    double y_coord = orig_y - resolution * y;
+
+                    if(coordinate_center_of_cell){
+                        x_coord += this.resolution / 2.0;
+                        y_coord -= this.resolution / 2.0;
+                    }
+
+
+                    boolean addedBecauseTooSmall = false;
+
+                    /* Iterate over all the plot ids within this grid cell */
+                    for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
+
+                        /* If this plot id within this grid cell has more than 10 points */
+                        if(gridPoints_z_a.get(ii).size() > aR.min_points) {
+
+
+
+                            metrics = pCM.calc(gridPoints_z_a.get(ii), gridPoints_i_a.get(ii), sum_z_a.get(ii), sum_i_a.get(ii), "_a", colnames);
+
+                            if(colnames_metrics_a.size() == 0)
+                                colnames_metrics_a = (ArrayList<String>)colnames.clone();
+
+                            gridLocationInRaf_a.get(x).get(y).add(raf_location_a);
+
+                            bin_a.writeDouble(grid_cell_id);
+                            bin_a.writeDouble(ids.get(ii));
+                            bin_a.writeDouble(divided);
+                            bin_a.writeDouble(0.0);
+                            bin_a.writeDouble(areas.get(ii));
+                            bin_a.writeDouble(x_coord);
+                            bin_a.writeDouble(y_coord);
+
+                            if(divided == 0 && areas.get(ii) <= (resolution * resolution * 0.66) && !addedBecauseTooSmall){
+                                addedBecauseTooSmall = true;
+                                do_overs.add( x * grid_y_size + y );
+                            }
+
+                            for (Double metric : metrics) {
+                                bin_a.writeDouble(metric);
+                            }
+                            raf_location_a++;
+
+                        }
+                    }
+
+                    if(doubles_per_cell == 0)
+                        doubles_per_cell = 7 + metrics.size();
+
+                    long start_time = System.currentTimeMillis();
+
+                    for(int ii = 0; ii < gridPoints_z_f.size(); ii++) {
+
+                        if(gridPoints_z_f.get(ii).size() > aR.min_points) {
+
+                            if(false)
+                                for(int i__ = 0; i__ < gridPoints_RGB_f.get(ii).size(); i__++){
+
+                                    System.out.println(Arrays.toString(gridPoints_RGB_f.get(ii).get(i__)));
+                                }
+
+
+                            //System.out.println(gridPoints_RGB_f.get(ii).size());
+                            metrics = pCM.calc_with_RGB(gridPoints_z_f.get(ii), gridPoints_i_f.get(ii), sum_z_f.get(ii), sum_i_f.get(ii), "_f", colnames, gridPoints_RGB_f.get(ii));
+
+                            if(colnames_metrics_f.size() == 0)
+                                colnames_metrics_f = (ArrayList<String>)colnames.clone();
+
+                            bin_f.writeDouble(grid_cell_id);
+                            bin_f.writeDouble(ids.get(ii));
+                            bin_f.writeDouble(divided);
+                            bin_f.writeDouble(0.0);
+                            bin_f.writeDouble(areas.get(ii));
+                            bin_f.writeDouble(x_coord);
+                            bin_f.writeDouble(y_coord);
+
+                            for (Double metric : metrics) {
+                                bin_f.writeDouble(metric);
+                            }
+
+                            gridLocationInRaf_f.get(x).get(y).add(raf_location_f);
+                            raf_location_f++;
+
+                            if(doubles_per_cell_rgb == 0)
+                                doubles_per_cell_rgb = 7 + metrics.size();
+
+                        }
+                    }
+
+
+
+                    for(int ii = 0; ii < gridPoints_z_l.size(); ii++) {
+
+                        if(gridPoints_z_l.get(ii).size() > aR.min_points) {
+
+                            metrics = pCM.calc(gridPoints_z_l.get(ii), gridPoints_i_l.get(ii), sum_z_l.get(ii), sum_i_l.get(ii), "_l", colnames);
+
+                            if(colnames_metrics_l.size() == 0)
+                                colnames_metrics_l = (ArrayList<String>)colnames.clone();
+
+                            bin_l.writeDouble(grid_cell_id);
+                            bin_l.writeDouble(ids.get(ii));
+                            bin_l.writeDouble(divided);
+                            bin_l.writeDouble(0.0);
+                            bin_l.writeDouble(areas.get(ii));
+                            bin_l.writeDouble(x_coord);
+                            bin_l.writeDouble(y_coord);
+
+                            for (Double metric : metrics) {
+                                bin_l.writeDouble(metric);
+                            }
+
+                            gridLocationInRaf_l.get(x).get(y).add(raf_location_l);
+                            raf_location_l++;
+
+                        }
+                    }
+
+                    for(int ii = 0; ii < gridPoints_z_i.size(); ii++) {
+
+                        if(gridPoints_z_i.get(ii).size() > aR.min_points) {
+
+
+
+                            metrics = pCM.calc(gridPoints_z_i.get(ii), gridPoints_i_i.get(ii), sum_z_i.get(ii), sum_i_i.get(ii), "_i", colnames);
+
+
+                            if(colnames_metrics_i.size() == 0)
+                                colnames_metrics_i = (ArrayList<String>)colnames.clone();
+
+                            bin_i.writeDouble(grid_cell_id);
+                            bin_i.writeDouble(ids.get(ii));
+                            bin_i.writeDouble(divided);
+                            bin_i.writeDouble(0.0);
+                            bin_i.writeDouble(areas.get(ii));
+                            bin_i.writeDouble(x_coord);
+                            bin_i.writeDouble(y_coord);
+
+                            for (Double metric : metrics) {
+                                bin_i.writeDouble(metric);
+                            }
+
+                            gridLocationInRaf_i.get(x).get(y).add(raf_location_i);
+                            raf_location_i++;
+
+                        }
+                    }
+
+                    foundStands.clear();
+
+                    gridCounter++;
+
+                    aR.p_update.threadProgress[coreNumber-1]++;
+
+
+                    if(counter % 100 == 0){
+                        aR.p_update.updateProgressGridStats();
+                    }
+                    if(counter % 1000 == 0)
+                        System.gc();
+
+                }
+            }
+
+
         bin_a.writeBuffer2();
         bin_a.refresh();
         bin_f.writeBuffer2();
@@ -2816,6 +3486,21 @@ public class lasGridStats {
         }
 
     }
+
+    public static List<Double> convertHistogramToUniformDistribution(List<Integer> histogram) {
+        int n = histogram.size();
+        double sum = 0;
+        for (int count : histogram) {
+            sum += count;
+        }
+        double uniformProbability = 1.0 / n;
+        List<Double> distribution = new ArrayList<>(n);
+        for (int count : histogram) {
+            distribution.add(uniformProbability * count / sum);
+        }
+        return distribution;
+    }
+
 
 
     public class threadInput{

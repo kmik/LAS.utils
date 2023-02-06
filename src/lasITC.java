@@ -188,6 +188,8 @@ public class lasITC {
                     aR.p_update.threadFile[nCore - 1] = "waterShed";
                     aR.p_update.updateProgressITD();
                     createCHM.WaterShed fill = new createCHM.WaterShed(testi.treeTops, 0.2, testi.cehoam, testi, aR, nCore);
+                    fill.releaseMemory();
+
                 }catch (Exception e){
                     e.printStackTrace();
                 }
@@ -213,6 +215,13 @@ public class lasITC {
 
 
         createCHM.WaterShed fill = new createCHM.WaterShed(testi.treeTops, 0.2, testi.cehoam, testi, aR, 1);
+        fill.releaseMemory();
+        fill = null;
+        testi = null;
+        temp.close();
+        temp = null;
+
+
     }
 
 }

@@ -1,5 +1,6 @@
 package tools;//package JavaMI;
 
+import org.gdal.gdal.Driver;
 import utils.*;
 
 import java.io.*;
@@ -100,6 +101,7 @@ public class uav {
         for(int i = min; i < max; i++){
 
             similarity = -output.getInside().similarity(output.getOutside(), input[i][0], input[i][1]);
+
 /*
             System.out.println(similarity + " " + input[i][0] + " " + input[i][1]);
             System.out.println();
@@ -121,8 +123,8 @@ public class uav {
             if(i % 10 == 0)
                 System.gc();
 
-            proge.updateCurrent(1);
-            proge.print();
+            //proge.updateCurrent(1);
+            //proge.print();
 
         }
 
@@ -664,13 +666,18 @@ public class uav {
 
         }
 
-        public Chm(String fileName2){
+        public Chm(String fileName2, createCHM.chm chm_in){
+
+
+            org.gdal.gdal.Driver driver = null;
+            driver = gdal.GetDriverByName("GTiff");
+            driver.Register();
+
 
             fileName = fileName2;
 
             dataSet = gdal.Open(fileName, gdalconst.GA_ReadOnly);
             band = dataSet.GetRasterBand(1);
-
 
             xSize = dataSet.getRasterXSize();
             ySize = dataSet.getRasterYSize();
@@ -685,6 +692,7 @@ public class uav {
 
             System.out.println(Arrays.toString(transform));
 
+
             width = pixelWidth * xSize;
             height = pixelHeight * ySize;
 
@@ -695,9 +703,16 @@ public class uav {
 
             data = new float[ySize][xSize];
 
-            for(int y = 0; y < ySize; y++) 
-                band.ReadRaster(0, y, xSize, 1, data[y]);
-            
+            for(int y = 0; y < ySize; y++) {
+
+                chm_in.band.ReadRaster(0, y, xSize, 1, data[y]);
+                //System.out.println(Arrays.toString(data[y]));
+
+            }
+
+            //System.out.println(dataSet.GetDriver());
+            //System.exit(1);
+
 
             minMaxValues();
 
@@ -811,11 +826,17 @@ public class uav {
                     val2 = in.get( (int)(((xOrigin + j * pixelWidth) - in.getX()[0] + x_offset) / in.getPixelWidth()),
                             (int)((-(yOrigin - i * pixelHeight) + in.getY()[0] + y_offset) / in.getPixelHeight()) );
 
+
+                    //System.out.println(val1);
+                    //System.out.println(val2);
+                    //System.out.println("--------------");
+
                     if(Double.isNaN(val1) || Double.isNaN(val2) || val1 == 0 || val2 == 0)
                         continue;
 
                     array1_list.add(val1);
                     array2_list.add(val2);
+
                     /*
                     array1[count] = val1;
 
@@ -841,9 +862,18 @@ public class uav {
             }
             //System.out.println(Correlation(array1, array2));
 /*
-            System.out.println(Arrays.toString(array1));
-            System.out.println(Arrays.toString(array2));
-*/
+            if(array1.length > 0) {
+                System.out.println(Arrays.toString(array1));
+                System.out.println(Arrays.toString(array1));
+                System.out.println(Arrays.toString(array1));
+                System.out.println(Arrays.toString(array1));
+                System.out.println(Arrays.toString(array2));
+                System.out.println(Arrays.toString(array2));
+                System.out.println(Arrays.toString(array2));
+                System.out.println(Arrays.toString(array2));
+                System.exit(1);
+            }
+            */
             array1_list.clear();
             array2_list.clear();
 
@@ -984,6 +1014,8 @@ public class uav {
         ogr.RegisterAll(); //Registering all the formats..
         gdal.AllRegister();
 
+
+
         long startT = System.nanoTime();
 
         String modi = "/media/koomikko/juuka/test/mod/97.tif";
@@ -1020,24 +1052,34 @@ public class uav {
         Chm chm2 = null; //new Chm("refTemp.tif");
 
         argumentReader asdi = new argumentReader();
-        asdi.step = 0.25;
+
+        asdi.step = 0.75;
         asdi.cores = 1;
         asdi.p_update = new progressUpdater(asdi);
 
-        asdi.interpolate = false;
+        asdi.interpolate = true;
 
-        asdi.lasrelate = true;
+        asdi.lasrelate = false;
 
         asdi.theta = 0.6;
+
+        asdi.inclusionRule = new PointInclusionRule();
+        asdi.modifyRule = new PointModifyRule();
         //asdi.kernel = 5;
 
+        //asdi.parseArguents();
+
+        asdi.pfac = new lasReadWriteFactory(asdi);
 
         fw.write(pCloudMod.getFile().getName() + "\t");
 
         if(args.length <= 2){
 
-            //createCHM.chm asd = new createCHM.chm(pCloudMod, "y", 1, asdi, 1);
-            //createCHM.chm asd2 = new createCHM.chm(pCloudRef, "y", 1, asdi, 1);
+            createCHM testi_c = new createCHM();
+            //createCHM testi_c_2 = new createCHM();
+
+            createCHM.chm asd = testi_c.new chm(pCloudMod, "y", 1, asdi, 1);
+            createCHM.chm asd2 = testi_c.new chm(pCloudRef, "y", 1, asdi, 1);
 
             /*
             chm1 = new Chm("modTemp.tif");
@@ -1051,16 +1093,16 @@ public class uav {
 
              */
 
-            //chm1 = new Chm(asd.outputFileName);
-            //chm2 = new Chm(asd2.outputFileName);
+            chm1 = new Chm(asd.outputFileName, asd);
+            chm2 = new Chm(asd2.outputFileName, asd2);
 
 
         }
 
         else{
 
-            chm1 = new Chm(modi);
-            chm2 = new Chm(refi);
+            //chm1 = new Chm(modi);
+            //chm2 = new Chm(refi);
 
         }
 
@@ -1090,7 +1132,6 @@ public class uav {
             toBeMoved = 2;
 
         System.out.println("To be moved: " + toBeMoved + " (should be one)");
-
 
         int maximumDifference = 4;
 
@@ -1208,7 +1249,7 @@ public class uav {
         aR.inclusionRule = new PointInclusionRule();
         aR.inclusionRule.translate_x(output.getX());
         aR.inclusionRule.translate_y(output.getY());
-
+        aR.pfac = new lasReadWriteFactory(aR);
         tooli.convert(pCloudMod, aR);
 
 

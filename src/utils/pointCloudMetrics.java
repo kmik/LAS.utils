@@ -12,9 +12,14 @@ public class pointCloudMetrics {
 
     public double[] densities = new double[]{1.3, 2.5, 5.0, 7.5, 10.0, 15.0, 20.0, 25.0};
 
-    public boolean square = false;
+    public boolean square = true;
+    public boolean clip_to_circle = false;
+    public boolean clip_to_hexagon = false;
 
-    public double r = 9.5;
+    // THIS IS FOR THE HEXAGON
+    public double r = 9.0;
+
+    //public double r = 7.5;
 
     double cutoff = 0;
     double cutoff_n_points = 10;
@@ -23,9 +28,19 @@ public class pointCloudMetrics {
     static double SQRT_3 = Math.sqrt(3.0);
 
     int x_dim_ = 0, y_dim_ = 0, z_dim_ = 0;
-    static double convolution_image_width =     19.0;
-    static double convolution_image_height =    19.0;
-    static double convolution_image_resolution = 1.0;
+
+    // THIS IS FOR THE HEXAGON
+    //static double convolution_image_width =     20.0;
+    static double convolution_image_width =     16.0;
+
+    // THIS IS FOR THE HEXAGON
+    //static double convolution_image_height =    20.0;
+    static double convolution_image_height =    16.0;
+    //static double convolution_image_resolution = 1.0;
+    static double convolution_image_resolution = 0.8888889;
+    static double convolution_image_resolution_x = convolution_image_resolution;
+    static double convolution_image_resolution_y = convolution_image_resolution;
+    static double convolution_image_resolution_z = 1.0;
     static double convolution_image_depth =     35.0;
     static double angle_increment =             45.0;
     static double diagonal = Math.sqrt((convolution_image_height*convolution_image_height)+(convolution_image_height*convolution_image_height));
@@ -55,7 +70,7 @@ public class pointCloudMetrics {
         return isInside;
     }
 
-
+    
     public ArrayList<ArrayList<Double>> calc_nn_input_train(ArrayList<double[]> p, String suffix, ArrayList<String> colnames, double top_left_x, double top_left_y){
 
         double center_x = top_left_x + diagonal / 2.0;
@@ -152,7 +167,7 @@ public class pointCloudMetrics {
         double grid_top_left_y = center_y + convolution_image_width / 2.0;
 
         double[][] hexagon = new double[7][2];
-
+/*
         hexagon[0][0] = center_x - (r); hexagon[0][1] = center_y;
         hexagon[1][0] = center_x - (r / 2.0); hexagon[1][1] = center_y + (SQRT_3 * r / 2.0);
         hexagon[2][0] = center_x + (r / 2.0); hexagon[2][1] = center_y + (SQRT_3 * r / 2.0);
@@ -160,6 +175,15 @@ public class pointCloudMetrics {
         hexagon[4][0] = center_x + (r / 2.0); hexagon[4][1] = center_y - (SQRT_3 * r / 2.0);
         hexagon[5][0] = center_x - (r / 2.0); hexagon[5][1] = center_y - (SQRT_3 * r / 2.0);
         hexagon[6][0] = center_x - (r); hexagon[6][1] = center_y;
+*/
+
+        hexagon[0][0] = center_x; hexagon[0][1] = center_y - r;
+        hexagon[1][0] = center_x - (SQRT_3 * r / 2.0); hexagon[1][1] = center_y - (r / 2.0);
+        hexagon[2][0] = center_x - (SQRT_3 * r / 2.0); hexagon[2][1] = center_y + (r / 2.0);
+        hexagon[3][0] = center_x; hexagon[3][1] = center_y + r;
+        hexagon[4][0] = center_x + (SQRT_3 * r / 2.0); hexagon[4][1] = center_y + (r / 2.0);
+        hexagon[5][0] = center_x + (SQRT_3 * r / 2.0); hexagon[5][1] = center_y - (r / 2.0);
+        hexagon[6][0] = center_x; hexagon[6][1] = center_y - r;
 
         ArrayList<ArrayList<Double>> output = new ArrayList<>();
         /* p contains points from a buffered point cloud that has a width equal to the diagonal of the convolution_image_width */
@@ -188,9 +212,9 @@ public class pointCloudMetrics {
 
         double point_count = (double)p.size();
 
-        int z_dim = (int)((convolution_image_depth) / convolution_image_resolution);
-        int x_dim = (int)(convolution_image_width / convolution_image_resolution);
-        int y_dim = (int)(convolution_image_height / convolution_image_resolution);
+        int z_dim = (int)Math.ceil((convolution_image_depth) / convolution_image_resolution_z);
+        int x_dim = (int)Math.ceil(convolution_image_width / convolution_image_resolution_x);
+        int y_dim = (int)Math.ceil(convolution_image_height / convolution_image_resolution_y);
 
         this.x_dim_ = x_dim;
         this.y_dim_ = y_dim;
@@ -203,12 +227,13 @@ public class pointCloudMetrics {
         double[][][] grid_N = new double[x_dim][y_dim][z_dim];
 
         byte[][] grid_mask = new byte[x_dim][y_dim];
+        //char[][] grid_mask_2 = new char[x_dim][y_dim];
 
         for(int x = 0; x < x_dim; x++){
             for(int y = 0; y < y_dim; y++){
 
-                double x_coord = grid_top_left_x + convolution_image_resolution * x + convolution_image_resolution / 2.0;
-                double y_coord = grid_top_left_y - convolution_image_resolution * y - convolution_image_resolution / 2.0;
+                double x_coord = grid_top_left_x + convolution_image_resolution_x * x + convolution_image_resolution_x / 2.0;
+                double y_coord = grid_top_left_y - convolution_image_resolution_y * y - convolution_image_resolution_y / 2.0;
 
                 if(pointInPolygon(new double[]{x_coord, y_coord}, hexagon)){
                     grid_mask[x][y] = 1;
@@ -223,6 +248,7 @@ public class pointCloudMetrics {
         //for(int i = 0; i < grid_mask.length; i++)
         //    System.out.println(Arrays.toString(grid_mask[i]));
 
+        //System.exit(1);
         //if( (bottom_right_x-top_left_x) > 8)
         //    System.exit(1);
         //System.out.println(Arrays.toString(p.get(0)));
@@ -234,21 +260,36 @@ public class pointCloudMetrics {
 
                 for (double[] p_ : p) {
 
+                    if(clip_to_circle){
+
+                        if(euclideanDistance(p_[0], p_[1], center_x, center_y) >= r){
+                            continue;
+                        }
+
+                    }
+                    if(clip_to_hexagon){
+
+                        if(!pointInPolygon(new double[]{p_[0], p_[1]}, hexagon)){
+                            continue;
+                        }
+
+                    }
 
                     if (p_[0] > center_x - convolution_image_width / 2.0 && p_[0] < center_x + convolution_image_width / 2.0 &&
                             p_[1] > center_y - convolution_image_width / 2.0 && p_[1] < center_y + convolution_image_width / 2.0) {
 
-                        int x = (int) Math.min((int) ((p_[0] - min_x) / convolution_image_resolution), x_dim - 1);
-                        int y = (int) Math.min((int) ((max_y - p_[1]) / convolution_image_resolution), y_dim - 1);
-                        int z = Math.max((int) Math.min((int) ((p_[2] - 0) / convolution_image_resolution), z_dim - 1), 0);
+                        int x = (int) Math.min((int) ((p_[0] - min_x) / convolution_image_resolution_x), x_dim - 1);
+                        int y = (int) Math.min((int) ((max_y - p_[1]) / convolution_image_resolution_y), y_dim - 1);
+                        int z = Math.max((int) Math.min((int) ((p_[2] - 0) / convolution_image_resolution_z), z_dim - 1), 0);
 
                         if (grid_mask[x][y] == 1 || square) {
-                            grid[x][y][z]++;
 
-                            if (p_[2] <= 3) {
+
+                            if (p_[2] <= 2) {
                                 continue;
                             }
 
+                            grid[x][y][z]++;
                             grid_R[x][y][z] += p_[3];
                             grid_G[x][y][z] += p_[4];
                             grid_B[x][y][z] += p_[5];
@@ -286,7 +327,8 @@ public class pointCloudMetrics {
                 rotatePoints(origin, angle_increment, p);
                 angle += angle_increment;
                 first = false;
-                break;
+
+                //break;
             }
             mirrorPoints(origin, p);
             angle = angle_increment;
@@ -374,6 +416,7 @@ public class pointCloudMetrics {
 
         double[][] hexagon = new double[7][2];
 
+        /*
         hexagon[0][0] = center_x - (r); hexagon[0][1] = center_y;
         hexagon[1][0] = center_x - (r / 2.0); hexagon[1][1] = center_y + (SQRT_3 * r / 2.0);
         hexagon[2][0] = center_x + (r / 2.0); hexagon[2][1] = center_y + (SQRT_3 * r / 2.0);
@@ -381,6 +424,15 @@ public class pointCloudMetrics {
         hexagon[4][0] = center_x + (r / 2.0); hexagon[4][1] = center_y - (SQRT_3 * r / 2.0);
         hexagon[5][0] = center_x - (r / 2.0); hexagon[5][1] = center_y - (SQRT_3 * r / 2.0);
         hexagon[6][0] = center_x - (r); hexagon[6][1] = center_y;
+*/
+
+        hexagon[0][0] = center_x; hexagon[0][1] = center_y - r;
+        hexagon[1][0] = center_x - (SQRT_3 * r / 2.0); hexagon[1][1] = center_y - (r / 2.0);
+        hexagon[2][0] = center_x - (SQRT_3 * r / 2.0); hexagon[2][1] = center_y + (r / 2.0);
+        hexagon[3][0] = center_x; hexagon[3][1] = center_y + r;
+        hexagon[4][0] = center_x + (SQRT_3 * r / 2.0); hexagon[4][1] = center_y + (r / 2.0);
+        hexagon[5][0] = center_x + (SQRT_3 * r / 2.0); hexagon[5][1] = center_y - (r / 2.0);
+        hexagon[6][0] = center_x; hexagon[6][1] = center_y - r;
 
 
         //ArrayList<Double> output = new ArrayList<>();
@@ -405,9 +457,9 @@ public class pointCloudMetrics {
 
         double point_count = (double)p.size();
 
-        int z_dim = (int)((convolution_image_depth) / convolution_image_resolution);
-        int x_dim = (int)(convolution_image_width / convolution_image_resolution);
-        int y_dim = (int)(convolution_image_height / convolution_image_resolution);
+        int z_dim = (int)Math.ceil((convolution_image_depth) / convolution_image_resolution_z);
+        int x_dim = (int)Math.ceil(convolution_image_width / convolution_image_resolution_x);
+        int y_dim = (int)Math.ceil(convolution_image_height / convolution_image_resolution_y);
 
         this.x_dim_ = x_dim;
         this.y_dim_ = y_dim;
@@ -427,8 +479,8 @@ public class pointCloudMetrics {
         for(int x = 0; x < x_dim; x++){
             for(int y = 0; y < y_dim; y++){
 
-                double x_coord = grid_top_left_x + convolution_image_resolution * x + convolution_image_resolution / 2.0;
-                double y_coord = grid_top_left_y - convolution_image_resolution * y - convolution_image_resolution / 2.0;
+                double x_coord = grid_top_left_x + convolution_image_resolution_x * x + convolution_image_resolution_x / 2.0;
+                double y_coord = grid_top_left_y - convolution_image_resolution_y * y - convolution_image_resolution_y / 2.0;
 
                 //if(euclideanDistance(x_coord, y_coord, center_x, center_y) < 9.0){
                 //    grid_mask[x][y] = 1;
@@ -454,20 +506,37 @@ public class pointCloudMetrics {
 
             //if(p_[0] > center_x - convolution_image_width / 2.0 && p_[0] < center_x + convolution_image_width / 2.0 &&
             //p_[1] > center_y - convolution_image_width / 2.0 && p_[1] < center_y + convolution_image_width / 2.0){
+            if(clip_to_circle){
 
-            int x = (int)Math.min((int)((p_[0] - min_x) / convolution_image_resolution), x_dim - 1);
-            int y = (int)Math.min((int)((max_y - p_[1]) / convolution_image_resolution), y_dim - 1);
-            int z = Math.max((int)Math.min((int)((p_[2] - 0) / convolution_image_resolution), z_dim - 1), 0);
+                if(euclideanDistance(p_[0], p_[1], center_x, center_y) >= r){
+                    continue;
+                }
+
+            }
+
+            if(clip_to_hexagon){
+
+                if(!pointInPolygon(new double[]{p_[0], p_[1]}, hexagon)){
+                    continue;
+                }
+
+            }
+
+            int x = (int)Math.min((int)((p_[0] - min_x) / convolution_image_resolution_x), x_dim - 1);
+            int y = (int)Math.min((int)((max_y - p_[1]) / convolution_image_resolution_y), y_dim - 1);
+            int z = Math.max((int)Math.min((int)((p_[2] - 0) / convolution_image_resolution_z), z_dim - 1), 0);
 
             if(p_[0] > center_x - convolution_image_width / 2.0 && p_[0] < center_x + convolution_image_width / 2.0 &&
                     p_[1] > center_y - convolution_image_width / 2.0 && p_[1] < center_y + convolution_image_width / 2.0) {
                 if (grid_mask[x][y] == 1 || square) {
-                    grid[x][y][z]++;
 
-                    if (p_[2] <= 3) {
+
+
+                    if (p_[2] <= 2) {
                         continue;
                     }
 
+                    grid[x][y][z]++;
                     grid_R[x][y][z] += p_[3];
                     grid_G[x][y][z] += p_[4];
                     grid_B[x][y][z] += p_[5];
@@ -476,6 +545,8 @@ public class pointCloudMetrics {
             }
             //}
         }
+
+        System.out.println(x_dim + " " + y_dim + " " + z_dim);
 
         output = (resetGrid_colnames_spectral(grid, grid_R, grid_G, grid_B, grid_N, point_count, colnames, grid_mask));
 
@@ -692,14 +763,16 @@ public class pointCloudMetrics {
                             //if(surrounding_points > 1)
                             //    System.out.println("what is this: " + array[x][y][z] / surrounding_points + " " + array[x][y][z] + " " + surrounding_points);
 
-                            out_struct.add(array[x][y][z] / surrounding_points);
+                            //out_struct.add(array[x][y][z] / surrounding_points);
+                            out_struct.add(array[x][y][z]);
 
                             out_R.add(array_R[x][y][z] / array[x][y][z]);
                             out_G.add(array_G[x][y][z] / array[x][y][z]);
                             out_B.add(array_B[x][y][z] / array[x][y][z]);
                             out_N.add(array_N[x][y][z] / array[x][y][z]);
 
-                            out.add(array[x][y][z] / surrounding_points);
+                            //out.add(array[x][y][z] / surrounding_points);
+                            out.add(array[x][y][z]);
                             out.add(array_R[x][y][z] / array[x][y][z]);
                             out.add(array_G[x][y][z] / array[x][y][z]);
                             out.add(array_B[x][y][z] / array[x][y][z]);

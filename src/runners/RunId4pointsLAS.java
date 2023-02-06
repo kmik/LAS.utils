@@ -9,6 +9,8 @@ import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -17,6 +19,9 @@ import LASio.*;
 import utils.argumentReader;
 import utils.fileOperations;
 import utils.pointWriterMultiThread;
+
+import static runners.MKid4pointsLAS.pointInPolygon;
+import static runners.MKid4pointsLAS.readPolygonHolesFromWKT;
 
 public class RunId4pointsLAS{
 
@@ -654,17 +659,18 @@ public class RunId4pointsLAS{
 
         time.start();
 
-
-
-
         argumentReader aR = new argumentReader(args);
 
         aR.setExecDir( System.getProperty("user.dir"));
 
 
+        ogr.RegisterAll(); //Registering all the formats..
+        gdal.AllRegister();
+
         aR.parseArguents();
 
-
+        File treetops = null;
+        DataSource ds2 = null;
 
 
         double[] origo = new double[2];
@@ -689,8 +695,6 @@ public class RunId4pointsLAS{
 
         File shapeFile = new File(koealat);
 
-        ogr.RegisterAll(); //Registering all the formats..
-        gdal.AllRegister();
 
         int shapeType = -1;
 
@@ -700,12 +704,14 @@ public class RunId4pointsLAS{
 
         try{
 
-
             Thread.sleep(0);
 
         }catch(InterruptedException e) {
             e.printStackTrace();
         }
+
+        ArrayList<double[][]> polyBank = new ArrayList<double[][]>();
+        HashMap<Integer, ArrayList<double[][]>> holes = new HashMap<>();
 
         if(shapeFile.getName().contains(".shp")){
 
@@ -713,7 +719,6 @@ public class RunId4pointsLAS{
             DataSource ds = ogr.Open( koealat );
 
             Layer layeri = ds.GetLayer(0);
-
 
             try{
                 fout = new File("tempWKT.csv");
@@ -772,6 +777,63 @@ public class RunId4pointsLAS{
         txtFormat = new File(aR.files[0]).getName().split("\\.")[1].equals("txt");
 
         MKid4pointsLAS homma = new MKid4pointsLAS();
+
+        ArrayList<Integer> plotID1 = new ArrayList<>();
+
+        try {
+
+            polyBank = homma.readPolygonsFromWKT(koealat, plotID1);
+            holes   =   readPolygonHolesFromWKT(koealat, plotID1);
+
+        }catch (Exception e){
+
+            e.printStackTrace();
+
+        }
+
+        double[] haku = new double[]{0,0};
+        boolean inside = false;
+
+        HashMap<Integer, HashSet<Integer>> tree_belongs_to_this_plot = new HashMap<>();
+
+        if(aR.eaba){
+
+            treetops = aR.treeTops;
+
+            ds2 = ogr.Open(treetops.getAbsolutePath(), 0);
+            Layer layeri = ds2.GetLayer(0);
+
+            for(long i = 0; i < layeri.GetFeatureCount(); i++ ) {
+
+
+                Feature tempF = layeri.GetFeature(i);
+                Geometry tempG = tempF.GetGeometryRef();
+
+                //System.out.println(tempG.GetX() + " " + tempG.GetY() + " " + tempF.GetFieldAsInteger("id"));
+
+                haku[0] = tempG.GetX();
+                haku[1] = tempG.GetY();
+
+                for(int j = 0; j < polyBank.size(); j++){
+
+                    inside = pointInPolygon(haku, polyBank.get(j), holes, plotID1.get(j));
+
+                    if(inside){
+
+                        if(!tree_belongs_to_this_plot.containsKey(plotID1.get(j)))
+                            tree_belongs_to_this_plot.put(plotID1.get(j), new HashSet<>());
+
+                        tree_belongs_to_this_plot.get(plotID1.get(j)).add(tempF.GetFieldAsInteger("id"));
+                        break;
+
+                    }
+                }
+            }
+
+        }
+
+        aR.tree_belongs_to_this_plot = tree_belongs_to_this_plot;
+
 
 
         ArrayList<String> tiedostot_indeksi = new ArrayList<String>();

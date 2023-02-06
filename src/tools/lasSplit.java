@@ -16,6 +16,7 @@ public class lasSplit {
     LASReader pointCloud;
 
     int splitBy = 0;
+    int splitByThis = -1;
 
     HashMap<Integer, LASraf> tempFiles = new HashMap<Integer, LASraf>();
     HashMap<Integer, LasPointBufferCreator> tempFiles_buf = new HashMap<>();
@@ -45,6 +46,15 @@ public class lasSplit {
         }
         if(aR.splitBy.equals("pointSourceId")){
             splitBy = 5;
+        }
+
+        if(splitBy == 0){
+
+            splitBy = 6;
+
+
+            this.splitByThis = pointCloud.extraBytes_names.get(aR.splitBy);
+
         }
     }
 
@@ -126,60 +136,73 @@ public class lasSplit {
         }
 
         else {
-            for (int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
+            for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
+            //for (int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+
+                pointCloud.readRecord(i, tempPoint);
+
+                /*
                 maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
-
-                try {
-                    pointCloud.readRecord_noRAF(i, tempPoint, maxi);
-                } catch (Exception e) {
-                    e.printStackTrace();//pointCloud.braf.buffer.position(0);
-                }
-
-                for (int j = 0; j < maxi; j++) {
-                    //Sstem.out.println(j);
-                    pointCloud.readFromBuffer(tempPoint);
+*/
+                    //System.out.println(tempPoint.x + " " + tempPoint.y);
+                    //if(tempPoint.pointSourceId == 111)
+                    //    System.out.println(tempPoint.pointSourceId);
 
                     /* Reading, so ask if this point is ok, or if
                     it should be modified.
                      */
-                    if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    //if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    if(!aR.inclusionRule.ask(tempPoint, i, true)){
                         continue;
                     }
 
-                    switch (splitBy) {
+                    try {
+                        switch (splitBy) {
 
-                        case 2:
-                            if (!this.tempFiles_buf.containsKey(tempPoint.classification))
-                                declareOutputFile(tempPoint.classification);
+                            case 2:
+                                if (!this.tempFiles_buf.containsKey(tempPoint.classification))
+                                    declareOutputFile(tempPoint.classification);
 
-                            this.tempFiles_buf.get(tempPoint.classification).writePoint(tempPoint, aR.getInclusionRule(), j);
+                                this.tempFiles_buf.get(tempPoint.classification).writePoint(tempPoint, aR.getInclusionRule(), i);
 
-                            break;
+                                break;
 
-                        case 3:
-                            if (!this.tempFiles_buf.containsKey(tempPoint.returnNumber))
-                                declareOutputFile(tempPoint.returnNumber);
+                            case 3:
+                                if (!this.tempFiles_buf.containsKey(tempPoint.returnNumber))
+                                    declareOutputFile(tempPoint.returnNumber);
 
-                            this.tempFiles_buf.get(tempPoint.returnNumber).writePoint(tempPoint, aR.getInclusionRule(), j);
+                                this.tempFiles_buf.get(tempPoint.returnNumber).writePoint(tempPoint, aR.getInclusionRule(), i);
 
-                            break;
+                                break;
 
-                        case 4:
-                            if (!this.tempFiles_buf.containsKey(tempPoint.userData))
-                                declareOutputFile(tempPoint.userData);
+                            case 4:
+                                if (!this.tempFiles_buf.containsKey(tempPoint.userData))
+                                    declareOutputFile(tempPoint.userData);
 
-                            this.tempFiles_buf.get(tempPoint.userData).writePoint(tempPoint, aR.getInclusionRule(), j);
+                                this.tempFiles_buf.get(tempPoint.userData).writePoint(tempPoint, aR.getInclusionRule(), i);
 
-                            break;
+                                break;
 
-                        case 5:
-                            if (!this.tempFiles_buf.containsKey((int) tempPoint.pointSourceId))
-                                declareOutputFile(tempPoint.pointSourceId);
+                            case 5:
+                                if (!this.tempFiles_buf.containsKey((int) tempPoint.pointSourceId))
+                                    declareOutputFile(tempPoint.pointSourceId);
 
-                            //System.out.println(this.tempFiles.get((int)tempPoint.pointSourceId));
-                            this.tempFiles_buf.get((int) tempPoint.pointSourceId).writePoint(tempPoint, aR.getInclusionRule(), j);
-                            break;
+                                //System.out.println(this.tempFiles.get((int)tempPoint.pointSourceId));
+                                this.tempFiles_buf.get((int) tempPoint.pointSourceId).writePoint(tempPoint, aR.getInclusionRule(), i);
+                                break;
+
+                            case 6:
+                                int id = tempPoint.getExtraByteInt(splitByThis);
+
+                                if (!this.tempFiles_buf.containsKey(id))
+                                    declareOutputFile(id);
+
+                                this.tempFiles_buf.get(id).writePoint(tempPoint, aR.getInclusionRule(), i);
+                                break;
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
 
                     aR.p_update.threadProgress[coreNumber - 1]++;
@@ -187,10 +210,12 @@ public class lasSplit {
                     if (aR.p_update.threadProgress[coreNumber - 1] % 10000 == 0)
                         aR.p_update.updateProgressSplit();
                 }
-            }
+           // }
         }
 
         for(int i : tempFiles_buf.keySet()){
+
+            //System.out.println("closing: " + i);
             /*
             tempFiles.get(i).writeBuffer2();
             tempFiles.get(i).updateHeader2();
@@ -210,6 +235,7 @@ public class lasSplit {
         LASraf tempRaf;
         pointWriterMultiThread pw;
         LasPointBufferCreator buf;
+
         switch (splitBy){
 
             case 1 :
@@ -265,6 +291,19 @@ public class lasSplit {
                  */
                 pw = new pointWriterMultiThread(aR.createOutputFileWithExtension(pointCloud, "_pointSourceId_" + split + ".las"), pointCloud, "lasSplit", aR);
                 buf = new LasPointBufferCreator(1, pw);
+                this.tempFiles_buf.put(split, buf);
+                break;
+
+            case 6 :
+                /*
+                tempRaf = new LASraf(aR.createOutputFileWithExtension(pointCloud, "_pointSourceId_" + split + ".las"));
+                tempRaf.writeHeader("lasSplit", pointCloud.versionMajor, pointCloud.versionMinor, pointCloud.pointDataRecordFormat, pointCloud.pointDataRecordLength);
+                this.tempFiles.put(split, tempRaf);
+
+                 */
+                pw = new pointWriterMultiThread(aR.createOutputFileWithExtension(pointCloud, "_" + aR.splitBy + "_" + split + ".las"), pointCloud, "lasSplit", aR);
+                buf = new LasPointBufferCreator(1, pw);
+                //System.out.println("create: " + split);
                 this.tempFiles_buf.put(split, buf);
                 break;
         }
