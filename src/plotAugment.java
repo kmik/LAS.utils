@@ -44,8 +44,8 @@ public class plotAugment {
             testi.readMeasuredTrees(aR.measured_trees);
             testi.readMatchedTrees(aR.ITC_metrics_file);
             testi.readITCPolygons(aR.poly_2);
+            testi.preparePlots();
 
-            //testi.readMeasuredTrees(aR.measured_trees);
 
         }
     }

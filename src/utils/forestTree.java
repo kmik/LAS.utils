@@ -1,5 +1,7 @@
 package utils;
 
+import java.util.Arrays;
+
 public class forestTree {
 
     int treeSpecies;
@@ -18,6 +20,8 @@ public class forestTree {
     double[] volume_total = new double[3];
 
     double[][] treeCrownBounds;
+
+    double[] geometricCenter = new double[2];
     public boolean hasCrown = false;
     double treeX;
     double treeX_ITC;
@@ -149,6 +153,8 @@ public class forestTree {
     public void setTreeCrownBounds(double[][] treeCrownBounds) {
         this.hasCrown = true;
         this.treeCrownBounds = treeCrownBounds;
+        getCentroid(this.treeCrownBounds);
+        System.out.println("Geometric center: " + Arrays.toString(this.geometricCenter));
     }
 
     public double getTreeHeight_ITC() {
@@ -163,7 +169,83 @@ public class forestTree {
         return plotID;
     }
 
+    public static void print2DArray(double[][] arr) {
+        for (int i = 0; i < arr.length; i++) {
+            for (int j = 0; j < arr[i].length; j++) {
+                System.out.print(arr[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    public boolean containsCoordinate(double x, double y){
+
+        double[] point = new double[2];
+        point[0] = x;
+        point[1] = y;
+
+        //System.out.println(Arrays.toString(point));
+        return pointInPolygon(point, treeCrownBounds);
+
+    }
+
     public void setPlotID(int plotID) {
         this.plotID = plotID;
+    }
+
+    public static boolean pointInPolygon(double[] point, double[][] poly) {
+
+
+        int numPolyCorners = poly.length;
+        int j = numPolyCorners - 1;
+        boolean isInside = false;
+
+        for (int i = 0; i < numPolyCorners; i++) {
+            if (poly[i][1] < point[1] && poly[j][1] >= point[1] || poly[j][1] < point[1] && poly[i][1] >= point[1]) {
+                if (poly[i][0] + (point[1] - poly[i][1]) / (poly[j][1] - poly[i][1]) * (poly[j][0] - poly[i][0]) < point[0]) {
+                    isInside = !isInside;
+                }
+            }
+            j = i;
+        }
+        return isInside;
+    }
+
+    public void getCentroid(double[][] polygon) {
+        double centerX = 0;
+        double centerY = 0;
+        double signedArea = 0;
+        double x0 = 0;
+        double y0 = 0;
+        double x1 = 0;
+        double y1 = 0;
+        double a = 0;
+
+        for (int i = 0; i < polygon.length - 1; i++) {
+            x0 = polygon[i][0];
+            y0 = polygon[i][1];
+            x1 = polygon[i + 1][0];
+            y1 = polygon[i + 1][1];
+            a = x0 * y1 - x1 * y0;
+            signedArea += a;
+            centerX += (x0 + x1) * a;
+            centerY += (y0 + y1) * a;
+        }
+
+        x0 = polygon[polygon.length - 1][0];
+        y0 = polygon[polygon.length - 1][1];
+        x1 = polygon[0][0];
+        y1 = polygon[0][1];
+        a = x0 * y1 - x1 * y0;
+        signedArea += a;
+        centerX += (x0 + x1) * a;
+        centerY += (y0 + y1) * a;
+
+        signedArea *= 0.5;
+        centerX /= (6 * signedArea);
+        centerY /= (6 * signedArea);
+
+        this.geometricCenter[0] = centerX;
+        this.geometricCenter[1] = centerY;
     }
 }

@@ -43,7 +43,7 @@ public class lasReadWriteFactory {
 
     }
 
-    public void writePoint(LasPoint p, int index, int thread) throws Exception {
+    public void writePoint(LasPoint p, long index, int thread) throws Exception {
 
         buf.get(thread).writePoint(p, this.aR.inclusionRule, index);
 

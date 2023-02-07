@@ -7,6 +7,7 @@ import org.mapdb.HTreeMap;
 import utils.argumentReader;
 import utils.forestPlot;
 import utils.forestTree;
+import utils.plotSimulator;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,12 +23,12 @@ public class plotAugmentator {
 
     argumentReader aR;
 
-    HashMap<Integer, forestPlot> plots = new HashMap<Integer, forestPlot>();
-    HashMap<Integer, forestTree> trees = new HashMap<Integer, forestTree>();
+    public HashMap<Integer, forestPlot> plots = new HashMap<Integer, forestPlot>();
+    public HashMap<Integer, forestTree> trees = new HashMap<Integer, forestTree>();
     //HashMap<Integer, double[][]> treeBounds = new HashMap<>();
-    ArrayList<double[][]> treeBounds = new ArrayList<>();
+    public ArrayList<double[][]> treeBounds = new ArrayList<>();
 
-    HashMap<Integer, forestTree> ITC_id_to_tree_id = new HashMap<>();
+    public HashMap<Integer, forestTree> ITC_id_to_tree_id = new HashMap<>();
 
     public plotAugmentator(){
 
@@ -44,6 +45,7 @@ public class plotAugmentator {
             //System.out.println(Arrays.toString(line));
 
             int plot_id = (int)Double.parseDouble(line[line.length - 5]);
+
             int tree_id = (int)Double.parseDouble(line[line.length - 4]);
 
             if(tree_id > 0) {
@@ -94,7 +96,7 @@ public class plotAugmentator {
             //print2DArray(treeBounds.get(tmpTree.getTreeID_unique()));
 
             tmpTree.setTreeX(Double.parseDouble(line[3]));
-            tmpTree.setTreeX(Double.parseDouble(line[4]));
+            tmpTree.setTreeY(Double.parseDouble(line[4]));
             tmpTree.setTreeHeight(Double.parseDouble(line[11]));
 
             int species = Integer.parseInt(line[7]);
@@ -176,6 +178,7 @@ public class plotAugmentator {
             //System.out.println(shapeFile2[i]);
             ds = ogr.Open( shapeFile2[i] );
 
+
             if( ds == null ) {
                 System.out.println( "Opening plot ITC shapefile failed." );
                 System.exit( 1 );
@@ -194,13 +197,18 @@ public class plotAugmentator {
 
                 //treeBounds.put(tempF.GetFieldAsInteger(0), tempG2.GetPoints().clone());
 
-
                 if(ITC_id_to_tree_id.containsKey(tempF.GetFieldAsInteger(0))) {
                     //System.out.println(tempF.GetFieldAsInteger(0));
                     ITC_id_to_tree_id.get(tempF.GetFieldAsInteger(0)).setTreeCrownBounds(tempG2.GetPoints());
+
+                    plots.get(ITC_id_to_tree_id.get(tempF.GetFieldAsInteger(0)).getPlotID()).setPlotLASFile(
+                            new File(shapeFile2[i].split("_TreeSegmentation.shp") [0] + "_ITD.las")
+                    );
                     //trees.get(ITC_id_to_tree_id.get(tempF.GetFieldAsInteger(0))).setTreeCrownBounds(tempG2.GetPoints());
                     matched_trees++;
                 }
+
+
 
             }
 
@@ -228,4 +236,10 @@ public class plotAugmentator {
         }
     }
 
+    public void simulatePlots(){
+
+        plotSimulator simulator = new plotSimulator(this);
+
+
+    }
 }

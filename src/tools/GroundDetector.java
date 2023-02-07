@@ -795,8 +795,9 @@ public class GroundDetector{
             pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
             counter2 = 0;
 
-            for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 200000) {
-
+            //for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 200000) {
+            for (long p = 0; p < pointCloud.getNumberOfPointRecords(); p++) {
+/*
                 maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - (p)));
 
                 try {
@@ -808,8 +809,9 @@ public class GroundDetector{
                 for (int j = 0; j < maxi; j++) {
 
                     pointCloud.readFromBuffer(tempPoint);
-
-                    if (!rule.ask(tempPoint, p + j, true) || tempPoint.numberOfReturns != tempPoint.returnNumber || doneInd[j+p]) { // badInd[p + j] ||
+*/
+                pointCloud.readRecord(p, tempPoint);
+                    if (!rule.ask(tempPoint, p, true) || tempPoint.numberOfReturns != tempPoint.returnNumber || doneInd[(int)p]) { // badInd[p + j] ||
                         continue;
                     }
 
@@ -819,7 +821,7 @@ public class GroundDetector{
                         triang = navi.getContainingTriangle(tempPoint.x, tempPoint.y);
 
                             if (triang == null) {
-                                badInd[p + j] = true;
+                                badInd[(int)p] = true;
                                 continue;
                             }
 
@@ -855,7 +857,7 @@ public class GroundDetector{
                         }
 
                         if(distance > 10 && !aR.axelsson_mirror){
-                            badInd[p + j] = true;
+                            badInd[(int)p] = true;
                             continue;
                         }
 
@@ -904,12 +906,12 @@ public class GroundDetector{
                                         this.rolling_statistics.add(maxAngle);
 
                                         org.tinfour.common.Vertex tempVertex = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z);
-                                        tempVertex.setIndex((p + j));
+                                        tempVertex.setIndex(((int)p));
 
                                         tin.add(tempVertex);
                                         polator.resetForChangeToTin();
                                         navi.resetForChangeToTin();
-                                        doneInd[p + j] = true;
+                                        doneInd[(int)p] = true;
 
                                     }//else{
                                     //        doneInd[p + j] = true;
@@ -930,7 +932,7 @@ public class GroundDetector{
                                     triang = navi.getContainingTriangle(tempPoint.x, tempPoint.y);
 
                                     if (triang == null) {
-                                        badInd[p + j] = true;
+                                        badInd[(int)p] = true;
                                         continue;
                                     }
 
@@ -963,7 +965,7 @@ public class GroundDetector{
 
                                     if ( false )
                                         if (distance > 5) {
-                                            badInd[p + j] = true;
+                                            badInd[(int)p] = true;
 
                                             continue;
                                         }
@@ -1014,13 +1016,13 @@ public class GroundDetector{
                                             this.rolling_statistics.add(maxAngle);
 
                                             org.tinfour.common.Vertex tempVertex = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, tempPoint.z);
-                                            tempVertex.setIndex((p + j));
+                                            tempVertex.setIndex(((int)p));
 
                                             tin.add(tempVertex);
                                             polator.resetForChangeToTin();
                                             navi.resetForChangeToTin();
 
-                                            doneInd[p + j] = true;
+                                            doneInd[(int)p] = true;
                                         }
                                         //else{
                                         //    doneInd[p + j] = true;
@@ -1033,7 +1035,7 @@ public class GroundDetector{
                     if (counter2++ % 100000 == 0) {
                         update_progress((int) loo);
                     }
-                }
+                //}
             } //DONEINDEXES
 
             vertex_distance_to_nearest.reset();
@@ -1118,8 +1120,9 @@ public class GroundDetector{
 
             if(write){
 
-                for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 200000) {
-
+                //for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 200000) {
+                for (long p = 0; p < pointCloud.getNumberOfPointRecords(); p++) {
+/*
                     maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - (p)));
 
                     try {
@@ -1131,8 +1134,9 @@ public class GroundDetector{
                     for (int j = 0; j < maxi; j++) {
 
                         pointCloud.readFromBuffer(tempPoint);
-
-                        if(!rule.ask(tempPoint, p+j, true)){
+*/
+                    pointCloud.readRecord(p, tempPoint);
+                        if(!rule.ask(tempPoint, p, true)){
                             continue;
                         }
                         /*      If the las point is already classified as ground, we clear the classification
@@ -1141,7 +1145,7 @@ public class GroundDetector{
                         if(tempPoint.classification == 2)
                             tempPoint.classification = 0;
 
-                        if (doneInd[p+j])
+                        if (doneInd[(int)p])
                             tempPoint.classification = 2;
 
                         if (aR.o_dz) {
@@ -1151,10 +1155,10 @@ public class GroundDetector{
 
                         }
 
-                        aR.pfac.writePoint(tempPoint, p + j, thread_n);
+                        aR.pfac.writePoint(tempPoint, p, thread_n);
 
                     }
-                }
+                //}
             }
         }catch(Exception e){
             e.printStackTrace(System.out);
@@ -1523,6 +1527,7 @@ public class GroundDetector{
             tempy = maxY;
             countx++;
             county = 0;
+
         }
 
         long n = pointCloud.getNumberOfPointRecords();
@@ -1631,19 +1636,22 @@ public class GroundDetector{
 
         double minz = Double.POSITIVE_INFINITY;
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000){
 
-            maxi = (int)Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+        //for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000){
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i++){
 
-            try {
-                pointCloud.readRecord_noRAF(i, tempPoint, maxi);
-            }catch(Exception e){
-                e.printStackTrace();
-            }
+            //maxi = (int)Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            for (int j = 0; j < maxi; j++) {
+            //try {
+            //    pointCloud.readRecord_noRAF(i, tempPoint, maxi);
+            //}catch(Exception e){
+            //    e.printStackTrace();
+            //}
 
-                pointCloud.readFromBuffer(tempPoint);
+            //for (long j = 0; j < maxi; j++) {
+
+                //pointCloud.readFromBuffer(tempPoint);
+            pointCloud.readRecord(i, tempPoint);
                 if(rule.ask(tempPoint, i, true)){
 
                     temppi[0] = (long)Math.floor((tempPoint.x - minX) / (double)axelssonGridSize);   //X INDEX
@@ -1683,22 +1691,22 @@ public class GroundDetector{
 
                     if(tempPoint.z > statistics[smallX][smallY][3]){
                         statistics[smallX][smallY][3] = (float)tempPoint.z;
-                        statistics[smallX][smallY][8] = i+j;
+                        statistics[smallX][smallY][8] = i;
                     }
 
                     if(tempPoint.z < statistics[smallX][smallY][2]){
                         statistics[smallX][smallY][2] = (float)tempPoint.z;
-                        statistics[smallX][smallY][7] = i+j;
+                        statistics[smallX][smallY][7] = i;
                     }
 
                     if(tempPoint.z > statisticsBig[(int)temppi[0]][(int)temppi[1]][3]){
                         statisticsBig[(int)temppi[0]][(int)temppi[1]][3] = (float)tempPoint.z;
-                        statisticsBig[(int)temppi[0]][(int)temppi[1]][8] = i+j;
+                        statisticsBig[(int)temppi[0]][(int)temppi[1]][8] = i;
                     }
 
                     if(tempPoint.z < statisticsBig[(int)temppi[0]][(int)temppi[1]][2]){
                         statisticsBig[(int)temppi[0]][(int)temppi[1]][2] = (float)tempPoint.z;
-                        statisticsBig[(int)temppi[0]][(int)temppi[1]][7] = (i+j);
+                        statisticsBig[(int)temppi[0]][(int)temppi[1]][7] = (i);
                         statisticsBig[(int)temppi[0]][(int)temppi[1]][9] = tempPoint.x;
                         statisticsBig[(int)temppi[0]][(int)temppi[1]][10] = tempPoint.y;
                         statisticsBig[(int)temppi[0]][(int)temppi[1]][11] = tempPoint.z;
@@ -1731,11 +1739,11 @@ public class GroundDetector{
                     temppiP[1] = tempPoint.y;
                     temppiP[2] = tempPoint.z;
                     temppiP[3] = tempPoint.classification;
-                    temppiP[4] = i+j;
+                    temppiP[4] = i;
 
                 }
 
-            }
+            //}
 
 
         }

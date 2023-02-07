@@ -1,20 +1,25 @@
 package utils;
 
+import LASio.LASReader;
 import err.toolException;
 import tools.plotAugmentator;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
 public class forestPlot {
 
+    LASReader plotLASReader;
+    public File plotLASFile;
     plotAugmentator pA;
     int id;
     double[][] plotBounds;
     int plotID;
     double[][] plotITCTreeBounds;
 
+    double[] speciesSpecificVolume = new double[3];
     double area;
     HashMap<Integer, forestTree> trees = new HashMap<Integer, forestTree>();
 
@@ -46,13 +51,58 @@ public class forestPlot {
 
     public void preparePlot(){
 
-        for(int treeID : trees.keySet()){
-            if(!treeHasITC.contains(treeID)){
-                treeWithoutITC.add(treeID);
-            }
+        try {
+            plotLASReader = new LASReader(this.plotLASFile);
+            //System.out.println("Reading LAS file: " + this.plotLASFile.getName());
+        }catch (Exception e){
+            System.out.println("Error reading LAS file");
         }
+        for(int treeID : trees.keySet()){
+
+            if(!trees.get(treeID).hasCrown){
+
+                int target = underWhere(treeID);
+
+                //System.out.println("Tree is under segment: " + target + " " + treeHasITC.size());
+
+                if(target != -1){
+
+                    trees.get(target).volume_total[trees.get(treeID).getTreeSpecies()] += trees.get(treeID).getTreeVolume();
+                    //System.out.println(Arrays.toString(trees.get(target).volume_total));
+
+                }else{
+
+                }
+            }
+
+            this.speciesSpecificVolume[trees.get(treeID).getTreeSpecies()] += trees.get(treeID).getTreeVolume();
+        }
+
+        double frac = 10000 / this.area;
+
+        for(int i = 0 ; i < speciesSpecificVolume.length; i++){
+            speciesSpecificVolume[i] *= frac;
+            speciesSpecificVolume[i] /= 1000;
+        }
+
+        System.out.println("Plot " + this.id + " species specific volume: " + Arrays.toString(this.speciesSpecificVolume));
     }
 
+    public int underWhere(int treeId){
+
+        for(int treeID : treeHasITC){
+
+            if(treeID == treeId)
+                continue;
+
+            if(trees.get(treeID).containsCoordinate(trees.get(treeId).getTreeX(), trees.get(treeId).getTreeY()))
+                return treeID;
+
+            //System.out.println("tried tree: " + treeID);
+        }
+
+        return -1;
+    }
     public void ITCHasNoMatch(int ITCid){
         ITCWithoutMatch.add(ITCid);
         //System.out.println("plot " + this.id + " " + treeWithoutITC.size());
@@ -118,4 +168,11 @@ public class forestPlot {
         return isInside;
     }
 
+    public File getPlotLASFile() {
+        return plotLASFile;
+    }
+
+    public void setPlotLASFile(File plotLASFile) {
+        this.plotLASFile = plotLASFile;
+    }
 }
