@@ -120,7 +120,7 @@ public class forestPlot {
     }
 
     public void setSmallerBounds(double[][] smallerBounds) {
-        this.smallerBounds = smallerBounds;
+        this.smallerBounds =  clone2DArray(smallerBounds);
         this.hasSmallerBounds = true;
     }
 
@@ -771,14 +771,17 @@ public class forestPlot {
         else
             plotBounds_ = clone2DArray(this.smallerBounds);
 
+       // System.out.println("Plot bounds: " + plotBounds_.length);
+
         for(int i = 0; i < plotBounds_.length; i++){
             plotBounds_[i][0] += this.simulationOffsetX * simulationLocationCountX;
             plotBounds_[i][1] -= this.simulationOffsetY * simulationLocationCountY;
         }
-        for(int i = 0; i < this.plotBounds.length; i++){
+        for(int i = 0; i < plotBounds_.length; i++){
             polygon2.AddPoint_2D(plotBounds_[i][0], plotBounds_[i][1]);
         }
 
+        //System.out.println(polygon2.GetPoints().length);
         this.plotBounds_simulated.add(clone2DArray(plotBounds_));
 
         plotBounds_ = null;
@@ -794,7 +797,7 @@ public class forestPlot {
         layer.delete();
         dataSource.delete();
 
-
+        //System.exit(1);
     }
 
     public void writeSimilatedPlotFile(File in, int simulationID){
@@ -881,12 +884,12 @@ public class forestPlot {
 
                 if(simulated_plot.get(i).hasCrown)
                     if(simulated_plot.get(i).plotID != this.id){
-                        tree_sim_x_ITC = simulated_plot.get(i).getTreeX_ITC() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX_ITC()) +
-                                (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX_ITC());
+                        tree_sim_x_ITC = simulated_plot.get(i).getTreeX() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX()) +
+                                (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX());
                         tree_sim_x_ITC += this.simulationOffsetX * simulationLocationCountX;
 
-                        tree_sim_y_ITC = simulated_plot.get(i).getTreeY_ITC() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY_ITC()) +
-                                (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY_ITC());
+                        tree_sim_y_ITC = simulated_plot.get(i).getTreeY() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY()) +
+                                (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY());
                         tree_sim_y_ITC -= this.simulationOffsetY * simulationLocationCountY;
                         //System.out.println("HERE!! " + counter++ + " " + simulated_plot.size() );
                         //System.out.println("from_external_plot: " + tree_sim_x + " " + tree_sim_y + " " + simulated_plot.get(i).hasCrown + " " +

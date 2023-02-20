@@ -217,11 +217,11 @@ public class plotAugmentator {
             plots.get(tempF.GetFieldAsInteger(0)).setSmallerBounds(tempG2.GetPoints());
             plots.get(tempF.GetFieldAsInteger(0)).setSmallerArea(tempG2.GetArea());
             System.out.println("Smaller area: " + tempG2.GetArea());
-            System.exit(1);
+            //System.exit(1);
 
         }
 
-
+    //System.exit(1);
 
     }
     public void readShapeFiles(String shapeFile, String[] shapeFile2) throws IOException {
@@ -471,7 +471,7 @@ public class plotAugmentator {
                         simulator.simulatePlotAnnealingWay(i, true, false, targets, odir);
                         //simulator.simulatePlotAnnealingWay(i, false, false);
                         //simulator.simulatePlotAnnealingWay(i, false, true);
-                        System.exit(1);
+                        //System.exit(1);
                         //}
                     })).get();
         }catch (Exception e){

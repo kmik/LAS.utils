@@ -253,7 +253,7 @@ public class Boundary extends tool{
         List<IQuadEdge> currentBorder = null;
 
         int thread_n = aR.pfac.addReadThread(pointCloud);
-
+/*
         for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
             long maxi = (long) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
@@ -263,11 +263,14 @@ public class Boundary extends tool{
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
+*/
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
 
+            pointCloud.readRecord(i, tempPoint);
                 /* Reading, so ask if this point is ok, or if
                     it should be modified.
                      */
-                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                if(!aR.inclusionRule.ask(tempPoint, i, true)){
                     continue;
                 }
                 if (tin.isBootstrapped()) {
@@ -296,7 +299,7 @@ public class Boundary extends tool{
                 if (i % 10000 == 0) {
                     calcPerim();
                 }
-            }
+            //}
             //System.out.println("ASD");
         }
 
