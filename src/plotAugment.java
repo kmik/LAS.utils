@@ -35,18 +35,20 @@ public class plotAugment {
         gdal.AllRegister();
 
 
-        if (aR.cores > 1) {
-            //threadTool(aR, fD);
-        } else {
-
-            plotAugmentator testi = new plotAugmentator();
+            plotAugmentator testi = new plotAugmentator(aR);
             testi.readShapeFiles(aR.poly, aR.poly_2);
+
+            if(aR.poly_3.length > 0)
+                testi.readSmallerPolygon(aR.poly_3);
+
+            if(aR.target != null)
+                testi.readTargets(aR.target);
+
             testi.readMeasuredTrees(aR.measured_trees);
             testi.readMatchedTrees(aR.ITC_metrics_file);
             testi.readITCPolygons(aR.poly_2);
             testi.preparePlots();
+            testi.simulatePlots();
 
-
-        }
     }
 }

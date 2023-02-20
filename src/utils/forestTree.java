@@ -1,6 +1,6 @@
 package utils;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 
 public class forestTree {
 
@@ -9,7 +9,10 @@ public class forestTree {
     int treeID_unique;
     int treePlotID;
 
-    int plotID;
+    public boolean belongsToSomeITC = false;
+
+    public boolean belongsToOptimization = false;
+    int plotID = -1;
     int treeITCid = -1;
     double treeDBH;
     double treeHeight;
@@ -17,22 +20,44 @@ public class forestTree {
     double treeCrownArea;
     double treeVolume;
 
+    public int beneathCrownId = -1;
+
     double[] volume_total = new double[3];
 
+    ArrayList<Double> diameters = new ArrayList<>();
     double[][] treeCrownBounds;
 
     double[] geometricCenter = new double[2];
     public boolean hasCrown = false;
+     public ArrayList<forestTree> treesBeneath = new ArrayList<>();
     double treeX;
     double treeX_ITC;
     double treeY;
-    double tree_Y_ITC;
+    double treeY_ITC;
 
+    String treeLineFromFieldData;
+    String[] treeLineFromFieldData_delimited;
+    double maxDBH = 0;
+
+    double simulationTranslationX1 = 0;
+    double simulationTranslationX2 = 0;
+    double simulationTranslationY1 = 0;
+    double simulationTranslationY2 = 0;
+
+    int simulationPlotId = -1;
 
 
     public forestTree(){
 
     }
+
+    public void addTreeBeneath(forestTree tree){
+        treesBeneath.add(tree);
+        tree.belongsToSomeITC = true;
+        if(tree.getTreeDBH() > this.maxDBH)
+            this.maxDBH = tree.getTreeDBH();
+    }
+
 
     public int getTreeSpecies() {
         return treeSpecies;
@@ -72,6 +97,7 @@ public class forestTree {
 
     public void setTreeDBH(double treeDBH) {
         this.treeDBH = treeDBH;
+        this.maxDBH = treeDBH;
     }
 
     public double getTreeHeight() {
@@ -122,12 +148,12 @@ public class forestTree {
         this.treeX_ITC = treeX_ITC;
     }
 
-    public double getTree_Y_ITC() {
-        return tree_Y_ITC;
+    public double getTreeY_ITC() {
+        return treeY_ITC;
     }
 
-    public void setTree_Y_ITC(double tree_Y_ITC) {
-        this.tree_Y_ITC = tree_Y_ITC;
+    public void setTreeY_ITC(double treeY_ITC) {
+        this.treeY_ITC = treeY_ITC;
     }
 
     public int getTreeID_unique() {
@@ -154,7 +180,7 @@ public class forestTree {
         this.hasCrown = true;
         this.treeCrownBounds = treeCrownBounds;
         getCentroid(this.treeCrownBounds);
-        System.out.println("Geometric center: " + Arrays.toString(this.geometricCenter));
+        //System.out.println("Geometric center: " + Arrays.toString(this.geometricCenter));
     }
 
     public double getTreeHeight_ITC() {
@@ -211,6 +237,22 @@ public class forestTree {
         return isInside;
     }
 
+    public String getTreeLineFromFieldData() {
+        return treeLineFromFieldData;
+    }
+
+    public void setTreeLineFromFieldData(String treeLineFromFieldData) {
+        this.treeLineFromFieldData = treeLineFromFieldData;
+    }
+
+    public String[] getTreeLineFromFieldData_delimited() {
+        return treeLineFromFieldData_delimited;
+    }
+
+    public void setTreeLineFromFieldData_delimited(String[] treeLineFromFieldData_delimited) {
+        this.treeLineFromFieldData_delimited = treeLineFromFieldData_delimited;
+    }
+
     public void getCentroid(double[][] polygon) {
         double centerX = 0;
         double centerY = 0;
@@ -247,5 +289,59 @@ public class forestTree {
 
         this.geometricCenter[0] = centerX;
         this.geometricCenter[1] = centerY;
+    }
+
+    public double getSimulationTranslationX2() {
+        return simulationTranslationX2;
+    }
+
+    public void setSimulationTranslationX2(double simulationTranslationX2) {
+        this.simulationTranslationX2 = simulationTranslationX2;
+    }
+
+    public double getSimulationTranslationY2() {
+        return simulationTranslationY2;
+    }
+
+    public void setSimulationTranslationY2(double simulationTranslationY2) {
+        this.simulationTranslationY2 = simulationTranslationY2;
+    }
+
+    public double getSimulationTranslationX1() {
+        return simulationTranslationX1;
+    }
+
+    public void setSimulationTranslationX1(double simulationTranslationX1) {
+        this.simulationTranslationX1 = simulationTranslationX1;
+    }
+
+    public double getSimulationTranslationY1() {
+        return simulationTranslationY1;
+    }
+
+    public void setSimulationTranslationY1(double simulationTranslationY1) {
+        this.simulationTranslationY1 = simulationTranslationY1;
+    }
+
+    public int getSimulationPlotId() {
+        return simulationPlotId;
+    }
+
+    public void setSimulationPlotId(int simulationPlotId) {
+        this.simulationPlotId = simulationPlotId;
+    }
+
+    @Override
+    public String toString() {
+        return "forestTree{" +
+                "treeSpecies=" + treeSpecies +
+                ", treeID=" + treeID +
+                ", plotID=" + plotID +
+                ", treeITCid=" + treeITCid +
+                ", treeHeight=" + treeHeight +
+                ", hasCrown=" + hasCrown +
+                ", beneath=" + beneathCrownId +
+                ", belongsToOptimization=" + belongsToOptimization +
+                '}';
     }
 }

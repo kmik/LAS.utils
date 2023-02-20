@@ -31,6 +31,8 @@ public class argumentReader {
     public ArrayList<String> create_extra_byte_vlr_description = new ArrayList<>();
     public ArrayList<Integer> create_extra_byte_vlr_n_bytes = new ArrayList<>();
 
+    public File target = null;
+
     public boolean overWrite = false;
     public File amapVoxFile = null;
 
@@ -47,7 +49,7 @@ public class argumentReader {
     public double min_edge_length = 0.5;
 
     public boolean convolution_metrics_train = false;
-    public boolean convolution_metrics = true;
+    public boolean convolution_metrics = false;
 
     public boolean output_only_itc_segments = false;
 
@@ -208,6 +210,7 @@ public class argumentReader {
 
     public String poly = "null";
     public String[] poly_2;
+    public String[] poly_3 = new String[0];
     public double[] densities = new double[]{1.3, 2.5, 5.0, 7.5, 10.0, 15.0, 20.0, 25.0};
     public double percentiles = 0.05;
 
@@ -233,6 +236,7 @@ public class argumentReader {
 
     public boolean thin3d = false;
 
+    public double prob = 0.5;
     public boolean output_statistics = false;
 
     public boolean split = false;
@@ -598,6 +602,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("prob")
+                .hasArg(true)
+                .desc("Probability (check tool for more info)")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("concavity")
                 .hasArg(true)
                 .desc("Concavity")
@@ -630,6 +641,15 @@ public class argumentReader {
                 .desc("Field measured trees_2")
                 .required(false)
                 .build());
+
+        options.addOption(Option.builder()
+                .longOpt("target")
+                .hasArg(true)
+                .desc("Target file")
+                .required(false)
+                .build());
+
+
         options.addOption(Option.builder()
                 .longOpt("min_edge_length")
                 .hasArg(true)
@@ -704,6 +724,14 @@ public class argumentReader {
                 .longOpt("poly2")
                 .hasArg(true)
                 .desc("Second polyon file")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("poly3")
+                .hasArg(true)
+                .desc("Third polyon file")
                 .numberOfArgs(Option.UNLIMITED_VALUES)
                 .required(false)
                 .build());
@@ -1714,6 +1742,15 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("poly3")) {
+
+                poly_3 = cmd.getOptionValues("poly3");
+                if(poly_3[0].split(";").length > 1){
+                    poly_3 = poly_3[0].split(";");
+                }
+
+            }
+
 
             if (cmd.hasOption("seq")) {
 
@@ -1968,6 +2005,13 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("target")){
+                this.target = new File(cmd.getOptionValue("target"));
+
+                if(!this.target.exists())
+                    throw new argumentException("-target does not exist!");
+            }
+
             if (cmd.hasOption("measured_trees_2")) {
 
                 this.measured_trees_2 = new File(cmd.getOptionValue("measured_trees_2"));
@@ -1986,6 +2030,13 @@ public class argumentReader {
                 this.dist = Double.parseDouble(cmd.getOptionValue("dist"));
 
             }
+
+            if (cmd.hasOption("prob")) {
+
+                this.prob = Double.parseDouble(cmd.getOptionValue("prob"));
+
+            }
+
 
             if (cmd.hasOption("filter_intensity")) {
 
@@ -3003,7 +3054,7 @@ public class argumentReader {
 
     }
 
-    public File createOutputFileWithExtension(File in, String extension) throws IOException {
+    public synchronized File createOutputFileWithExtension(File in, String extension) throws IOException {
 
         File tempFile = null;
         String tempPath = this.output;
@@ -3039,7 +3090,44 @@ public class argumentReader {
         return tempFile;
     }
 
+    public synchronized File createOutputFileWithExtension(File in, String extension, String odir_in) throws IOException {
 
+        File tempFile = null;
+        String tempPath = this.output;
+
+        if(this.output.equals("asd"))
+            tempFile = in;
+        else
+            tempFile = new File(this.output);
+
+        if(!odir_in.equals("asd")) {
+
+            File diri = new File(odir_in);
+            tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
+
+        }
+
+
+        //if(tempFile.exists()){
+
+        tempFile = fo.createNewFileWithNewExtension(tempFile, extension);
+
+        //}
+
+        if(tempFile.getAbsolutePath().compareTo(in.getAbsolutePath()) == 0)
+            throw new toolException("Attempting to delete the original file. NO NO NO NO! ");
+
+
+        if(tempFile.exists())
+            tempFile.delete();
+
+
+        tempFile.createNewFile();
+
+
+
+        return tempFile;
+    }
     public File createOutputFileWithExtension2(File in, String extension) throws IOException {
 
 

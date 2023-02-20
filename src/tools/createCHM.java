@@ -2092,7 +2092,7 @@ public class createCHM{
 
                     double disti = kernel_size_meters / aR.step;
 
-                    if((floatArray[0] >= altaat.get(output).zMiddle * 0.2 || floatArray[0] > 2.0) && distance < 12){
+                    if((floatArray[0] >= altaat.get(output).zMiddle * 0.1 || floatArray[0] > 2.0) && distance < 12){
 
                         //System.out.println("ATTACHED!");
                         image.attach(x, y, output);
@@ -2184,7 +2184,7 @@ public class createCHM{
         public void updateNeighbourhood_array(int x, int y, boolean giveLabel){
 
             long[] ids = new long[8];
-            double zThreshold = 5.0;
+            double zThreshold = 2.0;
             image.populateFloatArrays(x, y);
 
             int xIndex = 0;
@@ -3150,12 +3150,12 @@ public class createCHM{
 
 
 
-            for(int i = 0; i < n; i += 200000) {
+            for(int i = 0; i < n; i += 20000) {
 
-                int maxi = (int) Math.min(200000, Math.abs(n - i));
+                int maxi = (int) Math.min(20000, Math.abs(n - i));
 
                 try {
-                    pointCloud.readRecord_noRAF(i, tempPoint, 200000);
+                    pointCloud.readRecord_noRAF(i, tempPoint, 20000);
                 }catch (Exception e){
                     e.printStackTrace();
                 }

@@ -52,7 +52,7 @@ public class lasReadWriteFactory {
     public synchronized void closeThread(int thread){
 
         try {
-            pointClouds.get(thread).close();
+            //pointClouds.get(thread).close();
             buf.get(thread).close();
             pw.get(thread).close(aR);
             buf.set(thread, null);

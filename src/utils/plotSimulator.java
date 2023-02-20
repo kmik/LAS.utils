@@ -1,13 +1,698 @@
 package utils;
 
+import err.toolException;
+import it.unimi.dsi.fastutil.Hash;
+import org.apache.commons.math3.ml.distance.EarthMoversDistance;
 import tools.plotAugmentator;
+
+import java.util.*;
 
 public class plotSimulator {
 
-    plotAugmentator augmentator;
+    public plotAugmentator augmentator;
     public plotSimulator(plotAugmentator augmentator){
 
         this.augmentator = augmentator;
 
     }
+
+    public void addOneIfZero(double[] array, int index){
+
+        double sum = 0;
+        for(double d : array){
+            sum += d;
+        }
+
+        if(sum == 0.0)
+            array[index] += 1.0;
+
+    }
+
+    public double costWithEMDSINGLE(ArrayList<int[]> histogram1, ArrayList<int[]> histogram2){
+
+        double costSum = 0;
+
+        int[] hist1 = new int[histogram1.get(0).length * histogram1.size()];
+        int[] hist2 = new int[histogram1.get(0).length * histogram1.size()];
+
+        int counter = 0;
+
+        for(int i = 0; i < histogram1.size(); i++){
+
+            for(int j = 0; j < histogram1.get(i).length; j++){
+                hist1[counter] = histogram1.get(i)[j];
+                hist2[counter] = histogram2.get(i)[j];
+                counter++;
+            }
+
+        }
+        ArrayList<Double> emds = new ArrayList<>();
+        ArrayList<Double> maxEMDs = new ArrayList<>();
+        ArrayList<double[]> d1 = new ArrayList<>();
+        ArrayList<double[]> d2 = new ArrayList<>();
+
+
+        //double emd = earthMoverDistance(histogram1.get(i), histogram2.get(i));
+        double[] doubles1 = Arrays.stream(hist1).asDoubleStream().toArray();
+        double[] doubles2 = Arrays.stream(hist2).asDoubleStream().toArray();
+        addOneIfZero(doubles1, 0);
+        addOneIfZero(doubles2, 1);
+        d1.add(doubles1);
+        d2.add(doubles2);
+
+        double emd = new EarthMoversDistance().compute(doubles1, doubles2);
+
+        if(Double.isNaN(emd))
+            throw new toolException("emd is NaN!");
+
+        //System.out.println("emd: " + emd + " apache_emd: " + apache_emd);
+        double maxEMD = 0.0;
+        for (int h = 0; h < hist1.length; h++) {
+            maxEMD += Math.abs(hist1[h] - hist2[h]);
+        }
+        //System.out.println("maxEMD: " + maxEMD);
+        if(maxEMD != 0.0)
+            costSum += emd / maxEMD;
+        else
+            costSum += 0.0;
+
+        emds.add(emd);
+        maxEMDs.add(maxEMD);
+
+
+
+        if(Double.isNaN(costSum)) {
+            System.out.println(Arrays.toString(emds.toArray()));
+            System.out.println(Arrays.toString(maxEMDs.toArray()));
+            for(int i = 0; i < 3 ; i++) {
+
+                System.out.println(Arrays.toString(d1.get(i)));
+                System.out.println(Arrays.toString(d2.get(i)));
+            }
+            throw new toolException("costsum is NaN!");
+        }
+
+        if(Double.isInfinite(costSum)) {
+            System.out.println(Arrays.toString(emds.toArray()));
+            System.out.println(Arrays.toString(maxEMDs.toArray()));
+            for(int i = 0; i < 3 ; i++) {
+
+                System.out.println(Arrays.toString(d1.get(i)));
+                System.out.println(Arrays.toString(d2.get(i)));
+            }
+            throw new toolException("costsum is infinite!");
+        }
+
+
+        return costSum ;
+    }
+
+
+    public int findCandidatePlot(forestPlot in, double bin, int[] target){
+
+        ArrayList<int[]> targetti = calculateSpeciesSpecificDiameterDistributions(in.trees, bin, target);
+
+        double minDistance = Double.MAX_VALUE;
+        int chosenPlot = -1;
+        for(int i : augmentator.plots.keySet()){
+
+            double distance = costWithEMDSINGLE(targetti, calculateSpeciesSpecificDiameterDistributions(augmentator.plots.get(i).trees, bin, target));
+            if(distance < minDistance){
+                minDistance = distance;
+                chosenPlot = i;
+            }
+        }
+        /*
+        int treesOver10cm = 0;
+        for(int i : in.trees.keySet()){
+
+            if(in.trees.get(i).treeDBH >= 15.0){
+                treesOver10cm++;
+            }
+
+        }
+
+
+
+        int closest_ = 100000;
+        int closest_plot = -1;
+
+
+        for(int i : augmentator.plots.keySet()){
+
+            if(Math.abs(augmentator.plots.get(i).trees.size() - treesOver10cm) < closest_){
+                closest_ = Math.abs(augmentator.plots.get(i).treesOverDBH(15.0) - treesOver10cm);
+                closest_plot = i;
+            }
+
+        }
+
+*/
+        return chosenPlot;
+    }
+
+    public TreeMap<Double, Integer> findCandidatePlots(forestPlot in, double bin, int[] target){
+
+        TreeMap<Double, Integer> output = new TreeMap<>();
+
+        ArrayList<int[]> targetti = calculateSpeciesSpecificDiameterDistributions(in.trees, bin, target);
+
+        double minDistance = Double.MAX_VALUE;
+        int chosenPlot = -1;
+        for(int i : augmentator.plots.keySet()){
+
+            double distance = costWithEMDSINGLE(targetti, calculateSpeciesSpecificDiameterDistributions(augmentator.plots.get(i).trees, bin, target));
+
+            output.put(distance, i);
+
+
+        }
+
+        return output;
+    }
+    public void simulatePlotAnnealingWay(int simulationID, boolean fill, boolean original, List<Integer> targets, String odir){
+
+        Random r = new Random();
+
+        //r.setSeed(1234);
+
+        List<Integer> keysAsArray = new ArrayList<Integer>(augmentator.plots.keySet());
+
+        HashMap<Integer, forestTree> before = (HashMap<Integer, forestTree>) augmentator.trees.clone();
+
+        forestPlot plot_target = augmentator.targets.get(targets.get(simulationID));
+        //forestPlot plot_target = augmentator.targets.get(42003);
+
+        double dbh_max = 0.0;
+        double dbh_max_pine = 0.0;
+        double dbh_max_spruce = 0.0;
+        double dbh_max_decid = 0.0;
+
+        for(forestTree tree : plot_target.trees.values()){
+
+            if(tree.treeSpecies == 0 && tree.getTreeDBH() > dbh_max_pine){
+                dbh_max_pine = tree.getTreeDBH();
+            }
+            if(tree.treeSpecies == 1 && tree.getTreeDBH() > dbh_max_spruce){
+                dbh_max_spruce = tree.getTreeDBH();
+            }
+            if(tree.treeSpecies == 2 && tree.getTreeDBH() > dbh_max_decid){
+                dbh_max_decid = tree.getTreeDBH();
+            }
+
+            if(tree.getTreeDBH() > dbh_max){
+                dbh_max = tree.getTreeDBH();
+            }
+        }
+
+        double bin = 2.0;
+        double max = dbh_max;
+        int[] initialSolution = new int[ (int) (max / bin) ];
+        int[] target = new int[ (int) (max / bin) ];
+
+
+        //System.out.println("TARGET PLOT IS: " + plot_target.id + " and it has " + plot_target.trees.size() + " trees");
+        int candidatePlot = findCandidatePlot(plot_target, bin, target);
+        TreeMap<Double, Integer> candidatePlots = findCandidatePlots(plot_target, bin, target);
+        //System.out.println("Candidate PLOT IS: " + candidatePlot + " and it has " + augmentator.plots.get(candidatePlot).trees.size() + " trees");
+
+        //System.exit(1);
+
+        //forestPlot plot = augmentator.plots.get(keysAsArray.get(r.nextInt(keysAsArray.size())));
+
+        //augmentator.plots.get(candidatePlot).lockPlot();
+
+        //candidatePlot = 56;
+        forestPlot plot = augmentator.plots.get(candidatePlot);
+
+
+
+        //plot = augmentator.plots.get(8);
+
+        //forestPlot plot_target = augmentator.plots.get(keysAsArray.get(r.nextInt(keysAsArray.size())));
+
+        //plot_target = augmentator.plots.get(127);
+
+        //System.out.println("TARGET PLOT IS: " + plot_target.id );
+        //System.out.println("FROM PLOT IS: " + plot.id );
+
+        if(plot_target.id == plot.id){
+            return;
+        }
+
+        ArrayList<forestTree> plotTrees = new ArrayList<forestTree>(plot.trees.values());
+
+        HashMap<Integer, forestTree> plotTrees_map = plot.trees_unique_id_for_simulation;
+
+        HashMap<Integer, forestTree> plotTrees_map_target = plot_target.trees_unique_id;
+
+        ArrayList<Integer> removeThese = new ArrayList<Integer>();
+
+
+        int[] target_pine = new int[ (int) (dbh_max_pine / bin) ];
+        int[] target_spruce = new int[ (int) (dbh_max_spruce / bin) ];
+        int[] target_decid = new int[ (int) (dbh_max_decid / bin) ];
+
+
+        dbh_max_decid += bin * 2;
+        dbh_max_spruce += bin * 2;
+        dbh_max_pine += bin * 2;
+
+
+        ArrayList<int[]> target_species = this.calculateSpeciesSpecificDiameterDistributions(plotTrees_map_target, bin, target);
+        ArrayList<int[]> target_species_height = this.calculateSpeciesSpecificDiameterDistributions(plotTrees_map_target, bin, target);
+
+        double train_area = Math.PI * Math.pow(9, 2);
+
+        double[] target_species_volumes = this.calculateSpeciesSpecificVolumes(plotTrees_map_target, bin, target, train_area);
+
+        initialSolution = this.calculateDiameterDistribution(plotTrees_map, bin, initialSolution);
+
+
+        target = this.calculateDiameterDistribution(plotTrees_map_target, bin, target);
+        //System.out.println(Arrays.toString(target));
+
+        simulatedAnnealingForestSimulator sa = new simulatedAnnealingForestSimulator();
+
+        sa.setCandidatePlots(candidatePlots);
+
+        sa.setAllPlots(augmentator.plots);
+        sa.setTarget(target, bin, max);
+        sa.setTarget(target, bin, new double[]{dbh_max_pine, dbh_max_spruce, dbh_max_decid});
+        sa.setTargetSpeciesSpecific(target_species, bin);
+        sa.setTargetSpeciesSpecificHeight(target_species_height, bin);
+
+        sa.setTargetVolume(target_species_volumes);
+
+        List<forestTree> trees_all = new ArrayList<forestTree>(augmentator.itc_with_tree.values());
+        //HashMap<Integer, forestTree> trees_all_map = augmentator.itc_with_tree_unique_id;
+        HashMap<Integer, forestTree> trees_all_map = (HashMap<Integer, forestTree>)augmentator.trees.clone();
+
+/*
+        for(int i : trees_all_map.keySet()){
+            if(trees_all_map.get(i).getPlotID() == plot.id || trees_all_map.get(i).getPlotID() == plot_target.id){
+                removeThese.add(i);
+            }
+        }
+
+        for(int i : removeThese){
+            trees_all_map.remove(i);
+        }
+*/
+        sa.initialSolution(plotTrees_map, plot.id);
+        sa.setSearchSpace(trees_all_map);
+
+/*
+        for(int i : plotTrees_map.keySet()){
+            System.out.println(plotTrees_map.get(i).getTreeITCid() + " " + plotTrees_map.get(i).getTreeDBH());
+        }
+
+ */
+
+        sa.optimize();
+
+        //System.out.println(sa.startId + " " + sa.bestSolutionPlotId);
+        plot = augmentator.plots.get(sa.bestSolutionPlotId);
+
+
+        try {
+            while (plot.isLocked()){
+                Thread.sleep(1000);
+                System.out.println("plot " + plot.id + " is locked for thread " +  Thread.currentThread().getId());
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        plot.lockPlot();
+        System.out.println("Locked plot " + plot.id + " for thread " +  Thread.currentThread().getId());
+
+        plot.prepareSimulationOffsets();
+
+
+
+/*
+        System.out.println("----------------");
+        for(int i : sa.best_solution_map.keySet()){
+            System.out.println(sa.best_solution_map.get(i).getTreeITCid() + " " + sa.best_solution_map.get(i).getTreeDBH());
+        }
+
+
+ */
+        int count_original = 0;
+        int count_new = 0;
+        int count_unchanged = 0;
+
+        HashSet<Integer> ITC_segments_original = new HashSet<>();
+        HashSet<Integer> ITC_segments_optimized = new HashSet<>();
+        HashSet<Integer> ITC_segments_optimized_all_trees = new HashSet<>();
+        HashSet<Integer> keep = new HashSet<>();
+        int count1 = 0, count2 = 0;
+
+        //System.exit(1);
+
+        count1 = 0;
+        count2 = 0;
+
+        for(int i : plot.trees_unique_id_for_simulation.keySet()){
+
+            if(plot.trees_unique_id_for_simulation.get(i).hasCrown) {
+                ITC_segments_original.add(plot.trees_unique_id_for_simulation.get(i).getTreeITCid());
+                count1++;
+            }
+
+        }
+
+        System.out.println("ITC_segments_original.size() " + ITC_segments_original.size() + " " + count1);
+
+        int counter2 = 0;
+
+        for(int i : sa.best_solution_map.keySet()){
+
+            if(plot.trees_unique_id_for_simulation.containsKey(i)){
+                counter2++;
+            }
+            if(sa.best_solution_map.get(i).hasCrown) {
+                count2++;
+                if( ITC_segments_original.contains(i) ) {
+                    ITC_segments_original.remove(i);
+                    keep.add(i);
+                }else{
+                    ITC_segments_optimized.add(sa.best_solution_map.get(i).getTreeITCid());
+                }
+
+                ITC_segments_optimized_all_trees.add(sa.best_solution_map.get(i).getTreeITCid());
+            }
+
+        }
+
+        System.out.println("ITC_segments_optimized.size() " + ITC_segments_optimized.size() + " " + count2);
+
+        if(false)
+        if(counter2 == plot.trees_unique_id_for_simulation.size()){
+            System.out.println("Solution is identical to the original!");
+            plot.unlock();
+            return;
+        }
+
+
+        plot.simulated_plot = sa.best_solution_map;
+
+        if(count1 != count2){
+            plot.unlock();
+            System.out.println("simulation: " + simulationID + " from " + plot.id + " plot to " + plot_target.id +  " plot. " + " same as in orig: " + counter2);
+            throw new toolException("Optimized and original have different number of ITC segments   ! " + count1 + " " + count2 + " " + " same as in orig: " + counter2);
+
+        }
+
+        ArrayList<Integer> ITC_segments_original_array
+                = new ArrayList<>(ITC_segments_original);
+        ArrayList<Integer> ITC_segments_optimized_array
+                = new ArrayList<>(ITC_segments_optimized_all_trees);
+
+        if(ITC_segments_original.size() != ITC_segments_optimized.size()){
+            plot.unlock();
+            throw new toolException("ITC segments are not equal! " + ITC_segments_original.size() + " " + ITC_segments_optimized.size());
+        }
+        HashSet<Integer> remove = new HashSet<>();
+        TreeMap<Integer, Integer> add = new TreeMap<>();
+        TreeSet<Integer> plots_ = new TreeSet<>();
+        int counter = 0;
+
+        for(int i = 0; i <  ITC_segments_original_array.size(); i++){
+
+            remove.add(ITC_segments_original_array.get(i));
+            add.put(ITC_segments_optimized_array.get(i), ITC_segments_original_array.get(i));
+
+            plots_.add(augmentator.itc_with_tree.get(ITC_segments_optimized_array.get(i)).getPlotID());
+
+        }
+
+        System.out.println("remove.size() " + remove.size() + " " + keep.size());
+        //System.exit(1);
+        if(fill)
+            plot.createSimulationFile("filled_simulation_" + simulationID, odir);
+        else if(original)
+            plot.createSimulationFile("original_" + simulationID, odir);
+        else if(!fill)
+            plot.createSimulationFile("holey_simulation_" + simulationID, odir);
+
+
+        try {
+            plot.writeSimulationFile(this, remove, add, plots_, fill, original, simulationID, keep);
+        }catch (Exception e) {
+            plot.unlock();
+            e.printStackTrace();
+        }
+/*
+        try {
+            plot.writeSimulationFile(this, remove, add, plots_, fill, original, simulationID);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+
+ */
+        /*
+        Object[] orig_keys = plot.trees_unique_id.keySet().toArray();
+        Object[] opti_keys = sa.best_solution_map.keySet().toArray();
+
+        List<Integer> orig_keys_ = new ArrayList<Integer>(plot.trees_unique_id.keySet());
+        List<Integer> opti_keys_ = new ArrayList<Integer>(sa.best_solution_map.keySet());
+
+        System.out.println(Arrays.toString(orig_keys));
+
+
+        HashSet<Integer> remove_2 = new HashSet<>();
+        HashSet<Integer> unchanged = new HashSet<>();
+
+        for(int i : sa.best_solution_map.keySet()){
+
+            if(plot.trees_unique_id.keySet().contains(i)) {
+
+                if(plot.trees_unique_id.get(i).hasCrown) {
+                    remove_2.add(i);
+                    count_unchanged++;
+                    unchanged.add(sa.best_solution_map.get(i).getTreeID_unique());
+                }
+            }else {
+                remove.add(augmentator.trees.get(i).getTreeITCid());
+
+            }
+
+            if(sa.best_solution_map.get(i).hasCrown)
+                count_new++;
+
+        }
+
+        for(int i : remove_2)
+            sa.best_solution_map.remove(i);
+
+        opti_keys_ = new ArrayList<Integer>(sa.best_solution_map.keySet());
+        Collections.shuffle(opti_keys_);
+*/
+
+        //System.out.println("Original: " + count_original + " New: " + count_new + " Unchanged: " + count_unchanged);
+        //System.out.println("DONE!");
+
+        plot.unlock();
+        System.out.println("Unlocked plot " + plot.id);
+        //System.exit(1);
+
+    }
+    public void simulatePlotDumbWay(int simulationID, boolean fill, boolean original){
+
+        List<Integer> keysAsArray = new ArrayList<Integer>(augmentator.plots.keySet());
+        List<Integer> keysAsArray_trees = new ArrayList<Integer>(augmentator.itc_with_tree.keySet());
+        Random r = new Random();
+
+        System.out.println(augmentator.itc_with_tree.keySet().size());
+
+        //System.exit(1);
+
+        if(augmentator.aR.set_seed > 0) {
+            r.setSeed(augmentator.aR.set_seed * simulationID);
+        }
+        forestPlot plot = augmentator.plots.get(keysAsArray.get(r.nextInt(keysAsArray.size())));
+
+        plot.prepareSimulation();
+
+        double switch_probability = augmentator.aR.prob;
+
+        HashSet<Integer> remove = new HashSet<>();
+        TreeMap<Integer, Integer> add = new TreeMap<>();
+        TreeSet<Integer> plots_ = new TreeSet<>();
+        HashSet<Integer> alreadySampled = new HashSet<>();
+
+        int tree_ = 0;
+        double tree_height = 0;
+
+        for(int tree : plot.trees.keySet()){
+
+            if(plot.trees.get(tree).getTreeITCid() != -1){
+                if(r.nextDouble() < switch_probability){
+
+                    remove.add(plot.trees.get(tree).treeITCid);
+                    //System.out.println(augmentator.trees_with_itc.get(keysAsArray_trees.get(r.nextInt(keysAsArray_trees.size()))).toString());
+
+                    while(alreadySampled.contains(tree_ = keysAsArray_trees.get(r.nextInt(keysAsArray_trees.size()))) ){
+                        System.out.println("Already sampled " + tree_);
+                    }
+
+                    add.put(augmentator.itc_with_tree.get(tree_).getTreeITCid(), plot.trees.get(tree).treeITCid);
+
+
+                    plots_.add(augmentator.itc_with_tree.get(tree_).getPlotID());
+
+                    //System.out.println("Switching " + plot.trees.get(tree).getTreeITCid() + " to " + augmentator.trees_with_itc.get(keysAsArray_trees.get(r.nextInt(keysAsArray_trees.size()))).getTreeITCid());
+                    //System.out.println(augmentator.trees_with_itc.get(keysAsArray_trees.get(r.nextInt(keysAsArray_trees.size()))).getTreeITCid() + " from plot: " + augmentator.trees_with_itc.get(keysAsArray_trees.get(r.nextInt(keysAsArray_trees.size()))).getPlotID());
+                }
+            }
+        }
+        System.out.println("Removing: " + remove.size());
+        System.out.println("Adding " + add.size());
+        System.out.println("plots " + plots_.size());
+
+
+        if(fill)
+            plot.createSimulationFile("filled_simulation_" + simulationID);
+        else if(original)
+            plot.createSimulationFile("original_" + simulationID);
+        else if(!fill)
+            plot.createSimulationFile("holey_simulation_" + simulationID);
+        try {
+            plot.writeSimulationFile(this, remove, add, plots_, fill, original, simulationID, new HashSet<Integer>());
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public double[] calculateDiameterDistribution(List<forestTree> plot, double bins, double[] target){
+
+        double[] diameterDistribution = new double[target.length];
+
+        for(int i = 0; i < plot.size(); i++){
+            int bin = (int)Math.floor(plot.get(i).getTreeDBH() / bins);
+
+            if(bin >= diameterDistribution.length){
+                bin = diameterDistribution.length - 1;
+            }
+
+            diameterDistribution[bin]++;
+        }
+        double sum = 0.0;
+        for (double value : diameterDistribution) {
+            sum += value;
+        }
+        for (int i = 0; i < diameterDistribution.length; i++) {
+            diameterDistribution[i] = diameterDistribution[i] / sum;
+        }
+
+        return diameterDistribution;
+    }
+
+    public int[] calculateDiameterDistribution(HashMap<Integer, forestTree> plot, double bins, int[] target){
+
+        int[] diameterDistribution = new int[target.length];
+
+        for(int i : plot.keySet()){
+            int bin = (int)Math.floor(plot.get(i).getTreeDBH() / bins);
+
+            if(bin >= diameterDistribution.length){
+                bin = diameterDistribution.length - 1;
+            }
+
+            diameterDistribution[bin]++;
+        }
+
+        return diameterDistribution;
+
+    }
+
+    public double[] calculateSpeciesSpecificVolumes(HashMap<Integer, forestTree> plot, double bins, int[] target, double area){
+
+        double[] volumes = new double[]{0,0,0};
+
+        for(int i : plot.keySet()){
+
+            volumes[plot.get(i).treeSpecies] += plot.get(i).getTreeVolume();
+
+        }
+
+        double frac = 10000 / area;
+
+        for(int i = 0; i < volumes.length; i++){
+            volumes[i] = volumes[i] * frac / 1000;
+        }
+
+        return volumes;
+
+    }
+
+    public ArrayList<int[]> calculateSpeciesSpecificDiameterDistributions(HashMap<Integer, forestTree> plot, double bins, int[] target){
+
+        int[] diameterDistribution_pine = new int[target.length];
+        int[] diameterDistribution_spruce = new int[target.length];
+        int[] diameterDistribution_decid = new int[target.length];
+
+        for(int i : plot.keySet()){
+            int bin = (int)Math.floor(plot.get(i).getTreeDBH() / bins);
+
+
+            if(bin >= diameterDistribution_pine.length){
+                bin = diameterDistribution_pine.length - 1;
+            }
+
+            if(plot.get(i).treeSpecies == 0)
+                diameterDistribution_pine[bin]++;
+            else if(plot.get(i).treeSpecies == 1)
+                diameterDistribution_spruce[bin]++;
+            else if(plot.get(i).treeSpecies == 2)
+                diameterDistribution_decid[bin]++;
+            else
+                throw new toolException("species " +  plot.get(i).treeSpecies + " not recognized!");
+        }
+
+        ArrayList<int[]> speciesSpecificDiameterDistributions = new ArrayList<>();
+        speciesSpecificDiameterDistributions.add(diameterDistribution_pine);
+        speciesSpecificDiameterDistributions.add(diameterDistribution_spruce);
+        speciesSpecificDiameterDistributions.add(diameterDistribution_decid);
+
+        return speciesSpecificDiameterDistributions;
+
+    }
+    public ArrayList<int[]> calculateSpeciesSpecificHeightDistributions(HashMap<Integer, forestTree> plot, double bins, int[] target){
+
+        int[] diameterDistribution_pine = new int[target.length];
+        int[] diameterDistribution_spruce = new int[target.length];
+        int[] diameterDistribution_decid = new int[target.length];
+
+        for(int i : plot.keySet()){
+            int bin = (int)Math.floor(plot.get(i).getTreeHeight() / bins);
+
+
+            if(bin >= diameterDistribution_pine.length){
+                bin = diameterDistribution_pine.length - 1;
+            }
+
+            if(plot.get(i).treeSpecies == 0)
+                diameterDistribution_pine[bin]++;
+            else if(plot.get(i).treeSpecies == 1)
+                diameterDistribution_spruce[bin]++;
+            else if(plot.get(i).treeSpecies == 2)
+                diameterDistribution_decid[bin]++;
+            else
+                throw new toolException("species " +  plot.get(i).treeSpecies + " not recognized!");
+        }
+
+        ArrayList<int[]> speciesSpecificDiameterDistributions = new ArrayList<>();
+        speciesSpecificDiameterDistributions.add(diameterDistribution_pine);
+        speciesSpecificDiameterDistributions.add(diameterDistribution_spruce);
+        speciesSpecificDiameterDistributions.add(diameterDistribution_decid);
+
+        return speciesSpecificDiameterDistributions;
+
+    }
+
+
 }

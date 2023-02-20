@@ -254,9 +254,9 @@ public class Boundary extends tool{
 
         int thread_n = aR.pfac.addReadThread(pointCloud);
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
-            int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            long maxi = (long) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
             aR.pfac.prepareBuffer(thread_n, i, 10000);
 
@@ -280,7 +280,7 @@ public class Boundary extends tool{
 
                         tempV = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, 0.0);
                         //perim.add(i);
-                        tempV.setIndex(i);
+                        //tempV.setIndex(i);
                         tin.add(tempV);
                         currentBorder = tin.getPerimeter();
 
@@ -289,7 +289,7 @@ public class Boundary extends tool{
                 } else {
                     tempV = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, 0.0);
                     //perim.add(i);
-                    tempV.setIndex(i);
+                    //tempV.setIndex(i);
                     tin.add(tempV);
                 }
 
