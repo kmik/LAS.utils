@@ -411,7 +411,7 @@ public class plotAugmentator {
             }
         }
         for(int i : removeSmall){
-            targets.remove(i);
+            //targets.remove(i);
         }
         //System.exit(1);
     }

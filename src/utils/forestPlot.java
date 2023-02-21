@@ -692,8 +692,8 @@ public class forestPlot {
                 System.out.println(simulated_plot.get(i).getTreeX_ITC());
 
                 // AAHHHH THIS IS NULL IF THE simulated_plot.get(i) is already in the plot!
-                System.out.println(add.get(simulated_plot.get(i).getTreeITCid()));
-                System.out.println((ps.augmentator.ITC_id_to_tree_id.get(add.get(simulated_plot.get(i).getTreeITCid())).getTreeX_ITC()));
+                //System.out.println(add.get(simulated_plot.get(i).getTreeITCid()));
+                //System.out.println((ps.augmentator.ITC_id_to_tree_id.get(add.get(simulated_plot.get(i).getTreeITCid())).getTreeX_ITC()));
 
                 double translated_x = simulated_plot.get(i).getTreeX_ITC() + (ps.augmentator.ITC_id_to_tree_id.get(add.get(simulated_plot.get(i).getTreeITCid())).getTreeX_ITC() - simulated_plot.get(i).getTreeX_ITC()) +
                         (ps.augmentator.ITC_id_to_tree_id.get((simulated_plot.get(i).getTreeITCid())).getTreeX_ITC() - simulated_plot.get(i).getTreeX_ITC());
@@ -884,12 +884,12 @@ public class forestPlot {
 
                 if(simulated_plot.get(i).hasCrown)
                     if(simulated_plot.get(i).plotID != this.id){
-                        tree_sim_x_ITC = simulated_plot.get(i).getTreeX() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX()) +
-                                (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX());
+                        tree_sim_x_ITC = simulated_plot.get(i).getTreeX_ITC() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX_ITC()) +
+                                (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX_ITC());
                         tree_sim_x_ITC += this.simulationOffsetX * simulationLocationCountX;
 
-                        tree_sim_y_ITC = simulated_plot.get(i).getTreeY() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY()) +
-                                (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY());
+                        tree_sim_y_ITC = simulated_plot.get(i).getTreeY_ITC() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY_ITC()) +
+                                (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY_ITC());
                         tree_sim_y_ITC -= this.simulationOffsetY * simulationLocationCountY;
                         //System.out.println("HERE!! " + counter++ + " " + simulated_plot.size() );
                         //System.out.println("from_external_plot: " + tree_sim_x + " " + tree_sim_y + " " + simulated_plot.get(i).hasCrown + " " +
@@ -911,7 +911,7 @@ public class forestPlot {
                         continue;
                 }
                 else{
-                    if(!pointInPlot(new double[]{tree_sim_x_ITC, tree_sim_y_ITC}, this.plotBounds_simulated.get(this.plotBounds_simulated.size() - 1)))
+                    if(!pointInPlot(new double[]{tree_sim_x, tree_sim_y}, this.plotBounds_simulated.get(this.plotBounds_simulated.size() - 1)))
                         continue;
                 }
                 //System.out.println("here2: " + counter2++);
@@ -1110,6 +1110,42 @@ public class forestPlot {
         }
 
 
+    }
+
+    public static double calculateDGM(HashMap<Integer, forestTree> trees) {
+        // Sort the diameters in ascending order
+
+        double[] treeDiameters = new double[trees.size()];
+
+        int counter = 0;
+        for(int tree : trees.keySet()){
+            treeDiameters[counter++] = trees.get(tree).getTreeDBH();
+        }
+
+        Arrays.sort(treeDiameters);
+
+        // Calculate the total basal area
+        double totalBasalArea = 0.0;
+        for (double diameter : treeDiameters) {
+            double radius = diameter / 2.0;
+            double basalArea = Math.PI * radius * radius;
+            totalBasalArea += basalArea;
+        }
+
+        // Calculate the basal area per tree
+        double basalAreaPerTree = totalBasalArea / treeDiameters.length;
+
+        // Find the diameter of the basal area median tree
+        double basalAreaSum = 0.0;
+        int i = 0;
+        while (basalAreaSum < basalAreaPerTree && i < treeDiameters.length) {
+            double radius = treeDiameters[i] / 2.0;
+            double basalArea = Math.PI * radius * radius;
+            basalAreaSum += basalArea;
+            i++;
+        }
+        // Return the diameter of the basal area median tree
+        return 2.0 * treeDiameters[i - 1];
     }
 
     public static double[] getExtent(double[][] polygon) {

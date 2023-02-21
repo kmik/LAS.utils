@@ -178,6 +178,8 @@ public class plotSimulator {
 
         List<Integer> keysAsArray = new ArrayList<Integer>(augmentator.plots.keySet());
 
+        Collections.shuffle(keysAsArray);
+
         HashMap<Integer, forestTree> before = (HashMap<Integer, forestTree>) augmentator.trees.clone();
 
         forestPlot plot_target = augmentator.targets.get(targets.get(simulationID));
@@ -223,6 +225,7 @@ public class plotSimulator {
         //augmentator.plots.get(candidatePlot).lockPlot();
 
         //candidatePlot = 56;
+        candidatePlot = keysAsArray.get(0);
         forestPlot plot = augmentator.plots.get(candidatePlot);
 
 
@@ -265,6 +268,12 @@ public class plotSimulator {
         double train_area = Math.PI * Math.pow(9, 2);
 
         double[] target_species_volumes = this.calculateSpeciesSpecificVolumes(plotTrees_map_target, bin, target, train_area);
+        double target_species_dgm_pine =calculateDGM(plotTrees_map_target, 0);
+        double target_species_dgm_spruce =calculateDGM(plotTrees_map_target, 1);
+        double target_species_dgm_decid =calculateDGM(plotTrees_map_target, 2);
+
+        double[] target_species_dgm = new double[]{target_species_dgm_pine, target_species_dgm_spruce, target_species_dgm_decid};
+
 
         initialSolution = this.calculateDiameterDistribution(plotTrees_map, bin, initialSolution);
 
@@ -283,6 +292,7 @@ public class plotSimulator {
         sa.setTargetSpeciesSpecificHeight(target_species_height, bin);
 
         sa.setTargetVolume(target_species_volumes);
+        sa.setTargetDGM(target_species_dgm);
 
         List<forestTree> trees_all = new ArrayList<forestTree>(augmentator.itc_with_tree.values());
         //HashMap<Integer, forestTree> trees_all_map = augmentator.itc_with_tree_unique_id;
@@ -419,14 +429,33 @@ public class plotSimulator {
         TreeSet<Integer> plots_ = new TreeSet<>();
         int counter = 0;
 
+        ArrayList<Double> optim = new ArrayList<>();
+        ArrayList<Double> orig = new ArrayList<>();
+
+        for(int i : ITC_segments_optimized_array){
+            optim.add(augmentator.itc_with_tree.get(i).getTreeCrownArea());
+        }
+
+        for(int i : ITC_segments_original_array){
+            orig.add(augmentator.itc_with_tree.get(i).getTreeCrownArea());
+        }
+
+        ArrayList<Integer> res = matchClosest(optim, orig);
+
+        System.out.println(Arrays.toString(res.toArray()));
+        //System.exit(1);
+
         for(int i = 0; i <  ITC_segments_original_array.size(); i++){
 
             remove.add(ITC_segments_original_array.get(i));
-            add.put(ITC_segments_optimized_array.get(i), ITC_segments_original_array.get(i));
+            //add.put(ITC_segments_optimized_array.get(i), ITC_segments_original_array.get(i));
+            add.put(ITC_segments_optimized_array.get(res.get(i)), ITC_segments_original_array.get(i));
 
             plots_.add(augmentator.itc_with_tree.get(ITC_segments_optimized_array.get(i)).getPlotID());
 
         }
+
+
 
         System.out.println("remove.size() " + remove.size() + " " + keep.size());
         //System.exit(1);
@@ -499,6 +528,55 @@ public class plotSimulator {
         //System.exit(1);
 
     }
+
+    public static ArrayList<Integer> matchClosest(ArrayList<Double> a, ArrayList<Double> b) {
+        // make copies of the input lists to avoid modifying the originals
+        ArrayList<Double> sortedA = new ArrayList<>(a);
+        ArrayList<Double> sortedB = new ArrayList<>(b);
+
+        // sort both lists in ascending order
+        Collections.sort(sortedA);
+        Collections.sort(sortedB);
+
+        int n = a.size();
+        ArrayList<Integer> result = new ArrayList<>(n);
+        boolean[] used = new boolean[n];
+
+        // for each element in list a, find the closest element in list b that hasn't been used yet
+        for (int i = 0; i < n; i++) {
+            double diff = Double.MAX_VALUE;
+            int closestIndex = -1;
+
+            // search for the closest unused element in list b using the two-pointer algorithm
+            int j = 0, m = b.size();
+            while (j < m) {
+                if (used[j]) {
+                    j++;
+                    continue;
+                }
+                double curDiff = Math.abs(sortedA.get(i) - sortedB.get(j));
+                if (curDiff < diff) {
+                    diff = curDiff;
+                    closestIndex = j;
+                }
+                if (sortedB.get(j) >= sortedA.get(i)) {
+                    break;
+                }
+                j++;
+            }
+
+            // add the index of the closest match to the result list
+            result.add(closestIndex);
+
+            // mark the index of the matched element in list b as used
+            if (closestIndex >= 0) {
+                used[closestIndex] = true;
+            }
+        }
+
+        return result;
+    }
+
     public void simulatePlotDumbWay(int simulationID, boolean fill, boolean original){
 
         List<Integer> keysAsArray = new ArrayList<Integer>(augmentator.plots.keySet());
@@ -694,5 +772,88 @@ public class plotSimulator {
 
     }
 
+    public static double calculateDGM(HashMap<Integer, forestTree> trees, int treeSpecies  ) {
+        // Sort the diameters in ascending order
+
+
+        ArrayList<Double> treeDiameters = new ArrayList<Double>();
+
+        int counter = 0;
+        for(int tree : trees.keySet()){
+
+            if(trees.get(tree).getTreeSpecies() == treeSpecies)
+                treeDiameters.add(trees.get(tree).getTreeDBH());
+        }
+
+
+        //System.out.println(treeDiameters.size());
+
+
+        if(treeDiameters.size() == 0)
+            return 0.0;
+
+        Collections.sort(treeDiameters);
+
+        // Calculate the total basal area
+        double totalBasalArea = 0.0;
+        for (double diameter : treeDiameters) {
+            //System.out.println("diameter: " + diameter);
+            double radius = diameter / 2.0;
+            double basalArea = Math.PI * radius * radius;
+            totalBasalArea += basalArea;
+        }
+
+        // Calculate the basal area per tree
+        double basalAreaPerTree = totalBasalArea / 2.0;
+
+        // Find the diameter of the basal area median tree
+        double basalAreaSum = 0.0;
+        int i = 0;
+        while (basalAreaSum < basalAreaPerTree && i < treeDiameters.size()) {
+            double radius = treeDiameters.get(i) / 2.0;
+            double basalArea = Math.PI * radius * radius;
+            basalAreaSum += basalArea;
+            i++;
+        }
+        // Return the diameter of the basal area median tree
+        return treeDiameters.get(i - 1);
+    }
+
+
+    public static double calculateDGM(HashMap<Integer, forestTree> trees) {
+        // Sort the diameters in ascending order
+
+        double[] treeDiameters = new double[trees.size()];
+
+        int counter = 0;
+        for(int tree : trees.keySet()){
+            treeDiameters[counter++] = trees.get(tree).getTreeDBH();
+        }
+
+        Arrays.sort(treeDiameters);
+
+        // Calculate the total basal area
+        double totalBasalArea = 0.0;
+        for (double diameter : treeDiameters) {
+            double radius = diameter / 2.0;
+            double basalArea = Math.PI * radius * radius;
+            totalBasalArea += basalArea;
+        }
+
+        // Calculate the basal area per tree
+        double basalAreaPerTree = totalBasalArea / treeDiameters.length;
+
+        // Find the diameter of the basal area median tree
+        double basalAreaSum = 0.0;
+        int i = 0;
+        while (basalAreaSum < basalAreaPerTree && i < treeDiameters.length) {
+            double radius = treeDiameters[i] / 2.0;
+            double basalArea = Math.PI * radius * radius;
+            basalAreaSum += basalArea;
+            i++;
+        }
+        // Return the diameter of the basal area median tree
+        return 2.0 * treeDiameters[i - 1];
+    }
 
 }

@@ -53,6 +53,8 @@ public class simulatedAnnealingForestSimulator {
 
     double[] targetVolume = new double[]{0,0,0};
 
+    double[] targetDGM = new double[]{0,0,0};
+
     double bins;
     Random r = new Random();
 
@@ -137,6 +139,12 @@ public class simulatedAnnealingForestSimulator {
         this.targetVolume = target;
     }
 
+    public void setTargetDGM(double[] targetDGM){
+
+        this.targetDGM = targetDGM;
+
+    }
+
     public void setTargetSpeciesSpecificHeight(ArrayList<int[]> target, double bins){
         this.bins = bins;
         this.targetSpecies_height = target;
@@ -173,6 +181,14 @@ public class simulatedAnnealingForestSimulator {
 
         }
 
+        double initialDGM_pine = calculateDGM(current_solution_map, 0);
+        double initialDGM_spruce = calculateDGM(current_solution_map, 1);
+        double initialDGM_decid = calculateDGM(current_solution_map, 2);
+
+        double[] initialDGM = new double[]{initialDGM_pine, initialDGM_spruce, initialDGM_decid};
+
+        System.out.println("dgm: " + Arrays.toString(initialDGM));
+        //System.exit(1);
 
         //System.out.println(Arrays.toString(target));
         //System.out.println(Arrays.toString(diameterDistribution_));
@@ -187,6 +203,8 @@ public class simulatedAnnealingForestSimulator {
         double crownAreaTotal_original = calculateCrownArea(current_solution_map);
         double currentCrownArea = crownAreaTotal_original;
 
+
+
         //for(int restart = 0; restart < (int)(this.allPlots.size() * 0.1); restart++) {
         for(int restart = 0; restart < (int)(this.allPlots.size() * 0.05); restart++) {
         //for(int restart = 0; restart < 1; restart++) {
@@ -196,12 +214,18 @@ public class simulatedAnnealingForestSimulator {
             ArrayList<int[]> diameterDistribution_species = calculateSpeciesSpecificDiameterDistributions(current_solution_map);
             ArrayList<int[]> heightDistribution_species = calculateSpeciesSpecificHeightDistributions(current_solution_map);
             double[] speciesVolume = calculateSpeciesSpecificVolumes(current_solution_map, this.area);
+            double dgm_1 = calculateDGM(current_solution_map, 0);
+            double dgm_2 = calculateDGM(current_solution_map, 1);
+            double dgm_3 = calculateDGM(current_solution_map, 2);
 
+            double[] dgm = new double[]{dgm_1, dgm_2, dgm_3};
 
             //double initialCost = costWithEMDSINGLE(targetSpecies, diameterDistribution_species);
 
             // NO NEED TO ADD CROWN AREA TO THIS ONE BECAUSE THE DIFFERENCE SHOULD BE 0;
             double initialCost = relativeRMSE(targetVolume, speciesVolume) + calculateRelativeDifference(crownAreaTotal_original, currentCrownArea);
+            //                + relativeRMSE(targetDGM, dgm);
+                    //+ costWithEMDSINGLE(targetSpecies, diameterDistribution_species);
 
             double initialCost_height = costWithEMDSINGLE(targetSpecies_height, heightDistribution_species);
 
@@ -242,15 +266,25 @@ public class simulatedAnnealingForestSimulator {
                     //double newCost = bhattacharyyaDistance(target, diamterDistribution);
                     //double newCost = hellingerDistance_species(targetSpecies, diamterDistribution);
                     //double newCost = costWithEMDSINGLE(targetSpecies, diamterDistribution);
+
+                    //initialDGM_pine = calculateDGM(current_solution_map, 0);
+                    //initialDGM_spruce = calculateDGM(current_solution_map, 1);
+                    //initialDGM_decid = calculateDGM(current_solution_map, 2);
+
+                    //dgm = new double[]{initialDGM_pine, initialDGM_spruce, initialDGM_decid};
+
+
                     double newCost = relativeRMSE(targetVolume, speciesVolume) + calculateRelativeDifference(crownAreaTotal_original, crownArea);
+                            //+ relativeRMSE(targetDGM, dgm);
+                            //+ costWithEMDSINGLE(targetSpecies, diamterDistribution);;
                     double newCost_height = costWithEMDSINGLE(targetSpecies_height, heightDistribution);
 
                     //newCost += newCost_height;
                     //double newCost = bhattacharyyaSimilarity(targetSpecies, diamterDistribution);
 
 
-                    if (accept(t, previousCost, newCost)) {
-                        //if (acceptanceProbability(previousCost, newCost, t) > r.nextDouble()){
+                   // if (accept(t, previousCost, newCost)) {
+                        if (acceptanceProbability(previousCost, newCost, t) > r.nextDouble()){
 
                         //if(newCost > previousCost)
                         //    System.out.println("ACCEPTED WORSE SOLUTION");
@@ -298,13 +332,17 @@ public class simulatedAnnealingForestSimulator {
         }
 */
         System.out.println("Difference in crown area: " + calculateRelativeDifference(crownAreaTotal_original, currentCrownArea));
-
+        System.out.println("Target dgm: " + Arrays.toString(targetDGM));
+        System.out.println("Initial dgm: " + Arrays.toString(new double[]{calculateDGM(originalPlot_map, 0), calculateDGM(originalPlot_map, 1), calculateDGM(originalPlot_map, 2)}));
+        System.out.println("Final dgm: " + Arrays.toString(new double[]{calculateDGM(best_solution_map, 0), calculateDGM(best_solution_map, 1), calculateDGM(best_solution_map, 2)}));
         System.out.println("target(s): " );
         System.out.println(Arrays.toString(targetVolume));
         System.out.println("init(s): ");
         System.out.println(Arrays.toString(calculateSpeciesSpecificVolumes(originalPlot_map, this.area)));
         System.out.println("final(s): ");
         System.out.println(Arrays.toString(calculateSpeciesSpecificVolumes(best_solution_map, this.area )));
+
+        //System.exit(1);
     }
 
     public void restart(){
@@ -590,7 +628,7 @@ public class simulatedAnnealingForestSimulator {
         double a = Math.pow(e, powi);
 
         //if(t > 0.5)
-        //System.out.println("acceptance probability: " + a + " oldCost: " + oldCost + " newCost: " + newCost + " t: " + t);
+        System.out.println("acceptance probability: " + a + " oldCost: " + oldCost + " newCost: " + newCost + " t: " + t);
         return random < a;
 
     }
@@ -1138,6 +1176,53 @@ public class simulatedAnnealingForestSimulator {
 
         return volumes;
 
+    }
+
+    public static double calculateDGM(HashMap<Integer, forestTree> trees, int treeSpecies  ) {
+        // Sort the diameters in ascending order
+
+
+        ArrayList<Double> treeDiameters = new ArrayList<Double>();
+
+        int counter = 0;
+        for(int tree : trees.keySet()){
+
+            if(trees.get(tree).getTreeSpecies() == treeSpecies)
+                treeDiameters.add(trees.get(tree).getTreeDBH());
+        }
+
+
+        //System.out.println(treeDiameters.size());
+
+
+        if(treeDiameters.size() == 0)
+            return 0.0;
+
+        Collections.sort(treeDiameters);
+
+        // Calculate the total basal area
+        double totalBasalArea = 0.0;
+        for (double diameter : treeDiameters) {
+            //System.out.println("diameter: " + diameter);
+            double radius = diameter / 2.0;
+            double basalArea = Math.PI * radius * radius;
+            totalBasalArea += basalArea;
+        }
+
+        // Calculate the basal area per tree
+        double basalAreaPerTree = totalBasalArea / 2.0;
+
+        // Find the diameter of the basal area median tree
+        double basalAreaSum = 0.0;
+        int i = 0;
+        while (basalAreaSum < basalAreaPerTree && i < treeDiameters.size()) {
+            double radius = treeDiameters.get(i) / 2.0;
+            double basalArea = Math.PI * radius * radius;
+            basalAreaSum += basalArea;
+            i++;
+        }
+        // Return the diameter of the basal area median tree
+        return treeDiameters.get(i - 1);
     }
 
 
