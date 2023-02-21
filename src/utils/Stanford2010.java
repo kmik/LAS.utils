@@ -98,22 +98,24 @@ public class Stanford2010 {
             e.printStackTrace();
         }
 
-        if(false)
+        if(true)
             try {
                 ofile.createNewFile();
                 //BufferedReader br = new BufferedReader(new FileReader(in));
                 BufferedWriter bw = new BufferedWriter(new FileWriter(ofile));
 
                 ArrayList<Tree> trees = new ArrayList<Tree>();
-                //readElements(root, trees);
+                printElement(root, bw);
 
                 bw.close();
             }catch (Exception e){
                 e.printStackTrace();
             }
 
+        System.exit(1);
         double[] transformed = null;
 
+        System.exit(1);
         ArrayList<Tree> trees = new ArrayList<Tree>();
         List<Element> stems = null;
 
