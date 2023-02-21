@@ -1299,12 +1299,6 @@ public class LASReader {
     maxZ = braf.readDouble();
     minZ = braf.readDouble();
 
-    minX *= xScaleFactor + xOffset;
-    maxX *= xScaleFactor + xOffset;
-    minY *= yScaleFactor + yOffset;
-    maxY *= yScaleFactor + yOffset;
-    minZ *= zScaleFactor + zOffset;
-    maxZ *= zScaleFactor + zOffset;
 
 
     return new double[]{minX, maxX, minY, maxY, minZ, maxZ};

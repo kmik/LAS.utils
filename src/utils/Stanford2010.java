@@ -98,7 +98,7 @@ public class Stanford2010 {
             e.printStackTrace();
         }
 
-        if(true)
+        if(false)
             try {
                 ofile.createNewFile();
                 //BufferedReader br = new BufferedReader(new FileReader(in));
@@ -112,10 +112,10 @@ public class Stanford2010 {
                 e.printStackTrace();
             }
 
-        System.exit(1);
+        //System.exit(1);
         double[] transformed = null;
 
-        System.exit(1);
+        //System.exit(1);
         ArrayList<Tree> trees = new ArrayList<Tree>();
         List<Element> stems = null;
 
@@ -342,6 +342,15 @@ public class Stanford2010 {
             e.printStackTrace();
         }
 
+        ofile = new File("/home/koomikko/Documents/customer_work/metsahallitus/trees.txt");
+
+
+        try {
+            ofile.createNewFile();
+            writeTrees(trees, ofile);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
 
 
