@@ -65,7 +65,7 @@ public class process_las2las {
 
         //for(int i = 0; i < in.getNumberOfPointRecords(); i += 200000) {
 
-        for(int i = 0; i < in.getNumberOfPointRecords(); i++) {
+        for(long i = 0; i < in.getNumberOfPointRecords(); i++) {
 
             //maxi = (int) Math.min(200000, Math.abs(in.getNumberOfPointRecords() - i));
 

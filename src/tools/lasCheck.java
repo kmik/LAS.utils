@@ -44,7 +44,7 @@ public class lasCheck {
 
         int thread_n = aR.pfac.addReadThread(pointCloud);
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i++){
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i++){
         //for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
 
             //maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
