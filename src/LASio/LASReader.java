@@ -1005,27 +1005,6 @@ public class LASReader {
     maxZ = braf.readDouble();
     minZ = braf.readDouble();
 
-    System.out.println("minX: " + minX);
-    System.out.println("maxX: " + maxX);
-    System.out.println("minY: " + minY);
-    System.out.println("maxY: " + maxY);
-    System.out.println("minZ: " + minZ);
-    System.out.println("maxZ: " + maxZ);
-    System.out.println("-------------------------");
-
-    minX *= xScaleFactor + xOffset;
-    maxX *= xScaleFactor + xOffset;
-    minY *= yScaleFactor + yOffset;
-    maxY *= yScaleFactor + yOffset;
-    minZ *= zScaleFactor + zOffset;
-    maxZ *= zScaleFactor + zOffset;
-    System.out.println("minX: " + minX);
-    System.out.println("maxX: " + maxX);
-    System.out.println("minY: " + minY);
-    System.out.println("maxY: " + maxY);
-    System.out.println("minZ: " + minZ);
-    System.out.println("maxZ: " + maxZ);
-    System.exit(1);
     // the following fields were not provided
     // in LAS format 1.2 and earlier (1.3 and earlier?).
     // Use the file size  to avoid reading them if they are not there.
@@ -1319,6 +1298,29 @@ public class LASReader {
     minY = braf.readDouble();
     maxZ = braf.readDouble();
     minZ = braf.readDouble();
+
+
+    System.out.println("minX: " + minX);
+    System.out.println("maxX: " + maxX);
+    System.out.println("minY: " + minY);
+    System.out.println("maxY: " + maxY);
+    System.out.println("minZ: " + minZ);
+    System.out.println("maxZ: " + maxZ);
+    System.out.println("-------------------------");
+
+    minX *= xScaleFactor + xOffset;
+    maxX *= xScaleFactor + xOffset;
+    minY *= yScaleFactor + yOffset;
+    maxY *= yScaleFactor + yOffset;
+    minZ *= zScaleFactor + zOffset;
+    maxZ *= zScaleFactor + zOffset;
+    System.out.println("minX: " + minX);
+    System.out.println("maxX: " + maxX);
+    System.out.println("minY: " + minY);
+    System.out.println("maxY: " + maxY);
+    System.out.println("minZ: " + minZ);
+    System.out.println("maxZ: " + maxZ);
+    System.exit(1);
 
     return new double[]{minX, maxX, minY, maxY, minZ, maxZ};
 
