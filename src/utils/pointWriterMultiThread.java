@@ -112,6 +112,7 @@ public class pointWriterMultiThread {
         outputFile.write(in, this.pointDataRecordLength);
         pointCount++;
 
+
     }
 
 

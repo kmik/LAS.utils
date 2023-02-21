@@ -243,36 +243,36 @@ public class Tiler{
 
             int thread_n = aR.pfac.addReadThread(temp);
 
-            for(long i = 0; i < temp.getNumberOfPointRecords(); i++){
-            //for(long i = 0; i < temp.getNumberOfPointRecords(); i += 200000) {
+            //for(long i = 0; i < temp.getNumberOfPointRecords(); i++){
+            for(long i = 0; i < temp.getNumberOfPointRecords(); i += 20000) {
 
-                //int maxi2 = (int) Math.min(200000, Math.abs(temp.getNumberOfPointRecords() - i));
+                long maxi2 = (int) Math.min(200000, Math.abs(temp.getNumberOfPointRecords() - i));
 
-                //aR.pfac.prepareBuffer(thread_n, i, 200000);
+                aR.pfac.prepareBuffer(thread_n, i, 20000);
 
-                //for (int j = 0; j < maxi2; j++) {
+                for (long j = 0; j < maxi2; j++) {
 
-                    //temp.readFromBuffer(tempPoint);
-                    temp.readRecord(i, tempPoint);
+                    temp.readFromBuffer(tempPoint);
+                    //temp.readRecord(i, tempPoint);
 
-                    if (rule.ask(tempPoint, i, true)) {
+                    if (rule.ask(tempPoint, i+j, true)) {
 
                         int x = Math.min((int) ((tempPoint.x - this.minX) / sideLength), xMax-1);
                         int y = Math.min((int) ((this.maxY - tempPoint.y) / sideLength), yMax-1);
 
 
                         /* Here we write the point to the correct tile */
-                        if (outputFilesMatrix_buf[x][y].writePoint(tempPoint, rule, i))
+                        if (outputFilesMatrix_buf[x][y].writePoint(tempPoint, rule, i+j))
                             pointCounts[x][y]++;
 
                         /* Next we have to check whether the point is in a buffer */
                         if (buffer > 0.0) {
 
-                            check_point_in_buffer(tempPoint, i, x, y);
+                            check_point_in_buffer(tempPoint, i+j, x, y);
                             
                         }
                     }
-                //}
+                }
             }
 
         }

@@ -177,6 +177,48 @@ public class LASReader {
 
   }
 
+  public LASReader(File path, int noMBB) throws IOException {
+
+    sanityCheckPointRecordLength.put(0, 20);
+    sanityCheckPointRecordLength.put(1, 28);
+    sanityCheckPointRecordLength.put(2, 26);
+    sanityCheckPointRecordLength.put(3, 34);
+    sanityCheckPointRecordLength.put(4, 57);
+    sanityCheckPointRecordLength.put(5, 63);
+    sanityCheckPointRecordLength.put(6, 30);
+    sanityCheckPointRecordLength.put(7, 36);
+    sanityCheckPointRecordLength.put(8, 38);
+    sanityCheckPointRecordLength.put(9, 59);
+    sanityCheckPointRecordLength.put(10, 67);
+
+    this.path = path;
+    braf = new LASraf(path);
+    vlrList = new ArrayList<>();
+
+    readHeader();
+
+    braf.pointDataRecordLength = this.pointDataRecordLength;
+    braf.offsetToPointData = this.offsetToPointData;
+
+    //this.braf.setUpMappedByteBuffer();
+
+    try {
+      getIndexMap();
+    }catch (Exception e){
+      e.printStackTrace();
+    }
+
+
+    if(this.pointDataRecordLength != sanityCheckPointRecordLength.get(this.pointDataRecordFormat)){
+
+      //System.out.println("POINT DATA RECORD LENGTH IS NOT STANDARD. SOMEONE ADDED SOME BYTES TO THE POINTS!!");
+      //System.out.println(this.pointDataRecordFormat + " " + this.pointDataRecordLength);
+      //this.extraBytesInPoint2 = this.pointDataRecordLength - sanityCheckPointRecordLength.get(this.pointDataRecordFormat);
+      //readExtra = new byte[this.extraBytesInPoint];
+      //readExtra = new byte[this.extraBytesInPoint];
+    }
+
+  }
   public LASReader(File path, boolean in) throws IOException {
     this.path = path;
     braf = new LASraf(path);
