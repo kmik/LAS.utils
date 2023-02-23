@@ -333,6 +333,8 @@ public class Tiler{
 
             LASReader temp = new LASReader(aR.inputFiles.get(i_));
 
+            System.out.println("Reading file: " + aR.inputFiles.get(i_).getName() + " with " + temp.getNumberOfPointRecords() + " points");
+
             int thread_n = aR.pfac.addReadThread(temp);
 
             //for(long i = 0; i < temp.getNumberOfPointRecords(); i++){
