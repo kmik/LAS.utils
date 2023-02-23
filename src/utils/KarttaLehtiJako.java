@@ -112,7 +112,7 @@ public class KarttaLehtiJako {
             int y_index = (int)((maxY - y )/sideLength);
             y_index = Math.min(y_index, yDim - 1);
 
-            System.out.println(x_index + " " + y_index);
+            //System.out.println(x_index + " " + y_index);
             int index = x_index + y_index * xDim;
 
 
@@ -120,7 +120,7 @@ public class KarttaLehtiJako {
             index_to_map_name.put(index, lineArray[6]);
 
         }
-        System.exit(1);
+        //System.exit(1);
 
         //for(int i : index_to_map_name.keySet())
         //    System.out.println(i + " " + index_to_map_name.get(i));
