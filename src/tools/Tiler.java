@@ -6,7 +6,6 @@ import utils.KarttaLehtiJako;
 import utils.argumentReader;
 import utils.fileOperations;
 import utils.pointWriterMultiThread;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

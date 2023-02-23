@@ -120,6 +120,7 @@ public class KarttaLehtiJako {
             index_to_map_name.put(index, lineArray[6]);
 
         }
+        System.exit(1);
 
         //for(int i : index_to_map_name.keySet())
         //    System.out.println(i + " " + index_to_map_name.get(i));
