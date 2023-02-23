@@ -1390,7 +1390,7 @@ public class MKid4pointsLAS{
 
                             //asd.braf.raFile.seek(asd.braf.raFile.length());
 
-                            for(int p = 0; p < asd.getNumberOfPointRecords(); p += 10000){
+                            for(long p = 0; p < asd.getNumberOfPointRecords(); p += 10000){
 
                                 maxi = (int)Math.min(10000, Math.abs(asd.getNumberOfPointRecords() - p));
 

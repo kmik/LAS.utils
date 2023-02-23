@@ -2,6 +2,7 @@ package tools;
 
 import LASio.*;
 
+import utils.KarttaLehtiJako;
 import utils.argumentReader;
 import utils.fileOperations;
 import utils.pointWriterMultiThread;
@@ -23,6 +24,15 @@ import java.util.ArrayList;
 
 public class Tiler{
 
+
+    double minX_finnishMap6k = 20000.0;
+    double maxY_finnishMap6k = 7818000.0;
+
+    int minIndexX_finnishMap6k = 0;
+    int maxIndexY_finnishMap6k = 0;
+    double sideLengthFinlandMap6k = 6000.0;
+
+    KarttaLehtiJako klj = new KarttaLehtiJako();
     double sideLength = 1000.0;
 
     ArrayList<LASReader> pointClouds = new ArrayList<LASReader>();
@@ -70,9 +80,19 @@ public class Tiler{
         this.odir = aR.odir;
         this.sideLength = aR.step;
         this.makePointCloudList(in);
+
         findExtent();
 
+        if(aR.orig_x >= 0.0 && aR.orig_y >= 0.0){
+            this.fixToExternalOrigo();
+        } else if (aR.MML_klj) {
+            fixToExternalOrigoMML();
+        }
+
         outputFileCount = numberOfOutputFiles();
+
+        System.out.println("Number of output files: " + outputFileCount);
+
         declareOutputFiles();
 
         if(aR.cores >= in.size())
@@ -85,6 +105,70 @@ public class Tiler{
 
         make();
 
+
+
+    }
+
+    public void fixToExternalOrigoMML(){
+
+        try {
+            klj.readFromFile(new File(""));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        double anchor_x = minX_finnishMap6k;
+        double anchor_y = maxY_finnishMap6k;
+
+        double x_diff = minX - anchor_x;
+        double y_diff = anchor_y - maxY;
+
+        int n_x = (int)Math.floor(x_diff / sideLengthFinlandMap6k);
+        int n_y = (int)Math.floor(y_diff / sideLengthFinlandMap6k);
+
+        this.minIndexX_finnishMap6k = n_x;
+        this.maxIndexY_finnishMap6k = n_y + 1;
+
+        this.minX = n_x * sideLengthFinlandMap6k + anchor_x;
+        this.maxY = anchor_y - n_y * sideLengthFinlandMap6k;
+
+        x_diff = maxX - anchor_x;
+        y_diff = anchor_y - minY;
+
+        n_x = (int)Math.ceil(x_diff / sideLengthFinlandMap6k);
+        n_y = (int)Math.ceil(y_diff / sideLengthFinlandMap6k);
+
+        this.maxX = n_x * sideLengthFinlandMap6k + anchor_x;
+        this.minY = anchor_y - n_y * sideLengthFinlandMap6k;
+
+        this.sideLength = sideLengthFinlandMap6k;
+
+
+    }
+
+
+    public void fixToExternalOrigo(){
+
+        double anchor_x = aR.orig_x;
+        double anchor_y = aR.orig_y;
+
+        double x_diff = minX - anchor_x;
+        double y_diff = anchor_y - maxY;
+
+        int n_x = (int)Math.floor(x_diff / sideLength);
+        int n_y = (int)Math.floor(y_diff / sideLength);
+
+        this.minX = n_x * sideLength + anchor_x;
+        this.maxY = anchor_y - n_y * sideLength;
+
+        x_diff = maxX - anchor_x;
+        y_diff = anchor_y - minY;
+
+        n_x = (int)Math.ceil(x_diff / sideLength);
+        n_y = (int)Math.ceil(y_diff / sideLength);
+
+        this.maxX = n_x * sideLength + anchor_x;
+        this.minY = anchor_y - n_y * sideLength;
 
 
     }
@@ -181,11 +265,20 @@ public class Tiler{
                 int x = Math.min((int)((i - minX) / sideLength), xMax-1);
                 int y = Math.min((int)((maxY - j) / sideLength), yMax-1);
 
+                String tileName = klj.getIndexToMapName(x_ + this.minIndexX_finnishMap6k, y_ + this.maxIndexY_finnishMap6k);
+
+                System.out.println( (x_ + this.minIndexX_finnishMap6k) + " " + (y_ + this.maxIndexY_finnishMap6k) + " " + tileName);
+                System.out.println(x_ + " " + y_);
                 File temp = null;
+
+                if(!aR.MML_klj)
+                    tileName = "";
+
+
                 if(aR.buffer > 0) {
-                    temp = aR.createOutputFileWithExtension(pointClouds.get(0), "_tile_" + (int) i + "_" + (int) j + "_" + (int) aR.step + "m_buf_" + (int) aR.buffer + ".las");
+                    temp = aR.createOutputFileWithExtension(pointClouds.get(0), "_tile_" + (int) i + "_" + (int) j + "_" + (int) aR.step + "m_buf_" + (int) aR.buffer + "_" + tileName + ".las");
                 }else {
-                    temp = aR.createOutputFileWithExtension(pointClouds.get(0), "_tile_" + (int) i + "_" + (int) j + "_" + (int) aR.step + "m.las");
+                    temp = aR.createOutputFileWithExtension(pointClouds.get(0), "_tile_" + (int) i + "_" + (int) j + "_" + (int) aR.step + "_m_" + tileName + ".las");
                 }
 
                 outputFilesMatrix_pw[ x_ ][ y_ ] = new pointWriterMultiThread(temp, pointClouds.get(0), "lasTile", aR);
@@ -246,7 +339,7 @@ public class Tiler{
             //for(long i = 0; i < temp.getNumberOfPointRecords(); i++){
             for(long i = 0; i < temp.getNumberOfPointRecords(); i += 20000) {
 
-                long maxi2 = (int) Math.min(200000, Math.abs(temp.getNumberOfPointRecords() - i));
+                long maxi2 = (int) Math.min(20000, Math.abs(temp.getNumberOfPointRecords() - i));
 
                 aR.pfac.prepareBuffer(thread_n, i, 20000);
 

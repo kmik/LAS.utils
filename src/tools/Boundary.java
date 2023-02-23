@@ -196,6 +196,7 @@ public class Boundary extends tool{
 
         for(int i = 0; i < n; i++){
 
+            // NOT USED
             pointCloud.readRecord(i, tempPoint);
 
             if(tempPoint.x - tempPoint.y > maxA){
@@ -253,24 +254,24 @@ public class Boundary extends tool{
         List<IQuadEdge> currentBorder = null;
 
         int thread_n = aR.pfac.addReadThread(pointCloud);
-/*
-        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
-            long maxi = (long) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
 
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            long maxi = (long) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+            aR.pfac.prepareBuffer(thread_n, i, 20000);
 
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
-*/
-        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
 
-            pointCloud.readRecord(i, tempPoint);
+        //for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
+
+            //pointCloud.readRecord(i, tempPoint);
                 /* Reading, so ask if this point is ok, or if
                     it should be modified.
                      */
-                if(!aR.inclusionRule.ask(tempPoint, i, true)){
+                if(!aR.inclusionRule.ask(tempPoint, i + j, true)){
                     continue;
                 }
                 if (tin.isBootstrapped()) {
@@ -296,10 +297,10 @@ public class Boundary extends tool{
                     tin.add(tempV);
                 }
 
-                if (i % 10000 == 0) {
+                if (i + j % 10000 == 0) {
                     calcPerim();
                 }
-            //}
+            }
             //System.out.println("ASD");
         }
 
@@ -404,7 +405,7 @@ public class Boundary extends tool{
 
         /* First find the index of the lowest Y point
          */
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000){
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000){
 
             maxi = (int)Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 

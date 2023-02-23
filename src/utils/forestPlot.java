@@ -512,6 +512,7 @@ public class forestPlot {
         }
 
         double[] pointxy = new double[2];
+
         for(long i = 0; i < tmpReader.getNumberOfPointRecords(); i++) {
 
             tmpReader.readRecord(i, tempPoint);

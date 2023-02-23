@@ -26,12 +26,15 @@ import java.util.*;
 public class Stanford2010 {
 
     File xml_file;
+    argumentReader aR;
 
 
 
-    public Stanford2010(){
-
+    public Stanford2010(argumentReader aR) throws toolException {
+        this.aR = aR;
     }
+
+
 
     public void setXMLfile(File file){
 
@@ -43,6 +46,7 @@ public class Stanford2010 {
 
         SAXBuilder builder = new SAXBuilder();
 
+        System.out.println("Parsing XML file: " + this.xml_file.getAbsolutePath());
         Document xml = null;
         try {
             xml = builder.build(this.xml_file);
@@ -55,6 +59,8 @@ public class Stanford2010 {
 
 
         Element root = xml.getRootElement();
+
+
         File ofile =new File("/home/koomikko/Documents/customer_work/metsahallitus/parsed.hpr");
 
         //System.exit(1);
@@ -133,6 +139,11 @@ public class Stanford2010 {
 
                 List<Element> stem_coordinates = stem.getChildren("StemCoordinates", ns);
 
+                if(stem_coordinates.size() == 0){
+                    System.out.println("No coordinates for stem " + stem.getChild("StemNumber", ns).getValue());
+                    continue;
+                }
+
                 System.out.println(Arrays.toString(stem_coordinates.toArray()));
                 double latitude = Double.parseDouble(stem_coordinates.get(0).getChild("Latitude", ns).getValue());
                 double longitude = Double.parseDouble(stem_coordinates.get(0).getChild("Longitude", ns).getValue());
@@ -174,6 +185,9 @@ public class Stanford2010 {
         }
 
         if(trees.size() != stems.size()){
+
+            if(true)
+                return;
             throw new toolException("Trees and stems are not the same size. Something went wrong.");
         }
 
@@ -309,6 +323,40 @@ public class Stanford2010 {
 
         System.out.println(trees2.size() + " " + trees.size());
 
+        double[][] points = new double[trees.size()][2];
+
+        for(int i = 0; i < trees.size(); i++){
+            points[i][0] = trees.get(i).getX_coordinate_machine();
+            points[i][1] = trees.get(i).getY_coordinate_machine();
+        }
+
+
+        double eps = 30.0;
+        int minPts = 8;
+
+        DBSCAN dbscan = new DBSCAN(eps, minPts);
+
+        List<Set<Integer>> clusters = dbscan.performDBSCAN(points);
+
+        System.out.println(clusters.size());
+
+        for(int i = 0; i < trees.size(); i++){
+
+                    trees.get(i).setKey(-1);
+
+
+        }
+        System.out.println("Number of clusters found: " + clusters.size());
+
+        for (int i = 0; i < clusters.size(); i++) {
+            Set<Integer> cluster = clusters.get(i);
+            System.out.println("Cluster " + i + ":");
+            for (int point : cluster) {
+                System.out.println("tree: " + point + " " + trees.get(point).getX_coordinate_machine() + " " + trees.get(point).getY_coordinate_machine());
+                trees.get(point).setKey(i);
+            }
+        }
+
 
         /*
         Point2D[] points = new Point2D[trees.size()];
@@ -332,7 +380,19 @@ public class Stanford2010 {
         }
 
 */
-        ofile = new File("/home/koomikko/Documents/customer_work/metsahallitus/trees_filtered.txt");
+        String pathSeparator = System.getProperty("file.separator");
+
+        System.out.println("pathSeparator: " + pathSeparator);
+        //System.exit(1);
+
+        System.out.println("xml: " + Arrays.toString(xml_file.getName().split(("\\."))));
+        File output_directory = new File(aR.odir + pathSeparator + xml_file.getName().split("\\.")[0]);
+
+        System.out.println("output_directory: " + output_directory.getAbsolutePath());
+        output_directory.mkdirs();
+
+        ofile = new File(output_directory.getAbsolutePath() + pathSeparator + "trees_filtered.txt");
+        //ofile = new File("/home/koomikko/Documents/customer_work/metsahallitus/trees_filtered.txt");
 
 
         try {
@@ -342,8 +402,8 @@ public class Stanford2010 {
             e.printStackTrace();
         }
 
-        ofile = new File("/home/koomikko/Documents/customer_work/metsahallitus/trees.txt");
-
+        //ofile = new File("/home/koomikko/Documents/customer_work/metsahallitus/trees.txt");
+        ofile = new File(output_directory.getAbsolutePath() + pathSeparator + "trees.txt");
 
         try {
             ofile.createNewFile();
@@ -354,10 +414,10 @@ public class Stanford2010 {
 
 
 
-        System.exit(1);
+        //System.exit(1);
 
 
-
+        if(false)
         for(int i = 0; i < lista.size(); i++){
 
             List<Element> lista_ = lista.get(i).getChildren();

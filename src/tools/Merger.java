@@ -92,7 +92,7 @@ public class Merger{
 
             tempReader = new LASReader(aR.inputFiles.get(p));
 
-            for(int i = 0; i < tempReader .getNumberOfPointRecords(); i += 10000){
+            for(long i = 0; i < tempReader .getNumberOfPointRecords(); i += 10000){
 
                 int maxi = (int)Math.min(10000, Math.abs(tempReader .getNumberOfPointRecords() - i));
 

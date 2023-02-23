@@ -315,7 +315,7 @@ public class lasLayer {
                     canopy[x][y][z] = -99;
             }
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
             maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
@@ -965,7 +965,7 @@ public class lasLayer {
 
         meanFilter(understoreyHeight);
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
             maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
@@ -1009,7 +1009,7 @@ public class lasLayer {
                         //if (outputRaf.writePoint(tempPoint, aR.getInclusionRule(), 0.01, 0.01, 0.01, 0, 0, 0, pointCloud.pointDataRecordFormat, i + j))
                           //  pointCount++;
                         if (outputRaf_overstorey.writePoint(tempPoint, aR.getInclusionRule(), pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
-                                pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, i + j))
+                                pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, (int)i + j))
                         pointCount++;
                     }
                         else if(zCoord > 0 && tempPoint.z >= minz) {
@@ -1019,7 +1019,7 @@ public class lasLayer {
                     }
 
                 if (outputRaf_remainder.writePoint(tempPoint, aR.getInclusionRule(), pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
-                        pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, i + j))
+                        pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, (int)i + j))
                     pointCount++;
 
 /*

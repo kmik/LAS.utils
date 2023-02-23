@@ -203,7 +203,7 @@ public class Noise{
 
         int pointCount = 0;
 
-        for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 10000) {
+        for (long p = 0; p < pointCloud.getNumberOfPointRecords(); p += 10000) {
 
             maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - (p)));
 

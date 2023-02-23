@@ -80,9 +80,9 @@ public class lasSort {
 
             pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
 
-            for(int s = pienin; s < suurin; s += 10000){
+            for(long s = pienin; s < suurin; s += 10000){
 
-                maxi = Math.min(10000, Math.abs(suurin - s));
+                maxi = (int)Math.min(10000, Math.abs(suurin - s));
                 try {
                     pointCloud.readRecord_noRAF(s, tempPoint, maxi);
                 }catch (Exception e){
@@ -93,7 +93,7 @@ public class lasSort {
 
                     pointCloud.readFromBuffer(tempPoint);
 
-                    parit[count] = new Pair_float(s + j, tempPoint.gpsTime);
+                    parit[count] = new Pair_float((int)s + j, tempPoint.gpsTime);
                     count++;
                 }
 

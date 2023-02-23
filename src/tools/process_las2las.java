@@ -63,22 +63,22 @@ public class process_las2las {
 
         int counter = 0;
 
-        //for(int i = 0; i < in.getNumberOfPointRecords(); i += 200000) {
+        for(long i = 0; i < in.getNumberOfPointRecords(); i += 20000) {
 
-        for(long i = 0; i < in.getNumberOfPointRecords(); i++) {
+        //for(long i = 0; i < in.getNumberOfPointRecords(); i++) {
 
-            //maxi = (int) Math.min(200000, Math.abs(in.getNumberOfPointRecords() - i));
+            maxi = (int) Math.min(20000, Math.abs(in.getNumberOfPointRecords() - i));
 
-            //aR.pfac.prepareBuffer(thread_n, i, 200000);
+            aR.pfac.prepareBuffer(thread_n, i, 20000);
 
-            //for (int j = 0; j < maxi; j++) {
+            for (int j = 0; j < maxi; j++) {
 
-                // in.readFromBuffer(tempPoint);
+                in.readFromBuffer(tempPoint);
 
                 //double x1 = tempPoint.x;
 
                 //in.readRecord(i+j, tempPoint);
-                in.readRecord(i, tempPoint);
+                //in.readRecord(i, tempPoint);
 
                 //if(tempPoint.pointSourceId == 111)
                 //    System.out.println(tempPoint.pointSourceId);
@@ -89,11 +89,11 @@ public class process_las2las {
 
                 //System.out.println(x1 + " == " + x2);
                 //System.out.println(tempPoint.x + " " + tempPoint.y);
-                if(!aR.inclusionRule.ask(tempPoint, i, true)){
+                if (!aR.inclusionRule.ask(tempPoint, i, true)) {
                     continue;
                 }
 
-                if(aR.echoClass){
+                if (aR.echoClass) {
 
                     /*
 					#   0 = only
@@ -103,13 +103,13 @@ public class process_las2las {
 
    					#   3 = last of many
 							*/
-                    if(tempPoint.numberOfReturns == 1){
+                    if (tempPoint.numberOfReturns == 1) {
                         tempPoint.numberOfReturns = 0;
-                    }else if(tempPoint.returnNumber == tempPoint.numberOfReturns){
+                    } else if (tempPoint.returnNumber == tempPoint.numberOfReturns) {
                         tempPoint.numberOfReturns = 3;
-                    }else if(tempPoint.returnNumber == 1){
+                    } else if (tempPoint.returnNumber == 1) {
                         tempPoint.numberOfReturns = 1;
-                    }else{
+                    } else {
                         tempPoint.numberOfReturns = 2;
                     }
 
@@ -118,21 +118,22 @@ public class process_las2las {
                 //tempPoint.setExtraByteINT(i, aR.create_extra_byte_vlr_n_bytes.get(0), 0);
                 //tempPoint.setExtraByteINT(tempPoint.scanAngleRank, aR.create_extra_byte_vlr_n_bytes.get(1), 1);
 
-                if(aR.setNegativeZero){
+                if (aR.setNegativeZero) {
 
-                    if(tempPoint.z < 0.0)
+                    if (tempPoint.z < 0.0)
                         tempPoint.z = 0;
 
                 }
 
                 try {
 
-                        aR.pfac.writePoint(tempPoint, i, thread_n);
+                    aR.pfac.writePoint(tempPoint, i, thread_n);
 
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                     System.exit(1);
                 }
+            }
             }
             //System.out.println(counter + " == " + in.numberOfPointRecords);
             aR.pfac.closeThread(thread_n);

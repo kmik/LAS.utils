@@ -77,7 +77,7 @@ public class lasSplit {
             ArrayList<Double> bins = new ArrayList<>();
             ArrayList<Integer> bin_indexes = new ArrayList<>();
 
-            for (int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+            for (long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
                 maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
@@ -117,7 +117,7 @@ public class lasSplit {
                         flightLineId++;
                         declareOutputFile(flightLineId);
                         bins.add(tempPoint.gpsTime);
-                        bin_indexes.add((i+j));
+                        bin_indexes.add(((int)i+j));
                     }
 
 

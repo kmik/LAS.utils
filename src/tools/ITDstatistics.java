@@ -3502,7 +3502,7 @@ public class ITDstatistics{
             a tree has been read.
          */
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
 
             maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
@@ -3626,7 +3626,7 @@ public class ITDstatistics{
         long start = System.currentTimeMillis();
         int treeCount = 0;
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
 
             maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 

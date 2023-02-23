@@ -1120,23 +1120,23 @@ public class GroundDetector{
 
             if(write){
 
-                //for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 200000) {
-                for (long p = 0; p < pointCloud.getNumberOfPointRecords(); p++) {
-/*
-                    maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - (p)));
+                for (long p = 0; p < pointCloud.getNumberOfPointRecords(); p += 20000) {
+                //for (long p = 0; p < pointCloud.getNumberOfPointRecords(); p++) {
+
+                    maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - (p)));
 
                     try {
-                        aR.pfac.prepareBuffer(thread_n, p, 200000);
+                        aR.pfac.prepareBuffer(thread_n, p, 20000);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
 
-                    for (int j = 0; j < maxi; j++) {
+                    for (long j = 0; j < maxi; j++) {
 
                         pointCloud.readFromBuffer(tempPoint);
-*/
-                    pointCloud.readRecord(p, tempPoint);
-                        if(!rule.ask(tempPoint, p, true)){
+
+                    //pointCloud.readRecord(p, tempPoint);
+                        if(!rule.ask(tempPoint, p+j, true)){
                             continue;
                         }
                         /*      If the las point is already classified as ground, we clear the classification
@@ -1145,7 +1145,7 @@ public class GroundDetector{
                         if(tempPoint.classification == 2)
                             tempPoint.classification = 0;
 
-                        if (doneInd[(int)p])
+                        if (doneInd[(int)p+(int)j])
                             tempPoint.classification = 2;
 
                         if (aR.o_dz) {
@@ -1155,10 +1155,10 @@ public class GroundDetector{
 
                         }
 
-                        aR.pfac.writePoint(tempPoint, p, thread_n);
+                        aR.pfac.writePoint(tempPoint, p+j, thread_n);
 
                     }
-                //}
+                }
             }
         }catch(Exception e){
             e.printStackTrace(System.out);
@@ -2951,7 +2951,7 @@ public class GroundDetector{
             LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
             List<IQuadEdge> perimeter = tin.getPerimeter();
-            for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+            for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
                 maxi = (int) Math.min(10000, pointCloud.getNumberOfPointRecords() - i);
 
@@ -3077,6 +3077,8 @@ public class GroundDetector{
         LASReader temp = new LASReader(in);
 
         long n = temp.getNumberOfPointRecords();
+
+
 
         for(int i = 0; i < n; i++){
 

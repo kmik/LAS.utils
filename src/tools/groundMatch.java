@@ -14,7 +14,7 @@ public class groundMatch {
     LASReader pointCloud2;
     argumentReader aR;
 
-    double resolution = 0.5;
+    double resolution = 5.0;
 
     org.tinfour.standard.IncrementalTin tin = new org.tinfour.standard.IncrementalTin();
 
@@ -65,15 +65,19 @@ public class groundMatch {
         int n_y = (int)Math.ceil((max_y - min_y) / resolution);
         int n_z = (int)Math.ceil((max_z - min_z) / resolution);
 
-        double[][][] raster1 = new double[n_x][n_y][5];
-        double[][][] raster2 = new double[n_x][n_y][5];
+        System.out.println("n_x" + n_x);
+        System.out.println("n_y" + n_y);
+
+        float[][][] raster1 = new float[n_x][n_y][5];
+        float[][][] raster2 = new float[n_x][n_y][5];
 
         int maxi = 0;
         LasPoint tempPoint = new LasPoint();
 
-        double M = 0, oldM = 0;
+        System.out.println("start readin first");
+        float M = 0, oldM = 0;
 
-        for (int p = 0; p < pointCloud1.getNumberOfPointRecords(); p += 10000) {
+        for (long p = 0; p < pointCloud1.getNumberOfPointRecords(); p += 10000) {
             //for(int i = 0; i < n; i++){
 
             maxi = (int) Math.min(10000, Math.abs(pointCloud1.getNumberOfPointRecords() - (p)));
@@ -99,7 +103,7 @@ public class groundMatch {
                     continue;
                 }
 
-                if(tempPoint.classification == 2){
+                if(tempPoint.classification == 2 || true){
 
                     int slot_x = (int)Math.floor( (tempPoint.x - min_x) / resolution );
                     int slot_y = (int)Math.floor( (max_y - tempPoint.y) / resolution );
@@ -110,11 +114,11 @@ public class groundMatch {
                     oldM = raster1[slot_x][slot_y][2];
 
                     M = raster1[slot_x][slot_y][2];
-                    raster1[slot_x][slot_y][2] = M + (tempPoint.z - M) / raster1[slot_x][slot_y][0];
+                    raster1[slot_x][slot_y][2] = M + ((float)tempPoint.z - M) / raster1[slot_x][slot_y][0];
 
-                    raster1[slot_x][slot_y][3] = raster1[slot_x][slot_y][3] + (tempPoint.z - raster1[slot_x][slot_y][2]) * (tempPoint.z - oldM);
+                    raster1[slot_x][slot_y][3] = raster1[slot_x][slot_y][3] + ((float)tempPoint.z - raster1[slot_x][slot_y][2]) * ((float)tempPoint.z - oldM);
 
-                    raster1[slot_x][slot_y][4] = Math.sqrt(raster1[slot_x][slot_y][3] / (raster1[slot_x][slot_y][0] - 1.0d));
+                    raster1[slot_x][slot_y][4] = (float)Math.sqrt(raster1[slot_x][slot_y][3] / (raster1[slot_x][slot_y][0] - 1.0f));
 
 
                 }
@@ -122,7 +126,9 @@ public class groundMatch {
             }
         }
 
-        for (int p = 0; p < pointCloud2.getNumberOfPointRecords(); p += 10000) {
+        System.out.println("read first");
+
+        for (long p = 0; p < pointCloud2.getNumberOfPointRecords(); p += 10000) {
             //for(int i = 0; i < n; i++){
 
             maxi = (int) Math.min(10000, Math.abs(pointCloud2.getNumberOfPointRecords() - (p)));
@@ -148,7 +154,7 @@ public class groundMatch {
                     continue;
                 }
 
-                if(tempPoint.classification == 2){
+                if(tempPoint.classification == 2 || true){
 
                     int slot_x = (int)Math.floor( (tempPoint.x - min_x) / resolution );
                     int slot_y = (int)Math.floor( (max_y - tempPoint.y) / resolution );
@@ -159,11 +165,11 @@ public class groundMatch {
                     oldM = raster2[slot_x][slot_y][2];
 
                     M = raster2[slot_x][slot_y][2];
-                    raster2[slot_x][slot_y][2] = M + (tempPoint.z - M) / raster2[slot_x][slot_y][0];
+                    raster2[slot_x][slot_y][2] = M + ((float)tempPoint.z - M) / raster2[slot_x][slot_y][0];
 
-                    raster2[slot_x][slot_y][3] = raster2[slot_x][slot_y][3] + (tempPoint.z - raster2[slot_x][slot_y][2]) * (tempPoint.z - oldM);
+                    raster2[slot_x][slot_y][3] = raster2[slot_x][slot_y][3] + ((float)tempPoint.z - raster2[slot_x][slot_y][2]) * ((float)tempPoint.z - oldM);
 
-                    raster2[slot_x][slot_y][4] = Math.sqrt(raster2[slot_x][slot_y][3] / (raster2[slot_x][slot_y][0] - 1.0d));
+                    raster2[slot_x][slot_y][4] = (float)Math.sqrt(raster2[slot_x][slot_y][3] / (raster2[slot_x][slot_y][0] - 1.0f));
 
                 }
 
@@ -171,6 +177,7 @@ public class groundMatch {
 
         }
 
+        System.out.println("read second");
         ArrayList<Double> differences = new ArrayList<>();
 
         for(int x = 0; x < n_x; x++){
@@ -190,6 +197,7 @@ public class groundMatch {
                 }
 
             }
+            System.out.println(x);
         }
 
 

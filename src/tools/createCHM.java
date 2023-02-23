@@ -2672,20 +2672,20 @@ public class createCHM{
 
                 //System.out.println("rejected size: " + rejected.size());
 
-                for(int i = 0; i < p_cloud.getNumberOfPointRecords(); i++){
-                /*
-                    for (int i = 0; i < p_cloud.getNumberOfPointRecords(); i += 200000) {
+                //for(long i = 0; i < p_cloud.getNumberOfPointRecords(); i++){
 
-                    int maxi = (int) Math.min(200000, Math.abs(p_cloud.getNumberOfPointRecords() - i));
+                for (long i = 0; i < p_cloud.getNumberOfPointRecords(); i += 20000) {
 
-                    aR.pfac.prepareBuffer(thread_n, i, 200000);
+                    int maxi = (int) Math.min(20000, Math.abs(p_cloud.getNumberOfPointRecords() - i));
+
+                    aR.pfac.prepareBuffer(thread_n, i, maxi);
 
                     for (int j = 0; j < maxi; j++) {
-*/
-                        //p_cloud.readFromBuffer(tempPoint);
-                        p_cloud.readRecord(i, tempPoint);
 
-                        if (!aR.inclusionRule.ask(tempPoint, i, true)) {
+                        p_cloud.readFromBuffer(tempPoint);
+                        //p_cloud.readRecord(i, tempPoint);
+
+                        if (!aR.inclusionRule.ask(tempPoint, i+j, true)) {
                             continue;
                         }
 /*
@@ -2715,7 +2715,7 @@ public class createCHM{
 
                                 //tempPoint.setExtraByteINT((int)(floatArray[0] + 1), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
                                 //tempPoint.setExtraByteINT( key_to_treetop.get((int)(floatArray[0])), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
-                                tempPoint.setExtraByteINT( key_to_treetop.get((int)(floatArray[0])), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
+                                tempPoint.setExtraByteINT(key_to_treetop.get((int) (floatArray[0])), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
                                 //tempPoint.setExtraByteINT( key_to_treetop_map.get((int)(floatArray[0])), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
 
                             } else {
@@ -2725,7 +2725,7 @@ public class createCHM{
                                 //tempPoint.gpsTime = 0;
 
                             }
-                        }else{
+                        } else {
                             tempPoint.setExtraByteINT(0, aR.create_extra_byte_vlr_n_bytes.get(0), 0);
 
                         }
@@ -2733,24 +2733,23 @@ public class createCHM{
                         try {
 
                             /* Output only the points inside non-synthetic points that belong to a ITC segment */
-                            if(aR.output_only_itc_segments && remove_buffer){
+                            if (aR.output_only_itc_segments && remove_buffer) {
 
-                                if(mask[x][y] && !treesOutsideTile.contains((int)floatArray[0]))
-                                    aR.pfac.writePoint(tempPoint, i, thread_n);
+                                if (mask[x][y] && !treesOutsideTile.contains((int) floatArray[0]))
+                                    aR.pfac.writePoint(tempPoint, i+j, thread_n);
 
-                            }
-                            else if(aR.output_only_itc_segments && !remove_buffer){
+                            } else if (aR.output_only_itc_segments && !remove_buffer) {
 
-                                if(mask[x][y])
-                                    aR.pfac.writePoint(tempPoint, i, thread_n);
+                                if (mask[x][y])
+                                    aR.pfac.writePoint(tempPoint, i+j, thread_n);
 
-                            }else if(!aR.output_only_itc_segments && remove_buffer){
+                            } else if (!aR.output_only_itc_segments && remove_buffer) {
 
-                                if(!treesOutsideTile.contains((int)floatArray[0]))
-                                    aR.pfac.writePoint(tempPoint, i, thread_n);
+                                if (!treesOutsideTile.contains((int) floatArray[0]))
+                                    aR.pfac.writePoint(tempPoint, i+j, thread_n);
 
-                            }else{
-                                aR.pfac.writePoint(tempPoint, i, thread_n);
+                            } else {
+                                aR.pfac.writePoint(tempPoint, i+j, thread_n);
                             }
 
                             //if(!treesOutsideTile.contains((int)floatArray[0]))
@@ -2760,7 +2759,7 @@ public class createCHM{
                             e.printStackTrace();
                         }
 
-
+                    }
                 }
 
                 aR.pfac.closeThread(thread_n);
@@ -3091,7 +3090,7 @@ public class createCHM{
 
             if(dz_on_the_fly) {
 
-                for (int i = 0; i < n; i += 10000) {
+                for (long i = 0; i < n; i += 10000) {
 
                     int maxi = (int) Math.min(10000, Math.abs(n - i));
 
@@ -3150,7 +3149,7 @@ public class createCHM{
 
 
 
-            for(int i = 0; i < n; i += 20000) {
+            for(long i = 0; i < n; i += 20000) {
 
                 int maxi = (int) Math.min(20000, Math.abs(n - i));
 
@@ -3998,7 +3997,7 @@ public class createCHM{
 
             if(dz_on_the_fly) {
 
-                for (int i = 0; i < n; i += 10000) {
+                for (long i = 0; i < n; i += 10000) {
 
                     int maxi = (int) Math.min(10000, Math.abs(n - i));
 
@@ -4077,7 +4076,7 @@ public class createCHM{
 
             }
 
-            for(int i = 0; i < n; i += 10000) {
+            for(long i = 0; i < n; i += 10000) {
 
                 int maxi = (int) Math.min(10000, Math.abs(n - i));
 

@@ -33,6 +33,7 @@ public class argumentReader {
 
     public File target = null;
 
+    public boolean MML_klj = false;
     public boolean overWrite = false;
     public File amapVoxFile = null;
 
@@ -727,6 +728,15 @@ public class argumentReader {
                 .numberOfArgs(Option.UNLIMITED_VALUES)
                 .required(false)
                 .build());
+
+        options.addOption(Option.builder()
+                .longOpt("MML_klj")
+                .hasArg(false)
+                .desc("Use MML karttalehtijako")
+                .required(false)
+                .build());
+
+
 
         options.addOption(Option.builder()
                 .longOpt("poly3")
@@ -1706,23 +1716,28 @@ public class argumentReader {
 
                     //System.out.println(s);
 
-                    if(new File(s).getName().split("\\.")[1].equals("las")){
-                        LASReader tempReader = null;
+                    if(new File(s).getName().contains("las")) {
+                        if (new File(s).getName().split("\\.")[1].equals("las")) {
+                            LASReader tempReader = null;
 
-                        try{
-                            tempReader = new LASReader(new File(s));
+                            try {
+                                tempReader = new LASReader(new File(s));
 
-                            tempReader.close();
-                            tempReader = null;
+                                tempReader.close();
+                                tempReader = null;
 
+                                temp.add(s);
+                                this.inputFiles.add(new File(s));
+
+                            } catch (Exception e) {
+                                //tempReader.close();
+                                //tempReader = null;
+                            }
+
+                        } else {
                             temp.add(s);
                             this.inputFiles.add(new File(s));
-
-                        }catch (Exception e){
-                            //tempReader.close();
-                            //tempReader = null;
                         }
-
                     }else{
                         temp.add(s);
                         this.inputFiles.add(new File(s));
@@ -1959,6 +1974,15 @@ public class argumentReader {
                 //this.create_extra_byte_vlr = Integer.parseInt(cmd.getOptionValue("extra_byte"));
 
             }
+
+
+
+            if (cmd.hasOption("MML_klj")) {
+
+                this.MML_klj = true;
+
+            }
+
             if (cmd.hasOption("sa")) {
 
                 this.output_only_stemAlignInput = true;
