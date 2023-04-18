@@ -116,10 +116,10 @@ public class lasAligner {
 
             customThreadPool.submit(() ->
 
-                    IntStream.range(0, targets.size()).parallel().forEach(i__ -> {
+                    IntStream.range(0, targets.size()).parallel().forEach(i_ -> {
 
 
-        for(int i_ = 0; i_ < targets.size(); i_++) {
+        //for(int i_ = 0; i_ < targets.size(); i_++) {
 
             double min_x = targets.get(i_).getMinX();
             double max_y = targets.get(i_).getMaxY();
@@ -479,7 +479,7 @@ public class lasAligner {
             }
 
             aR.pfac.closeThread(thread_n);
-        }
+        //}
                     })).get();
         }catch (Exception e){
             e.printStackTrace();
