@@ -112,6 +112,20 @@ public class lasAligner {
 
         ForkJoinPool customThreadPool = new ForkJoinPool(4);
 
+        double min_x = this.min_x;
+        double max_y = this.max_y;
+        double max_x = this.max_x;
+        double min_y = this.min_y;
+
+        int numberOfPixelsX = (int) Math.ceil((max_x - min_x) / resolution);
+        int numberOfPixelsY = (int) Math.ceil((max_y - min_y) / resolution);
+
+        double origo_x = min_x;
+        double origo_y = max_y;
+
+
+        dataPointTiny[][] firstCheck = new dataPointTiny[numberOfPixelsX][numberOfPixelsY];
+
         try {
 
             customThreadPool.submit(() ->
@@ -121,15 +135,6 @@ public class lasAligner {
 
         for(int i_ = 0; i_ < targets.size(); i_++) {
 
-            double min_x = targets.get(i_).getMinX();
-            double max_y = targets.get(i_).getMaxY();
-            double max_x = targets.get(i_).getMaxX();
-            double min_y = targets.get(i_).getMinY();
-
-            min_x = this.min_x;
-            max_y = this.max_y;
-            max_x = this.max_x;
-            min_y = this.min_y;
 
 
             for (int j = 0; j < targetPairsInRef.get(i_).size(); j++) {
@@ -150,13 +155,7 @@ public class lasAligner {
 
             }
 
-            int numberOfPixelsX = (int) Math.ceil((max_x - min_x) / resolution);
-            int numberOfPixelsY = (int) Math.ceil((max_y - min_y) / resolution);
 
-            double origo_x = min_x;
-            double origo_y = max_y;
-
-            dataPointTiny[][] firstCheck = new dataPointTiny[numberOfPixelsX][numberOfPixelsY];
 
             for (int j = 0; j < numberOfPixelsX; j++) {
                 for (int k = 0; k < numberOfPixelsY; k++) {
