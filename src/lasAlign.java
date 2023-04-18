@@ -55,7 +55,7 @@ public class lasAlign{
 
             tin.writeTinToFile(tooli.targets.get(0).getFile(), 5.0);
 
-            tooli.applyCorrection();
+            //tooli.applyCorrection();
 
         }
 
