@@ -110,21 +110,7 @@ public class lasAligner {
 
     public void processTargets() throws Exception{
 
-        ForkJoinPool customThreadPool = new ForkJoinPool(4);
-
-        double min_x = this.min_x;
-        double max_y = this.max_y;
-        double max_x = this.max_x;
-        double min_y = this.min_y;
-
-        int numberOfPixelsX = (int) Math.ceil((max_x - min_x) / resolution);
-        int numberOfPixelsY = (int) Math.ceil((max_y - min_y) / resolution);
-
-        double origo_x = min_x;
-        double origo_y = max_y;
-
-
-        dataPointTiny[][] firstCheck = new dataPointTiny[numberOfPixelsX][numberOfPixelsY];
+        ForkJoinPool customThreadPool = new ForkJoinPool(aR.cores);
 
         try {
 
@@ -135,27 +121,42 @@ public class lasAligner {
 
         for(int i_ = 0; i_ < targets.size(); i_++) {
 
+            double min_x = targets.get(i_).getMinX();
+            double max_y = targets.get(i_).getMaxY();
+            double max_x = targets.get(i_).getMaxX();
+            double min_y = targets.get(i_).getMinY();
+
+            //min_x = this.min_x;
+            //max_y = this.max_y;
+            //max_x = this.max_x;
+            //min_y = this.min_y;
 
 
             for (int j = 0; j < targetPairsInRef.get(i_).size(); j++) {
 
                 if (refs.get(targetPairsInRef.get(i_).get(j)).getMinX() < min_x) {
-                //    min_x = refs.get(targetPairsInRef.get(i_).get(j)).getMinX();
+                    min_x = refs.get(targetPairsInRef.get(i_).get(j)).getMinX();
                 }
                 if (refs.get(targetPairsInRef.get(i_).get(j)).getMaxY() > max_y) {
-                //    max_y = refs.get(targetPairsInRef.get(i_).get(j)).getMaxY();
+                    max_y = refs.get(targetPairsInRef.get(i_).get(j)).getMaxY();
                 }
 
                 if (refs.get(targetPairsInRef.get(i_).get(j)).getMaxX() > max_x) {
-                //    max_x = refs.get(targetPairsInRef.get(i_).get(j)).getMaxX();
+                    max_x = refs.get(targetPairsInRef.get(i_).get(j)).getMaxX();
                 }
                 if (refs.get(targetPairsInRef.get(i_).get(j)).getMinY() < min_y) {
-                //    min_y = refs.get(targetPairsInRef.get(i_).get(j)).getMinY();
+                    min_y = refs.get(targetPairsInRef.get(i_).get(j)).getMinY();
                 }
 
             }
 
+            int numberOfPixelsX = (int) Math.ceil((max_x - min_x) / resolution);
+            int numberOfPixelsY = (int) Math.ceil((max_y - min_y) / resolution);
 
+            double origo_x = min_x;
+            double origo_y = max_y;
+
+            dataPointTiny[][] firstCheck = new dataPointTiny[numberOfPixelsX][numberOfPixelsY];
 
             for (int j = 0; j < numberOfPixelsX; j++) {
                 for (int k = 0; k < numberOfPixelsY; k++) {
@@ -323,7 +324,7 @@ public class lasAligner {
 
                     tin.add(new org.tinfour.common.Vertex(x + resolution / 2.0, y - resolution / 2.0, outValue[0]));
 
-                    tinM.addPointToTin(this.min_x + x * resolution + resolution / 2.0, this.max_y - y * resolution - resolution / 2.0, outValue[0] );
+                    tinM.addPointToTin(min_x + x * resolution + resolution / 2.0, max_y - y * resolution - resolution / 2.0, outValue[0] );
                     //tinNodes.add(new double[]{ this.min_x + x * resolution + resolution / 2.0, this.max_y - y * resolution - resolution / 2.0, outValue[0] });
                     //band.WriteRaster(x, y, 1, 1, outValue);
 
