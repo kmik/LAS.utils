@@ -36,8 +36,8 @@ public class pointCloudMetrics {
     // THIS IS FOR THE HEXAGON
     //static double convolution_image_height =    20.0;
     static double convolution_image_height =    16.0;
-    //static double convolution_image_resolution = 1.0;
-    static double convolution_image_resolution = 0.8888889;
+    static double convolution_image_resolution = 1.0;
+    //static double convolution_image_resolution = 0.8888889;
     static double convolution_image_resolution_x = convolution_image_resolution;
     static double convolution_image_resolution_y = convolution_image_resolution;
     static double convolution_image_resolution_z = 1.0;

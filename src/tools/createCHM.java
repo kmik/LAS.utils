@@ -2,6 +2,7 @@ package tools;
 
 
 import LASio.*;
+import err.toolException;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
 import org.gdal.gdal.Band;
@@ -72,6 +73,19 @@ public class createCHM{
 
     }
 
+    public static double[][] arrayCopy(double[][] in){
+
+        double[][] output = new double[in.length][in[0].length];
+
+        for(int i = 0; i < in.length; i++)
+            for(int j = 0; j < in[0].length; j++)
+                output[i][j] = in[i][j];
+
+        return output;
+
+
+    }
+
 
     public static float gradientAt(float[][] i, int x, int y){
 
@@ -86,11 +100,10 @@ public class createCHM{
 
         return GaussianSmooth.smooth(input, rows, cols, kernel, theta);
 
-
     }
 
 
-    public static float[][] removeOutliers(float[][] input, int blur, int kernel, double theta){
+    public static double[][] removeOutliers(double[][] input, int blur, int kernel, double theta){
 
         Statistics stat = new Statistics();
 
@@ -101,7 +114,7 @@ public class createCHM{
 
         float[][] output = new float[input.length - n * 2][input[0].length - n * 2];
 
-        float[][] temppi = arrayCopy(input);
+        double[][] temppi = arrayCopy(input);
 
         int height = input[0].length;
         int width = input.length;
@@ -114,7 +127,7 @@ public class createCHM{
 
         ArrayList<int[]> leftOvers = new ArrayList<int[]>();
 
-        TreeSet<Float> zets = new TreeSet<Float>();
+        TreeSet<Double> zets = new TreeSet<Double>();
 
         for(int i = n; i < (height - n); i++){
 
@@ -169,6 +182,8 @@ public class createCHM{
 
                     if(Double.isNaN(temppi[j][i]))
                         input[j][i] = median;
+
+
 
                     if(Double.isNaN(input[j][i])){
 
@@ -268,16 +283,16 @@ public class createCHM{
 
         count3 = 0;
 
-        float[][] original = null;
+        double[][] original = null;
 
         n = blur;
         n = 1;
 
         int count = 0;
 
-        float p80 = 0f;
+        double p80 = 0f;
 
-        for(float i : zets){
+        for(double i : zets){
 
             if(count++ >= zets.size() * 0.80){
                 p80 = i;
@@ -286,6 +301,7 @@ public class createCHM{
 
         }
 
+        if(theta > 0)
         if(n > 0){
 
 
@@ -296,7 +312,7 @@ public class createCHM{
 
             double[][] temppi2 = new double[rows][cols];
 
-            original = new float[rows][cols];
+            original = new double[rows][cols];
             
             for (int i = 0; i < rows; i++){
                 for(int j = 0; j < cols; j++){
@@ -312,6 +328,7 @@ public class createCHM{
 
             double[][] smoothed = null;
 
+
             smoothed = GaussianSmooth.smooth(temppi2, rows, cols, kernel, theta);  // THIS IS GOOD!!!! :)
 
             for (int i = 0; i < rows; i++){
@@ -324,7 +341,7 @@ public class createCHM{
 
         n = 1;
 
-        return original;
+        return input;
 
     }
 
@@ -878,10 +895,21 @@ public class createCHM{
 
                 for(int y = y_ - 1 ; y <= y_ + 1; y++) {
                     for(int x = x_ - 1 ; x <= x_ + 1; x++){
-                    floatArray_1[counter] = raster_id_array[x][y];
-                    floatArray_2[counter] = raster_flag_array[x][y];
-                    floatArray_3[counter] = raster_z_array[x][y];
-                    counter++;
+
+                        x = Math.max(0, x);
+                        x = Math.min(xDim - 1, x);
+                        y = Math.max(0, y);
+                        y = Math.min(yDim - 1, y);
+
+                        //System.out.println(counter + " " + x + " " + y + " xDim: " + xDim + " yDim: " + yDim + " x_: " + x_ + " y_: " + y_);
+
+                        if(counter >= 9){
+                         //   throw new toolException("counter >= 9");
+                        }
+                        floatArray_1[counter] = raster_id_array[x][y];
+                        floatArray_2[counter] = raster_flag_array[x][y];
+                        floatArray_3[counter] = raster_z_array[x][y];
+                        counter++;
 
                 }
              }
@@ -1795,6 +1823,8 @@ public class createCHM{
 
 	public static class WaterShed{
 
+        //double roundness = 500;
+        double roundness = 15;
 
         double minx = Double.MAX_VALUE, maxx = Double.MIN_VALUE;
         double miny = Double.MAX_VALUE, maxy = Double.MIN_VALUE;
@@ -1903,7 +1933,6 @@ public class createCHM{
         }
 
 		public WaterShed(HashSet<double[]> in, double speed2, Dataset inMat, chm inChm, argumentReader aR, int coreNumber) throws Exception{
-
 
             this.minx = inChm.pointCloud.getMinX();
             this.maxx = inChm.pointCloud.getMaxX();
@@ -2092,7 +2121,7 @@ public class createCHM{
 
                     double disti = kernel_size_meters / aR.step;
 
-                    if((floatArray[0] >= altaat.get(output).zMiddle * 0.1 || floatArray[0] > 2.0) && distance < 12){
+                    if((floatArray[0] >= altaat.get(output).zMiddle * 0.0 || floatArray[0] > 2.0) && distance < roundness){
 
                         //System.out.println("ATTACHED!");
                         image.attach(x, y, output);
@@ -2955,7 +2984,11 @@ public class createCHM{
 			//establish_pit_free();
 
 
-            aR.kernel = (int)( 2.0 * Math.ceil( 3.0 * aR.theta) + 1.0);
+            //kernel_size = 2 * ceil(2 * sigma) + 1
+            if(aR.theta != 0.0)
+                aR.kernel = (int)( 2.0 * Math.ceil( 3.0 * aR.theta) + 1.0);
+
+
 
 
             //make();
@@ -5153,11 +5186,11 @@ public class createCHM{
             //filtered = gdalE.hei("tempFilter_" + this.coreNumber + ".tif", cehoam.getRasterYSize(), cehoam.getRasterXSize(), Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
 
 
-            if(interpolation){
+            if(interpolation && aR.theta > 0){
 
                 //filtered = removeOutliers_tif(cehoam, 0, aR.kernel, aR.theta, this.coreNumber, outputFileName, aR.interpolate);
-
-                chm_array = removeOutliers(chm_array, aR.kernel, aR.theta, this.numberOfPixelsX, this.numberOfPixelsY);
+                chm_array = removeOutliers(chm_array, 1, aR.kernel, aR.theta);
+                //chm_array = removeOutliers(chm_array, aR.kernel, aR.theta, this.numberOfPixelsX, this.numberOfPixelsY);
                 //band_filterd = filtered.GetRasterBand(1);
                 copyRasterContents(chm_array, band);
                 //band_filterd = filtered.GetRasterBand(1);
@@ -5171,6 +5204,8 @@ public class createCHM{
 
 
             }else{
+                chm_array = removeOutliers(chm_array, 1, aR.kernel, aR.theta);
+                copyRasterContents(chm_array, band);
                 filtered = cehoam;
                 band_filterd = cehoam.GetRasterBand(1);
             }

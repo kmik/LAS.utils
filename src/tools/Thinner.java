@@ -177,6 +177,9 @@ public class Thinner{
                 x_index = (int)Math.floor((tempPoint.x - minX) / step);
                 y_index = (int)Math.floor((maxY - tempPoint.y) / step);
 
+                x_index = Math.max(0, x_index);
+                y_index = Math.max(0, y_index);
+
                 if(aR.lowest) {
                     if (tempPoint.z < min_z[x_index][y_index]) {
                         min_z[x_index][y_index] = (float) tempPoint.z;

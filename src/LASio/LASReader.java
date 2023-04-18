@@ -131,6 +131,7 @@ public class LASReader {
   public final List<LasVariableLengthRecord> vlrList;
   public final File path;
 
+  public int pointsRead = 0;
   fileOperations fo = new fileOperations();
 
 
@@ -230,6 +231,7 @@ public class LASReader {
 
     try {
       if (!doneIndexes.contains(index_p)) {
+
         readFromBuffer(tempPoint);
         //readRecord(index_p, tempPoint);
         doneIndexes.add(index_p);
@@ -258,7 +260,12 @@ public class LASReader {
 
       }
     }catch (Exception e){
+
+      System.out.println(this.pointsRead);
+
+
       e.printStackTrace();
+      System.exit(1);
     }
 
     if(index_p + 1 > indexMinMax.get(this.index_u)[1]){
@@ -274,6 +281,9 @@ public class LASReader {
 
       try {
         readRecord_noRAF(indexMinMax.get(index_u)[0], indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1);
+        //System.out.println("READING " + (indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1) + " POINTS");
+        //System.out.println("minmax222: " + indexMinMax.get(index_u)[0] + " " + (indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1));
+
       }catch (Exception e){
         e.printStackTrace();
       }
@@ -301,7 +311,7 @@ public class LASReader {
       long n1 = this.queriedIndexes2.get(u)[1] - this.queriedIndexes2.get(u)[0];
       long n2 = this.queriedIndexes2.get(u)[1];
 
-      int parts = (int) Math.ceil((double) n1 / 20000.0);
+      int parts = (int) Math.ceil((double) n1 / 10000.0);
       int jako = (int) Math.ceil((double) n1 / (double) parts);
 
       for (int c = 1; c <= parts; c++) {
@@ -331,6 +341,8 @@ public class LASReader {
     this.index_u = 0;
     try {
       readRecord_noRAF(indexMinMax.get(index_u)[0], indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1);
+      //System.out.println("READING " + (indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1) + " POINTS");
+      //System.out.println("minmax111: " + indexMinMax.get(index_u)[0] + " " + (indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1));
     }catch (Exception e){
       e.printStackTrace();
     }
@@ -1847,8 +1859,13 @@ public class LASReader {
 
   }
 
+  public void resetReadPoints(){
+    pointsRead = 0;
+  }
+
   public synchronized void readFromBuffer(LasPoint p){
 
+    pointsRead++;
 
     if(pointDataRecordFormat <= 5) {
 

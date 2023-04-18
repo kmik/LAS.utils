@@ -475,7 +475,7 @@ public class progressUpdater {
 
     public synchronized void updateProgressITD(){
 
-        if(false)
+        if(true)
             return;
 
         int first = 15;

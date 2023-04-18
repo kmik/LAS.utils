@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.stream.Stream;
@@ -23,6 +24,12 @@ import org.apache.commons.cli.Options;
 
 @SuppressWarnings("unchecked")
 public class argumentReader {
+
+
+    public ArrayList<File> ref = new ArrayList<>();
+    public String[] ref_;
+    public ArrayList<File> tar = new ArrayList<>();
+    public String[] tar_;
 
     public HashMap<Integer, HashSet<Integer>> tree_belongs_to_this_plot = null;
 
@@ -50,7 +57,7 @@ public class argumentReader {
     public double min_edge_length = 0.5;
 
     public boolean convolution_metrics_train = false;
-    public boolean convolution_metrics = false;
+    public boolean convolution_metrics = true;
 
     public boolean output_only_itc_segments = false;
 
@@ -567,6 +574,23 @@ public class argumentReader {
                 .desc("Drop z above threshold")
                 .required(false)
                 .build());
+
+        options.addOption(Option.builder()
+                .longOpt("ref")
+                .hasArg(true)
+                .desc("Reference point cloud")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("tar")
+                .hasArg(true)
+                .desc("Target point cloud")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .required(false)
+                .build());
+
 
         options.addOption(Option.builder()
                 .longOpt("drop_classification")
@@ -1701,6 +1725,41 @@ public class argumentReader {
                 System.exit(1);
 
             }
+
+            if(cmd.hasOption("ref")){
+
+                ref_ = cmd.getOptionValues("ref");
+                if(ref_[0].split(";").length > 1){
+                    ref_ = ref_[0].split(";");
+                }
+                ArrayList<String> temp = new ArrayList<>();
+
+                for(String s : ref_){
+
+                    //System.out.println(s);
+
+                    this.ref.add(new File(s));
+                }
+
+            }
+
+            if(cmd.hasOption("tar")){
+
+                tar_ = cmd.getOptionValues("tar");
+                if(tar_[0].split(";").length > 1){
+                    tar_ = tar_[0].split(";");
+                }
+                ArrayList<String> temp = new ArrayList<>();
+
+                for(String s : tar_){
+
+                    //System.out.println(s);
+
+                    this.tar.add(new File(s));
+                }
+
+            }
+
 
             if (cmd.hasOption("i")) {
 

@@ -62,7 +62,7 @@ public class lasStat {
         double maxy = pointCloud.getMaxY();
 
 
-        double cell_size = 5.0;
+        double cell_size = 1.0;
 
         int grid_x_size = (int)Math.ceil((pointCloud.maxX - minx) / cell_size);
         int grid_y_size = (int)Math.ceil((maxy - pointCloud.minY) / cell_size);
@@ -91,11 +91,11 @@ public class lasStat {
         int number_of_last_returns = 0;
         int number_of_all_returns = 0;
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
-            int maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 200000);
+            aR.pfac.prepareBuffer(thread_n, i, 10000);
 
             for (int j = 0; j < maxi; j++) {
 
@@ -109,6 +109,10 @@ public class lasStat {
 
                 int x_coord = (int) Math.floor((tempPoint.x - minx) /  cell_size);   //X INDEX
                 int y_coord = (int) Math.floor((maxy - tempPoint.y) / cell_size);
+
+                x_coord = Math.min(x_coord, grid_x_size - 1);
+                y_coord = Math.min(y_coord, grid_y_size - 1);
+
 
                 if (tempPoint.returnNumber == tempPoint.numberOfReturns) {
                     number_of_last_returns++;

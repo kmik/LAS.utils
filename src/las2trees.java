@@ -1,6 +1,5 @@
 import LASio.LASReader;
-import err.toolException;
-import tools.groundMatch;
+import tools.lasSegmentToTrees;
 import tools.process_las2las;
 import utils.argumentReader;
 import utils.fileDistributor;
@@ -12,7 +11,7 @@ import java.util.ArrayList;
 import static runners.RunLASutils.proge;
 import static utils.miscProcessing.prepareData;
 
-public class lasGroundRelate {
+public class las2trees {
 
     public static void main(String[] args) throws IOException {
 
@@ -24,25 +23,20 @@ public class lasGroundRelate {
             threadTool(aR, fD);
         }else{
 
-            //process_las2las tooli = new process_las2las(1);
 
-                if (aR.inputFiles.size() != 2) {
-                    System.out.println("No 2 input files, exiting!");
-                    throw new toolException("Ground match requires two inputs!");
-                }
+            lasSegmentToTrees tooli = new lasSegmentToTrees(aR);
+
+            tooli.readMeasuredTrees(aR.measured_trees);
+
+            for (int i = 0; i < inputFiles.size(); i++) {
+
+                LASReader temp = new LASReader(inputFiles.get(i));
+
+                tooli.processPointCloud(temp, aR);
 
 
-            try {
 
-                LASReader temp1 = new LASReader(aR.inputFiles.get(0));
-                LASReader temp2 = new LASReader(aR.inputFiles.get(1));
-
-                groundMatch gM = new groundMatch(temp1, temp2, aR, 1);
-
-            } catch (Exception e) {
-                e.printStackTrace();
             }
-
         }
 
     }
@@ -118,4 +112,6 @@ public class lasGroundRelate {
             }
         }
     }
+
+
 }

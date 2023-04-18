@@ -4,10 +4,7 @@ import err.toolException;
 import org.gdal.ogr.*;
 import utils.*;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
@@ -29,6 +26,8 @@ public class plotAugmentator {
     public ArrayList<double[][]> treeBounds = new ArrayList<>();
 
     public HashMap<Integer, forestTree> ITC_id_to_tree_id = new HashMap<>();
+
+    public ArrayList<double[]> plotTargets = new ArrayList<>();
 
     public plotAugmentator(argumentReader aR){
 
@@ -52,7 +51,7 @@ public class plotAugmentator {
             int tree_id_ITC = (int)Double.parseDouble(line[line.length - 13]);
 
 
-
+            if(plots.containsKey(plot_id))
             if(tree_id > 0 && plots.get(plot_id).trees.containsKey(tree_id)) {
 
 
@@ -121,11 +120,91 @@ public class plotAugmentator {
     }
 
     public void preparePlots(){
+
         for(int plot : plots.keySet()){
             plots.get(plot).preparePlot();
         }
 
         //System.exit(1);
+    }
+
+    public void replicatePlots(){
+
+        int maxTreeUniqueId = 0;
+        int maxITCId = 0;
+
+        for(int i : this.trees.keySet()){
+
+            if(this.trees.get(i).getTreeID_unique() > maxTreeUniqueId){
+                maxTreeUniqueId = this.trees.get(i).getTreeID_unique();
+            }
+
+            if(this.trees.get(i).hasCrown){
+                if(this.trees.get(i).getTreeITCid() > maxITCId){
+                    maxITCId = this.trees.get(i).getTreeITCid();
+                }
+            }
+        }
+
+        int maxPlotId = 0;
+
+
+
+        for(int i : this.plots.keySet()){
+
+            if(this.plots.get(i).getPlotID() > maxPlotId){
+                maxPlotId = this.plots.get(i).getPlotID();
+            }
+
+        }
+
+        int counter = 1;
+
+        int n_replicates = 3;
+
+        ArrayList<forestPlot> replicatedPlots = new ArrayList<>();
+
+        for(int n = 0; n < n_replicates; n++) {
+
+
+            for (int plot : plots.keySet()) {
+
+                forestPlot replicated_ = plots.get(plot).replicate(maxTreeUniqueId * counter, maxITCId * counter, maxPlotId * counter);
+
+                for (int i : replicated_.trees.keySet()) {
+
+                    this.trees.put(replicated_.trees.get(i).getTreeID_unique(), replicated_.trees.get(i));
+
+                    if (replicated_.trees.get(i).hasCrown) {
+                        this.ITC_id_to_tree_id.put(replicated_.trees.get(i).getTreeITCid(), replicated_.trees.get(i));
+                        this.itc_with_tree.put(replicated_.trees.get(i).getTreeITCid(), replicated_.trees.get(i));
+                        itc_with_tree_unique_id.put(replicated_.trees.get(i).getTreeID_unique(), replicated_.trees.get(i));
+                    }
+                }
+
+
+                replicated_.setPlotAugmentator(this);
+
+                replicatedPlots.add(replicated_);
+
+            }
+            counter++;
+            //System.out.println("trees: " + this.trees.size());
+            //System.out.println("ITC_id_to_tree_id: " + this.ITC_id_to_tree_id.size());
+        }
+
+        for (forestPlot p : replicatedPlots) {
+            this.plots.put(p.getPlotID(), p);
+        }
+
+        for(int i : plots.keySet()){
+
+            //System.out.println(plots.get(i).getPlotID() + " " + plots.get(i).trees.size() + " maxplotid " + maxPlotId);
+
+        }
+
+        //System.exit(1);
+
     }
 
     public void readMeasuredTrees(File measuredTreesFile) throws IOException {
@@ -172,7 +251,8 @@ public class plotAugmentator {
             if(true)
             if(Integer.parseInt(line[2]) > 0){
                 if(!plots.containsKey(Integer.parseInt(line[2]))) {
-                    throw new toolException("Plot " + line[2] + " not found in shapefile");
+                    System.out.println("Plot " + line[2] + " not found in shapefile");
+                    //throw new toolException("Plot " + line[2] + " not found in shapefile");
                 }else
                     plots.get(Integer.parseInt(line[2])).addTree(tmpTree);
 
@@ -214,9 +294,11 @@ public class plotAugmentator {
             if(tempG == null)
                 continue;
 
-            plots.get(tempF.GetFieldAsInteger(0)).setSmallerBounds(tempG2.GetPoints());
-            plots.get(tempF.GetFieldAsInteger(0)).setSmallerArea(tempG2.GetArea());
-            System.out.println("Smaller area: " + tempG2.GetArea());
+            if(plots.containsKey(tempF.GetFieldAsInteger(0))) {
+                plots.get(tempF.GetFieldAsInteger(0)).setSmallerBounds(tempG2.GetPoints());
+                plots.get(tempF.GetFieldAsInteger(0)).setSmallerArea(tempG2.GetArea());
+                System.out.println("Smaller area: " + tempG2.GetArea());
+            }
             //System.exit(1);
 
         }
@@ -238,18 +320,20 @@ public class plotAugmentator {
 
         for(long i = 0; i < shapeFileLayer.GetFeatureCount(); i++ ) {
 
-            Feature tempF = shapeFileLayer.GetFeature(i);
-            Geometry tempG = tempF.GetGeometryRef();
-            Geometry tempG2 = tempG.GetGeometryRef(0);
+            if( i % 3 == 0 || true) {
+                Feature tempF = shapeFileLayer.GetFeature(i);
+                Geometry tempG = tempF.GetGeometryRef();
+                Geometry tempG2 = tempG.GetGeometryRef(0);
 
-            if(tempG == null)
-                continue;
+                if (tempG == null)
+                    continue;
 
-            plots.put(tempF.GetFieldAsInteger(0), new forestPlot(tempF.GetFieldAsInteger(0), tempG2.GetPoints(), this));
+                plots.put(tempF.GetFieldAsInteger(0), new forestPlot(tempF.GetFieldAsInteger(0), tempG2.GetPoints(), this));
 
-            plots.get(tempF.GetFieldAsInteger(0)).setArea(tempG2.GetArea());
-            //print2DArray(plots.get(tempF.GetFieldAsInteger(0)).getPlotBounds());
-            //System.exit(1);
+                plots.get(tempF.GetFieldAsInteger(0)).setArea(tempG2.GetArea());
+                //print2DArray(plots.get(tempF.GetFieldAsInteger(0)).getPlotBounds());
+                //System.exit(1);
+            }
         }
 
         int numberOfSegments = 0;
@@ -417,11 +501,117 @@ public class plotAugmentator {
     }
 
 
+    public void readHistogram(File histogramFile, File speciesProportionsFile){
+
+        // Read files line by line
+
+        try {
+            BufferedReader sc = new BufferedReader(new FileReader(histogramFile));
+            //sc.readLine();
+            String line1;
+
+            BufferedReader sc2 = new BufferedReader(new FileReader(speciesProportionsFile));
+            //sc.readLine();
+            String line2;
+
+
+            while ((line1 = sc.readLine()) != null) {
+
+                line2 = sc2.readLine();
+                String[] line = line1.split(" ");
+                String[] line2split = line2.split(" ");
+
+
+                System.out.println("Volume: " + Integer.parseInt(line[0]) + " " + Integer.parseInt(line[1]));
+
+
+                if(Integer.parseInt(line[1]) == 0)
+                    continue;
+
+                double average_pine = Double.parseDouble(line2split[0]);
+                double average_spruce = Double.parseDouble(line2split[1]);
+                double average_birch = Double.parseDouble(line2split[2]);
+
+                double sd_pine = Double.parseDouble(line2split[3]);
+                double sd_spruce = Double.parseDouble(line2split[4]);
+                double sd_birch = Double.parseDouble(line2split[5]);
+
+                double volumeBinCenter = Double.parseDouble(line[0]) + 10;
+                int countInBin = Integer.parseInt(line[1]);
+
+                for(int i_ = 0; i_ < 1; i_++)
+                for(int i = 0; i < countInBin; i++){
+
+                    double prop_pine = randomDouble(average_pine, sd_pine);
+                    double prop_spruce = randomDouble(average_spruce, sd_spruce);
+                    double prop_birch = randomDouble(average_birch, sd_birch);
+
+                    prop_pine = Math.max(0, prop_pine);
+                    prop_pine = Math.min(1, prop_pine);
+
+                    prop_spruce = Math.max(0, prop_spruce);
+                    prop_spruce = Math.min(1, prop_spruce);
+
+                    prop_birch = Math.max(0, prop_birch);
+                    prop_birch = Math.min(1, prop_birch);
+
+
+                    double[] proportions = new double[]{prop_pine, prop_spruce, prop_birch};
+
+                    proportions = modifyDoubles(prop_pine, prop_spruce, prop_birch);
+
+                    double volume = getRandomDoubleInRange(volumeBinCenter - 9.9, volumeBinCenter + 9.9);
+
+                    double[] volumes = new double[]{volume * proportions[0], volume * proportions[1], volume * proportions[2]};
+
+                    plotTargets.add(new double[]{volumes[0], volumes[1], volumes[2]});
+
+                }
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        for(int i = 0; i < plotTargets.size(); i++){
+            System.out.println(plotTargets.get(i)[0] + " " + plotTargets.get(i)[1] + " " + plotTargets.get(i)[2]);
+        }
+
+        //System.exit(1);
+    }
+
+    public static double getRandomDoubleInRange(double min, double max) {
+        Random r = new Random();
+        return min + (max - min) * r.nextDouble();
+    }
+
+    public static double[] modifyDoubles(double d1, double d2, double d3) {
+        double[] result = new double[3];
+        double sum = d1 + d2 + d3;
+        result[0] = d1 / sum;
+        result[1] = d2 / sum;
+        result[2] = d3 / sum;
+        return result;
+    }
+
+    public static double randomDouble(double d, double s) {
+        Random rand = new Random();
+        return rand.nextGaussian() * s + d;
+    }
+
     public void simulatePlots(){
+
+
+        readHistogram(new File("/home/koomikko/Documents/research/aba_conv_augmentation/total_volumes.txt"),
+                new File("/home/koomikko/Documents/research/aba_conv_augmentation/species_proportions.txt"));
+
+        //readHistogram(new File("/home/koomikko/Documents/research/aba_conv_augmentation/total_volumes.txt"),
+        //new File("/home/koomikko/Documents/research/aba_conv_augmentation/species_proportions.txt"));
+
 
         plotSimulator simulator = new plotSimulator(this);
 
-        simulatedAnnealingForestSimulator costFunction = new simulatedAnnealingForestSimulator();
+        simulatedAnnealingForestSimulator costFunction = new simulatedAnnealingForestSimulator(this, 1);
 
         ArrayList<forestTree> listOfValues
                 = itc_with_tree.values().stream().collect(
@@ -439,7 +629,13 @@ public class plotAugmentator {
 
         List<Integer> targets = new ArrayList<Integer>(this.targets.keySet());
 
-        final int n_simulations = targets.size();
+        final int n_simulations = this.plotTargets.size();
+        final int n_simulations2 = 16;
+
+        Random r = new Random();
+        //r.setSeed(1234);
+
+        Collections.shuffle(targets, r);
 
 
         int maxThreads = aR.cores; // set the maximum number of threads
@@ -468,7 +664,8 @@ public class plotAugmentator {
                 simulator.simulatePlotDumbWay(i, false, false);
                 simulator.simulatePlotDumbWay(i, false, true);
     */
-                        simulator.simulatePlotAnnealingWay(i, true, false, targets, odir);
+                        //simulator.simulatePlotAnnealingWay(i, true, false, targets, odir);
+                        simulator.simulatePlotAnnealingWay2(i, true, false, plotTargets, odir);
                         //simulator.simulatePlotAnnealingWay(i, false, false);
                         //simulator.simulatePlotAnnealingWay(i, false, true);
                         //System.exit(1);
@@ -478,6 +675,26 @@ public class plotAugmentator {
             e.printStackTrace();
         }
 
+        simulator.writeSimulationRaport( new File(originalOutputDirectory.getAbsolutePath() + "/simulation_report.txt" ));
         //aR.odir = originalOutputDirectory.getAbsolutePath();
+        this.writePlots(new File(originalOutputDirectory.getAbsolutePath() + "/plot_ids.txt" ));
+    }
+
+    public void writePlots(File in){
+
+        try {
+            in.createNewFile();
+
+            BufferedWriter bw = new BufferedWriter(new FileWriter(in));
+
+            for(int i : this.plots.keySet()){
+                bw.write(this.plots.get(i).getPlotID() + "\n");
+            }
+
+            bw.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 }

@@ -31,7 +31,8 @@ public class groundMatch {
 
         this.aR.createOutputFileWithExtension(pointCloud1, "_z_cor.txt");
 
-        this.match();
+        //this.match();
+        this.matchNoGroundClass();
     }
 
     public void match(){
@@ -247,5 +248,221 @@ public class groundMatch {
 
     }
 
+    public void matchNoGroundClass(){
 
+
+        File logFile = new File("lokkeri.txt");
+
+        FileWriter fw = null;
+
+        try {
+            if (!logFile.exists())
+                logFile.createNewFile();
+
+
+            fw = new FileWriter(logFile, true);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+        double min_x = Math.min(pointCloud1.minX, pointCloud2.minX);
+        double min_y = Math.min(pointCloud1.minY, pointCloud2.minY);
+        double min_z = Math.min(pointCloud1.minZ, pointCloud2.minZ);
+
+        double max_x = Math.max(pointCloud1.maxX, pointCloud2.maxX);
+        double max_y = Math.max(pointCloud1.maxY, pointCloud2.maxY);
+        double max_z = Math.max(pointCloud1.maxZ, pointCloud2.maxZ);
+
+        int n_x = (int)Math.ceil((max_x - min_x) / resolution);
+        int n_y = (int)Math.ceil((max_y - min_y) / resolution);
+        int n_z = (int)Math.ceil((max_z - min_z) / resolution);
+
+        System.out.println("n_x" + n_x);
+        System.out.println("n_y" + n_y);
+
+        float[][][] raster1 = new float[n_x][n_y][5];
+        float[][][] raster2 = new float[n_x][n_y][5];
+
+        int maxi = 0;
+        LasPoint tempPoint = new LasPoint();
+
+        System.out.println("start readin first");
+        float M = 0, oldM = 0;
+
+        for (long p = 0; p < pointCloud1.getNumberOfPointRecords(); p += 10000) {
+            //for(int i = 0; i < n; i++){
+
+            maxi = (int) Math.min(10000, Math.abs(pointCloud1.getNumberOfPointRecords() - (p)));
+
+            try {
+                pointCloud1.readRecord_noRAF(p, tempPoint, maxi);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+            for (int j = 0; j < maxi; j++) {
+
+                //if((j+p) > 1600000)
+
+                //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
+                pointCloud1.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, p+j, true)){
+                    continue;
+                }
+
+                if(tempPoint.classification == 2 || true){
+
+                    int slot_x = (int)Math.floor( (tempPoint.x - min_x) / resolution );
+                    int slot_y = (int)Math.floor( (max_y - tempPoint.y) / resolution );
+
+                    raster1[slot_x][slot_y][0]++;
+                    raster1[slot_x][slot_y][1] += tempPoint.z;
+
+                    oldM = raster1[slot_x][slot_y][2];
+
+                    M = raster1[slot_x][slot_y][2];
+                    raster1[slot_x][slot_y][2] = M + ((float)tempPoint.z - M) / raster1[slot_x][slot_y][0];
+
+                    raster1[slot_x][slot_y][3] = raster1[slot_x][slot_y][3] + ((float)tempPoint.z - raster1[slot_x][slot_y][2]) * ((float)tempPoint.z - oldM);
+
+                    raster1[slot_x][slot_y][4] = (float)Math.sqrt(raster1[slot_x][slot_y][3] / (raster1[slot_x][slot_y][0] - 1.0f));
+
+
+                }
+
+            }
+        }
+
+        System.out.println("read first");
+
+        for (long p = 0; p < pointCloud2.getNumberOfPointRecords(); p += 10000) {
+            //for(int i = 0; i < n; i++){
+
+            maxi = (int) Math.min(10000, Math.abs(pointCloud2.getNumberOfPointRecords() - (p)));
+
+            try {
+                pointCloud2.readRecord_noRAF(p, tempPoint, maxi);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+            for (int j = 0; j < maxi; j++) {
+
+                //if((j+p) > 1600000)
+
+                //System.out.println((j) + " " + maxi + " " + pointCloud.getNumberOfPointRecords());
+                pointCloud2.readFromBuffer(tempPoint);
+
+                /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!aR.inclusionRule.ask(tempPoint, p+j, true)){
+                    continue;
+                }
+
+                if(tempPoint.classification == 2 || true){
+
+                    int slot_x = (int)Math.floor( (tempPoint.x - min_x) / resolution );
+                    int slot_y = (int)Math.floor( (max_y - tempPoint.y) / resolution );
+
+                    raster2[slot_x][slot_y][0]++;
+                    raster2[slot_x][slot_y][1] += tempPoint.z;
+
+                    oldM = raster2[slot_x][slot_y][2];
+
+                    M = raster2[slot_x][slot_y][2];
+                    raster2[slot_x][slot_y][2] = M + ((float)tempPoint.z - M) / raster2[slot_x][slot_y][0];
+
+                    raster2[slot_x][slot_y][3] = raster2[slot_x][slot_y][3] + ((float)tempPoint.z - raster2[slot_x][slot_y][2]) * ((float)tempPoint.z - oldM);
+
+                    raster2[slot_x][slot_y][4] = (float)Math.sqrt(raster2[slot_x][slot_y][3] / (raster2[slot_x][slot_y][0] - 1.0f));
+
+                }
+
+            }
+
+        }
+
+        System.out.println("read second");
+        ArrayList<Double> differences = new ArrayList<>();
+
+        for(int x = 0; x < n_x; x++){
+            for(int y = 0; y < n_y; y++) {
+
+                double mean1 = raster1[x][y][1] / raster1[x][y][0];
+                double mean2 = raster2[x][y][1] / raster2[x][y][0];
+
+                //System.out.println(mean1 + " " + mean2 + " " + raster1[x][y][0] + " " + raster1[x][y][4]);
+                //if(raster1[x][y][0] > 10 && raster2[x][y][0] > 10 && raster1[x][y][4] < 0.033 && raster2[x][y][4] < 0.033 ){
+                if(raster1[x][y][0] > 10 && raster2[x][y][0] > 10 && raster1[x][y][4] < 0.07 && raster2[x][y][4] < 0.07 ){
+
+                    double difference = mean2 - mean1;
+
+                    org.tinfour.common.Vertex tempVertex = new org.tinfour.common.Vertex(x + resolution / 2.0, y + resolution / 2.0, difference);
+
+                    tin.add(tempVertex);
+                    differences.add(difference);
+                }
+
+            }
+            //System.out.println(x);
+        }
+
+
+        Dataset temppi = gdalE.hei("corrections.tif", n_y, n_x, Float.NaN);// driver.Create("filtered.tif", input.getRasterXSize(), input.getRasterYSize(), 1, gdalconst.GDT_Float32);
+
+        org.tinfour.interpolation.TriangularFacetInterpolator polator = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);
+        Band input_band = temppi.GetRasterBand(1);
+        float[] outArray = new float[1];
+
+        for(int x = 0; x < n_x; x++){
+            for(int y = 0; y < n_y; y++) {
+
+                double interpolatedZ = polator.interpolate(x + resolution / 2.0, y + resolution / 2.0, valuator);
+                outArray[0] = (float)interpolatedZ;
+                input_band.WriteRaster(x, y, 1, 1, outArray);
+                //System.out.println(outArray[0]);
+            }
+        }
+
+        int kernel = 7;
+        double sigma = ((double)kernel-1.0)/6.0;
+
+        System.out.println("SIGMA: " + sigma);
+
+        GaussianSmooth.smooth_tif(temppi, temppi, temppi.getRasterXSize(), temppi.getRasterYSize(), kernel, sigma);  // THIS IS GOOD!!!! :)
+
+        temppi.FlushCache();
+        input_band.FlushCache();
+
+        Double average = differences.stream().mapToDouble(val -> val).average().orElse(0.0);
+
+        System.out.println("Average difference: " + average);
+        Statistics stat = new Statistics();
+
+        stat.setData(differences);
+
+        System.out.println("Standard deviation: " + stat.getStdDevFromList(average));
+
+
+
+        try {
+
+            fw.write(pointCloud1.getFile().getName() + "\t");
+            fw.write(average + "\t" + stat.getStdDevFromList(average) + "\n");
+            fw.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+    }
 }

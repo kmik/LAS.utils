@@ -453,8 +453,8 @@ public class Boundary extends tool{
 
         double[] prevSegment = new double[]{0,0,0,0};
 
-        tempPoint1.x = 0;
-        tempPoint1.y = 0;
+        tempPoint1.x = tempPoint3.x - 100;
+        tempPoint1.y = tempPoint3.y;
 
         HashSet<Long> doneIndexes = new HashSet<>();
 
@@ -513,6 +513,7 @@ public class Boundary extends tool{
             long angleIndex = 0;
 
 
+            /*
             for (int u = 0; u < pointCloud.queriedIndexes2.size(); u++) {
 
                     long n1 = pointCloud.queriedIndexes2.get(u)[1] - pointCloud.queriedIndexes2.get(u)[0];
@@ -543,7 +544,7 @@ public class Boundary extends tool{
                         ero = suurin - pienin;
 
 
-                        pointCloud.readRecord_noRAF(pienin, tempPoint, ero);
+
 
                         int count1 = 0;
 
@@ -551,11 +552,20 @@ public class Boundary extends tool{
 
                             //System.out.println("READ");
                             pointCloud.readFromBuffer(tempPoint2);
+*/
+            int counter1 = 0;
+            //System.out.println("Start reading query " + pointCloud.queriedIndexes2.size());
+            while(!pointCloud.index_read_terminated){
 
+
+                int p = pointCloud.fastReadFromQuery(tempPoint2);
+                counter1++;
+
+                //System.out.println("p = " + p + " angleindex: " + angleIndex);
                             /* Reading, so ask if this point is ok, or if
                             it should be modified.
                              */
-                            if(!rule.ask(tempPoint, i+p, true)){
+                            if(!rule.ask(tempPoint, p, true)){
                                 continue;
                             }
 
@@ -563,17 +573,33 @@ public class Boundary extends tool{
 
                             if (p != prevIndex && dist < concavity) { //  && !path.contains(tempPoint2.x, tempPoint2.y)
 
-                                angle = angleBetween(tempPoint1.x, tempPoint1.y, tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
+                                angle = angleBetween2(tempPoint1.x, tempPoint1.y, tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
+                                double angle3 = calculateAngleDeviation(tempPoint1.x, tempPoint1.y, tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
+                                double angle2 = angleBetween(tempPoint1.x, tempPoint1.y, tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
 
-                                if (angle < 0.0)
-                                    angle = 360 + angle;
+                                double angle_test = findAngle(tempPoint1.x, tempPoint1.y, tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
+                                //System.out.println(angle_test);
+                                //System.exit(1);
+                                //System.out.println(angle + " " + angle2 + " " + angle3);
+                                //System.out.println("angle: " + angle + " angle2 " + angle2);
+                                 angle = angle_test;
+                                //if (angle < 0.0)
+                                //    angle = 360 + angle;
 
                                 if (angle < smallestAngle && angle != 0.0) {
 
-                                    if (!intersection(tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y) || (prevIndex != startIndex && p == startIndex)) {
+
+                                    boolean iter = intersection(tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
+
+                                    //System.out.println("GOT HERE! " + iter);
+
+                                    if (!iter || (prevIndex != startIndex && p == startIndex)) {
+
                                         minidisti = dist;
                                         angleIndex = p;
                                         smallestAngle = angle;
+                                        tempPoint.x = tempPoint2.x;
+                                        tempPoint.y = tempPoint2.y;
 
                                         aR.p_update.threadInt[coreNumber-1]++;
 
@@ -582,11 +608,18 @@ public class Boundary extends tool{
                                     }
                                 }
                             }
-                            count1++;
-                        }
-                    }
+                            //count1++;
+
+
             }
 
+            pointCloud.resetReadPoints();
+
+
+            //System.out.println("smallestangle: " + smallestAngle + " " + minidisti + " " + angleIndex + " " + counter1 + " " + border.size());
+
+            //if(counteri == 10)
+            //System.exit(1);
             /* prevIndex always points to the previous vertex in the boundary. This guarantees that
               we don't trace back our steps in the bounday.
              */
@@ -599,8 +632,9 @@ public class Boundary extends tool{
 
             segments.add(prevSegment.clone());
 
+            angleIndex = Math.min(angleIndex, pointCloud.numberOfPointRecords - 1);
             /* tempPoint now holds the next vertice of the boundary */
-            pointCloud.readRecord((int)angleIndex, tempPoint);
+            //pointCloud.readRecord((int)angleIndex, tempPoint);
 
             /* Assign temporary points as planned */
             tempPoint1.x = tempPoint3.x;
@@ -617,17 +651,23 @@ public class Boundary extends tool{
              */
             while (pointCloud.queriedIndexes2.size() <= 1) {
                 //pointCloud.query2(tempPoint.x - concavity + increase, tempPoint.x + concavity + increase, tempPoint.y - concavity + increase, tempPoint.y + concavity + increase);
-                pointCloud.query2(tempPoint.x - concavity + increase, tempPoint.x + concavity + increase, tempPoint.y - concavity + increase, tempPoint.y + concavity + increase);
+                pointCloud.queryPoly2(tempPoint.x - concavity + increase, tempPoint.x + concavity + increase, tempPoint.y - concavity + increase, tempPoint.y + concavity + increase);
                 increase += 5.0;
+
+                //System.out.println("HERE! " + increase);
             }
 
             /* Here is the termination condition! If the current vertex is the same as the starting vertex,
               we stop!
              */
+
+            //System.out.println("angleIndex: " + angleIndex + " startIndex: " + startIndex);
             if(angleIndex == startIndex)
                 running = false;
 
             counti++;
+
+            counteri++;
         }
 
         concaveEdges = tin.getPerimeter();
@@ -731,6 +771,58 @@ public class Boundary extends tool{
         double angle2 = Math.atan2(deltay2, deltax2);
 
         return Math.toDegrees(angle2 - angle1);
+    }
+
+    public static double findAngle(double x1, double y1, double x2, double y2, double x3, double y3) {
+        // Calculate the distances between the points
+        double ab = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        double bc = Math.sqrt(Math.pow(x3 - x2, 2) + Math.pow(y3 - y2, 2));
+        double ac = Math.sqrt(Math.pow(x3 - x1, 2) + Math.pow(y3 - y1, 2));
+
+        // Use the law of cosines to find the angle at point B
+        double cosB = (Math.pow(ab, 2) + Math.pow(bc, 2) - Math.pow(ac, 2)) / (2 * ab * bc);
+        double angleB = Math.acos(cosB);
+
+        // Convert the angle from radians to degrees and adjust to the range from 0 to 360 degrees
+        double angleB_degrees = Math.toDegrees(angleB);
+        if (y3 > y2) {
+            angleB_degrees = 360 - angleB_degrees;
+        }
+
+        // Return the angle
+        return angleB_degrees;
+    }
+
+    public double angleBetween2(double x1, double y1, double x2, double y2, double x3, double y3) {
+        double ab = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        double bc = Math.sqrt(Math.pow(x3 - x2, 2) + Math.pow(y3 - y2, 2));
+        double ac = Math.sqrt(Math.pow(x3 - x1, 2) + Math.pow(y3 - y1, 2));
+
+        double angle = Math.toDegrees(Math.acos((bc * bc + ab * ab - ac * ac) / (2 * bc * ab)));
+        angle = Math.toDegrees(Math.acos((ac * ac + ab * ab - bc * bc) / (2 * ac * ab)));
+        return angle;
+    }
+
+    public static double calculateAngleDeviation(double x1, double y1, double x2, double y2, double x3, double y3) {
+        // Calculate the equation of the line passing through (x1, y1) and (x3, y3)
+        double slope = (y3 - y1) / (x3 - x1);
+        double yIntercept = y1 - slope * x1;
+
+        // Find the y-coordinate of the point on the line with the same x-coordinate as (x2, y2)
+        double yOnLine = slope * x2 + yIntercept;
+
+        // Calculate the angle between the line and the line segment connecting (x2, y2) and the point on the line
+        double angleRadians = Math.atan2(yOnLine - y2, x3 - x1) - Math.atan2(y3 - y1, x2 - x1);
+        double angleDegrees = Math.toDegrees(angleRadians);
+
+        // Convert the angle to the range [-180, 180] degrees
+        if (angleDegrees < -180) {
+            angleDegrees += 360;
+        } else if (angleDegrees > 180) {
+            angleDegrees -= 360;
+        }
+
+        return Math.abs(angleDegrees);
     }
 
     public double euclideanDistance(double x1, double y1, double x2, double y2){

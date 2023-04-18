@@ -89,7 +89,7 @@ public class process_las2las {
 
                 //System.out.println(x1 + " == " + x2);
                 //System.out.println(tempPoint.x + " " + tempPoint.y);
-                if (!aR.inclusionRule.ask(tempPoint, i, true)) {
+                if (!aR.inclusionRule.ask(tempPoint, i+j, true)) {
                     continue;
                 }
 
@@ -127,7 +127,7 @@ public class process_las2las {
 
                 try {
 
-                    aR.pfac.writePoint(tempPoint, i, thread_n);
+                    aR.pfac.writePoint(tempPoint, i+j, thread_n);
 
                 } catch (Exception e) {
                     e.printStackTrace();

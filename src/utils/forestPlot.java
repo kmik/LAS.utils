@@ -16,6 +16,9 @@ import static org.gdal.ogr.ogrConstants.*;
 
 public class forestPlot {
 
+    public int ITC_offset = 0;
+    public int treeOffset = 0;
+    public double[] targetVolume = new double[3];
     public double train_area = 254.469;
 
     public double totalVolue = 0;
@@ -58,9 +61,19 @@ public class forestPlot {
     int simulationLocationCountX = 0;
     int simulationLocationCountY = 1;
 
+    List<List<double[]>> pointDataForAnimation = new ArrayList<>();
+
     boolean locked = false;
     HashSet<Integer> treeWithoutITC = new HashSet<Integer>();
     public forestPlot(){
+    }
+
+    public int getPlotID() {
+        return id;
+    }
+
+    public void setPlotID(int plotID) {
+        this.id = plotID;
     }
 
     public forestPlot(int id){
@@ -96,7 +109,12 @@ public class forestPlot {
 
     }
 
+    public void setPlotAugmentator(plotAugmentator pA){
+        this.pA = pA;
+    }
+
     public void addTree(forestTree tree){
+
         trees.put(tree.getTreeID(), tree);
         trees_unique_id.put(tree.getTreeID_unique(), tree);
         tree.setPlotID(this.id);
@@ -227,6 +245,8 @@ public class forestPlot {
             speciesSpecificVolume[i] *= frac;
             speciesSpecificVolume[i] /= 1000;
         }
+
+        //System.out.println(Arrays.toString(this.speciesSpecificVolume));
 
         System.out.println("Plot " + this.id + " orig trees: " + trees.size() + " trees for simulation: " + trees_unique_id_for_simulation.size());
         //System.out.println("Plot " + this.id + " species specific volume: " + Arrays.toString(this.speciesSpecificVolume));
@@ -491,6 +511,14 @@ public class forestPlot {
 
         simulationReportFile.createNewFile();
 
+        HashSet<Integer> keep_these_tree_unique_ids = new HashSet<Integer>();
+
+        for(int i : add.keySet()){
+            keep_these_tree_unique_ids.add(ps.augmentator.itc_with_tree.get(i).getTreeID_unique());
+            for(forestTree tree : ps.augmentator.itc_with_tree.get(i).treesBeneath){
+                keep_these_tree_unique_ids.add(tree.getTreeID_unique());
+            }
+        }
 
         writePlotShapeFile(this.simulationPlotShapeFile, simulationID, ps);
 
@@ -502,22 +530,33 @@ public class forestPlot {
         LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
         pA.aR.pfac.addWriteThread(thread_n, pw, buf);
-
+        System.out.println(tmpReader.getFile().getAbsolutePath());
         LasPoint tempPoint = new LasPoint();
         int tree_id = -1;
+        int tree_unique_id = -1;
         try {
             tree_id = tmpReader.extraBytes_names.get("ITC_id");
+
         }catch (Exception e){
             throw new toolException("Cannot find ITC_id extra byte VLR.");
         }
+        try {
+            tree_unique_id = tmpReader.extraBytes_names.get("tree_id");
+
+        }catch (Exception e){
+            throw new toolException("Cannot find tree_id extra byte VLR.");
+        }
 
         double[] pointxy = new double[2];
+
+        HashSet<Integer> wroteITCIds = new HashSet<Integer>();
 
         for(long i = 0; i < tmpReader.getNumberOfPointRecords(); i++) {
 
             tmpReader.readRecord(i, tempPoint);
 
             int itc_id = tempPoint.getExtraByteInt(tree_id);
+            int tree_id_ = tempPoint.getExtraByteInt(tree_unique_id);
 
             if(!pA.aR.inclusionRule.ask(tempPoint, i, true)){
                 continue;
@@ -529,9 +568,23 @@ public class forestPlot {
             if(tempPoint.z < pA.aR.z_cutoff) {
                 //System.out.println("HERE!! YAY!!");
                 pA.aR.pfac.writePoint(tempPoint, i, thread_n);
+                continue;
             }
 
-            if(keep.contains(itc_id)){
+            if(add.containsKey(itc_id + ITC_offset)){
+                pA.aR.pfac.writePoint(tempPoint, i, thread_n);
+                wroteITCIds.add(itc_id + this.treeOffset);
+                continue;
+            }
+
+            if(keep_these_tree_unique_ids.contains(tree_id_ + this.treeOffset)){
+                pA.aR.pfac.writePoint(tempPoint, i, thread_n);
+
+                continue;
+            }
+
+            if(keep.contains(itc_id + ITC_offset)){
+                wroteITCIds.add(tree_id_ + this.treeOffset);
                 pA.aR.pfac.writePoint(tempPoint, i, thread_n);
             }
 
@@ -540,12 +593,13 @@ public class forestPlot {
 
             // Setting this to false wil make the results worse!
             if(true)
-            if (pointInPlot(pointxy, this.plotBounds_simulated.get(this.plotBounds_simulated.size()-1))) {
+                if (pointInPlot(pointxy, this.plotBounds_simulated.get(this.plotBounds_simulated.size()-1))) {
 
-                if(itc_id <= 0){
-                    pA.aR.pfac.writePoint(tempPoint, i, thread_n);
+                    if(itc_id <= 0){
+                        pA.aR.pfac.writePoint(tempPoint, i, thread_n);
+                    }
+
                 }
-            }
             /*
 
                 if(tempPoint.z < pA.aR.z_cutoff) {
@@ -577,7 +631,13 @@ public class forestPlot {
         if(fill)
         for(int p_ : plots){
 
+            if(pA.plots.get(p_).id == this.id)
+                continue;
+
             LASReader tmpReader2 = new LASReader(new File(pA.plots.get(p_).plotLASFile.getAbsolutePath()));
+
+            int itc_offset = pA.plots.get(p_).ITC_offset;
+            int tree_offset = pA.plots.get(p_).treeOffset;
 
             for(long i = 0; i < tmpReader2.getNumberOfPointRecords(); i++) {
 
@@ -587,14 +647,19 @@ public class forestPlot {
                 if (!pA.aR.inclusionRule.ask(tempPoint, i, true)) {
                     continue;
                 }
-                int itc_id = tempPoint.getExtraByteInt(tree_id);
 
-                //System.out.println(itc_id);
+                int itc_id = tempPoint.getExtraByteInt(tree_id) + itc_offset;
+                int tree_id_ = tempPoint.getExtraByteInt(tree_unique_id) + tree_offset;
+
+                //System.out.println(itc_id + " " + itc_offset + " " + pA.plots.get(p_).id);
 
 
                 if (add.containsKey(itc_id)) {
 
-                    dones.add(itc_id);
+                    //System.out.println("HERE!!");
+                    //dones.add(itc_id);
+
+                    wroteITCIds.add(itc_id);
 
                     if(tempPoint.z > pA.aR.z_cutoff) {
 
@@ -639,9 +704,91 @@ public class forestPlot {
 
                     }
 
+                }else if(keep_these_tree_unique_ids.contains(tree_id_)){
+
+                    boolean belongsToITC = ps.augmentator.trees.get(tree_id_).belongsToSomeITC;
+
+
+                    //System.out.println("WHAT! " + belongsToITC);
+
+
+                    if(belongsToITC) {
+                        int itc_id_ = ps.augmentator.trees.get(tree_id_).beneathCrownId;
+                        boolean belongsToOptimization = add.containsKey(itc_id_);
+
+                        //System.out.println("YES?!! " + belongsToOptimization + " " + itc_id_);
+                        if (tempPoint.z > pA.aR.z_cutoff && belongsToOptimization) {
+
+
+                            //System.out.println("HERE!!");
+                           // System.exit(1);
+                            //tempPoint.x += (ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id)).geometricCenter[0] - tempPoint.x) +
+                            //        (ps.augmentator.ITC_id_to_tree_id.get((itc_id)).geometricCenter[0] - tempPoint.x);
+                            tempPoint.x += (ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id_)).getTreeX_ITC() - tempPoint.x) +
+                                    (ps.augmentator.ITC_id_to_tree_id.get((itc_id_)).getTreeX_ITC() - tempPoint.x);
+                            //tempPoint.y += (ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id)).geometricCenter[1] - tempPoint.y) +
+                            //        (ps.augmentator.ITC_id_to_tree_id.get((itc_id)).geometricCenter[1] - tempPoint.y);
+                            tempPoint.y += (ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id_)).getTreeY_ITC() - tempPoint.y) +
+                                    (ps.augmentator.ITC_id_to_tree_id.get((itc_id_)).getTreeY_ITC() - tempPoint.y);
+
+                            tempPoint.x += this.simulationOffsetX * simulationLocationCountX;
+                            tempPoint.y -= this.simulationOffsetY * simulationLocationCountY;
+                            //System.out.println(Arrays.toString((ps.augmentator.ITC_id_to_tree_id.get(itc_id).geometricCenter)));
+                            pA.aR.pfac.writePoint(tempPoint, i, thread_n);
+
+                            //System.out.println(this.simulated_plot.get(ps.augmentator.ITC_id_to_tree_id.get(itc_id).getTreeID_unique()).getPlotID());
+                        /*
+                        this.simulated_plot.get(ps.augmentator.ITC_id_to_tree_id.get(itc_id).getTreeID_unique()).setSimulationTranslationX1(ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id)).geometricCenter[0]);
+                        this.simulated_plot.get(ps.augmentator.ITC_id_to_tree_id.get(itc_id).getTreeID_unique()).setSimulationTranslationX2(ps.augmentator.ITC_id_to_tree_id.get((itc_id)).geometricCenter[0]);
+                        this.simulated_plot.get(ps.augmentator.ITC_id_to_tree_id.get(itc_id).getTreeID_unique()).setSimulationTranslationY1(ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id)).geometricCenter[1]);
+                        this.simulated_plot.get(ps.augmentator.ITC_id_to_tree_id.get(itc_id).getTreeID_unique()).setSimulationTranslationY2(ps.augmentator.ITC_id_to_tree_id.get((itc_id)).geometricCenter[1]);
+*/
+                            /*
+                            this.simulated_plot.get(ps.augmentator.ITC_id_to_tree_id.get(itc_id).getTreeID_unique()).setSimulationTranslationX1(ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id)).getTreeX_ITC());
+                            this.simulated_plot.get(ps.augmentator.ITC_id_to_tree_id.get(itc_id).getTreeID_unique()).setSimulationTranslationX2(ps.augmentator.ITC_id_to_tree_id.get((itc_id)).getTreeX_ITC());
+                            this.simulated_plot.get(ps.augmentator.ITC_id_to_tree_id.get(itc_id).getTreeID_unique()).setSimulationTranslationY1(ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id)).getTreeY_ITC());
+                            this.simulated_plot.get(ps.augmentator.ITC_id_to_tree_id.get(itc_id).getTreeID_unique()).setSimulationTranslationY2(ps.augmentator.ITC_id_to_tree_id.get((itc_id)).getTreeY_ITC());
+*/
+                            if(false)
+                            if (ps.augmentator.ITC_id_to_tree_id.get(itc_id).treesBeneath.size() > 0) {
+                                for (forestTree tree : ps.augmentator.ITC_id_to_tree_id.get(itc_id).treesBeneath) {
+
+                                    tree.setSimulationTranslationX1(ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id)).getTreeX_ITC());
+                                    tree.setSimulationTranslationX2(ps.augmentator.ITC_id_to_tree_id.get((itc_id)).getTreeX_ITC());
+                                    tree.setSimulationTranslationY1(ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id)).getTreeY_ITC());
+                                    tree.setSimulationTranslationY2(ps.augmentator.ITC_id_to_tree_id.get((itc_id)).getTreeY_ITC());
+
+                                }
+                            }
+
+                        }
+                    }
+
                 }
             }
             tmpReader2.close();
+        }
+
+        if(add.size() != wroteITCIds.size()){
+            System.out.println("Add size: " + add.size());
+            System.out.println("Wrote size: " + wroteITCIds.size());
+
+            for(int i : wroteITCIds){
+                if(!add.containsKey(i))
+                    System.out.println("Not in add: " + i + " " + ps.augmentator.ITC_id_to_tree_id.get(i).getTreeID_unique() + " from plot " + ps.augmentator.ITC_id_to_tree_id.get(i).getPlotID());
+            }
+
+            for(int i : add.keySet()){
+                if(!wroteITCIds.contains(i))
+                    System.out.println("Not in wrote: " + i + " " + ps.augmentator.ITC_id_to_tree_id.get(i).getTreeID_unique() + " from plot " + ps.augmentator.ITC_id_to_tree_id.get(i).getPlotID());
+            }
+
+            for(int i : plots){
+                System.out.println("Plot: " + i);
+            }
+
+            throw new toolException("Error in simulation " + simulationID + " - " + (add.size() - wroteITCIds.size()) + " trees were not written to the simulation plot file.");
+
         }
 /*
         for(int i : dones)
@@ -674,7 +821,7 @@ public class forestPlot {
         SpatialReference sr = new SpatialReference();
         sr.ImportFromEPSG(3067);
 
-        System.out.println(in.exists());
+        //System.out.println(in.exists());
         // Create a layer
 
 
@@ -690,7 +837,7 @@ public class forestPlot {
 
             if(this.simulated_plot.get(i).hasCrown){
 
-                System.out.println(simulated_plot.get(i).getTreeX_ITC());
+                //System.out.println(simulated_plot.get(i).getTreeX_ITC());
 
                 // AAHHHH THIS IS NULL IF THE simulated_plot.get(i) is already in the plot!
                 //System.out.println(add.get(simulated_plot.get(i).getTreeITCid()));
@@ -751,7 +898,7 @@ public class forestPlot {
         SpatialReference sr = new SpatialReference();
         sr.ImportFromEPSG(3067);
 
-        System.out.println(in.exists());
+        //System.out.println(in.exists());
         // Create a layer
 
 
@@ -860,7 +1007,6 @@ public class forestPlot {
                 double tree_sim_y_ITC = simulated_plot.get(i).getTreeY_ITC();
 
 
-
                 if(simulated_plot.get(i).plotID != this.id){
                     tree_sim_x = simulated_plot.get(i).getTreeX() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX()) +
                             (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX());
@@ -912,7 +1058,7 @@ public class forestPlot {
                         continue;
                 }
                 else{
-                    if(!pointInPlot(new double[]{tree_sim_x, tree_sim_y}, this.plotBounds_simulated.get(this.plotBounds_simulated.size() - 1)))
+                    if(!pointInPlot(new double[]{tree_sim_x, tree_sim_y }, this.plotBounds_simulated.get(this.plotBounds_simulated.size() - 1)))
                         continue;
                 }
                 //System.out.println("here2: " + counter2++);
@@ -1007,10 +1153,14 @@ public class forestPlot {
         if(this.hasSmallerBounds)
             frac = 10000 / this.getSmallerArea();
 
+        System.out.println("frac: " + frac);
+        System.out.println("area: " + this.area);
+        System.out.println("smaller area: " + this.getSmallerArea());
+        System.out.println(Arrays.toString(treeSpeciesVolumes));
+
         try {
             //BufferedReader br = new BufferedReader(new FileReader(in));
             BufferedWriter bw = new BufferedWriter(new FileWriter(this.simulationPlotForestFile));
-
 
             bw.write(treeSpeciesVolumes[0]*frac/1000.0 + "\t" +
                     treeSpeciesVolumes[1]*frac/1000.0 + "\t" +
@@ -1070,12 +1220,9 @@ public class forestPlot {
         return false;
     }
 
-
     public void prepareSimulationOffsets(){
 
         boolean breakLoop = false;
-
-
 
         while(!breakLoop){
 
@@ -1087,9 +1234,12 @@ public class forestPlot {
             this.simulationLocationCountX++;
 
             for(int i = 0; i < plotBounds_.length; i++){
+
                 plotBounds_[i][0] += this.simulationOffsetX * this.simulationLocationCountX;
                 plotBounds_[i][1] -= this.simulationOffsetY * this.simulationLocationCountY;
+
             }
+
             for(int p : pA.plots.keySet()){
 
                 if(pA.plots.get(p).id == this.id){
@@ -1111,6 +1261,129 @@ public class forestPlot {
         }
 
 
+    }
+
+    public forestPlot replicate(int treeOffset, int ITCOffset, int plotOffset){
+
+
+
+        forestPlot newPlot = new forestPlot();
+
+        newPlot.treeOffset = treeOffset;
+        newPlot.ITC_offset = ITCOffset;
+
+        newPlot.id = this.id + plotOffset;
+        newPlot.area = this.area;
+        newPlot.train_area = this.train_area;
+        newPlot.plotBounds =  clone2DArray(this.plotBounds);
+        newPlot.plotBounds_simulated = new ArrayList<>();
+        newPlot.plotBounds_simulated.add(clone2DArray(this.plotBounds));
+        newPlot.simulationOffsetX = this.simulationOffsetX;
+        newPlot.simulationOffsetY = this.simulationOffsetY;
+        newPlot.simulationLocationCountX = this.simulationLocationCountX;
+        newPlot.simulationLocationCountY = this.simulationLocationCountY;
+        newPlot.hasSmallerBounds = this.hasSmallerBounds;
+
+        if(newPlot.hasSmallerBounds) {
+            newPlot.smallerBounds = clone2DArray(this.smallerBounds);
+            newPlot.setSmallerArea(this.smallArea);
+        }
+
+
+        newPlot.setPlotLASFile(this.plotLASFile);
+
+        for(int i : this.trees.keySet()){
+
+            /*
+            forestTree tmpTree = new forestTree();
+
+            tmpTree.setTreeLineFromFieldData(line1);
+            tmpTree.setTreeLineFromFieldData_delimited((String[])line.clone());
+            tmpTree.setTreeID(Integer.parseInt(line[1]));
+            tmpTree.setTreeID_unique(Integer.parseInt(line[0]));
+
+            trees.put(tmpTree.getTreeID_unique(), tmpTree);
+            //tmpTree.setTreeCrownBounds(treeBounds.get(tmpTree.getTreeID_unique()));
+
+            //print2DArray(treeBounds.get(tmpTree.getTreeID_unique()));
+
+            tmpTree.setTreeX(Double.parseDouble(line[3]));
+            tmpTree.setTreeY(Double.parseDouble(line[4]));
+            tmpTree.setTreeHeight(Double.parseDouble(line[11]));
+
+            int species = Integer.parseInt(line[7]);
+
+            species = Math.min(species, 3) - 1;
+
+            tmpTree.setTreeSpecies(species);
+            tmpTree.setTreePlotID(Integer.parseInt(line[1]));
+
+            tmpTree.setTreeDBH(Double.parseDouble(line[9]));
+
+            tmpTree.setTreeVolume(Double.parseDouble(line[42]));
+
+            if(true)
+            if(Integer.parseInt(line[2]) > 0){
+                if(!plots.containsKey(Integer.parseInt(line[2]))) {
+                    throw new toolException("Plot " + line[2] + " not found in shapefile");
+                }else
+                    plots.get(Integer.parseInt(line[2])).addTree(tmpTree);
+
+            }
+             */
+
+
+            forestTree tmpTree = this.trees.get(i).clone();
+            //tmpTree.setTreeID(tmpTree.getTreeID());
+            tmpTree.setPlotID(tmpTree.getPlotID() + plotOffset);
+            tmpTree.setTreeID_unique(tmpTree.getTreeID_unique() + treeOffset);
+
+            if(tmpTree.hasCrown){
+                tmpTree.setTreeITCid(tmpTree.getTreeITCid() + ITCOffset);
+
+            }
+
+            newPlot.trees_unique_id.put(tmpTree.getTreeID_unique(), tmpTree);
+            //newPlot.trees_unique_id_for_simulation.put(tmpTree.getTreeID_unique(), tmpTree);
+            newPlot.trees.put(tmpTree.getTreeID(), tmpTree);
+
+        }
+
+        for(int t : newPlot.trees.keySet()){
+
+            if(newPlot.trees.get(t).hasCrown){
+                newPlot.hasITCid(newPlot.trees.get(t).getTreeID());
+                //for(forestTree tree : this.trees.get(t).treesBeneath){
+                    //newPlot.trees.get(t).treesBeneath.add(newPlot.trees.get(tree.getTreeID()));
+                //}
+            }
+
+        }
+
+        //newPlot.trees = (HashMap<Integer, forestTree>)this.trees.clone();
+        //newPlot.trees_unique_id = (HashMap<Integer, forestTree>)this.trees_unique_id.clone();
+        //newPlot.trees_unique_id_for_simulation = (HashMap<Integer, forestTree>)this.trees_unique_id_for_simulation.clone();
+        //newPlot.simulated_plot = (HashMap<Integer, forestTree>)this.simulated_plot.clone();
+        //newPlot.treeHasITC = (HashSet<Integer>)this.treeHasITC.clone();
+        //newPlot.ITCWithoutMatch = (HashSet<Integer>)this.ITCWithoutMatch.clone();
+
+        if(false)
+        for(int t : newPlot.trees.keySet()){
+
+            this.trees.get(newPlot.trees.get(t).getTreeID()).setPlotID(newPlot.id + plotOffset);
+            this.trees.get(newPlot.trees.get(t).getTreeID()).treeID_unique += treeOffset;
+
+            newPlot.trees.get(t).setTreeID_unique(newPlot.trees.get(t).getTreeID_unique() + treeOffset);
+
+            if(newPlot.trees.get(t).hasCrown){
+                newPlot.trees.get(t).setTreeITCid(newPlot.trees.get(t).getTreeITCid() + ITCOffset);
+
+
+            }
+
+        }
+
+        return newPlot;
     }
 
     public static double calculateDGM(HashMap<Integer, forestTree> trees) {
@@ -1188,6 +1461,8 @@ public class forestPlot {
         return pointInPolygon(point, polygon);
 
     }
+
+
 
 
 }

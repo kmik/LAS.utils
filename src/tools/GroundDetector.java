@@ -797,7 +797,10 @@ public class GroundDetector{
 
             //for (int p = 0; p < pointCloud.getNumberOfPointRecords(); p += 200000) {
             for (long p = 0; p < pointCloud.getNumberOfPointRecords(); p++) {
+
+
 /*
+
                 maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - (p)));
 
                 try {
@@ -811,7 +814,7 @@ public class GroundDetector{
                     pointCloud.readFromBuffer(tempPoint);
 */
                 pointCloud.readRecord(p, tempPoint);
-                    if (!rule.ask(tempPoint, p, true) || tempPoint.numberOfReturns != tempPoint.returnNumber || doneInd[(int)p]) { // badInd[p + j] ||
+                    if (!rule.ask(tempPoint, p, true) || doneInd[(int)p]) { // badInd[p + j] || // || tempPoint.numberOfReturns != tempPoint.returnNumber
                         continue;
                     }
 
@@ -894,6 +897,7 @@ public class GroundDetector{
                                     counter_v++;
 
                                 }
+
 
                                 if (!reject && !Double.isNaN(maxAngle) && distance < distanceThreshold) { // !this.rolling_statistics.reject_as_outlier_topSide(maxAngle, aR.std_threshold)
 
@@ -1983,6 +1987,9 @@ public class GroundDetector{
 
         aR.p_update.threadEnd[coreNumber-1] = (int)seedPoints;
 
+
+
+
         return result;
 
     }
@@ -2864,11 +2871,11 @@ public class GroundDetector{
 
             int counter_debug = 0;
 
-            for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
+            for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
-                maxi = (int) Math.min(200000, pointCloud.getNumberOfPointRecords() - i);
+                maxi = (int) Math.min(10000, pointCloud.getNumberOfPointRecords() - i);
 
-                aR.pfac.prepareBuffer(thread_n, i, 200000);
+                aR.pfac.prepareBuffer(thread_n, i, 10000);
 
                 for (int j = 0; j < maxi; j++) {
 
@@ -3022,11 +3029,11 @@ public class GroundDetector{
 
         boolean tin_is_bootstrapped = false;
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
-            int maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 200000);
+            aR.pfac.prepareBuffer(thread_n, i, 10000);
 
             for (int j = 0; j < maxi; j++) {
 

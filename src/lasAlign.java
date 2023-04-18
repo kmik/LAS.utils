@@ -1,9 +1,11 @@
 import LASio.LASReader;
 import err.toolException;
 import tools.groundMatch;
+import tools.lasAligner;
 import tools.process_las2las;
 import utils.argumentReader;
 import utils.fileDistributor;
+import utils.tinManupulator;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +14,7 @@ import java.util.ArrayList;
 import static runners.RunLASutils.proge;
 import static utils.miscProcessing.prepareData;
 
-public class lasGroundRelate {
+public class lasAlign{
 
     public static void main(String[] args) throws IOException {
 
@@ -20,28 +22,40 @@ public class lasGroundRelate {
         ArrayList<File> inputFiles = prepareData(aR, "las2las");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
+        tinManupulator tin = new tinManupulator(aR);
+
         if(aR.cores > 1){
             threadTool(aR, fD);
         }else{
 
-            //process_las2las tooli = new process_las2las(1);
+            lasAligner tooli = new lasAligner(aR);
+            tooli.setTinManupulator(tin);
+            tooli.setResolution(5.0);
+            tooli.setMin_points_in_cell(5);
+            tooli.readRefs();
+            tooli.readTargets();
 
-                if (aR.inputFiles.size() != 2) {
-                    System.out.println("No 2 input files, exiting!");
-                    throw new toolException("Ground match requires two inputs!");
-                }
+            tin.maxx = tooli.max_x;
+            tin.maxy = tooli.max_y;
+            //tin.maxz = tooli.max_z;
+            tin.minx = tooli.min_x;
+            tin.miny = tooli.min_y;
+            //tin.minz = tooli.min_z;
 
+            System.out.println("SUCCESS!");
+
+            tooli.prepareData();
 
             try {
-
-                LASReader temp1 = new LASReader(aR.inputFiles.get(0));
-                LASReader temp2 = new LASReader(aR.inputFiles.get(1));
-
-                groundMatch gM = new groundMatch(temp1, temp2, aR, 1);
-
-            } catch (Exception e) {
+                tooli.processTargets();
+            }catch (Exception e){
                 e.printStackTrace();
+                System.exit(1);
             }
+
+            tin.writeTinToFile(tooli.targets.get(0).getFile(), 5.0);
+
+            tooli.applyCorrection();
 
         }
 
@@ -119,3 +133,5 @@ public class lasGroundRelate {
         }
     }
 }
+
+

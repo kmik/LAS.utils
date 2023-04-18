@@ -8,6 +8,7 @@ import org.gdal.gdalconst.gdalconst;
 import org.gdal.ogr.ogr;
 import org.opencv.core.Mat;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -181,9 +182,20 @@ class gdalE {
     }
 
     public static Dataset hei(String filename, int xDim, int yDim, float value){
+/*
+        File file = new File(filename);
+        if(file.exists()) {
+            file.delete();
+        }
+        try {
+            file.createNewFile();
+        }catch (Exception e ){
+            e.printStackTrace();
+        }
 
-        //ogr.RegisterAll(); //Registering all the formats..
-        //gdal.AllRegister();
+ */
+        ogr.RegisterAll(); //Registering all the formats..
+        gdal.AllRegister();
 
         Dataset dataset = null;
         Driver driver = null;

@@ -3483,6 +3483,7 @@ public class ITDstatistics{
 
         int xCoord, yCoord;
 
+
         /* Define the variables that we need */
         int tree_id = -1;
         try {
@@ -3502,12 +3503,12 @@ public class ITDstatistics{
             a tree has been read.
          */
 
-        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
-            maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
             try {
-                pointCloud.readRecord_noRAF(i, tempPoint, 20000);
+                pointCloud.readRecord_noRAF(i, tempPoint, 10000);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -3626,12 +3627,12 @@ public class ITDstatistics{
         long start = System.currentTimeMillis();
         int treeCount = 0;
 
-        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
-            maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
             try {
-                pointCloud.readRecord_noRAF(i, tempPoint, 20000);
+                pointCloud.readRecord_noRAF(i, tempPoint, 10000);
             } catch (Exception e) {
                 e.printStackTrace();
             }

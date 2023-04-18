@@ -391,7 +391,7 @@ public class LasRelate{
 
                 /* Let's make a correction raster from correctionTin and interpolate it */
 
-                float[][] correctionRaster = new float[sizeX][sizeY];
+                double[][] correctionRaster = new double[sizeX][sizeY];
 
                 double locationX = 0.0;
                 double locationY = 0.0;
@@ -467,7 +467,7 @@ public class LasRelate{
                         //System.out.println(rasterX + " " + rasterY + " real: " + sizeX + " " + sizeY);
 
                         //float tinReferenceZ = polatorReference.interpolate(tempPoint.x, tempPoint.y, valuator);
-                        float tinReferenceZ = correctionRaster[rasterX][rasterY];
+                        double tinReferenceZ = correctionRaster[rasterX][rasterY];
 
                         //System.out.println(tinPointCloudZ);
                         //System.out.println(tinReferenceZ);

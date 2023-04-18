@@ -14,6 +14,7 @@ import org.tinfour.utils.Polyside;
 import utils.*;
 import java.io.*;
 import java.util.*;
+import java.util.stream.IntStream;
 
 import static org.tinfour.utils.Polyside.isPointInPolygon;
 
@@ -1562,6 +1563,8 @@ public class lasStrip {
 
 
     }
+
+
 
     public void translatePoint(DoubleMatrix point, double[] translation){
 

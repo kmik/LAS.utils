@@ -344,4 +344,107 @@ public class forestTree {
                 ", belongsToOptimization=" + belongsToOptimization +
                 '}';
     }
+
+    public boolean isBelongsToSomeITC() {
+        return belongsToSomeITC;
+    }
+
+    public void setBelongsToSomeITC(boolean belongsToSomeITC) {
+        this.belongsToSomeITC = belongsToSomeITC;
+    }
+
+    public boolean isBelongsToOptimization() {
+        return belongsToOptimization;
+    }
+
+    public void setBelongsToOptimization(boolean belongsToOptimization) {
+        this.belongsToOptimization = belongsToOptimization;
+    }
+
+    public int getBeneathCrownId() {
+        return beneathCrownId;
+    }
+
+    public void setBeneathCrownId(int beneathCrownId) {
+        this.beneathCrownId = beneathCrownId;
+    }
+
+    public ArrayList<Double> getDiameters() {
+        return diameters;
+    }
+
+    public void setDiameters(ArrayList<Double> diameters) {
+        this.diameters = diameters;
+    }
+
+    public double[] getGeometricCenter() {
+        return geometricCenter;
+    }
+
+    public void setGeometricCenter(double[] geometricCenter) {
+        this.geometricCenter = geometricCenter;
+    }
+
+    public boolean isHasCrown() {
+        return hasCrown;
+    }
+
+    public void setHasCrown(boolean hasCrown) {
+        this.hasCrown = hasCrown;
+    }
+
+    public ArrayList<forestTree> getTreesBeneath() {
+        return treesBeneath;
+    }
+
+    public void setTreesBeneath(ArrayList<forestTree> treesBeneath) {
+        this.treesBeneath = treesBeneath;
+    }
+
+    public double getMaxDBH() {
+        return maxDBH;
+    }
+
+    public void setMaxDBH(double maxDBH) {
+        this.maxDBH = maxDBH;
+    }
+    @Override
+    public forestTree clone(){
+        forestTree clone = new forestTree();
+        clone.setTreeSpecies(this.treeSpecies);
+        clone.setTreeID(this.treeID);
+        clone.setPlotID(this.plotID);
+        clone.setTreeITCid(this.treeITCid);
+        clone.setTreeVolume(this.treeVolume);
+        clone.setTreeX(this.treeX);
+        clone.setTreeY(this.treeY);
+        clone.setTreeHeight(this.treeHeight);
+        clone.setTreeHeight_ITC(this.treeHeight_ITC);
+        clone.setTreeID_unique(this.treeID_unique);
+
+        if(this.hasCrown)
+            clone.setTreeCrownBounds(this.treeCrownBounds);
+
+        clone.setTreeLineFromFieldData(this.treeLineFromFieldData);
+        clone.setTreeLineFromFieldData_delimited(this.treeLineFromFieldData_delimited);
+        clone.setSimulationTranslationX1(this.simulationTranslationX1);
+        clone.setSimulationTranslationY1(this.simulationTranslationY1);
+        clone.setSimulationTranslationX2(this.simulationTranslationX2);
+        clone.setSimulationTranslationY2(this.simulationTranslationY2);
+        clone.setSimulationPlotId(this.simulationPlotId);
+        clone.setGeometricCenter(this.geometricCenter);
+        clone.setBelongsToOptimization(this.belongsToOptimization);
+        clone.setBeneathCrownId(this.beneathCrownId);
+        clone.setHasCrown(this.hasCrown);
+        clone.setTreeX(this.treeX);
+        clone.setTreeY(this.treeY);
+        clone.setTreeX_ITC(this.treeX_ITC);
+        clone.setTreeY_ITC(this.treeY_ITC);
+        clone.setTreeCrownArea(this.treeCrownArea);
+        clone.setTreeDBH(this.treeDBH);
+
+        return clone;
+    }
+
+
 }
