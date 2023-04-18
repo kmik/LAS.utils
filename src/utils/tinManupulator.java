@@ -6,12 +6,15 @@ import org.gdal.gdal.Driver;
 import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconst;
 import org.gdal.osr.SpatialReference;
+import org.tinfour.common.Vertex;
 import org.tinfour.interpolation.TriangularFacetInterpolator;
 import org.tinfour.interpolation.VertexValuatorDefault;
 import org.tinfour.utils.Polyside;
 import tools.GaussianSmooth;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 import static org.tinfour.utils.Polyside.isPointInPolygon;
 
@@ -146,4 +149,62 @@ public class tinManupulator {
         return isPointInPolygon(tin.getPerimeter(), x, y) == Polyside.Result.Inside;
 
     }
+
+    public void removeOutliers(){
+
+        ArrayList<Double> zValues = new ArrayList<>();
+
+        for(Vertex v : tin.getVertices()){
+
+            zValues.add(v.getZ());
+
+        }
+
+        ArrayList<Integer> outlierIndexes = getOutlierIndexes(zValues, 2.5);
+
+        HashSet<Integer> removeThese = new HashSet<>(outlierIndexes);
+
+        org.tinfour.standard.IncrementalTin tin2 = new org.tinfour.standard.IncrementalTin();
+
+        int counter = 0;
+
+        for(Vertex v : tin.getVertices()){
+
+            if(!removeThese.contains(counter++)){
+                tin2.add(new Vertex(v.getX(), v.getY(), v.getZ()));
+            }
+        }
+
+        tin = tin2;
+
+    }
+
+    public static ArrayList<Integer> getOutlierIndexes(ArrayList<Double> values, double zScoreThreshold) {
+        ArrayList<Integer> outlierIndexes = new ArrayList<>();
+
+        // Calculate the mean and standard deviation
+        double sum = 0;
+        for (double value : values) {
+            sum += value;
+        }
+        double mean = sum / values.size();
+
+        double sumSquaredDeviations = 0;
+        for (double value : values) {
+            double deviation = value - mean;
+            sumSquaredDeviations += deviation * deviation;
+        }
+        double stdDev = Math.sqrt(sumSquaredDeviations / values.size());
+
+        // Check each value to see if it's an outlier
+        for (int i = 0; i < values.size(); i++) {
+            double zScore = Math.abs((values.get(i) - mean) / stdDev);
+            if (zScore > zScoreThreshold) {
+                outlierIndexes.add(i);
+            }
+        }
+
+        return outlierIndexes;
+    }
+
 }

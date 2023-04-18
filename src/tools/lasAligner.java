@@ -280,7 +280,7 @@ public class lasAligner {
                 }
             }
 
-            ArrayList<Integer> outliers = getOutlierIndexes(valuesToCheck, 3);
+            ArrayList<Integer> outliers = getOutlierIndexes(valuesToCheck, 2.5);
 
             float maxOutlier = Float.NEGATIVE_INFINITY;
             float minOutlier = Float.POSITIVE_INFINITY;
@@ -484,6 +484,12 @@ public class lasAligner {
         }catch (Exception e){
             e.printStackTrace();
         }
+
+
+    }
+
+    public void removeOutliersFromTin(){
+
 
 
     }

@@ -53,6 +53,8 @@ public class lasAlign{
                 System.exit(1);
             }
 
+            tin.removeOutliers();
+
             tin.writeTinToFile(tooli.targets.get(0).getFile(), 5.0);
 
             //tooli.applyCorrection();
