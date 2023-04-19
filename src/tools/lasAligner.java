@@ -194,7 +194,7 @@ public class lasAligner {
                             continue;
 
                         if (tempPoint.classification == 2) {
-                            firstCheck[x][y].addGround((float) tempPoint.z);
+                            firstCheck[x][y].addGround((float) tempPoint.z, (float)tempPoint.x, (float)tempPoint.y);
                         } else
                             firstCheck[x][y].addNonGround((float) tempPoint.z);
 
@@ -250,7 +250,7 @@ public class lasAligner {
 
                     if (properCells.contains(x + y * numberOfPixelsX)) {
 
-                        firstCheck[x][y].addTarget((float) tempPoint.z);
+                        firstCheck[x][y].addTarget((float) tempPoint.z, (float)tempPoint.x, (float)tempPoint.y);
 
                     }
 
@@ -267,21 +267,26 @@ public class lasAligner {
 
             ArrayList<Double> valuesToCheck = new ArrayList<>();
             for(int i : properCells){
+
                 int x = i % numberOfPixelsX;
                 int y = i / numberOfPixelsX;
 
-                if(firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target < 0.5 && firstCheck[x][y].countTarget > 10) {
+
+
+                if(firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target < 0.5 && firstCheck[x][y].countTarget > 10 && checkSurroundings(firstCheck, x, y)) {
 
                     //System.out.println("DIFFERENCE: " + (firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()));
 
                     float[] outValue = new float[]{firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()};
+
                     valuesToCheck.add((double) outValue[0]);
 
                 }
             }
 
-            ArrayList<Integer> outliers = getOutlierIndexes(valuesToCheck, 2.5);
-
+            ArrayList<Integer> outliers = getOutlierIndexes(valuesToCheck, 2);
+            //ArrayList<Integer> outliers = detectOutliersPercentile(valuesToCheck, 0.9);
+            //System.exit(1);
             float maxOutlier = Float.NEGATIVE_INFINITY;
             float minOutlier = Float.POSITIVE_INFINITY;
 
@@ -302,24 +307,28 @@ public class lasAligner {
 
             for(int i : properCells){
 
-
                 int x = i % numberOfPixelsX;
                 int y = i / numberOfPixelsX;
 
-                if(firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target < 0.5 && firstCheck[x][y].countTarget > 10){
-
-                    //System.out.println("DIFFERENCE: " + (firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()));
+                if(firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target < 0.5 && firstCheck[x][y].countTarget > 10 && checkSurroundings(firstCheck, x, y)){
 
                     float[] outValue = new float[]{firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()};
-
 
                     if(outlierCells.contains(counter++)) {
                         System.out.println("OUTLIER: " + i + " " + outValue[0] + " ");
                         continue;
                     }
 
+                    double centricity = firstCheck[x][y].groundCentricity();
+
+                    if(Math.abs(centricity - 0.5) > 0.2)
+                        continue;
+                    //System.ou t.println("DIFFERENCE: " + (firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()));
+
+
+
                     if(outValue[0] > 10.0) {
-                        System.out.println("OUTVALUE: " + outValue[0] + " " + (firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target));
+                        System.out.println("OUTVALUE: " + outValue[0] + " " + (firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) + " " + firstCheck[x][y].countGround);
                     }
 
                     tin.add(new org.tinfour.common.Vertex(x + resolution / 2.0, y - resolution / 2.0, outValue[0]));
@@ -493,6 +502,53 @@ public class lasAligner {
 
 
     }
+
+    public boolean checkSurroundings(dataPointTiny[][] input, int x, int y){
+
+        int x_ = 0, y_ = 0;
+
+        for(int x__ = x - 1; x__ <= x + 1; x__++){
+
+            if(x__ < 0 || x__ >= input.length)
+                continue;
+
+
+            for(int y__ = y - 1; y__ <= y + 1; y__++){
+
+                if(y__ < 0 || y__ >= input[0].length)
+                    continue;
+
+                if(x__ == x && y__ == y)
+                    continue;
+
+                if(input[x__][y__].countTarget == 0)
+                    return false;
+            }
+        }
+
+        return true;
+
+    }
+
+    public static ArrayList<Integer> detectOutliersPercentile(ArrayList<Double> data, double threshold) {
+        ArrayList<Integer> outliers = new ArrayList<>();
+        double cutoff_top = calculateCutoff(data, threshold);
+        double cutoff_bottom = calculateCutoff(data, 1.0 - threshold);
+        for (int i = 0; i < data.size(); i++) {
+            if (data.get(i) > cutoff_top || data.get(i) < cutoff_bottom){
+                outliers.add(i);
+            }
+        }
+        return outliers;
+    }
+
+    private static double calculateCutoff(ArrayList<Double> data, double threshold) {
+        ArrayList<Double> sortedData = new ArrayList<>(data);
+        sortedData.sort(null);
+        int cutoffIndex = (int) Math.ceil(threshold * sortedData.size());
+        return sortedData.get(cutoffIndex);
+    }
+
 
     public void applyCorrection(){
 
@@ -669,12 +725,14 @@ class dataPointTiny{
     public short countGround = 0, countNonGround = 0, countTarget = 0;
     public float sum_z_ground = 0, sum_z_nonGround = 0, sum_z_target = 0, max_z_target = Float.NEGATIVE_INFINITY, min_z_target = Float.POSITIVE_INFINITY;
 
+    public float sum_x = 0, sum_y = 0;
+    public float sum_x_ground = 0, sum_y_ground = 0;
 
     dataPointTiny(){
 
     }
 
-    public void addTarget(float z){
+    public void addTarget(float z, float x, float y){
         countTarget++;
         sum_z_target += z;
 
@@ -684,6 +742,16 @@ class dataPointTiny{
         if(z < min_z_target)
             min_z_target = z;
 
+        sum_x += x;
+        sum_y += y;
+    }
+
+    public float getMeanTargetX(){
+        return sum_x / countTarget;
+    }
+
+    public float getMeanTargetY(){
+        return sum_y / countTarget;
     }
 
     public float getTargetMean(){
@@ -691,12 +759,36 @@ class dataPointTiny{
         return sum_z_target / countTarget;
 
     }
-    public void addGround(float z){
+    public void addGround(float z, float x, float y){
         countGround++;
         sum_z_ground += z;
+
+        sum_x_ground += x;
+        sum_y_ground += y;
     }
 
+    public float getMeanGroundX(){
+        return sum_x_ground / countGround;
+    }
 
+    public float getMeanGroundY(){
+        return sum_y_ground / countGround;
+    }
+
+    public double groundCentricity(){
+
+        double x = getMeanGroundX() % 1;
+        double y = getMeanGroundY() % 1;
+
+        double x_ = getMeanTargetX() % 1;
+        double y_ = getMeanTargetY() % 1;
+
+        double dist1 = euclideanDistance2d(x, y, 0.5, 0.5);
+        double dist2 = euclideanDistance2d(x_, y_, 0.5, 0.5);
+
+        return (dist1 + dist2) / 2.0;
+
+    }
 
     public void addNonGround(float z){
         countNonGround++;
@@ -720,4 +812,7 @@ class dataPointTiny{
         return sum_z_nonGround / countNonGround;
     }
 
+    public float euclideanDistance2d(double x1, double y1, double x2, double y2){
+        return (float) Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+    }
 }
