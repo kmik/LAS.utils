@@ -20,6 +20,8 @@ import static org.tinfour.utils.Polyside.isPointInPolygon;
 
 public class tinManupulator {
 
+    public String tiff_file_name = null;
+
     org.tinfour.standard.IncrementalTin tin = new org.tinfour.standard.IncrementalTin();
     VertexValuatorDefault valuator = new VertexValuatorDefault();
 
@@ -74,6 +76,7 @@ public class tinManupulator {
             return;
         }
 
+
         Dataset dataset_output = null;
         Band band = null;
 
@@ -84,17 +87,34 @@ public class tinManupulator {
             System.out.println("Not enough points! Are you using remove_buffer and ALL points in this .las file are part of the buffer?");
             return;
         }
+        band.SetNoDataValue(Float.NaN);
+
+        this.tiff_file_name = outputFileName;
 
         dataset_output.SetProjection(sr.ExportToWkt());
         dataset_output.SetGeoTransform(geoTransform);
 
         double[][] smoothed = new double[numberOfPixelsX][numberOfPixelsY];
 
+        for (int j = 0; j < numberOfPixelsX; j++) {
+            for (int k = 0; k < numberOfPixelsY; k++) {
+
+                smoothed[j][k] = Float.NaN;
+
+            }
+        }
 
         for (int j = 0; j < numberOfPixelsX; j++) {
             for (int k = 0; k < numberOfPixelsY; k++) {
 
-                float interpolatedValue = (float)polator.interpolate(minx + j * resolution + resolution / 2.0, maxy - k * resolution - resolution / 2.0, valuator);
+                boolean pointInTin = isPointInTin(minx + j * resolution + resolution / 2.0, maxy - k * resolution - resolution / 2.0);
+
+                float interpolatedValue = 0;
+
+                if(pointInTin)
+                    interpolatedValue = (float)polator.interpolate(minx + j * resolution + resolution / 2.0, maxy - k * resolution - resolution / 2.0, valuator);
+                else
+                    interpolatedValue = Float.NaN;
 
                 float[] outValue = new float[]{interpolatedValue};
 

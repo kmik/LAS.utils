@@ -554,6 +554,19 @@ public class lasAligner {
 
         LasPoint tempPoint = new LasPoint();
 
+        Dataset tifDataset = gdal.Open(tinM.tiff_file_name, gdalconst.GA_ReadOnly);
+
+        Band band = tifDataset.GetRasterBand(1);
+        Double[] nodata = new Double[1];
+        band.GetNoDataValue(nodata);
+
+        System.out.println(nodata[0].floatValue());
+        //System.exit(1);
+        double[] geoTransform = tifDataset.GetGeoTransform();
+
+        System.setProperty("GDAL_CACHEMAX", "500000000");
+
+
         for(int i_ = 0; i_ < targets.size(); i_++){
 
             LASReader in = targets.get(i_);
@@ -575,6 +588,7 @@ public class lasAligner {
             LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
             aR.pfac.addWriteThread(thread_n, pw, buf);
 
+            float[] data = new float[1];
 
             for (long i = 0; i < in.getNumberOfPointRecords(); i += 20000) {
 
@@ -590,13 +604,27 @@ public class lasAligner {
 
                     in.readFromBuffer(tempPoint);
 
-                    double interpolatedValue = tinM.interpolate(tempPoint.x, tempPoint.y);
+                    int x = (int) Math.round((tempPoint.x - geoTransform[0]) / geoTransform[1]);
+                    int y = (int) Math.round((tempPoint.y - geoTransform[3]) / geoTransform[5]);
 
-                    boolean pointInTin = tinM.isPointInTin(tempPoint.x, tempPoint.y);
+                    if(x <= aR.kernel || x >= tifDataset.getRasterXSize()-aR.kernel || y <= aR.kernel || y >= tifDataset.getRasterYSize()-aR.kernel)
+                        continue;
 
-                    if(pointInTin) {
-                        if (!Double.isNaN(interpolatedValue)) {
-                            tempPoint.z -= interpolatedValue;
+                    //double interpolatedValue = tinM.interpolate(tempPoint.x, tempPoint.y);
+
+
+                    //boolean pointInTin = tinM.isPointInTin(tempPoint.x, tempPoint.y);
+
+                    band.ReadRaster(x, y, 1, 1, data);
+
+                    //if(pointInTin) {
+                    if(!Float.isNaN(data[0])){
+                        //if (!Double.isNaN(interpolatedValue)) {
+                            //tempPoint.z -= interpolatedValue;
+                            tempPoint.z -= data[0];
+
+                            //System.out.println(data[0] + " =??= " + interpolatedValue);
+
                             try {
 
                                 aR.pfac.writePoint(tempPoint, i+j_, thread_n);
@@ -605,7 +633,7 @@ public class lasAligner {
                                 e.printStackTrace();
                                 System.exit(1);
                             }
-                        }
+                        //}
                         //else
                         //    tempPoint.z -= averageCorrection;
                         //}else
