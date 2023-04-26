@@ -561,12 +561,10 @@ public class lasAligner {
         band.GetNoDataValue(nodata);
 
         System.out.println(nodata[0].floatValue());
-        //System.exit(1);
         double[] geoTransform = tifDataset.GetGeoTransform();
 
         System.setProperty("GDAL_CACHEMAX", "500000000");
-
-
+        
         for(int i_ = 0; i_ < targets.size(); i_++){
 
             LASReader in = targets.get(i_);
@@ -610,20 +608,11 @@ public class lasAligner {
                     if(x <= aR.kernel || x >= tifDataset.getRasterXSize()-aR.kernel || y <= aR.kernel || y >= tifDataset.getRasterYSize()-aR.kernel)
                         continue;
 
-                    //double interpolatedValue = tinM.interpolate(tempPoint.x, tempPoint.y);
-
-
-                    //boolean pointInTin = tinM.isPointInTin(tempPoint.x, tempPoint.y);
-
                     band.ReadRaster(x, y, 1, 1, data);
 
-                    //if(pointInTin) {
                     if(!Float.isNaN(data[0])){
-                        //if (!Double.isNaN(interpolatedValue)) {
-                            //tempPoint.z -= interpolatedValue;
-                            tempPoint.z -= data[0];
 
-                            //System.out.println(data[0] + " =??= " + interpolatedValue);
+                            tempPoint.z -= data[0];
 
                             try {
 
@@ -633,11 +622,7 @@ public class lasAligner {
                                 e.printStackTrace();
                                 System.exit(1);
                             }
-                        //}
-                        //else
-                        //    tempPoint.z -= averageCorrection;
-                        //}else
-                        //    tempPoint.z -= averageCorrection;
+
                     }else{
 
                     }

@@ -41,7 +41,7 @@ import static tools.ConcaveHull.calculateConcaveHull;
 public class Stanford2010 {
 
 
-    int concave_hull_k = 55;
+    int concave_hull_k = 75;
     ArrayList<String> failedFiles = new ArrayList<>();
     ArrayList<int[]> failedFilesProps = new ArrayList<>();
     File xml_file;
@@ -134,7 +134,7 @@ public class Stanford2010 {
         //bufferedShapefile.Transform(transform);
 
         outShpGeom.AddGeometry(outShpGeom2);
-        Geometry bufferedShapefile = outShpGeom.Buffer(5);
+        Geometry bufferedShapefile = outShpGeom.Buffer(7.5);
 
         outShpFeat.SetField("id",id);
 
@@ -201,6 +201,7 @@ public class Stanford2010 {
                         }
                     }
                 } else if (tempG.GetGeometryName().equals("POLYGON")) {
+                    
                     Geometry tempG2 = tempG.GetGeometryRef(0);
 
 

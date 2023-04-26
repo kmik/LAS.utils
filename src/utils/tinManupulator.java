@@ -61,8 +61,6 @@ public class tinManupulator {
 
         sr.ImportFromEPSG(aR.EPSG);
 
-
-
         gdal.AllRegister();
 
         Driver driver = null;

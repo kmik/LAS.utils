@@ -591,6 +591,14 @@ public class argumentReader {
                 .required(false)
                 .build());
 
+        options.addOption(Option.builder()
+                .longOpt("raster")
+                .hasArg(true)
+                .desc("Target point cloud")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .required(false)
+                .build());
+
 
         options.addOption(Option.builder()
                 .longOpt("drop_classification")
@@ -1726,7 +1734,7 @@ public class argumentReader {
 
             }
 
-            if(cmd.hasOption("ref")){
+            if(cmd.hasOption("ref") || cmd.hasOption("raster")){
 
                 ref_ = cmd.getOptionValues("ref");
                 if(ref_[0].split(";").length > 1){
