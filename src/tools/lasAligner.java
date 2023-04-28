@@ -106,6 +106,7 @@ public class lasAligner {
                     System.exit(1);
                 }
             }
+
     }
 
     public void processTargets() throws Exception{
@@ -549,6 +550,31 @@ public class lasAligner {
         return sortedData.get(cutoffIndex);
     }
 
+    public float[][] readRasterTo2DArray(Dataset tifDataset, int xDim, int yDim){
+
+        float[][] output = new float[xDim][yDim];
+
+        Band band = tifDataset.GetRasterBand(1);
+
+        double[] geoTransform = tifDataset.GetGeoTransform();
+        float[] floatArray = new float[xDim];
+
+
+        for(int y = 0; y < yDim; y++) {
+
+            band.ReadRaster(0, y, xDim, 1, floatArray);
+
+            for (int x = 0; x < xDim; x++) {
+
+                float value = floatArray[x];
+
+                output[x][y] = value;
+            }
+        }
+
+        return output;
+    }
+
 
     public void applyCorrection(){
 
@@ -556,12 +582,21 @@ public class lasAligner {
 
         Dataset tifDataset = gdal.Open(tinM.tiff_file_name, gdalconst.GA_ReadOnly);
 
+        int xDim = tifDataset.getRasterXSize();
+        int yDim = tifDataset.getRasterYSize();
+
+        float[][] raster = readRasterTo2DArray(tifDataset, tifDataset.getRasterXSize(), tifDataset.getRasterYSize());
+
         Band band = tifDataset.GetRasterBand(1);
         Double[] nodata = new Double[1];
         band.GetNoDataValue(nodata);
 
         System.out.println(nodata[0].floatValue());
+        
         double[] geoTransform = tifDataset.GetGeoTransform();
+
+        band.delete();
+        tifDataset.delete();
 
         System.setProperty("GDAL_CACHEMAX", "500000000");
         
@@ -605,14 +640,14 @@ public class lasAligner {
                     int x = (int) Math.round((tempPoint.x - geoTransform[0]) / geoTransform[1]);
                     int y = (int) Math.round((tempPoint.y - geoTransform[3]) / geoTransform[5]);
 
-                    if(x <= aR.kernel || x >= tifDataset.getRasterXSize()-aR.kernel || y <= aR.kernel || y >= tifDataset.getRasterYSize()-aR.kernel)
+                    if(x <= aR.kernel || x >= xDim-aR.kernel || y <= aR.kernel || y >= yDim-aR.kernel)
                         continue;
 
-                    band.ReadRaster(x, y, 1, 1, data);
+                    //band.ReadRaster(x, y, 1, 1, data);
 
-                    if(!Float.isNaN(data[0])){
+                    if(!Float.isNaN(raster[x][y])){
 
-                            tempPoint.z -= data[0];
+                            tempPoint.z -= raster[x][y];
 
                             try {
 

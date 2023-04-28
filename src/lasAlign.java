@@ -24,9 +24,9 @@ public class lasAlign{
 
         tinManupulator tin = new tinManupulator(aR);
 
-        if(aR.cores > 1){
-            threadTool(aR, fD);
-        }else{
+        //if(aR.cores > 1){
+            //threadTool(aR, fD);
+        //}else{
 
             lasAligner tooli = new lasAligner(aR);
             tooli.setTinManupulator(tin);
@@ -61,7 +61,7 @@ public class lasAlign{
 
 
 
-        }
+        //}
 
     }
 
