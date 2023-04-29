@@ -1251,23 +1251,29 @@ public class LASraf implements Closeable {
     int skip = 111;
 
     raFile.seek(skip);
-    byte[] array = intToByteArray((int)in[0]);
+    //byte[] array = intToByteArray((int)in[0]);
+    byte[] array = longToByteArray(in[0]);
+
     raFile.write(array);
 
     raFile.seek(skip + 4);
-    array = intToByteArray((int)in[1]);
+    //array = intToByteArray((int)in[1]);
+    array = longToByteArray(in[1]);
     raFile.write(array);
 
     raFile.seek(skip + 4 * 2);
-    array = intToByteArray((int)in[2]);
+    //array = intToByteArray((int)in[2]);
+    array = array = longToByteArray(in[2]);
     raFile.write(array);
 
     raFile.seek(skip + 4 * 3);
-    array = intToByteArray((int)in[3]);
+    //array = intToByteArray((int)in[3]);
+    array = array = longToByteArray(in[3]);
     raFile.write(array);
 
     raFile.seek(skip + 4 * 4);
-    array = intToByteArray((int)in[4]);
+    //array = intToByteArray((int)in[4]);
+    array = array = longToByteArray(in[4]);
     raFile.write(array);
     
   }

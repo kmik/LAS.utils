@@ -157,6 +157,7 @@ public class pointWriterMultiThread {
         else
             outputFile.updateHeader(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn, aR,
                     this.x_offset, this.y_offset, this.z_offset, this.x_scale, this.y_scale, this.z_scale);
+
         outputFile.close();
         this.releaseMemory();
     }
