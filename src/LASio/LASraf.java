@@ -26,7 +26,7 @@ public class LASraf implements Closeable {
 
 
 
-  public int writtenPoints = 0;
+  public long writtenPoints = 0;
 
   public Byte myByte = new Byte("00000000");
   public byte myBitti = myByte.byteValue();
@@ -1127,7 +1127,8 @@ public class LASraf implements Closeable {
 
   public synchronized void writePointCount(long in)throws IOException{
 
-    byte[] array = intToByteArray((int)in);
+    //byte[] array = intToByteArray((int)in);
+    byte[] array = longToByteArray(in);
 
     raFile.seek(107);
     raFile.write(array);
@@ -1263,17 +1264,17 @@ public class LASraf implements Closeable {
 
     raFile.seek(skip + 4 * 2);
     //array = intToByteArray((int)in[2]);
-    array = array = longToByteArray(in[2]);
+    array = longToByteArray(in[2]);
     raFile.write(array);
 
     raFile.seek(skip + 4 * 3);
     //array = intToByteArray((int)in[3]);
-    array = array = longToByteArray(in[3]);
+    array = longToByteArray(in[3]);
     raFile.write(array);
 
     raFile.seek(skip + 4 * 4);
     //array = intToByteArray((int)in[4]);
-    array = array = longToByteArray(in[4]);
+    array = longToByteArray(in[4]);
     raFile.write(array);
     
   }
