@@ -559,7 +559,6 @@ public class lasAligner {
         double[] geoTransform = tifDataset.GetGeoTransform();
         float[] floatArray = new float[xDim];
 
-
         for(int y = 0; y < yDim; y++) {
 
             band.ReadRaster(0, y, xDim, 1, floatArray);

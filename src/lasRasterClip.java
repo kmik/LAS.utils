@@ -22,9 +22,9 @@ public class lasRasterClip {
         ArrayList<File> inputFiles = prepareData(aR, "las2las");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
-        if(aR.cores > 1){
+        //if(aR.cores > 1){
             //threadTool(aR, fD);
-        }else{
+        //}else{
 
             lasRasterTools tooli = new lasRasterTools(aR);
 
@@ -66,7 +66,7 @@ public class lasRasterClip {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }
+            //}
         }
 
     }

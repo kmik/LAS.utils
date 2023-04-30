@@ -52,12 +52,15 @@ public class lasRasterTools {
 
         float[] floatArray = new float[number_of_pix_x];
 
+        System.out.println("Reading raster line by line");
+
         for(int y = 0; y < number_of_pix_y; y++) {
 
             tifBand.ReadRaster(0, y, number_of_pix_x, 1, floatArray);
 
             for (int x = 0; x < number_of_pix_x; x++) {
 
+                System.out.println("line " + y);
                 float value = floatArray[x];
 
                 if (value == 1.0f) {
@@ -74,7 +77,6 @@ public class lasRasterTools {
     public void clip(){
 
         ForkJoinPool customThreadPool = new ForkJoinPool(aR.cores);
-
 
         try {
 
