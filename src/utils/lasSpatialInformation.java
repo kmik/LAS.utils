@@ -25,6 +25,49 @@ public class lasSpatialInformation {
         this.aR = aR;
     }
 
+    public void writeExtentToFile() throws IOException{
+
+        if(aR.output.equals("asd")){
+            throw new toolException("No output defined!");
+        }
+
+        ArrayList<String> output = new ArrayList<>();
+
+        double min_x = Double.POSITIVE_INFINITY;
+        double max_x = Double.NEGATIVE_INFINITY;
+
+        double min_y = Double.POSITIVE_INFINITY;
+        double max_y = Double.NEGATIVE_INFINITY;
+
+        for(int i = 0; i < aR.inputFiles.size(); i++){
+
+
+            LASReader tempReader = new LASReader(aR.inputFiles.get(i));
+
+            if(tempReader.getMinX() < min_x)
+                min_x = tempReader.getMinX();
+
+            if(tempReader.getMaxX() > max_x)
+                max_x = tempReader.getMaxX();
+
+            if(tempReader.getMinY() < min_y)
+                min_y = tempReader.getMinY();
+
+            if(tempReader.getMaxY() > max_y)
+                max_y = tempReader.getMaxY();
+
+
+        }
+
+        BufferedWriter writer = new BufferedWriter(new FileWriter(aR.output));
+
+        String out = min_x + " " + max_y + " " + max_x + " " + min_y;
+        writer.write(out);
+        writer.close();
+
+
+    }
+
     public void getCoverageUtm5() throws Exception{
 
         ArrayList<String> output = new ArrayList<>();

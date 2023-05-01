@@ -584,8 +584,10 @@ public class lasAligner {
         int xDim = tifDataset.getRasterXSize();
         int yDim = tifDataset.getRasterYSize();
 
+        System.out.println("reading raster to file!");
         float[][] raster = readRasterTo2DArray(tifDataset, tifDataset.getRasterXSize(), tifDataset.getRasterYSize());
 
+        System.out.println("Done reading raster");
         Band band = tifDataset.GetRasterBand(1);
         Double[] nodata = new Double[1];
         band.GetNoDataValue(nodata);
@@ -602,7 +604,6 @@ public class lasAligner {
         for(int i_ = 0; i_ < targets.size(); i_++){
 
             LASReader in = targets.get(i_);
-
 
             int thread_n = aR.pfac.addReadThread(in);
 
