@@ -217,8 +217,9 @@ public class lasAligner {
 
                         if (Float.isNaN(meanNonGround) || Math.abs(meanGround - meanNonGround) < 0.25) {
 
-                            if( firstCheck[j][k].countGround / (firstCheck[j][k].countGround + firstCheck[j][k].countNonGround) > 0.95 )
-                                properCells.add(j + k * numberOfPixelsX);
+                            if(firstCheck[j][k].max_ground - firstCheck[j][k].min_ground < 0.5)
+                                if( firstCheck[j][k].countGround / (firstCheck[j][k].countGround + firstCheck[j][k].countNonGround) > 0.95 )
+                                    properCells.add(j + k * numberOfPixelsX);
                         }
                     }
                 }
@@ -249,6 +250,9 @@ public class lasAligner {
                     int x = (int) Math.floor((tempPoint.x - origo_x) / resolution);
                     int y = (int) Math.floor((origo_y - tempPoint.y) / resolution);
 
+                    if(x < 0 || x >= numberOfPixelsX || y < 0 || y >= numberOfPixelsY)
+                        continue;
+
                     if (properCells.contains(x + y * numberOfPixelsX)) {
 
                         firstCheck[x][y].addTarget((float) tempPoint.z, (float)tempPoint.x, (float)tempPoint.y);
@@ -258,7 +262,7 @@ public class lasAligner {
                 }
             }
 
-
+            System.out.println("HERE1");
 
             //ogr.RegisterAll(); //Registering all the formats..
 
@@ -773,6 +777,7 @@ class dataPointTiny{
     public short countGround = 0, countNonGround = 0, countTarget = 0;
     public float sum_z_ground = 0, sum_z_nonGround = 0, sum_z_target = 0, max_z_target = Float.NEGATIVE_INFINITY, min_z_target = Float.POSITIVE_INFINITY;
 
+    public float max_ground = Float.NEGATIVE_INFINITY, min_ground = Float.POSITIVE_INFINITY;
     public float sum_x = 0, sum_y = 0;
     public float sum_x_ground = 0, sum_y_ground = 0;
 
@@ -813,6 +818,13 @@ class dataPointTiny{
 
         sum_x_ground += x;
         sum_y_ground += y;
+
+        if(z > this.max_ground)
+            this.max_ground = z;
+
+        if(z < this.min_ground)
+            this.min_ground = z;
+
     }
 
     public float getMeanGroundX(){
