@@ -135,17 +135,17 @@ public class lasAligner {
 
             for (int j = 0; j < targetPairsInRef.get(i_).size(); j++) {
 
-                if (refs.get(targetPairsInRef.get(i_).get(j)).getMinX() < min_x) {
+                if (refs.get(targetPairsInRef.get(i_).get(j)).getMinX() < min_x && refs.get(targetPairsInRef.get(i_).get(j)).getMinX() != 0.0) {
                     min_x = refs.get(targetPairsInRef.get(i_).get(j)).getMinX();
                 }
-                if (refs.get(targetPairsInRef.get(i_).get(j)).getMaxY() > max_y) {
+                if (refs.get(targetPairsInRef.get(i_).get(j)).getMaxY() > max_y && refs.get(targetPairsInRef.get(i_).get(j)).getMaxY() != 0.0) {
                     max_y = refs.get(targetPairsInRef.get(i_).get(j)).getMaxY();
                 }
 
-                if (refs.get(targetPairsInRef.get(i_).get(j)).getMaxX() > max_x) {
+                if (refs.get(targetPairsInRef.get(i_).get(j)).getMaxX() > max_x && refs.get(targetPairsInRef.get(i_).get(j)).getMaxX() != 0.0) {
                     max_x = refs.get(targetPairsInRef.get(i_).get(j)).getMaxX();
                 }
-                if (refs.get(targetPairsInRef.get(i_).get(j)).getMinY() < min_y) {
+                if (refs.get(targetPairsInRef.get(i_).get(j)).getMinY() < min_y && refs.get(targetPairsInRef.get(i_).get(j)).getMinY() != 0.0) {
                     min_y = refs.get(targetPairsInRef.get(i_).get(j)).getMinY();
                 }
 
