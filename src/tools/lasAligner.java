@@ -91,13 +91,13 @@ public class lasAligner {
 
                     targets.add(tmpReader);
 
-                    if(tmpReader.getMinX() < min_x)
+                    if(tmpReader.getMinX() < min_x && tmpReader.getMinX() != 0.0)
                         min_x = tmpReader.getMinX();
-                    if(tmpReader.getMaxX() > max_x)
+                    if(tmpReader.getMaxX() > max_x && tmpReader.getMaxX() != 0.0)
                         max_x = tmpReader.getMaxX();
-                    if(tmpReader.getMinY() < min_y)
+                    if(tmpReader.getMinY() < min_y && tmpReader.getMinY() != 0.0)
                         min_y = tmpReader.getMinY();
-                    if(tmpReader.getMaxY() > max_y)
+                    if(tmpReader.getMaxY() > max_y && tmpReader.getMaxY() != 0.0)
                         max_y = tmpReader.getMaxY();
 
                 }
