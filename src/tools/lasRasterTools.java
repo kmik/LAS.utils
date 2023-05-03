@@ -11,9 +11,16 @@ import org.gdal.gdalconst.gdalconst;
 import utils.argumentReader;
 import utils.pointWriterMultiThread;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.Raster;
+import java.awt.image.RenderedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
+
 
 public class lasRasterTools {
 
@@ -29,6 +36,9 @@ public class lasRasterTools {
         this.aR = aR;
     }
 
+    public void printTimeInMinutesSeconds(long timeInMilliseconds, String message){
+        System.out.println(message + " -- Time taken: " + (timeInMilliseconds / 1000) / 60 + " minutes and " + (timeInMilliseconds / 1000) % 60 + " seconds.");
+    }
 
     public void readRasters(){
 
@@ -54,6 +64,8 @@ public class lasRasterTools {
 
         System.out.println("Reading raster line by line");
 
+        long startTime = System.currentTimeMillis();
+
         for(int y = 0; y < number_of_pix_y; y++) {
 
             tifBand.ReadRaster(0, y, number_of_pix_x, 1, floatArray);
@@ -71,6 +83,55 @@ public class lasRasterTools {
                 }
             }
         }
+
+        long endTime = System.currentTimeMillis();
+
+        printTimeInMinutesSeconds(endTime - startTime, "Raster to 2d array");
+
+    }
+
+    public void readRasters2(){
+
+        gdal.AllRegister();
+
+        if(aR.ref.size() > 1){
+            throw new toolException("Only one reference raster can be used at a time!");
+        }
+        if(aR.ref.size() == 0){
+            throw new toolException("No reference raster provided!");
+        }
+
+        String fileName = aR.ref.get(0).getAbsolutePath();
+        BufferedImage image = null;
+        try {
+            image = ImageIO.read(new File(fileName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        this.mask = new boolean[width][height];
+        long startTime = System.currentTimeMillis();
+
+
+        System.out.println("Reading raster line by line");
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int rgb = image.getRGB(x, y);
+                if (rgb == 1) {
+                    mask[x][y] = true;
+
+                }else{
+
+                }
+            }
+        }
+        long endTime = System.currentTimeMillis();
+
+        printTimeInMinutesSeconds(endTime - startTime, "Raster to 2d array");
 
     }
 

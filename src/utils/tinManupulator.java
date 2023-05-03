@@ -45,12 +45,13 @@ public class tinManupulator {
         polator.resetForChangeToTin();
     }
 
-    public void printTimeInMinutesSeconds(Long timeInMilliseconds, String message){
+    public void printTimeInMinutesSeconds(long timeInMilliseconds, String message){
         System.out.println(message + " -- Time taken: " + (timeInMilliseconds / 1000) / 60 + " minutes and " + (timeInMilliseconds / 1000) % 60 + " seconds.");
     }
     public void writeTinToFile(File outputFile, double resolution){
 
-        System.out.println("Writing TIN to file...");
+        System.out.println("Writing TIN to file... ");
+        System.out.println("tin size: " + tin.getVertices().size());
 
         // Start timer
         long startTime = System.currentTimeMillis();
