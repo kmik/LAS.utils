@@ -28,7 +28,7 @@ public class lasRasterClip {
 
             lasRasterTools tooli = new lasRasterTools(aR);
 
-            tooli.readRasters2();
+            tooli.readRasters();
             tooli.clip2();
 
             if(false)
