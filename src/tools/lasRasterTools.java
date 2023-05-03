@@ -60,7 +60,7 @@ public class lasRasterTools {
 
             for (int x = 0; x < number_of_pix_x; x++) {
 
-                System.out.println("line " + y);
+                //System.out.println("line " + y);
                 float value = floatArray[x];
 
                 if (value == 1.0f) {
