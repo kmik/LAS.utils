@@ -213,5 +213,81 @@ public class lasRasterTools {
 
     }
 
+    public void clip2(){
 
+        //ForkJoinPool customThreadPool = new ForkJoinPool(aR.cores);
+
+        try {
+
+            //customThreadPool.submit(() ->
+            for(int i_ = 0; i_ < aR.inputFiles.size(); i_++) {
+                //IntStream.range(0, aR.inputFiles.size()).parallel().forEach(i_ -> {
+                LASReader temp = null;
+
+                LasPoint tempPoint = new LasPoint();
+                try {
+                    temp = new LASReader(aR.inputFiles.get(i_));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                int thread_n = aR.pfac.addReadThread(temp);
+
+                File outFile = null;
+                pointWriterMultiThread pw = null;
+
+                try {
+                    outFile = aR.createOutputFile(temp);
+
+                    pw = new pointWriterMultiThread(outFile, temp, "las2las", aR);
+                } catch (Exception e) {
+                    System.out.println("Not enough points! Are you using remove_buffer and ALL points in this .las file are part of the buffer?");
+                    return;
+                }
+                LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
+                aR.pfac.addWriteThread(thread_n, pw, buf);
+
+                float[] data = new float[1];
+
+                for (long i = 0; i < temp.getNumberOfPointRecords(); i += 20000) {
+
+                    int maxi = (int) Math.min(20000, Math.abs(temp.getNumberOfPointRecords() - i));
+
+                    try {
+                        aR.pfac.prepareBuffer(thread_n, i, 20000);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
+                    for (int j_ = 0; j_ < maxi; j_++) {
+
+                        temp.readFromBuffer(tempPoint);
+
+                        int x = (int) Math.round((tempPoint.x - geoTransform[0]) / geoTransform[1]);
+                        int y = (int) Math.round((tempPoint.y - geoTransform[3]) / geoTransform[5]);
+
+                        if (this.mask[x][y] == false) {
+
+                            try {
+
+                                aR.pfac.writePoint(tempPoint, i + j_, thread_n);
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                System.exit(1);
+                            }
+
+                        }
+                    }
+                }
+
+                aR.pfac.closeThread(thread_n);
+            }
+                    //})).get();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+    }
 }
