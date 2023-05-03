@@ -45,7 +45,15 @@ public class tinManupulator {
         polator.resetForChangeToTin();
     }
 
+    public void printTimeInMinutesSeconds(Long timeInMilliseconds, String message){
+        System.out.println(message + " -- Time taken: " + (timeInMilliseconds / 1000) / 60 + " minutes and " + (timeInMilliseconds / 1000) % 60 + " seconds.");
+    }
     public void writeTinToFile(File outputFile, double resolution){
+
+        System.out.println("Writing TIN to file...");
+
+        // Start timer
+        long startTime = System.currentTimeMillis();
 
         polator.resetForChangeToTin();
 
@@ -122,12 +130,27 @@ public class tinManupulator {
             }
         }
 
+        // Start timer
+        long endTime = System.currentTimeMillis();
+
+        printTimeInMinutesSeconds(endTime - startTime, "Interpolation");
+
+        startTime = System.currentTimeMillis();
+
         if(aR.theta != 0.0)
             aR.kernel = (int)( 2.0 * Math.ceil( 3.0 * aR.theta) + 1.0);
 
         //System.out.println("Kernel: " + aR.kernel + " theta: " + aR.theta);
 
         smoothed = GaussianSmooth.smooth(smoothed, numberOfPixelsX, numberOfPixelsY, aR.kernel, aR.theta);  // THIS IS GOOD!!!! :)
+        startTime = System.currentTimeMillis();
+
+        // End timer
+        endTime = System.currentTimeMillis();
+
+        printTimeInMinutesSeconds(endTime - startTime, "Smoothing");
+
+        startTime = System.currentTimeMillis();
 
         double sum = 0.0;
         double count = 0;
@@ -143,9 +166,12 @@ public class tinManupulator {
                     sum += outValue[0];
                     count++;
                 }
-
             }
         }
+
+        endTime = System.currentTimeMillis();
+
+        printTimeInMinutesSeconds(endTime - startTime, "Writing to file");
 
         double averageCorrection = sum / count;
 

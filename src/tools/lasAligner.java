@@ -217,7 +217,7 @@ public class lasAligner {
 
                         if (Float.isNaN(meanNonGround) || Math.abs(meanGround - meanNonGround) < 0.25) {
 
-                            if(firstCheck[j][k].max_ground - firstCheck[j][k].min_ground < 0.5)
+                            if(firstCheck[j][k].max_ground - firstCheck[j][k].min_ground < 1.0)
                                 if( firstCheck[j][k].countGround / (firstCheck[j][k].countGround + firstCheck[j][k].countNonGround) > 0.95 )
                                     properCells.add(j + k * numberOfPixelsX);
                         }
