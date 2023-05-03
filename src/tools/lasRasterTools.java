@@ -188,6 +188,9 @@ public class lasRasterTools {
                                 int x = (int) Math.round((tempPoint.x - geoTransform[0]) / geoTransform[1]);
                                 int y = (int) Math.round((tempPoint.y - geoTransform[3]) / geoTransform[5]);
 
+                                if(x < 0 || x >= mask.length || y < 0 || y >= mask[0].length){
+                                    continue;
+                                }
                                 if(this.mask[x][y] == false){
 
                                     try {

@@ -29,7 +29,7 @@ public class lasRasterClip {
             lasRasterTools tooli = new lasRasterTools(aR);
 
             tooli.readRasters();
-            tooli.clip2();
+            tooli.clip();
 
             if(false)
             for (int i = 0; i < inputFiles.size(); i++) {
