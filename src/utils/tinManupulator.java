@@ -6,6 +6,7 @@ import org.gdal.gdal.Driver;
 import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconst;
 import org.gdal.osr.SpatialReference;
+import org.tinfour.common.IQuadEdge;
 import org.tinfour.common.Vertex;
 import org.tinfour.interpolation.TriangularFacetInterpolator;
 import org.tinfour.interpolation.VertexValuatorDefault;
@@ -15,11 +16,13 @@ import tools.GaussianSmooth;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import static org.tinfour.utils.Polyside.isPointInPolygon;
 
 public class tinManupulator {
 
+    List<IQuadEdge> perimeter = new ArrayList<>();
     public String tiff_file_name = null;
 
     org.tinfour.standard.IncrementalTin tin = new org.tinfour.standard.IncrementalTin();
@@ -28,6 +31,7 @@ public class tinManupulator {
     argumentReader aR;
 
     TriangularFacetInterpolator polator = new TriangularFacetInterpolator(tin);
+
     public double minx = 0, miny = 0, minz = 0, maxx = 0, maxy = 0, maxz = 0;
     public tinManupulator(argumentReader aR){
 
@@ -111,6 +115,8 @@ public class tinManupulator {
             }
         }
 
+        this.perimeter = tin.getPerimeter();
+
         for (int j = 0; j < numberOfPixelsX; j++) {
             for (int k = 0; k < numberOfPixelsY; k++) {
 
@@ -191,7 +197,7 @@ public class tinManupulator {
 
     public synchronized boolean isPointInTin(double x, double y){
 
-        return isPointInPolygon(tin.getPerimeter(), x, y) == Polyside.Result.Inside;
+        return isPointInPolygon(this.perimeter, x, y) == Polyside.Result.Inside;
 
     }
 
