@@ -148,8 +148,18 @@ public class tinManupulator {
             aR.kernel = (int)( 2.0 * Math.ceil( 3.0 * aR.theta) + 1.0);
 
         //System.out.println("Kernel: " + aR.kernel + " theta: " + aR.theta);
+        //System.out.println(smoothed.length + " " + smoothed[0].length);
+        //double[][] mirrored_tmp = mirrorAll(smoothed, aR.kernel);
 
+        //System.out.println(mirrored_tmp.length + " " + mirrored_tmp[0].length);
         smoothed = GaussianSmooth.smooth(smoothed, numberOfPixelsX, numberOfPixelsY, aR.kernel, aR.theta);  // THIS IS GOOD!!!! :)
+        //System.out.println(mirrored_tmp.length + " " + mirrored_tmp[0].length);
+        //smoothed = unmirrorAll(mirrored_tmp, aR.kernel);
+
+        //System.out.println(smoothed.length + " " + smoothed[0].length);
+        //System.out.println(aR.kernel);
+
+        //System.exit(1);
         startTime = System.currentTimeMillis();
 
         // End timer
@@ -187,6 +197,55 @@ public class tinManupulator {
         dataset_output.delete();
 
 
+    }
+
+    public static double[][] mirrorAll(double[][] array, int bufferPixels) {
+        int width = array[0].length;
+        int height = array.length;
+        int newWidth = width + bufferPixels * 2;
+        int newHeight = height + bufferPixels * 2;
+        double[][] result = new double[newHeight][newWidth];
+
+        // Copy the original array to the center of the new array
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                result[y + bufferPixels][x + bufferPixels] = array[y][x];
+            }
+        }
+
+        // Mirror the top and bottom sides of the array
+        for (int y = 0; y < bufferPixels; y++) {
+            int topIndex = bufferPixels - y;
+            int bottomIndex = newHeight - bufferPixels + y - 1;
+            for (int x = 0; x < newWidth; x++) {
+                result[topIndex][x] = result[bufferPixels + y][x];
+                result[bottomIndex][x] = result[newHeight - bufferPixels - y - 1][x];
+            }
+        }
+
+        // Mirror the left and right sides of the array
+        for (int x = 0; x < bufferPixels; x++) {
+            int leftIndex = bufferPixels - x;
+            int rightIndex = newWidth - bufferPixels + x - 1;
+            for (int y = 0; y < newHeight; y++) {
+                result[y][leftIndex] = result[y][bufferPixels + x];
+                result[y][rightIndex] = result[y][newWidth - bufferPixels - x - 1];
+            }
+        }
+
+        return result;
+    }
+
+    public static double[][] unmirrorAll(double[][] arr, int buffer) {
+        int height = arr.length - 2*buffer;
+        int width = arr[0].length - 2*buffer;
+        double[][] result = new double[height][width];
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                result[i][j] = arr[i+buffer][j+buffer];
+            }
+        }
+        return result;
     }
 
     public synchronized double interpolate(double x, double y){

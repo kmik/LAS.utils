@@ -95,6 +95,10 @@ public class GaussianSmooth extends Thread {
   public static double [][] smooth(double [][] input, int width, int height,
 				   int ks, double theta){
 
+    double[][] mirror = mirrorAll(input, ks);
+    width += ks*2;
+    height += ks*2;
+
     Convolution convolution = new Convolution();
     double [][] gaussianKernel = new double [ks][ks];
     double [][] output = new double [width][height];
@@ -102,10 +106,61 @@ public class GaussianSmooth extends Thread {
 
     //print(gaussianKernel);
 
-    output = Convolution.convolution2DPadded(input,width,height,
+    output = Convolution.convolution2DPadded(mirror,width,height,
 					   gaussianKernel,ks,ks);
-    return output;
 
+
+    return unmirrorAll(output, ks);
+
+  }
+
+  public static double[][] mirrorAll(double[][] array, int bufferPixels) {
+    int width = array[0].length;
+    int height = array.length;
+    int newWidth = width + bufferPixels * 2;
+    int newHeight = height + bufferPixels * 2;
+    double[][] result = new double[newHeight][newWidth];
+
+    // Copy the original array to the center of the new array
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        result[y + bufferPixels][x + bufferPixels] = array[y][x];
+      }
+    }
+
+    // Mirror the top and bottom sides of the array
+    for (int y = 0; y < bufferPixels; y++) {
+      int topIndex = bufferPixels - y;
+      int bottomIndex = newHeight - bufferPixels + y - 1;
+      for (int x = 0; x < newWidth; x++) {
+        result[topIndex][x] = result[bufferPixels + y][x];
+        result[bottomIndex][x] = result[newHeight - bufferPixels - y - 1][x];
+      }
+    }
+
+    // Mirror the left and right sides of the array
+    for (int x = 0; x < bufferPixels; x++) {
+      int leftIndex = bufferPixels - x;
+      int rightIndex = newWidth - bufferPixels + x - 1;
+      for (int y = 0; y < newHeight; y++) {
+        result[y][leftIndex] = result[y][bufferPixels + x];
+        result[y][rightIndex] = result[y][newWidth - bufferPixels - x - 1];
+      }
+    }
+
+    return result;
+  }
+
+  public static double[][] unmirrorAll(double[][] arr, int buffer) {
+    int height = arr.length - 2*buffer;
+    int width = arr[0].length - 2*buffer;
+    double[][] result = new double[height][width];
+    for (int i = 0; i < height; i++) {
+      for (int j = 0; j < width; j++) {
+        result[i][j] = arr[i+buffer][j+buffer];
+      }
+    }
+    return result;
   }
 
   public static void smooth_tif(Dataset input, Dataset output, int width, int height,
