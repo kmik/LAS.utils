@@ -585,6 +585,7 @@ public class lasAligner {
 
         Dataset tifDataset = gdal.Open(tinM.tiff_file_name, gdalconst.GA_ReadOnly);
 
+
         int xDim = tifDataset.getRasterXSize();
         int yDim = tifDataset.getRasterYSize();
 
@@ -644,7 +645,8 @@ public class lasAligner {
                     int x = (int) Math.round((tempPoint.x - geoTransform[0]) / geoTransform[1]);
                     int y = (int) Math.round((tempPoint.y - geoTransform[3]) / geoTransform[5]);
 
-                    if(x <= aR.kernel || x >= xDim-aR.kernel || y <= aR.kernel || y >= yDim-aR.kernel)
+                    //if(x <= aR.kernel || x >= xDim-aR.kernel || y <= aR.kernel || y >= yDim-aR.kernel)
+                    if(x < 0 || x >= xDim || y < 0 || y >= yDim)
                         continue;
 
                     //band.ReadRaster(x, y, 1, 1, data);

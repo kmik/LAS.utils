@@ -2,6 +2,7 @@ import LASio.LASReader;
 import tools.ToShp;
 import utils.argumentReader;
 import utils.fileDistributor;
+import utils.threadProgressbars;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +23,9 @@ public class lasGridStats {
         ArrayList<File> inputFiles = prepareData(aR, "lasGridStats");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
+        threadProgressbars prog = new threadProgressbars(aR.cores, aR.inputFiles.size());
+        aR.setProgressBars(prog);
+
         if(aR.cores > 1){
             threadTool(aR, fD);
         }else{
@@ -32,6 +36,7 @@ public class lasGridStats {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                aR.prog.fileDone();
             }
         }
         printProcessingTime();
@@ -100,6 +105,9 @@ public class lasGridStats {
                 }catch (Exception e){
                     e.printStackTrace();
                 }
+
+                aR.prog.fileDone();
+
             }
         }
     }

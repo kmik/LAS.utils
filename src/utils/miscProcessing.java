@@ -46,6 +46,11 @@ public class miscProcessing {
 
         aR.setInputFiles(inputFiles);
         aR.p_update.totalFiles = aR.pointClouds.size();
+
+        if(aR.cores > aR.inputFiles.size())
+            aR.cores = aR.inputFiles.size();
+
+
         return inputFiles;
 
     }

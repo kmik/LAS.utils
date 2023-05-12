@@ -88,7 +88,7 @@ public class RunId4pointsLAS{
 
         }
 
-        public void addThread(){
+        public synchronized void addThread(){
 
             numberOfThreads++;
 

@@ -25,12 +25,13 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
-
+    public threadProgressbars prog = new threadProgressbars();
     public ArrayList<File> ref = new ArrayList<>();
     public String[] ref_;
     public ArrayList<File> tar = new ArrayList<>();
     public String[] tar_;
 
+    public String exclude = null;
     public HashMap<Integer, HashSet<Integer>> tree_belongs_to_this_plot = null;
 
     public ArrayList<Integer> create_extra_byte_vlr = new ArrayList<>();
@@ -340,6 +341,11 @@ public class argumentReader {
 
     }
 
+    public void setProgressBars(threadProgressbars in){
+        this.prog = in;
+    }
+
+
     public argumentReader(){
 
     }
@@ -638,6 +644,13 @@ public class argumentReader {
                 .longOpt("prob")
                 .hasArg(true)
                 .desc("Probability (check tool for more info)")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("exclude")
+                .hasArg(true)
+                .desc("Exclude these ids")
                 .required(false)
                 .build());
 
@@ -2042,6 +2055,9 @@ public class argumentReader {
 
             }
 
+            if(cmd.hasOption("exclude")){
+                this.exclude = cmd.getOptionValue("exclude");
+            }
 
 
             if (cmd.hasOption("MML_klj")) {

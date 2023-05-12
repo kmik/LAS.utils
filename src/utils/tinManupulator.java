@@ -13,10 +13,14 @@ import org.tinfour.interpolation.VertexValuatorDefault;
 import org.tinfour.utils.Polyside;
 import tools.GaussianSmooth;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+
 
 import static org.tinfour.utils.Polyside.isPointInPolygon;
 
@@ -193,10 +197,35 @@ public class tinManupulator {
         double averageCorrection = sum / count;
 
         //System.out.println("AVERAGE: " + sum / count);
+
         band.FlushCache();
         dataset_output.delete();
 
+        ProcessBuilder pb = new ProcessBuilder("gdal_fillnodata.py", outputFileName, "-md", "1000", outputFileName);
+        pb.redirectErrorStream(true);
+        Process process = null;
+        List<String> command = pb.command();
+        System.out.println("Command: " + String.join(" ", command));
 
+        try {
+           process = pb.start();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+
+        try {
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+            reader.close();
+            process.destroy();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        //System.exit(1);
     }
 
     public static double[][] mirrorAll(double[][] array, int bufferPixels) {

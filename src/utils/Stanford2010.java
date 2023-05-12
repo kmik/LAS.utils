@@ -40,6 +40,8 @@ import static tools.ConcaveHull.calculateConcaveHull;
 
 public class Stanford2010 {
 
+    HashSet<Integer> excludedStands = new HashSet<>();
+
 
     int concave_hull_k = 75;
     ArrayList<String> failedFiles = new ArrayList<>();
@@ -93,6 +95,27 @@ public class Stanford2010 {
     public void finalizeMergedShapefile(){
 
         allStandsShapeFileLayer.SyncToDisk();
+
+    }
+
+    public void readExcludedStandsFromFile(String fileName){
+
+        try{
+            Scanner scanner = new Scanner(new File(fileName));
+
+            while(scanner.hasNextLine()){
+
+                String line = scanner.nextLine();
+
+                excludedStands.add(Integer.parseInt(line));
+
+            }
+
+        }catch(Exception e){
+
+            e.printStackTrace();
+
+        }
 
     }
 
@@ -167,7 +190,15 @@ public class Stanford2010 {
             if( i % 3 == 0 || true) {
 
                 Feature tempF = shapeFileLayer.GetFeature(i);
+
+                int id = (int)tempF.GetFieldAsDouble("MT_KORJUUTPID_C");
+
+
+                //tempF.GetFiel
+                System.out.println("id: " + id + " " + tempF.GetFieldCount());
                 Geometry tempG = tempF.GetGeometryRef();
+
+
                 //System.out.println(tempG.GetGeometryName());
 // check if geometry is a MultiPolygon
                 if (tempG.GetGeometryName().equals("MULTIPOLYGON")) {
@@ -178,8 +209,8 @@ public class Stanford2010 {
 
                         shapeId++;
                         Geometry tempG2 = tempG.GetGeometryRef(j).GetGeometryRef(0);
-                        //System.out.println("here2 " + tempF.GetFieldAsInteger(0));
 
+                        //System
                         //System.out.println(tempG2.GetGeometryName());
 
                         if (tempG2.GetGeometryName().equals("LINEARRING")) {
@@ -234,7 +265,7 @@ public class Stanford2010 {
         System.out.println(standBounds.size() + " stand bounds read.");
         System.out.println(standCentroids.size() + " stand centroids read.");
 
-        //ystem.exit(1);
+        System.exit(1);
     }
 
     public static double[][] clone2DArray(double[][] original) {
@@ -297,15 +328,21 @@ public class Stanford2010 {
         try {
             xml = builder.build(this.xml_file);
         } catch (JDOMException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
 
+        Element root = null;
 
-        Element root = xml.getRootElement();
-
+        try {
+            root = xml.getRootElement();
+        }catch (Exception e){
+            System.out.println("Error parsing XML file: " + this.xml_file.getAbsolutePath());
+            return;
+        }
 
         File ofile =new File("/home/koomikko/Documents/customer_work/metsahallitus/parsed.hpr");
 

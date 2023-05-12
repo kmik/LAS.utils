@@ -21,11 +21,22 @@ import static tools.cellStats.polygonArea;
 
 public class lasGridStats {
 
+    double cellSizeVMI = 16.0;
+    double minX_finnishMap6k = 20000.0;
+    double maxY_finnishMap6k = 7818000.0;
+
     LASReader pointCloud;
     argumentReader aR;
     double orig_y, orig_x;
     double resolution = 0;
     double z_cutoff = 1.3;
+
+    int VMI_minIndexX = 0, VMI_maxIndexY = 0;
+    double minX = Double.POSITIVE_INFINITY;
+    double minY = Double.POSITIVE_INFINITY;
+
+    double maxX = Double.NEGATIVE_INFINITY;
+    double maxY = Double.NEGATIVE_INFINITY;
 
     gridRAF bin_a;
     gridRAF bin_f;
@@ -82,23 +93,62 @@ public class lasGridStats {
 
         }
 
+
+        findExtent();
+
+
+        if(aR.MML_klj){
+            this.resolution = cellSizeVMI;
+            this.prepareMML();
+        }
+
         //this.resolution = aR.step;
 
         this.outputMetricFile_a = this.aR.createOutputFileWithExtension(pointCloud, "_gridStats_all_echoes.txt");
         this.outputMetricFile_l = this.aR.createOutputFileWithExtension(pointCloud, "_gridStats_last_and_only_echoes.txt");
         this.outputMetricFile_f = this.aR.createOutputFileWithExtension(pointCloud, "_gridStats_first_and_only_echoes.txt");
         this.outputMetricFile_i = this.aR.createOutputFileWithExtension(pointCloud, "_gridStats_intermediate_echoes.txt");
+
         bin_a = new gridRAF(this.aR.createOutputFileWithExtension(pointCloud, "_temp_a.bin"));
         bin_f = new gridRAF(this.aR.createOutputFileWithExtension(pointCloud, "_temp_f.bin"));
         bin_l = new gridRAF(this.aR.createOutputFileWithExtension(pointCloud, "_temp_l.bin"));
         bin_i = new gridRAF(this.aR.createOutputFileWithExtension(pointCloud, "_temp_i.bin"));
 
-
-
-
         this.start_2();
 
         aR.p_update.fileProgress++;
+
+    }
+
+    public void prepareMML(){
+
+        double anchor_x = minX_finnishMap6k;
+        double anchor_y = maxY_finnishMap6k;
+
+        double x_diff = minX - anchor_x;
+        double y_diff = anchor_y - maxY;
+
+        int n_x = (int)Math.floor(x_diff / cellSizeVMI);
+        int n_y = (int)Math.floor(y_diff / cellSizeVMI);
+
+        this.VMI_minIndexX = n_x;
+        this.VMI_maxIndexY = n_y;
+
+
+        this.minX = n_x * cellSizeVMI + anchor_x;
+        this.maxY = anchor_y - n_y * cellSizeVMI;
+
+        this.orig_x = this.minX;
+        this.orig_y = this.maxY;
+
+    }
+
+    public void findExtent(){
+
+        minX = pointCloud.minX;
+        maxX = pointCloud.maxX;
+        minY = pointCloud.minY;
+        maxY = pointCloud.maxY;
 
     }
 
@@ -580,8 +630,9 @@ public class lasGridStats {
 
                         metrics = pCM.calc(gridPoints_z_a.get(ii), gridPoints_i_a.get(ii), sum_z_a.get(ii), sum_i_a.get(ii), "_a", colnames);
 
-                        if(colnames_metrics_a.size() == 0)
-                            colnames_metrics_a = (ArrayList<String>)colnames.clone();
+                        if(colnames_metrics_a.size() == 0) {
+                            colnames_metrics_a = (ArrayList<String>) colnames.clone();
+                        }
 
                         gridLocationInRaf_a.get(x).get(y).add(raf_location_a);
 
@@ -1350,11 +1401,10 @@ public class lasGridStats {
 
         long tStart = System.currentTimeMillis();
 
-
         aR.output_statistics = true;
 
-        this.grid_x_size = (int)Math.ceil((pointCloud.maxX - orig_x) / resolution);
-        this.grid_y_size = (int)Math.ceil((orig_y - pointCloud.minY) / resolution);
+        this.grid_x_size = (int)Math.ceil((this.maxX - orig_x) / resolution);
+        this.grid_y_size = (int)Math.ceil((orig_y - this.minY) / resolution);
 
         aR.p_update.threadEnd[coreNumber-1] = grid_x_size*grid_y_size;
         float[][] stats = new float[grid_x_size][grid_y_size];
@@ -1456,8 +1506,8 @@ public class lasGridStats {
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
 
             pointCloud.readRecord(i, tempPoint);
-            int x = Math.min((int)((tempPoint.x - pointCloud.minX) / resolution), grid_x_size-1);
-            int y = Math.min((int)((pointCloud.maxY - tempPoint.y) / resolution), grid_y_size-1);
+            int x = Math.min((int)((tempPoint.x - minX) / resolution), grid_x_size-1);
+            int y = Math.min((int)((maxY - tempPoint.y) / resolution), grid_y_size-1);
 
             //long c = (long)x << 32 | y & 0xFFFFFFFFL;
 
@@ -1466,8 +1516,20 @@ public class lasGridStats {
             //int aBack = (int)(c >> 32);
             //int bBack = (int)c;
 
-
         }
+
+        int numberOfCellsToProcess = 0;
+        for(int x = 0; x < grid_x_size; x++)
+            for(int y = 0; y < grid_y_size; y++) {
+
+                if(number_of_points_per_cell[x][y] > 0) {
+
+                    numberOfCellsToProcess++;
+
+                }
+            }
+
+        aR.prog.setEnd(coreNumber-1, numberOfCellsToProcess);
 
         ogr.RegisterAll(); //Registering all the formats..
         gdal.AllRegister();
@@ -1519,6 +1581,8 @@ public class lasGridStats {
         int counter = 0;
         ArrayList<double[]>[][] grid_of_points = (ArrayList<double[]>[][]) new ArrayList[grid_x_size][grid_y_size] ;
 
+
+
         if(false)
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
 
@@ -1530,6 +1594,9 @@ public class lasGridStats {
             number_of_points_per_cell[x][y]--;
 
             if(grid_of_points[x][y] == null){
+
+                numberOfCellsToProcess++;
+
                 grid_of_points[x][y] = new ArrayList<>();
                 grid_of_points[x][y].add(new double[]{tempPoint.x, tempPoint.y, tempPoint.z, tempPoint.intensity, tempPoint.numberOfReturns, tempPoint.returnNumber});
             }else
@@ -1545,10 +1612,9 @@ public class lasGridStats {
                 if(counter % 1000 == 0){
                     System.gc();
                 }
-
             }
-
         }
+
 
         int[][] cell_only_id = new int[grid_x_size][grid_y_size];
 
@@ -1570,6 +1636,36 @@ public class lasGridStats {
 
         int stand_id = 1;
 
+        int progress = 0;
+
+        System.out.println(numberOfCellsToProcess);
+        //System.exit(1);
+
+        //FileWriter writer = null;
+        try {
+            writer_a = new FileWriter(this.outputMetricFile_a);
+            writer_f = new FileWriter(this.outputMetricFile_f);
+            writer_l = new FileWriter(this.outputMetricFile_l);
+            writer_i = new FileWriter(this.outputMetricFile_i);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        /*
+                                   bin_i.writeDouble(grid_cell_id);
+                                   bin_i.writeDouble(ids.get(ii));
+                                   bin_i.writeDouble(divided);
+                                   bin_i.writeDouble(0.0);
+                                   bin_i.writeDouble(areas.get(ii));
+         */
+        writer_a.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
+        writer_f.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
+        writer_l.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
+        writer_i.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
+
+
+
+
         if(!aR.eaba)
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
 
@@ -1581,8 +1677,8 @@ public class lasGridStats {
             }else{
             }
 
-            int x = Math.min((int)((tempPoint.x - pointCloud.minX) / resolution), grid_x_size-1);
-            int y = Math.min((int)((pointCloud.maxY - tempPoint.y) / resolution), grid_y_size-1);
+            int x = Math.min((int)((tempPoint.x - this.minX) / resolution), grid_x_size-1);
+            int y = Math.min((int)((this.maxY - tempPoint.y) / resolution), grid_y_size-1);
 
             //long c = (long)x << 32 | y & 0xFFFFFFFFL;
 
@@ -1598,6 +1694,9 @@ public class lasGridStats {
 
             if(number_of_points_per_cell[x][y] == 0){
 
+                //printProgressBar(progress++, numberOfCellsToProcess);
+                aR.prog.addProgress(coreNumber-1, 1);
+                aR.prog.printProgressBar();
                 counter++;
                 cell_only_id[x][y] = -1;
 
@@ -1845,7 +1944,7 @@ public class lasGridStats {
                 grid_of_points[x][y].clear();
                 grid_of_points[x][y] = null;
 
-                aR.p_update.threadProgress[0]++;
+                aR.p_update.threadProgress[coreNumber-1]++;
 
                 /* No points in this rectangle */
                 if(ids.size() == 0)
@@ -1867,7 +1966,7 @@ public class lasGridStats {
 
                 }
 
-                double grid_cell_id = y * grid_x_size + x;
+                double grid_cell_id = (y + VMI_maxIndexY) * grid_x_size + (x + VMI_minIndexX);
 /*
                 for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
 
@@ -1907,36 +2006,62 @@ public class lasGridStats {
 
                 boolean addedBecauseTooSmall = false;
 
+                if(!aR.photogrammetry)
                 /* Iterate over all the plot ids within this grid cell */
                 for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
 
                     /* If this plot id within this grid cell has more than 10 points */
                     if(gridPoints_z_a.get(ii).size() > aR.min_points) {
 
-
-
                         metrics = pCM.calc(gridPoints_z_a.get(ii), gridPoints_i_a.get(ii), sum_z_a.get(ii), sum_i_a.get(ii), "_a", colnames);
 
-                        if(colnames_metrics_a.size() == 0)
-                            colnames_metrics_a = (ArrayList<String>)colnames.clone();
+                        if(colnames_metrics_a.size() == 0) {
+                            colnames_metrics_a = (ArrayList<String>) colnames.clone();
+
+                            /* First and only contain RGB, so we need to do it separately */
+                            for(int i_ = 0; i_ < colnames_metrics_a.size(); i_++) {
+                                writer_a.write(colnames_metrics_a.get(i_) + "\t");
+                            }
+
+                            writer_a.write("\n");
+
+                        }
 
                         gridLocationInRaf_a.get(x).get(y).add(raf_location_a);
 
-                        bin_a.writeDouble(grid_cell_id);
-                        bin_a.writeDouble(ids.get(ii));
-                        bin_a.writeDouble(divided);
-                        bin_a.writeDouble(0.0);
-                        bin_a.writeDouble(areas.get(ii));
-                        bin_a.writeDouble(x_coord);
-                        bin_a.writeDouble(y_coord);
+                        if (do_merge) {
+                            bin_a.writeDouble(grid_cell_id);
+                            bin_a.writeDouble(ids.get(ii));
+                            bin_a.writeDouble(divided);
+                            bin_a.writeDouble(0.0);
+                            bin_a.writeDouble(areas.get(ii));
+                            bin_a.writeDouble(x_coord);
+                            bin_a.writeDouble(y_coord);
 
-                        if(divided == 0 && areas.get(ii) <= (resolution * resolution * 0.66) && !addedBecauseTooSmall){
-                            addedBecauseTooSmall = true;
-                            do_overs.add( x * grid_y_size + y );
-                        }
+                            if (divided == 0 && areas.get(ii) <= (resolution * resolution * 0.66) && !addedBecauseTooSmall) {
+                                addedBecauseTooSmall = true;
+                                do_overs.add(x * grid_y_size + y);
+                            }
 
-                        for (Double metric : metrics) {
-                            bin_a.writeDouble(metric);
+                            for (Double metric : metrics) {
+                                bin_a.writeDouble(metric);
+                            }
+                        }else{
+
+                            writer_a.write(grid_cell_id + "\t");
+                            writer_a.write(ids.get(ii) + "\t");
+                            writer_a.write(divided + "\t");
+                            writer_a.write(0.0 + "\t");
+                            writer_a.write(areas.get(ii) + "\t");
+                            writer_a.write(x_coord + "\t");
+                            writer_a.write(y_coord + "\t");
+
+                            for (Double metric : metrics) {
+                                writer_a.write(metric + "\t");
+                            }
+
+                            writer_a.write("\n");
+
                         }
                         raf_location_a++;
 
@@ -1962,21 +2087,47 @@ public class lasGridStats {
                         //System.out.println(gridPoints_RGB_f.get(ii).size());
                         metrics = pCM.calc_with_RGB(gridPoints_z_f.get(ii), gridPoints_i_f.get(ii), sum_z_f.get(ii), sum_i_f.get(ii), "_f", colnames, gridPoints_RGB_f.get(ii));
 
-                        if(colnames_metrics_f.size() == 0)
-                            colnames_metrics_f = (ArrayList<String>)colnames.clone();
+                        if(colnames_metrics_f.size() == 0) {
+                            colnames_metrics_f = (ArrayList<String>) colnames.clone();
 
-                        bin_f.writeDouble(grid_cell_id);
-                        bin_f.writeDouble(ids.get(ii));
-                        bin_f.writeDouble(divided);
-                        bin_f.writeDouble(0.0);
-                        bin_f.writeDouble(areas.get(ii));
-                        bin_f.writeDouble(x_coord);
-                        bin_f.writeDouble(y_coord);
+                            /* First and only contain RGB, so we need to do it separately */
+                            for(int i_ = 0; i_ < colnames_metrics_f.size(); i_++) {
+                                writer_f.write(colnames_metrics_f.get(i_) + "\t");
+                            }
 
-                        for (Double metric : metrics) {
-                            bin_f.writeDouble(metric);
+                            writer_f.write("\n");
+
+
                         }
 
+                        if(do_merge) {
+                            bin_f.writeDouble(grid_cell_id);
+                            bin_f.writeDouble(ids.get(ii));
+                            bin_f.writeDouble(divided);
+                            bin_f.writeDouble(0.0);
+                            bin_f.writeDouble(areas.get(ii));
+                            bin_f.writeDouble(x_coord);
+                            bin_f.writeDouble(y_coord);
+
+                            for (Double metric : metrics) {
+                                bin_f.writeDouble(metric);
+                            }
+                        }else{
+                            writer_f.write(grid_cell_id + "\t");
+                            writer_f.write(ids.get(ii) + "\t");
+                            writer_f.write(divided + "\t");
+                            writer_f.write(0.0 + "\t");
+                            writer_f.write(areas.get(ii) + "\t");
+                            writer_f.write(x_coord + "\t");
+                            writer_f.write(y_coord + "\t");
+
+                            for (Double metric : metrics) {
+                                writer_f.write(metric + "\t");
+                            }
+
+                            writer_f.write("\n");
+
+                        }
                         gridLocationInRaf_f.get(x).get(y).add(raf_location_f);
                         raf_location_f++;
 
@@ -1986,35 +2137,53 @@ public class lasGridStats {
                     }
                 }
 
-
-
+                if(!aR.photogrammetry)
                 for(int ii = 0; ii < gridPoints_z_l.size(); ii++) {
 
                     if(gridPoints_z_l.get(ii).size() > aR.min_points) {
 
                         metrics = pCM.calc(gridPoints_z_l.get(ii), gridPoints_i_l.get(ii), sum_z_l.get(ii), sum_i_l.get(ii), "_l", colnames);
 
-                        if(colnames_metrics_l.size() == 0)
-                            colnames_metrics_l = (ArrayList<String>)colnames.clone();
+                        if(colnames_metrics_l.size() == 0) {
 
-                        bin_l.writeDouble(grid_cell_id);
-                        bin_l.writeDouble(ids.get(ii));
-                        bin_l.writeDouble(divided);
-                        bin_l.writeDouble(0.0);
-                        bin_l.writeDouble(areas.get(ii));
-                        bin_l.writeDouble(x_coord);
-                        bin_l.writeDouble(y_coord);
+                            colnames_metrics_l = (ArrayList<String>) colnames.clone();
 
-                        for (Double metric : metrics) {
-                            bin_l.writeDouble(metric);
+                            /* First and only contain RGB, so we need to do it separately */
+                            for(int i_ = 0; i_ < colnames_metrics_l.size(); i_++) {
+                                writer_l.write(colnames_metrics_l.get(i_) + "\t");
+                            }
+
+                            writer_l.write("\n");
+
+
                         }
 
+                        if(do_merge) {
+                            bin_l.writeDouble(grid_cell_id);
+                            bin_l.writeDouble(ids.get(ii));
+                            bin_l.writeDouble(divided);
+                            bin_l.writeDouble(0.0);
+                            bin_l.writeDouble(areas.get(ii));
+                            bin_l.writeDouble(x_coord);
+                            bin_l.writeDouble(y_coord);
+
+                            for (Double metric : metrics) {
+                                bin_l.writeDouble(metric);
+                            }
+                        }else{
+                            writer_l.write(grid_cell_id + "\t" + ids.get(ii) + "\t" + divided + "\t" + 0.0 + "\t" + areas.get(ii) + "\t" + x_coord + "\t" + y_coord + "\t");
+                            for (Double metric : metrics) {
+                                writer_l.write(metric + "\t");
+                            }
+                            writer_l.write("\n");
+                        }
                         gridLocationInRaf_l.get(x).get(y).add(raf_location_l);
                         raf_location_l++;
 
                     }
                 }
 
+                if(!aR.photogrammetry)
                 for(int ii = 0; ii < gridPoints_z_i.size(); ii++) {
 
                     if(gridPoints_z_i.get(ii).size() > aR.min_points) {
@@ -2024,19 +2193,49 @@ public class lasGridStats {
                         metrics = pCM.calc(gridPoints_z_i.get(ii), gridPoints_i_i.get(ii), sum_z_i.get(ii), sum_i_i.get(ii), "_i", colnames);
 
 
-                        if(colnames_metrics_i.size() == 0)
-                            colnames_metrics_i = (ArrayList<String>)colnames.clone();
+                        if(colnames_metrics_i.size() == 0) {
 
-                        bin_i.writeDouble(grid_cell_id);
-                        bin_i.writeDouble(ids.get(ii));
-                        bin_i.writeDouble(divided);
-                        bin_i.writeDouble(0.0);
-                        bin_i.writeDouble(areas.get(ii));
-                        bin_i.writeDouble(x_coord);
-                        bin_i.writeDouble(y_coord);
 
-                        for (Double metric : metrics) {
-                            bin_i.writeDouble(metric);
+                            colnames_metrics_i = (ArrayList<String>) colnames.clone();
+
+
+                            /* First and only contain RGB, so we need to do it separately */
+                            for(int i_ = 0; i_ < colnames_metrics_i.size(); i_++) {
+                                writer_i.write(colnames_metrics_i.get(i_) + "\t");
+                            }
+
+                            writer_i.write("\n");
+
+
+
+                        }
+
+
+                        if(do_merge) {
+                            bin_i.writeDouble(grid_cell_id);
+                            bin_i.writeDouble(ids.get(ii));
+                            bin_i.writeDouble(divided);
+                            bin_i.writeDouble(0.0);
+                            bin_i.writeDouble(areas.get(ii));
+                            bin_i.writeDouble(x_coord);
+                            bin_i.writeDouble(y_coord);
+
+                            for (Double metric : metrics) {
+                                bin_i.writeDouble(metric);
+                            }
+                        }else{
+                            writer_i.write(grid_cell_id + "\t");
+                            writer_i.write(ids.get(ii) + "\t");
+                            writer_i.write(divided + "\t");
+                            writer_i.write(0.0 + "\t");
+                            writer_i.write(areas.get(ii) + "\t");
+                            writer_i.write(x_coord + "\t");
+                            writer_i.write(y_coord + "\t");
+
+                            for (Double metric : metrics) {
+                                writer_i.write(metric + "\t");
+                            }
+                            writer_i.write("\n");
                         }
 
                         gridLocationInRaf_i.get(x).get(y).add(raf_location_i);
@@ -2059,6 +2258,26 @@ public class lasGridStats {
                     System.gc();
 
             }
+        }
+
+        if(!do_merge){
+
+            writer_a.close();
+            writer_f.close();
+            writer_l.close();
+            writer_i.close();
+
+            bin_a.file.delete();
+            bin_f.file.delete();
+            bin_l.file.delete();
+            bin_i.file.delete();
+
+            bin_a.close();
+            bin_f.close();
+            bin_l.close();
+            bin_i.close();
+
+            return;
         }
 
         PriorityQueue<Integer> readyToComputeCells = new PriorityQueue<>();
@@ -2911,51 +3130,6 @@ public class lasGridStats {
         System.exit(1);
 */
 
-        //FileWriter writer = null;
-        try {
-            writer_a = new FileWriter(this.outputMetricFile_a);
-            writer_f = new FileWriter(this.outputMetricFile_f);
-            writer_l = new FileWriter(this.outputMetricFile_l);
-            writer_i = new FileWriter(this.outputMetricFile_i);
-
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        /*
-                                   bin_i.writeDouble(grid_cell_id);
-                                   bin_i.writeDouble(ids.get(ii));
-                                   bin_i.writeDouble(divided);
-                                   bin_i.writeDouble(0.0);
-                                   bin_i.writeDouble(areas.get(ii));
-         */
-        writer_a.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
-        writer_f.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
-        writer_l.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
-        writer_i.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
-
-        for(int i = 0; i < colnames_metrics_a.size(); i++){
-            writer_a.write(colnames_metrics_a.get(i) + "\t");
-        }
-
-        for(int i = 0; i < colnames_metrics_l.size(); i++) {
-            writer_l.write(colnames_metrics_l.get(i) + "\t");
-
-        }
-
-        for(int i = 0; i < colnames_metrics_i.size(); i++) {
-            writer_i.write(colnames_metrics_i.get(i) + "\t");
-        }
-
-            /* First and only contain RGB, so we need to do it separately */
-        for(int i = 0; i < colnames_metrics_f.size(); i++) {
-            writer_f.write(colnames_metrics_f.get(i) + "\t");
-        }
-
-
-        writer_a.write("\n");
-        writer_f.write("\n");
-        writer_l.write("\n");
-        writer_i.write("\n");
 
         /* This is for if we want to do the merging thingy */
         if(do_merge) {
@@ -3205,6 +3379,38 @@ public class lasGridStats {
         System.out.println("TOOK: " + minutes + " min " + seconds + " sec");
     }
 
+    public static void printProgressBar(int progress, int end) {
+        int percent = (int) Math.round((progress / (double) end) * 100);
+        StringBuilder bar = new StringBuilder("[");
+        int width = 20;
+        int filled = (int) (width * (percent / 100.0));
+        for (int i = 0; i < width; i++) {
+            if (i < filled) {
+                bar.append("=");
+            } else {
+                bar.append(" ");
+            }
+        }
+        bar.append("] " + percent + "%");
+        System.out.print("\r" + bar.toString());
+        System.out.flush();
+    }
+
+    public void printProgressBar2(int currentProgress, int end){
+
+            int percent = (int)(((double)currentProgress / (double)end) * 100);
+
+            String bar = "";
+
+            for(int i = 0; i < 100; i++){
+                if(i < percent)
+                    bar += "=";
+                else
+                    bar += " ";
+            }
+
+            System.out.print("\r" + bar + " " + percent + "%");
+    }
 
     public double[] redoMetrics(HashSet<Integer> pos, int doubles_per_cell, int doubles_per_cell_rgb) throws Exception{
 
