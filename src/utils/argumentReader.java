@@ -30,7 +30,7 @@ public class argumentReader {
     public String[] ref_;
     public ArrayList<File> tar = new ArrayList<>();
     public String[] tar_;
-
+    public String[] gr;
     public String exclude = null;
     public HashMap<Integer, HashSet<Integer>> tree_belongs_to_this_plot = null;
 
@@ -126,6 +126,7 @@ public class argumentReader {
     public ArrayList<File> inputFiles = new ArrayList<>();
     public ArrayList<File> outputFiles = new ArrayList<File>();
 
+    public ArrayList<File> groundPointFiles = new ArrayList<>();
 
     public double decimate_tin = -1;
 
@@ -207,6 +208,8 @@ public class argumentReader {
     public double angle = -999;
     public double axgrid = 20;
     public String groundPoints = "-999";
+
+
 
     public boolean debug = false;
 
@@ -531,6 +534,15 @@ public class argumentReader {
                 .numberOfArgs(Option.UNLIMITED_VALUES)
                 .required(false)
                 .build());
+
+        options.addOption( Option.builder()
+                .longOpt("ground")
+                .hasArg(true)
+                .desc("Ground las files")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .required(false)
+                .build());
+
         options.addOption(Option.builder("o")
                 .longOpt("output")
                 .hasArg(true)
@@ -646,6 +658,8 @@ public class argumentReader {
                 .desc("Probability (check tool for more info)")
                 .required(false)
                 .build());
+
+
 
         options.addOption(Option.builder()
                 .longOpt("exclude")
@@ -1781,6 +1795,23 @@ public class argumentReader {
 
             }
 
+
+            if(cmd.hasOption("ground")){
+
+                gr = cmd.getOptionValues("ground");
+                if(gr[0].split(";").length > 1){
+                    gr = gr[0].split(";");
+                }
+                ArrayList<String> temp = new ArrayList<>();
+
+                for(String s : gr){
+
+                    //System.out.println(s);
+
+                    this.grounds.add(new File(s));
+                }
+
+            }
 
             if (cmd.hasOption("i")) {
 

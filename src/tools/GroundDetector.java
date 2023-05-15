@@ -2839,7 +2839,7 @@ public class GroundDetector{
 
         double interpolatedvalue = 0;
 
-        if(groundPoints.equals("-999")){
+        if(aR.grounds.size() == 0){
 
             LasPoint tempPoint = new LasPoint();
 
@@ -2928,7 +2928,11 @@ public class GroundDetector{
 
             groundPointFile = new File(groundPoints);
 
-            createTinFromFile(groundPointFile, 2);
+            for(int i = 0; i < aR.grounds.size(); i++) {
+                //createTinFromFile(groundPointFile, 2);
+                createTinFromFile(aR.grounds.get(i), 2);
+
+            }
 
             if(!tin.isBootstrapped())
                 createTin(groundClassification);
@@ -2958,6 +2962,7 @@ public class GroundDetector{
             LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
 
             List<IQuadEdge> perimeter = tin.getPerimeter();
+
             for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
 
                 maxi = (int) Math.min(10000, pointCloud.getNumberOfPointRecords() - i);
@@ -2998,6 +3003,313 @@ public class GroundDetector{
                         this.pointsOutsideTin++;
                         aR.p_update.threadInt[coreNumber - 1] = this.pointsOutsideTin;
                     }
+                }
+            }
+
+            buf.close();
+            buf.pwrite.close(aR);
+        }
+        aR.p_update.lasground_fileProgress++;
+        aR.p_update.updateProgressNormalize();
+    }
+
+    public void normalizeZ_mem_eff(int groundClassification, String outputFile2, PointInclusionRule rule, String otype, String groundPoints) throws Exception{
+
+        double buffer = 100.0;
+
+        if(aR.ground_class == -1)
+            this.aR.p_update.lasheight_groundClass = 2;
+        else
+            this.aR.p_update.lasheight_groundClass = aR.ground_class;
+
+        this.progress_end = (int)pointCloud.getNumberOfPointRecords();
+
+        aR.p_update.threadEnd[coreNumber-1] = (int)pointCloud.getNumberOfPointRecords();
+        aR.p_update.threadProgress[coreNumber-1] = 0;
+        aR.p_update.threadInt[coreNumber-1] = 0;
+        aR.p_update.updateProgressNormalize();
+
+        double interpolatedvalue = 0;
+
+        if(aR.grounds.size() == 0){
+
+            LasPoint tempPoint = new LasPoint();
+
+            if(!tin.isBootstrapped())
+                createTin(groundClassification);
+
+            if(!tin.isBootstrapped()){
+
+                throw new toolException("TIN is not bootstrapped. There are not enough ground points with class " + aR.ground_class + "" +
+                        "to construct a TIN.");
+
+            }
+
+            org.tinfour.interpolation.TriangularFacetInterpolator polator = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);
+
+            long n = pointCloud.getNumberOfPointRecords();
+
+            int maxi;
+
+            double distance = 0.0;
+
+            int thread_n = aR.pfac.addReadThread(pointCloud);
+
+            pointWriterMultiThread pw = new pointWriterMultiThread(this.outWriteFile, pointCloud, "las2las", aR);
+            LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
+            aR.pfac.addWriteThread(thread_n, pw, buf);
+
+            List<IQuadEdge> perimeter = tin.getPerimeter();
+
+            int counter_debug = 0;
+
+            for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+
+                maxi = (int) Math.min(10000, pointCloud.getNumberOfPointRecords() - i);
+
+                aR.pfac.prepareBuffer(thread_n, i, 10000);
+
+                for (int j = 0; j < maxi; j++) {
+
+                    pointCloud.readFromBuffer(tempPoint);
+
+                    /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                    if(!rule.ask(tempPoint, i+j, true)){
+                        continue;
+                    }
+
+                    this.progress_current++;
+
+                    aR.p_update.threadProgress[coreNumber-1] = this.progress_current;
+
+                    //if(isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Inside) {
+
+                    counter_debug++;
+
+                    distance = (tempPoint.z - polator.interpolate(tempPoint.x, tempPoint.y, valuator));
+                    //distance = 0.0;
+
+                    if(!Double.isNaN(distance)) {
+                        tempPoint.z = distance;
+                        //buf.writePoint(tempPoint, aR.inclusionRule, i);
+                        aR.pfac.writePoint(tempPoint, i + j, thread_n);
+                    }else{
+                        this.pointsOutsideTin++;
+                        aR.p_update.threadInt[coreNumber-1] = this.pointsOutsideTin;
+                    }
+
+                    if (progress_current % 10000 == 0) {
+                        aR.p_update.updateProgressNormalize();
+                        //this.updateProgress_normalize();
+                    }
+                    //}else {
+                    //    this.pointsOutsideTin++;
+                    //    aR.p_update.threadInt[coreNumber - 1] = this.pointsOutsideTin;
+                    //}
+
+                }
+            }
+
+            aR.pfac.closeThread(thread_n);
+
+        }
+
+        else{
+
+
+
+            if(aR.grounds.size() > 1){
+                throw new toolException("Multiple ground files are not supported yet.");
+
+            }
+
+            groundPointFile = aR.grounds.get(0);
+
+            LASReader groundReader = new LASReader(groundPointFile);
+
+            if(!groundReader.isIndexed){
+                groundReader.index(50);
+            }
+
+
+
+            //for(int i = 0; i < aR.grounds.size(); i++) {
+                //createTinFromFile(groundPointFile, 2);
+            //    createTinFromFile(aR.grounds.get(i), 2);
+
+            //}
+
+
+            double minX = pointCloud.getMinX();
+            double maxX = pointCloud.getMaxX();
+            double minY = pointCloud.getMinY();
+            double maxY = pointCloud.getMaxY();
+
+            double orig_x = minX;
+            double orig_y = maxY;
+            double resolution = 500;
+
+            int n_x = 0;
+            int n_y = 0;
+
+            n_x = (int)Math.ceil((maxX - minX) / resolution);
+            n_y = (int)Math.ceil((maxY - minY) / resolution);
+
+
+            if(!pointCloud.isIndexed){
+                try {
+                    pointCloud.index(50);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+
+
+
+            org.tinfour.interpolation.TriangularFacetInterpolator polator = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);
+            File outputFile = this.outWriteFile;// new File(outputFileName);
+
+            if(outputFile.exists())
+                outputFile.delete();
+
+            outputFile.createNewFile();
+
+            LasPoint tempPoint = new LasPoint();
+
+            long n = pointCloud.getNumberOfPointRecords();
+
+            int maxi;
+
+            double distance = 0.0;
+            pointWriterMultiThread pw = new pointWriterMultiThread(this.outWriteFile, pointCloud, "lasHeight(mem_eff)", aR);
+
+            LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
+
+            List<IQuadEdge> perimeter = tin.getPerimeter();
+
+            System.out.println("n_x: " + n_x + " n_y: " + n_y);
+
+            for(int x = 0; x < n_x; x++) {
+                for (int y = 0; y < n_y; y++) {
+
+                    try {
+                        groundReader.queryPoly2(orig_x + resolution * x - buffer, orig_x + resolution * x + resolution + buffer, orig_y - resolution * y - resolution - buffer, orig_y - resolution * y + buffer);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    System.out.println("Read indexed points");
+
+                    tin.dispose();
+                    System.gc();
+                    System.gc();
+                    System.gc();
+                    System.gc();
+
+                    tin = new IncrementalTin(1.0);
+                    System.out.println("Cleared tin " + groundReader.indexContainsStuff());
+                    polator = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);
+
+
+                    if(groundReader.indexContainsStuff()) {
+
+                        int p = 0;
+
+                        while (!groundReader.index_read_terminated) {
+
+                            p = groundReader.fastReadFromQuery(tempPoint);
+
+                            if(tempPoint.classification == aR.ground_class) {
+                                tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+                                //buf.writePoint(tempPoint, aR.inclusionRule, p);
+                            }
+
+                        }
+
+                        polator.resetForChangeToTin();
+                        System.out.println("tin size: " + tin.getVertices().size());
+
+                        perimeter = tin.getPerimeter();
+
+                        try {
+                            pointCloud.queryPoly2(orig_x + resolution * x, orig_x + resolution * x + resolution, orig_y - resolution * y - resolution, orig_y - resolution * y);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        if(pointCloud.indexContainsStuff()) {
+
+                            p = 0;
+
+                            while (!pointCloud.index_read_terminated) {
+
+                                //System.out.println("reading from point cloud");
+
+                                try {
+                                    p = pointCloud.fastReadFromQuery(tempPoint);
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                    System.exit(1);
+                                }
+
+                                if(p == -999)
+                                    continue;
+
+                                if (tempPoint.z < 80) {
+                                    System.out.println("pre1: " + tempPoint.z + " " + tempPoint.x + " " + tempPoint.y + " " + tempPoint.classification);
+                                    System.exit(1);
+                                }
+                                // if point is within the rectangle
+
+                                if(tempPoint.x >= orig_x + resolution * x && tempPoint.x < orig_x + resolution * x + resolution && tempPoint.y >= orig_y - resolution * y - resolution && tempPoint.y < orig_y - resolution * y){
+                                    // if point is within the perimeter
+                                    //buf.writePoint(tempPoint, aR.inclusionRule, p);
+
+                                    //if(true)
+                                    //    continue;
+
+                                    if(isPointInPolygon(perimeter, tempPoint.x, tempPoint.y) == Polyside.Result.Inside) {
+
+                                        if (tempPoint.z < 80) {
+                                            System.out.println("pre2: " + tempPoint.z);
+                                            System.exit(1);
+                                        }
+
+                                        distance = (tempPoint.z - polator.interpolate(tempPoint.x, tempPoint.y, valuator));
+                                        //distance = 0.0;
+
+                                        if (!Double.isNaN(distance)) {
+
+                                            if(distance < -100){
+
+                                                System.out.println(polator.interpolate(tempPoint.x, tempPoint.y, valuator) + " " + tempPoint.z);
+                                                System.exit(1);
+
+                                            }
+                                            tempPoint.z = distance;
+                                            //buf.writePoint(tempPoint, aR.inclusionRule, i);
+                                            buf.writePoint(tempPoint, aR.inclusionRule, p);
+
+
+                                        } else {
+                                            this.pointsOutsideTin++;
+                                            aR.p_update.threadInt[coreNumber - 1] = this.pointsOutsideTin;
+                                        }
+                                    }else{
+                                        System.out.println("POINT OUTSIDE; SHOULD NOT HAPPEN");
+                                    }
+                                }
+
+                            }
+                        }
+
+
+                    }
+
+
+
                 }
             }
 

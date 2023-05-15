@@ -229,14 +229,18 @@ public class LASReader {
 
   public int fastReadFromQuery(LasPoint tempPoint){
 
+    boolean lastNotRead = false;
+
     try {
       if (!doneIndexes.contains(index_p)) {
 
+        //System.out.println("index does not contain");
         readFromBuffer(tempPoint);
         //readRecord(index_p, tempPoint);
         doneIndexes.add(index_p);
       } else {
 
+        //System.out.println("index contains, skipping!");
         skipPointInBuffer();
 
         boolean terminatus = false;
@@ -244,6 +248,7 @@ public class LASReader {
 
           if (!doneIndexes.contains(++index_p)) {
 
+            //System.out.println("reading while not doneindex");
             readFromBuffer(tempPoint);
             //readRecord(index_p, tempPoint);
 
@@ -253,8 +258,17 @@ public class LASReader {
           }else
             skipPointInBuffer();
 
-          if (index_p + 1 > indexMinMax.get(this.index_u)[1])
+          //System.out.println("point found? " + terminatus);
+
+          if(!terminatus)
+            lastNotRead = true;
+
+          if (index_p + 1 > indexMinMax.get(this.index_u)[1]) {
             terminatus = true;
+
+          }
+
+          //System.out.println("still? " + terminatus);
 
         }
 
@@ -274,6 +288,94 @@ public class LASReader {
 
       if(this.index_u >= indexMinMax.size()){
 
+        //System.out.println("index read terminated!");
+        this.index_read_terminated = true;
+
+        if(lastNotRead)
+          return -999;
+        else
+          return index_p;
+
+      }
+
+      try {
+        readRecord_noRAF(indexMinMax.get(index_u)[0], indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1);
+        //System.out.println("READING " + (indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1) + " POINTS");
+        //System.out.println("minmax222: " + indexMinMax.get(index_u)[0] + " " + (indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1));
+
+      }catch (Exception e){
+        e.printStackTrace();
+      }
+
+      int output = this.index_p;
+
+      this.index_p = indexMinMax.get(index_u)[0];
+
+      if(lastNotRead)
+        return -999;
+      else
+        return output;
+
+    }
+
+    return index_p++;
+  }
+
+  public int fastReadFromQuery_backup(LasPoint tempPoint){
+
+    try {
+      if (!doneIndexes.contains(index_p)) {
+
+        System.out.println("index does not contain");
+        readFromBuffer(tempPoint);
+        //readRecord(index_p, tempPoint);
+        doneIndexes.add(index_p);
+      } else {
+
+        System.out.println("index contains, skipping!");
+        skipPointInBuffer();
+
+        boolean terminatus = false;
+        while (!terminatus) {
+
+          if (!doneIndexes.contains(++index_p)) {
+
+            System.out.println("reading while not doneindex");
+            readFromBuffer(tempPoint);
+            //readRecord(index_p, tempPoint);
+
+            doneIndexes.add(index_p);
+            terminatus = true;
+
+          }else
+            skipPointInBuffer();
+
+          System.out.println("point found? " + terminatus);
+
+          if (index_p + 1 > indexMinMax.get(this.index_u)[1])
+            terminatus = true;
+
+          System.out.println("still? " + terminatus);
+
+        }
+
+      }
+    }catch (Exception e){
+
+      System.out.println(this.pointsRead);
+
+
+      e.printStackTrace();
+      System.exit(1);
+    }
+
+    if(index_p + 1 > indexMinMax.get(this.index_u)[1]){
+
+      index_u++;
+
+      if(this.index_u >= indexMinMax.size()){
+
+        System.out.println("index read terminated!");
         this.index_read_terminated = true;
         return index_p;
 
@@ -292,13 +394,14 @@ public class LASReader {
 
       this.index_p = indexMinMax.get(index_u)[0];
 
+
+
       return output;
 
     }
 
     return index_p++;
   }
-
   public void prepareBuffer(){
 
     doneIndexes.clear();
@@ -1865,6 +1968,7 @@ public class LASReader {
 
   public synchronized void readFromBuffer(LasPoint p){
 
+    //here
     pointsRead++;
 
     if(pointDataRecordFormat <= 5) {
@@ -1876,6 +1980,8 @@ public class LASReader {
       p.x = lx * xScaleFactor + xOffset;
       p.y = ly * yScaleFactor + yOffset;
       p.z = lz * zScaleFactor + zOffset;
+
+      //System.out.println(lz + " " + zScaleFactor + " " + zOffset + " " + p.z);
       p.intensity = Short.toUnsignedInt(braf.buffer.getShort());
 
       int mask = braf.buffer.get();

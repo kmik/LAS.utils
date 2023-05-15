@@ -75,6 +75,11 @@ public class process_las2las {
 
                 in.readFromBuffer(tempPoint);
 
+                if(false)
+                if(tempPoint.z < 80){
+                    System.out.println("HAT!");
+                    System.exit(1);
+                }
                 //double x1 = tempPoint.x;
 
                 //in.readRecord(i+j, tempPoint);

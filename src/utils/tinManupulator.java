@@ -201,7 +201,7 @@ public class tinManupulator {
         band.FlushCache();
         dataset_output.delete();
 
-        ProcessBuilder pb = new ProcessBuilder("gdal_fillnodata.py", outputFileName, "-md", "1000", outputFileName);
+        ProcessBuilder pb = new ProcessBuilder("gdal_fillnodata.py", outputFileName, "-md", "10000", outputFileName);
         pb.redirectErrorStream(true);
         Process process = null;
         List<String> command = pb.command();
