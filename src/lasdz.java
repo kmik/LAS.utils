@@ -131,11 +131,12 @@ public class lasdz {
 
                     det.oparse(aR.oparse);
 
-                    if (aR.mem_efficient) {
+                    if(false)
+                        if (aR.mem_efficient) {
                         det.normalizeZ_mem_eff(aR.output, aR.getInclusionRule(), aR.otype);
-                    }
+                        }
 
-                    if (aR.groundPoints.equals("-999")) {
+                    if (aR.grounds.size() == 0) {
 
                         if (aR.ground_class == -1)
                             det.normalizeZ(aR.output, aR.getInclusionRule(), aR.otype);
@@ -144,7 +145,10 @@ public class lasdz {
 
                     } else {
 
-                        det.normalizeZ(aR.ground_class, aR.output, aR.getInclusionRule(), aR.otype, aR.groundPoints);
+                        if(!aR.mem_efficient)
+                            det.normalizeZ(aR.ground_class, aR.output, aR.getInclusionRule(), aR.otype, aR.groundPoints);
+                        else
+                            det.normalizeZ_mem_eff(aR.ground_class, aR.output, aR.getInclusionRule(), aR.otype, aR.groundPoints);
 
                     }
 
