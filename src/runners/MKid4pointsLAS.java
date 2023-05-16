@@ -187,7 +187,7 @@ public class MKid4pointsLAS{
                         long code1 = Cantor.pair(temp[0], temp[1]);
                         long code2 = Cantor.pair(temp2[0], temp2[1]);
 
-                        String tempString = " " + LASwrite.LASpoint2String(tempPoint, oparse);
+                        String tempString = " " + LASwrite.LASpoint2String(tempPoint, oparse, "\t");
                         outt.println(code2 + tempString + " " + code1);
 
                     }
@@ -855,7 +855,7 @@ public class MKid4pointsLAS{
                                     if(true){
 
                                         if(otype.equals("txt")) {
-                                            String tempString = " " + LASwrite.LASpoint2String(tempPoint, oparse);
+                                            String tempString = " " + LASwrite.LASpoint2String(tempPoint, oparse, aR.sep);
 
                                             String outLine;
 
@@ -1354,7 +1354,7 @@ public class MKid4pointsLAS{
                                                             aR.p_update.updateProgressClip();
 
                                                     } else if (otype.equals("txt")) {
-                                                        String tempString = " " + LASwrite.LASpoint2String(tempPoint, oparse);
+                                                        String tempString = " " + LASwrite.LASpoint2String(tempPoint, oparse, aR.sep);
                                                         String outLine = "";
                                                         if (!split)
                                                             outLine = plotID.get(j).intValue() + tempString;
@@ -1539,7 +1539,7 @@ public class MKid4pointsLAS{
 
 
                                             } else if (otype.equals("txt")) {
-                                                String tempString = " " + LASwrite.LASpoint2String(tempPoint, oparse);
+                                                String tempString = " " + LASwrite.LASpoint2String(tempPoint, oparse, aR.sep);
                                                 String outLine = "";
 
                                                 if (!split)

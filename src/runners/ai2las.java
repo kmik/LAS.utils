@@ -2628,7 +2628,7 @@ class ai2las{
 
 					if (!aR.olas) {
 
-						outWrite2 += LASwrite.LASpoint2String(tempPoint, oparse);
+						outWrite2 += LASwrite.LASpoint2String(tempPoint, oparse, aR.sep);
 
 						for (int l = 0; l < n_bands; l++) {
 

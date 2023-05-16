@@ -6,7 +6,13 @@ import err.toolException;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.util.FastMath;
+import org.gdal.gdal.Band;
+import org.gdal.gdal.Dataset;
+import org.gdal.gdal.Driver;
+import org.gdal.gdal.gdal;
+import org.gdal.gdalconst.gdalconst;
 import org.gdal.ogr.Geometry;
+import org.gdal.osr.SpatialReference;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.tinfour.common.*;
@@ -3119,9 +3125,36 @@ public class GroundDetector{
         else{
 
 
-
+            if(false)
             if(aR.grounds.size() > 1){
                 throw new toolException("Multiple ground files are not supported yet.");
+
+            }
+
+            ArrayList<LASReader> groundLAS = new ArrayList<>();
+            ArrayList<double[]> groundLASBounds = new ArrayList<>();
+
+            for(int i = 0; i < aR.grounds.size(); i++){
+
+                if(!aR.grounds.get(i).exists()){
+                    throw new toolException("Ground file " + aR.grounds.get(i).getAbsolutePath() + " does not exist.");
+                }
+
+                LASReader tmp = new LASReader(aR.grounds.get(i));
+
+                if(!tmp.isIndexed){
+                    tmp.index(50);
+                }
+
+                groundLAS.add(tmp);
+
+                double[] bounds = new double[4];
+                bounds[0] = tmp.getMinX();
+                bounds[1] = tmp.getMaxX();
+                bounds[2] = tmp.getMinY();
+                bounds[3] = tmp.getMaxY();
+
+                groundLASBounds.add(bounds);
 
             }
 
@@ -3194,13 +3227,18 @@ public class GroundDetector{
             for(int x = 0; x < n_x; x++) {
                 for (int y = 0; y < n_y; y++) {
 
-                    try {
-                        groundReader.queryPoly2(orig_x + resolution * x - buffer, orig_x + resolution * x + resolution + buffer, orig_y - resolution * y - resolution - buffer, orig_y - resolution * y + buffer);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    ArrayList<Integer> chosenLASFiles = new ArrayList<>();
+
+                    for(int i = 0; i < groundLASBounds.size(); i++){
+
+                        double[] bounds = groundLASBounds.get(i);
+
+                        if(doBoundingBoxesOverlap(orig_x + resolution * x - buffer, orig_x + resolution * x + resolution + buffer, orig_y - resolution * y - resolution - buffer, orig_y - resolution * y + buffer, bounds[0], bounds[1], bounds[2], bounds[3])){
+                            chosenLASFiles.add(i);
+                        }
+
                     }
 
-                    System.out.println("Read indexed points");
 
                     tin.dispose();
                     System.gc();
@@ -3209,29 +3247,79 @@ public class GroundDetector{
                     System.gc();
 
                     tin = new IncrementalTin(1.0);
-                    System.out.println("Cleared tin " + groundReader.indexContainsStuff());
+                    //System.out.println("Cleared tin " + groundReader.indexContainsStuff());
                     polator = new org.tinfour.interpolation.TriangularFacetInterpolator(tin);
 
 
-                    if(groundReader.indexContainsStuff()) {
+                    double minx = Double.POSITIVE_INFINITY, maxx = Double.NEGATIVE_INFINITY, miny = Double.POSITIVE_INFINITY, maxy = Double.NEGATIVE_INFINITY;
 
-                        int p = 0;
+                    int p = 0;
 
-                        while (!groundReader.index_read_terminated) {
+                    for(int i = 0; i < chosenLASFiles.size(); i++) {
 
-                            p = groundReader.fastReadFromQuery(tempPoint);
+                        LASReader tmpReader = groundLAS.get(chosenLASFiles.get(i));
 
-                            if(tempPoint.classification == aR.ground_class) {
-                                tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
-                                //buf.writePoint(tempPoint, aR.inclusionRule, p);
-                            }
-
+                        try {
+                            tmpReader.queryPoly2(orig_x + resolution * x - buffer, orig_x + resolution * x + resolution + buffer, orig_y - resolution * y - resolution - buffer, orig_y - resolution * y + buffer);
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
+
+                        System.out.println("Read indexed points");
+
+                        if (tmpReader.indexContainsStuff()) {
+
+                            p = 0;
+
+                            while (!tmpReader.index_read_terminated) {
+
+                                p = tmpReader.fastReadFromQuery(tempPoint);
+
+                                if (tempPoint.classification == aR.ground_class) {
+
+                                    if (tempPoint.x < minx)
+                                        minx = tempPoint.x;
+                                    if (tempPoint.x > maxx)
+                                        maxx = tempPoint.x;
+                                    if (tempPoint.y < miny)
+                                        miny = tempPoint.y;
+                                    if (tempPoint.y > maxy)
+                                        maxy = tempPoint.y;
+
+                                    tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+                                    //buf.writePoint(tempPoint, aR.inclusionRule, p);
+                                }
+
+                            }
+                        }
+                    }
+
+
+                        double tinResoluton = 2.0;
+
+                        int numberOfPixelsX = (int) Math.ceil((maxx - minx) / tinResoluton);
+                        int numberOfPixelsY = (int) Math.ceil((maxy - miny) / tinResoluton);
+
+                        double[] geoTransform = new double[]{minx, tinResoluton, 0.0, maxy, 0.0, -tinResoluton};
 
                         polator.resetForChangeToTin();
                         System.out.println("tin size: " + tin.getVertices().size());
 
                         perimeter = tin.getPerimeter();
+
+                        String extension = "_tin_c_" + this.coreNumber + ".tif";
+
+                        String outputFileName = null;
+                        try {
+                            outputFileName = aR.createOutputFileWithExtension(outputFile, "_tin_c" + this.coreNumber + ".tif").getAbsolutePath();
+                        }catch (Exception e){
+                            System.out.println("Not enough points! Are you using remove_buffer and ALL points in this .las file are part of the buffer?");
+                            return;
+                        }
+
+
+
+                        //writeTinToFile(aR.createOutputFileWithExtension(this.pointCloud, extension), tin, 1.0);
 
                         try {
                             pointCloud.queryPoly2(orig_x + resolution * x, orig_x + resolution * x + resolution, orig_y - resolution * y - resolution, orig_y - resolution * y);
@@ -3311,13 +3399,210 @@ public class GroundDetector{
 
 
                 }
-            }
+
 
             buf.close();
             buf.pwrite.close(aR);
         }
         aR.p_update.lasground_fileProgress++;
         aR.p_update.updateProgressNormalize();
+    }
+
+    public static boolean doBoundingBoxesOverlap(double minx1, double maxx1, double miny1, double maxy1,
+                                                 double minx2, double maxx2, double miny2, double maxy2) {
+        // Check for horizontal overlap
+        if (maxx1 < minx2 || minx1 > maxx2) {
+            return false;
+        }
+
+        // Check for vertical overlap
+        if (maxy1 < miny2 || miny1 > maxy2) {
+            return false;
+        }
+
+        // If both horizontal and vertical overlap exist, the boxes overlap
+        return true;
+    }
+
+    public void writeTinToFile(File outputFile, double resolution, TriangularFacetInterpolator polator, IncrementalTin tin, double maxx,
+                               double minx, double maxy, double miny, String outputFileName){
+
+        System.out.println("Writing TIN to file... ");
+        System.out.println("tin size: " + tin.getVertices().size());
+
+        // Start timer
+        long startTime = System.currentTimeMillis();
+
+        polator.resetForChangeToTin();
+
+        int numberOfPixelsX = (int) Math.ceil((maxx - minx) / resolution);
+        int numberOfPixelsY = (int) Math.ceil((maxy - miny) / resolution);
+
+        System.out.println(numberOfPixelsX + " " + numberOfPixelsY);
+
+        System.out.println(minx + " " + miny + " " + maxx + " " + maxy);
+        double[] geoTransform = new double[]{minx, resolution, 0.0, maxy, 0.0, -resolution};
+
+        SpatialReference sr = new SpatialReference();
+
+        sr.ImportFromEPSG(aR.EPSG);
+
+        gdal.AllRegister();
+
+        Driver driver = null;
+        driver = gdal.GetDriverByName("GTiff");
+        driver.Register();
+        //String outputFileName = null;
+        try {
+            outputFileName = aR.createOutputFileWithExtension(outputFile, "_correctionRaster.tif").getAbsolutePath();
+        }catch (Exception e){
+            System.out.println("Not enough points! Are you using remove_buffer and ALL points in this .las file are part of the buffer?");
+            return;
+        }
+
+        Dataset dataset_output = null;
+        Band band = null;
+
+        try {
+            dataset_output = driver.Create(outputFileName, numberOfPixelsX, numberOfPixelsY, 1, gdalconst.GDT_Float32);
+            band =  dataset_output.GetRasterBand(1);
+        }catch (Exception e){
+            System.out.println("Not enough points! Are you using remove_buffer and ALL points in this .las file are part of the buffer?");
+            return;
+        }
+        band.SetNoDataValue(Float.NaN);
+
+        String tiff_file_name = outputFileName;
+
+        dataset_output.SetProjection(sr.ExportToWkt());
+        dataset_output.SetGeoTransform(geoTransform);
+
+        double[][] smoothed = new double[numberOfPixelsX][numberOfPixelsY];
+
+        for (int j = 0; j < numberOfPixelsX; j++) {
+            for (int k = 0; k < numberOfPixelsY; k++) {
+
+                smoothed[j][k] = Float.NaN;
+
+            }
+        }
+
+        List<IQuadEdge> perimeter = tin.getPerimeter();
+
+        for (int j = 0; j < numberOfPixelsX; j++) {
+            for (int k = 0; k < numberOfPixelsY; k++) {
+
+                boolean pointInTin = isPointInTin(minx + j * resolution + resolution / 2.0, maxy - k * resolution - resolution / 2.0, perimeter);
+
+                float interpolatedValue = 0;
+
+                if(pointInTin)
+                    interpolatedValue = (float)polator.interpolate(minx + j * resolution + resolution / 2.0, maxy - k * resolution - resolution / 2.0, valuator);
+                else
+                    interpolatedValue = Float.NaN;
+
+                float[] outValue = new float[]{interpolatedValue};
+
+                smoothed[j][k] = interpolatedValue;
+
+                //band.WriteRaster(j, k, 1, 1, outValue);
+            }
+        }
+
+        // Start timer
+        long endTime = System.currentTimeMillis();
+
+        //printTimeInMinutesSeconds(endTime - startTime, "Interpolation");
+
+        startTime = System.currentTimeMillis();
+
+        if(aR.theta != 0.0)
+            aR.kernel = (int)( 2.0 * Math.ceil( 3.0 * aR.theta) + 1.0);
+
+        //System.out.println("Kernel: " + aR.kernel + " theta: " + aR.theta);
+        //System.out.println(smoothed.length + " " + smoothed[0].length);
+        //double[][] mirrored_tmp = mirrorAll(smoothed, aR.kernel);
+
+        //System.out.println(mirrored_tmp.length + " " + mirrored_tmp[0].length);
+        smoothed = GaussianSmooth.smooth(smoothed, numberOfPixelsX, numberOfPixelsY, aR.kernel, aR.theta);  // THIS IS GOOD!!!! :)
+        //System.out.println(mirrored_tmp.length + " " + mirrored_tmp[0].length);
+        //smoothed = unmirrorAll(mirrored_tmp, aR.kernel);
+
+        //System.out.println(smoothed.length + " " + smoothed[0].length);
+        //System.out.println(aR.kernel);
+
+        //System.exit(1);
+        startTime = System.currentTimeMillis();
+
+        // End timer
+        endTime = System.currentTimeMillis();
+
+        //printTimeInMinutesSeconds(endTime - startTime, "Smoothing");
+
+        startTime = System.currentTimeMillis();
+
+        double sum = 0.0;
+        double count = 0;
+
+        for (int j = 0; j < numberOfPixelsX; j++) {
+            for (int k = 0; k < numberOfPixelsY; k++) {
+
+                float[] outValue = new float[]{(float)smoothed[j][k]};
+
+                band.WriteRaster(j, k, 1, 1, outValue);
+
+                if(!Float.isNaN(outValue[0])){
+                    sum += outValue[0];
+                    count++;
+                }
+            }
+        }
+
+        endTime = System.currentTimeMillis();
+
+        //printTimeInMinutesSeconds(endTime - startTime, "Writing to file");
+
+        double averageCorrection = sum / count;
+
+        //System.out.println("AVERAGE: " + sum / count);
+
+        band.FlushCache();
+        dataset_output.delete();
+
+        /*
+        ProcessBuilder pb = new ProcessBuilder("gdal_fillnodata.py", outputFileName, "-md", "10000", outputFileName);
+        pb.redirectErrorStream(true);
+        Process process = null;
+        List<String> command = pb.command();
+        System.out.println("Command: " + String.join(" ", command));
+
+        try {
+            process = pb.start();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+
+        try {
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+            reader.close();
+            process.destroy();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+         */
+        //System.exit(1);
+    }
+
+    public synchronized boolean isPointInTin(double x, double y, List<IQuadEdge> perimeter){
+
+        return isPointInPolygon(perimeter, x, y) == Polyside.Result.Inside;
+
     }
 
 

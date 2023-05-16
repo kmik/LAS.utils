@@ -83,11 +83,10 @@ public class LASwrite {
 	* 	@since 09.03.2018  
 	*/
 
-	public static String LASpoint2String(LasPoint point, String oparse){
+	public static String LASpoint2String(LasPoint point, String oparse, String sep){
 
 		String output = "";
 
-		String sep = "\t";
 
 		char[] charArray = oparse.toCharArray();
 

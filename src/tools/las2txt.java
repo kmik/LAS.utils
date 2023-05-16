@@ -110,7 +110,7 @@ public class las2txt{
                     }
 
 
-                    out.println(LASwrite.LASpoint2String(tempPoint, aR.oparse));
+                    out.println(LASwrite.LASpoint2String(tempPoint, aR.oparse, aR.sep));
 
                     aR.p_update.threadProgress[coreNumber-1]++;
 
@@ -175,7 +175,7 @@ public class las2txt{
 
                     for(int k = 0; k < pointBank.get(tempPoint.pointSourceId).size(); k++){
 
-                        out.println(LASwrite.LASpoint2String(pointBank.get(tempPoint.pointSourceId).get(k), oparse));
+                        out.println(LASwrite.LASpoint2String(pointBank.get(tempPoint.pointSourceId).get(k), oparse, aR.sep));
 
                     }
 

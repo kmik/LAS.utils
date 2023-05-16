@@ -40,6 +40,7 @@ import static tools.ConcaveHull.calculateConcaveHull;
 
 public class Stanford2010 {
 
+    HashSet<Integer> processedStands = new HashSet<>();
     HashSet<Integer> excludedStands = new HashSet<>();
 
 
@@ -107,13 +108,15 @@ public class Stanford2010 {
 
                 String line = scanner.nextLine();
 
-                excludedStands.add(Integer.parseInt(line));
+                if(line.length() > 0)
+                    excludedStands.add(Integer.parseInt(line));
 
             }
 
         }catch(Exception e){
 
             e.printStackTrace();
+            System.exit(1);
 
         }
 
@@ -183,16 +186,28 @@ public class Stanford2010 {
 
         Layer shapeFileLayer = ds.GetLayer(0);
 
+        int shapeIdRolling = 0;
         int shapeId = 0;
+        int nExcluded = 0;
 
         for(long i = 0; i < shapeFileLayer.GetFeatureCount(); i++ ) {
 
-            if( i % 3 == 0 || true) {
+            if(true) {
 
                 Feature tempF = shapeFileLayer.GetFeature(i);
 
-                int id = (int)tempF.GetFieldAsDouble("MT_KORJUUTPID_C");
+                int id = (int)tempF.GetFieldAsDouble("MT_KORJU_3");
 
+                if(excludedStands.contains(id)) {
+                    nExcluded++;
+                    continue;
+                }
+
+                //if(id == null){
+
+                //    System.out.println("null");
+                //    System.exit(1);
+                //}
 
                 //tempF.GetFiel
                 System.out.println("id: " + id + " " + tempF.GetFieldCount());
@@ -264,8 +279,9 @@ public class Stanford2010 {
 
         System.out.println(standBounds.size() + " stand bounds read.");
         System.out.println(standCentroids.size() + " stand centroids read.");
+        System.out.println(nExcluded + " stands rejected");
 
-        System.exit(1);
+        //System.exit(1);
     }
 
     public static double[][] clone2DArray(double[][] original) {
@@ -584,8 +600,6 @@ public class Stanford2010 {
 
                 if(insideStand == -1){
 
-
-
                     point.setX(transformed[0]);
                     point.setY(transformed[1]);
                     point.setZ(0);
@@ -643,10 +657,19 @@ public class Stanford2010 {
                     uniqueStands.add(tempTree.standId);
                 }
 
-                //System.out.println("insideStand: " + insideStand);
+                System.out.println("stemnumber: " + stemNumber);
+                List<Element> stemInfo = null;
+                String name = "";
+                try{
+                    stemInfo = stem.getChild("SingleTreeProcessedStem", ns).getChildren("Log", ns);
+                    name = "SingleTreeProcessedStem";
+                }catch (Exception e){
+                    stemInfo = stem.getChild("SingleTreeFelledStem", ns).getChildren("Log", ns);
+                    name = "SingleTreeFelledStem";
+                }
+                //List<Element> stemInfo__ = stem.getChild("SingleTreeProcessedStem", ns).getChildren();
 
-                List<Element> stemInfo = stem.getChild("SingleTreeProcessedStem", ns).getChildren("Log", ns);
-                double dbh = Double.parseDouble(stem.getChild("SingleTreeProcessedStem", ns).getChild("DBH", ns).getValue());
+                double dbh = Double.parseDouble(stem.getChild(name, ns).getChild("DBH", ns).getValue());
                 tempTree.setDiameter((float)dbh);
                 //System.out.println("logs: " + stemInfo.size());
 
@@ -752,6 +775,9 @@ public class Stanford2010 {
 
 
                 allTrees.put(tempTree.getId(), tempTree);
+
+                processedStands.add(tempTree.standId);
+
 
                 if(true)
                     continue;
@@ -1623,6 +1649,9 @@ public class Stanford2010 {
         for(int i = 0; i < failedFiles.size(); i++){
             System.out.println(failedFiles.get(i) + " " + Arrays.toString(failedFilesProps.get(i)));
         }
+
+        System.out.println("processed stands " + processedStands.size());
+
     }
     public static boolean canDrawPerpendicular(double x, double y, double[] lineStart, double[] lineEnd) {
         double x1 = lineStart[0];

@@ -2512,6 +2512,17 @@ public class argumentReader {
 
                 this.sep = cmd.getOptionValue("sep");
 
+                if(sep.equals("\\s"))
+                    this.sep = " ";
+                if(sep.equals("\\t"))
+                    this.sep = "\t";
+                if(sep.equals(";"))
+                    this.sep = ";";
+                if(sep.equals(","))
+                    this.sep = ",";
+
+                //System.out.println("sep: " + this.sep);
+
             }
 
             if (cmd.hasOption("neural_mode")) {
