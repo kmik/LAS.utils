@@ -166,7 +166,7 @@ public class LASwrite {
 
 	public static int inferPointDataFormat(String parse){
 
-		int format_out = -1;
+		int format_out = 0;
 		char[] charArray = parse.toCharArray();
 
 		ArrayList<TreeSet<Integer>> minimumFormat = new ArrayList<>();
