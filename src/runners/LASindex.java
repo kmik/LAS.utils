@@ -367,10 +367,21 @@ class LASindex {
 		return new double[]{0,0};
 	}
 
-	public static double[] indexAll3(ArrayList<File> in2, String indfile2) throws IOException{
+	public synchronized static double[] indexAll3(ArrayList<File> in2, String indfile2) throws IOException{
 
 		File indfile = new File(indfile2);
-		
+
+		if(indfile.exists() && indfile.length() > 0){
+			//System.out.println("DELETE");
+			return new double[]{0,0};
+			//indfile.delete();
+		}
+
+		indfile.delete();
+		indfile.createNewFile();
+
+		//System.out.println(indfile.length());
+		//System.exit(1);
 		double[] output = new double[2];
 
 		output[0] = Double.POSITIVE_INFINITY;

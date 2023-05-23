@@ -464,7 +464,11 @@ public class LASwrite {
 	    to.writeAscii(8, "");
 	    to.writeUnsignedByte((byte)1);// = braf.readUnsignedByte();
 	    to.writeUnsignedByte((byte)minimum_version);// = braf.readUnsignedByte();
-	    to.writeAscii(32, "LASutils (c) by Mikko Kukkonen");// systemIdentifier = braf.readAscii(32);
+
+		if(aR.identifier != null)
+			to.writeAscii(32, aR.identifier);// = braf.readAscii(16);
+		else
+	    	to.writeAscii(32, "LASutils (c) by Mikko Kukkonen");// systemIdentifier = braf.readAscii(32);
 	    to.writeAscii(32, (softwareName + " version 0.1"));// generatingSoftware = braf.readAscii(32);
 		int year = Calendar.getInstance().get(Calendar.YEAR); //now.getYear();
 		Calendar calendar = Calendar.getInstance();
@@ -638,8 +642,9 @@ public class LASwrite {
 
 				}
 
-				if(rule.ask(tempPoint, count, false)){
+				if(aR.inclusionRule.ask(tempPoint, count, false)){
 
+					//System.out.println("HERE");
 					pointCount++;
 					
 					int returnNumberi = tempPoint.returnNumber - 1;

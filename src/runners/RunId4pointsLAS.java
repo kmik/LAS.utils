@@ -713,6 +713,15 @@ public class RunId4pointsLAS{
         ArrayList<double[][]> polyBank = new ArrayList<double[][]>();
         HashMap<Integer, ArrayList<double[][]>> holes = new HashMap<>();
 
+        File checkFile = new File("tempWKT.csv");
+
+        int counter = 0;
+        while(checkFile.exists()){
+
+            String name = "tempWKT" + (counter++) + ".csv";
+            checkFile = new File(name);
+        }
+
         if(shapeFile.getName().contains(".shp")){
 
             checkShp = 1;
@@ -720,47 +729,52 @@ public class RunId4pointsLAS{
 
             Layer layeri = ds.GetLayer(0);
 
-            try{
-                fout = new File("tempWKT.csv");
+            try {
 
-                if(fout.exists())
-                    fout.delete();
+                if (!checkFile.exists()) {
 
-                fout.createNewFile();
 
-                FileOutputStream fos = new FileOutputStream(fout);
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+                    fout = checkFile;
 
-                bw.write("WKT,plot_id");
-                bw.newLine();
+                    if (fout.exists())
+                        fout.delete();
 
-                for(long i = 0; i < layeri.GetFeatureCount(); i++ ){
+                    fout.createNewFile();
 
-                    Feature tempF = layeri.GetFeature(i);
-                    Geometry tempG = tempF.GetGeometryRef();
+                    FileOutputStream fos = new FileOutputStream(fout);
+                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
 
-                    if(tempG == null)
-                        continue;
-
-                    String id = "";
-
-                    if(tempF.GetFieldCount() > 0)
-                        id = tempF.GetFieldAsString(aR.field);
-                    else
-                        id = String.valueOf(i);
-
-                    String out = "\"" + tempG.ExportToWkt() + "\"," + id;
-
-                    bw.write(out);
+                    bw.write("WKT,plot_id");
                     bw.newLine();
 
+                    for (long i = 0; i < layeri.GetFeatureCount(); i++) {
 
+                        Feature tempF = layeri.GetFeature(i);
+                        Geometry tempG = tempF.GetGeometryRef();
+
+                        if (tempG == null)
+                            continue;
+
+                        String id = "";
+
+                        if (tempF.GetFieldCount() > 0)
+                            id = tempF.GetFieldAsString(aR.field);
+                        else
+                            id = String.valueOf(i);
+
+                        String out = "\"" + tempG.ExportToWkt() + "\"," + id;
+
+                        bw.write(out);
+                        bw.newLine();
+
+
+                    }
+                    bw.close();
+                }
+                }catch(IOException e){
+                    e.printStackTrace();
                 }
 
-                bw.close();
-            }catch(IOException e) {
-                e.printStackTrace();
-            }
 
             koealat = "tempWKT.csv";
             shapeType = 2;
@@ -917,8 +931,9 @@ public class RunId4pointsLAS{
         File allFile = new File(indeksi_pathi_all);
 
         System.out.println(allFile.getAbsolutePath());
-        allFile.delete();
-        allFile.createNewFile();
+
+
+
 
 
         origo = LASindex.indexAll3(aR.inputFiles, indeksi_pathi_all);
@@ -1078,6 +1093,10 @@ public class RunId4pointsLAS{
                 outputFiles.get(i).close(aR);
             }
         }
+
+
+        checkFile.delete();
+
 
         //if(!aR.split)
         //    pwrite.close(aR);

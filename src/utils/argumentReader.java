@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import err.argumentException;
 import err.lasFormatException;
 import err.toolException;
+import org.agrona.concurrent.SystemEpochClock;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -25,9 +26,13 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public int image_height = 0;
+
     public threadProgressbars prog = new threadProgressbars();
     public ArrayList<File> ref = new ArrayList<>();
     public String[] ref_;
+
+    public String identifier = null;
     public ArrayList<File> tar = new ArrayList<>();
     public String[] tar_;
     public String[] gr;
@@ -239,6 +244,12 @@ public class argumentReader {
     public double translate_y;
     public double translate_z;
     public double translate_i;
+
+    public double scale_x;
+    public double scale_y;
+    public double scale_z;
+    public double scale_i;
+
 
     public int set_point_source_id = -1;
 
@@ -573,6 +584,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("image_height")
+                .hasArg(true)
+                .desc("")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("o_itc")
                 .hasArg(false)
                 .desc("Output only ITC segments in point cloud")
@@ -749,6 +767,13 @@ public class argumentReader {
                 .longOpt("layers")
                 .hasArg(true)
                 .desc("neural network layers")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("identifier")
+                .hasArg(true)
+                .desc("LAS header identifier")
                 .required(false)
                 .build());
 
@@ -1608,6 +1633,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("scale_i")
+                .hasArg(true)
+                .desc("scale i")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("skip_global")
                 .hasArg(true)
                 .desc("skip boresight and leverarm")
@@ -2128,6 +2160,12 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("image_height")) {
+
+                this.image_height = Integer.parseInt(cmd.getOptionValue("image_height"));
+
+            }
+
             if (cmd.hasOption("num_iter")) {
 
                 this.num_iter = Integer.parseInt(cmd.getOptionValue("num_iter"));
@@ -2175,6 +2213,9 @@ public class argumentReader {
 
             }
 
+            if(cmd.hasOption("identifier")){
+                this.identifier = cmd.getOptionValue("identifier");
+            }
 
             if (cmd.hasOption("filter_intensity")) {
 
@@ -2691,6 +2732,12 @@ public class argumentReader {
             if (cmd.hasOption("translate_i")) {
                 this.noModify = false;
                 this.inclusionRule.translate_i(Integer.parseInt(cmd.getOptionValue("translate_i")));
+
+            }
+
+            if (cmd.hasOption("scale_i")) {
+                this.noModify = false;
+                this.inclusionRule.scale_i(Double.parseDouble(cmd.getOptionValue("scale_i")));
 
             }
 

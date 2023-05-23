@@ -105,6 +105,8 @@ public class PointInclusionRule{
     int translate_i = -999;
 	// MODIFY POINT RULES:
 
+	double scale_i = -999;
+
 	int set_classification = -999;
 	int set_user_data = -999;
 	int set_point_source_id = -999;
@@ -474,6 +476,11 @@ public class PointInclusionRule{
 
     }
 
+	public void scale_i(double in){
+
+		this.scale_i = in;
+
+	}
 
 	/**
 	 *	Queries whether to include a point and
@@ -490,6 +497,7 @@ public class PointInclusionRule{
 	public synchronized boolean ask(LasPoint tempPoint, long i, boolean areYouReading){
 
 
+		//System.out.println("HERE!! " + areYouReading + " " + applyWhenReading);
 		if(areYouReading == applyWhenReading){
 
 			/* Here we remove points that do not care for modifications */
@@ -661,6 +669,15 @@ public class PointInclusionRule{
 			tempPoint.y += this.translate_y;
 		if(this.translate_z != -999)
 			tempPoint.z += this.translate_z;
+
+		if(this.translate_i != -999)
+			tempPoint.intensity += this.translate_i;
+
+		if(this.scale_i != -999.0d){
+			tempPoint.intensity *= this.scale_i;
+		}
+
+		//System.out.println(tempPoint.intensity);
 
 		if(this.set_classification != -999)
 			tempPoint.classification = this.set_classification;

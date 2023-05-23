@@ -31,11 +31,11 @@ public class pointCloudMetrics {
 
     // THIS IS FOR THE HEXAGON
     //static double convolution_image_width =     20.0;
-    static double convolution_image_width =     16.0;
+    public double convolution_image_width =     16.0;
 
     // THIS IS FOR THE HEXAGON
     //static double convolution_image_height =    20.0;
-    static double convolution_image_height =    16.0;
+    public double convolution_image_height =    16.0;
     static double convolution_image_resolution = 1.0;
     //static double convolution_image_resolution = 0.8888889;
     static double convolution_image_resolution_x = convolution_image_resolution;
@@ -43,13 +43,26 @@ public class pointCloudMetrics {
     static double convolution_image_resolution_z = 1.0;
     static double convolution_image_depth =     35.0;
     static double angle_increment =             45.0;
-    static double diagonal = Math.sqrt((convolution_image_height*convolution_image_height)+(convolution_image_height*convolution_image_height));
+    public double diagonal = Math.sqrt((convolution_image_height*convolution_image_height)+(convolution_image_height*convolution_image_height));
 
     public pointCloudMetrics(argumentReader aR){
         this.densities = aR.densities;
         this.percentile_step_orig = aR.percentiles;
         this.cutoff = aR.z_cutoff;
         this.cutoff_n_points = aR.min_points;
+
+        if(aR.res != 15){
+            convolution_image_resolution = aR.res;
+            convolution_image_resolution_x = aR.res;
+            convolution_image_resolution_y = aR.res;
+        }
+
+        if(aR.image_height != 0){
+            this.convolution_image_width = aR.image_height;
+            this.convolution_image_height = aR.image_height;
+            this.diagonal = Math.sqrt((convolution_image_height*convolution_image_height)+(convolution_image_height*convolution_image_height));
+        }
+
     }
 
     public static boolean pointInPolygon(double[] point, double[][] poly) {
@@ -546,7 +559,7 @@ public class pointCloudMetrics {
             //}
         }
 
-        System.out.println(x_dim + " " + y_dim + " " + z_dim);
+        //System.out.println(x_dim + " " + y_dim + " " + z_dim);
 
         output = (resetGrid_colnames_spectral(grid, grid_R, grid_G, grid_B, grid_N, point_count, colnames, grid_mask));
 

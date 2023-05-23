@@ -1172,7 +1172,7 @@ public class MKid4pointsLAS{
                 int debugCounter = 0;
 
 
-                System.out.println("hERE " + pilvi.size());
+                //System.out.println("hERE " + pilvi.size());
 
 
 
@@ -1259,8 +1259,8 @@ public class MKid4pointsLAS{
                                                         if(tempPoint.pointSourceId < 0)
                                                             throw new toolException("PointSourceId is negative: " + tempPoint.pointSourceId);
 
-                                                        if(plotID.get(j) == 149)
-                                                            System.out.println("149 " + tempPoint.pointSourceId);
+                                                        //if(plotID.get(j) == 149)
+                                                        //    System.out.println("149 " + tempPoint.pointSourceId);
 
                                                         tempPoint.setExtraByteINT(plotID.get(j), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
 
@@ -1574,18 +1574,21 @@ public class MKid4pointsLAS{
 
                     boolean train = aR.convolution_metrics_train;
 
-                    if(aR.convolution_metrics_train) {
-                        ArrayList<ArrayList<Double>> metrics_convolution = pCM.calc_nn_input_train_spectral(gridPoints_xyz_a, "_convo_f", colnames_convo, minmaxXY[0], minmaxXY[3],
-                                minmaxXY[1], minmaxXY[2]);
-                        aR.lCMO.writeLine_convo( metrics_convolution, colnames_convo, plotID.get(j));
-                        //System.out.println("HERE!!");
-                    }else if(aR.convolution_metrics){
-                        ArrayList<Double> metrics_convolution = pCM.calc_nn_input_test_spectral(gridPoints_xyz_a, "_convo_f", colnames_convo, minmaxXY[0], minmaxXY[3],
-                                minmaxXY[1], minmaxXY[2]);
-                        aR.lCMO.writeLine_convo_test( metrics_convolution, colnames_convo, plotID.get(j));
-                        //System.out.println("HERE_test_data!!");
+                    if(aR.convolution_metrics_train || aR.convolution_metrics) {
+
+                        if (aR.convolution_metrics_train) {
+                            ArrayList<ArrayList<Double>> metrics_convolution = pCM.calc_nn_input_train_spectral(gridPoints_xyz_a, "_convo_f", colnames_convo, minmaxXY[0], minmaxXY[3],
+                                    minmaxXY[1], minmaxXY[2]);
+                            aR.lCMO.writeLine_convo(metrics_convolution, colnames_convo, plotID.get(j));
+                            //System.out.println("HERE!!");
+                        } else if (aR.convolution_metrics) {
+                            ArrayList<Double> metrics_convolution = pCM.calc_nn_input_test_spectral(gridPoints_xyz_a, "_convo_f", colnames_convo, minmaxXY[0], minmaxXY[3],
+                                    minmaxXY[1], minmaxXY[2]);
+                            aR.lCMO.writeLine_convo_test(metrics_convolution, colnames_convo, plotID.get(j));
+                            //System.out.println("HERE_test_data!!");
+                        }
                     }
-                    else {
+                    //else {
                         ArrayList<Double> metrics_a = pCM.calc(gridPoints_z_a, gridPoints_i_a, sum_z_a, sum_i_a, "_a", colnames_a);
                         ArrayList<Double> metrics_f = null;
 
@@ -1600,7 +1603,7 @@ public class MKid4pointsLAS{
                         //for(int co = 0; co < 11; co++) {
                             aR.lCMO.writeLine(metrics_a, metrics_f, metrics_l, metrics_i, colnames_a, colnames_f, colnames_l, colnames_i, plotID.get(j));
                        // }
-                    }
+                    //}
                 }
 
                 if (npoints != 0) {
