@@ -298,9 +298,7 @@ public class LASwrite {
 	* 	@since 09.03.2018  
 	*/
 
-	public static void String2LASpoint(LasPoint point, String in, String parse, String sep){
-
-		char[] charArray = parse.toCharArray();
+	public static void String2LASpoint(LasPoint point, String in, char[] charArray , String sep){
 
 		String[] tokens = in.split(sep);
 
@@ -412,6 +410,8 @@ public class LASwrite {
 			with the information inferred from the point records.
 		 */
 
+		char[] charArray = parse.toCharArray();
+
 		byte myBitti = myByte.byteValue();
 
 		int minimum_point_format = inferPointDataFormat(parse);
@@ -438,7 +438,7 @@ public class LASwrite {
 
 			while ((line = in.readLine()) != null) {
 
-				String2LASpoint(tempPoint, line, parse, sep);
+				String2LASpoint(tempPoint, line, charArray, sep);
 
 				x_offset_update = (int)tempPoint.x;
 				y_offset_update = (int)tempPoint.y;
@@ -571,7 +571,7 @@ public class LASwrite {
 
 	        while((line = in.readLine())!= null){
 
-	        	String2LASpoint(tempPoint, line, parse, sep);
+	        	String2LASpoint(tempPoint, line, charArray, sep);
 
 				if(!aR.inclusionRule.ask(tempPoint, 1, true)){
 					continue;
