@@ -449,6 +449,7 @@ public class LASwrite {
 				y_scale_update = 0.01;
 				z_scale_update = 0.01;
 
+				break;
 			}
 
 		}catch (Exception e){
