@@ -1758,6 +1758,32 @@ public class argumentReader {
 
     }
 
+    public void clearPointClouds(){
+
+        for(int i = 0; i < this.pointClouds.size(); i++){
+
+            try {
+                this.pointClouds.get(i).close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    public void populatePointClouds(){
+
+        for(int i = 0; i < this.inputFiles.size(); i++){
+
+                try {
+                    this.pointClouds.add(new LASReader(this.inputFiles.get(i)));
+
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+        }
+    }
+
     public void parseArguents() throws IOException {
 
         this.pathSep = System.getProperty("file.separator");

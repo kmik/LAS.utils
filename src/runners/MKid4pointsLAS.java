@@ -536,6 +536,10 @@ public class MKid4pointsLAS{
 
         LasPointBufferCreator pointBuffer = null;
 
+        aR.clearPointClouds();
+        aR.populatePointClouds();
+
+
         if(aR.split){
             for(int i = 0; i < outputFiles.size(); i++)
                 outputBuffers.add(new LasPointBufferCreator(part, outputFiles.get(i)));
@@ -1180,8 +1184,9 @@ public class MKid4pointsLAS{
                 for (int va = 0; va < valinta.size(); va++) {
 
                     doneIndexes.clear();
-                    LASReader asd = new LASReader(aR.inputFiles.get(valinta.get(va))); //pointClouds.get(valinta.get(va));
-
+                    //LASReader asd = new LASReader(aR.inputFiles.get(valinta.get(va))); //pointClouds.get(valinta.get(va));
+                    LASReader asd = (aR.pointClouds.get(valinta.get(va))); //pointClouds.get(valinta.get(va));
+                    
                     /* Define the variables that we need */
                     int tree_id = -1, treeId = -1;
 
