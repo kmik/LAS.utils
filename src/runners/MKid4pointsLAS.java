@@ -1594,10 +1594,11 @@ public class MKid4pointsLAS{
                         }
                     }
                     //else {
+                    if(!aR.onlyConvolutionMetrics) {
                         ArrayList<Double> metrics_a = pCM.calc(gridPoints_z_a, gridPoints_i_a, sum_z_a, sum_i_a, "_a", colnames_a);
                         ArrayList<Double> metrics_f = null;
 
-                        if(!aR.ray_trace)
+                        if (!aR.ray_trace)
                             metrics_f = pCM.calc_with_RGB(gridPoints_z_f, gridPoints_i_f, sum_z_f, sum_i_f, "_f", colnames_f, gridPoints_RGB_f);
                         else
                             metrics_f = pCM.calc_with_RGB_only_sunny(gridPoints_z_f, gridPoints_i_f, sum_z_f, sum_i_f, "_f", colnames_f, gridPoints_RGB_f);
@@ -1606,8 +1607,9 @@ public class MKid4pointsLAS{
                         ArrayList<Double> metrics_i = pCM.calc(gridPoints_z_i, gridPoints_i_i, sum_z_i, sum_i_i, "_i", colnames_i);
 
                         //for(int co = 0; co < 11; co++) {
-                            aR.lCMO.writeLine(metrics_a, metrics_f, metrics_l, metrics_i, colnames_a, colnames_f, colnames_l, colnames_i, plotID.get(j));
-                       // }
+                        aR.lCMO.writeLine(metrics_a, metrics_f, metrics_l, metrics_i, colnames_a, colnames_f, colnames_l, colnames_i, plotID.get(j));
+                        // }
+                    }
                     //}
                 }
 

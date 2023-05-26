@@ -26,6 +26,10 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public boolean onlyConvolutionMetrics = false;
+
+    public boolean clip_to_circle = false;
+
     public int image_height = 0;
 
     public threadProgressbars prog = new threadProgressbars();
@@ -701,6 +705,14 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("only_convo")
+                .hasArg(false)
+                .desc("asd")
+                .required(false)
+                .build());
+
+
+        options.addOption(Option.builder()
                 .longOpt("prep_nn_input")
                 .hasArg(true)
                 .desc("Reshape .txt input into .nnin")
@@ -753,6 +765,13 @@ public class argumentReader {
                 .longOpt("tree_tops")
                 .hasArg(true)
                 .desc("Tree tops shp file")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("only_circle")
+                .hasArg(false)
+                .desc("asd")
                 .required(false)
                 .build());
 
@@ -2090,6 +2109,13 @@ public class argumentReader {
                 printHelp pH = new printHelp(9999);
             }
 
+            if(cmd.hasOption("only_circle")){
+
+                this.clip_to_circle = true;
+
+            }
+
+
             if (cmd.hasOption("prep_nn_input")) {
 
                 this.prepare_nn_input = Integer.parseInt(cmd.getOptionValue("prep_nn_input"));
@@ -2222,6 +2248,12 @@ public class argumentReader {
                     throw new argumentException("-measured_trees does not exist!");
 
             }
+            if (cmd.hasOption("only_convo")) {
+
+                this.onlyConvolutionMetrics = true;
+
+            }
+
 
             if( cmd.hasOption("itc_metrics")){
                 this.ITC_metrics_file = new File(cmd.getOptionValue("itc_metrics"));

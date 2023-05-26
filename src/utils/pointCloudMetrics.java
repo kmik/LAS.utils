@@ -46,6 +46,9 @@ public class pointCloudMetrics {
     public double diagonal = Math.sqrt((convolution_image_height*convolution_image_height)+(convolution_image_height*convolution_image_height));
 
     public pointCloudMetrics(argumentReader aR){
+
+        this.clip_to_circle = aR.clip_to_circle;
+
         this.densities = aR.densities;
         this.percentile_step_orig = aR.percentiles;
         this.cutoff = aR.z_cutoff;

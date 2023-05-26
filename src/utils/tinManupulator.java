@@ -121,23 +121,33 @@ public class tinManupulator {
 
         this.perimeter = tin.getPerimeter();
 
-        for (int j = 0; j < numberOfPixelsX; j++) {
-            for (int k = 0; k < numberOfPixelsY; k++) {
+        if(perimeter.size() > 3) {
+            for (int j = 0; j < numberOfPixelsX; j++) {
+                for (int k = 0; k < numberOfPixelsY; k++) {
 
-                boolean pointInTin = isPointInTin(minx + j * resolution + resolution / 2.0, maxy - k * resolution - resolution / 2.0);
+                    boolean pointInTin = isPointInTin(minx + j * resolution + resolution / 2.0, maxy - k * resolution - resolution / 2.0);
 
-                float interpolatedValue = 0;
+                    float interpolatedValue = 0;
 
-                if(pointInTin)
-                    interpolatedValue = (float)polator.interpolate(minx + j * resolution + resolution / 2.0, maxy - k * resolution - resolution / 2.0, valuator);
-                else
-                    interpolatedValue = Float.NaN;
+                    if (pointInTin)
+                        interpolatedValue = (float) polator.interpolate(minx + j * resolution + resolution / 2.0, maxy - k * resolution - resolution / 2.0, valuator);
+                    else
+                        interpolatedValue = Float.NaN;
 
-                float[] outValue = new float[]{interpolatedValue};
+                    float[] outValue = new float[]{interpolatedValue};
 
-                smoothed[j][k] = interpolatedValue;
+                    smoothed[j][k] = interpolatedValue;
 
-                //band.WriteRaster(j, k, 1, 1, outValue);
+                    //band.WriteRaster(j, k, 1, 1, outValue);
+                }
+            }
+        }else{
+            for (int j = 0; j < numberOfPixelsX; j++) {
+                for (int k = 0; k < numberOfPixelsY; k++) {
+
+                    smoothed[j][k] = 0.0f;
+
+                }
             }
         }
 
