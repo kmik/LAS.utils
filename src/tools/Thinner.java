@@ -147,26 +147,27 @@ public class Thinner{
 
         aR.p_update.threadFile[coreNumber-1] = "initial pass";
 
-        aR.p_update.threadEnd[coreNumber-1] = (int)pointCloud.getNumberOfPointRecords();
+        aR.p_update.threadEnd[coreNumber-1] = (long)pointCloud.getNumberOfPointRecords();
         aR.p_update.threadProgress[coreNumber-1] = 0;
 
         int x_index;
         int y_index;
 
-        System.out.println("READING");
+        //System.out.println("READING");
         int counter = 0;
 
-        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000){
+        //for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000){
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
+            int j = 0;
+        //    maxi = (int)Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            maxi = (int)Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+       //     try {
+       //         pointCloud.readRecord_noRAF(i, tempPoint, maxi);
+       //     }catch(Exception e){
+        //        e.printStackTrace();
+        //    }
 
-            try {
-                pointCloud.readRecord_noRAF(i, tempPoint, maxi);
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-
-            for (int j = 0; j < maxi; j++) {
+       //     for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
 
@@ -196,14 +197,14 @@ public class Thinner{
                     }
                 }
                 aR.p_update.threadProgress[coreNumber-1]++;
-                counter++;
+                //counter++;
 
                 if(aR.p_update.threadProgress[coreNumber-1] % 1000000 == 0) {
                     aR.p_update.updateProgressThin();
-                    System.out.println(counter + " / " + pointCloud.getNumberOfPointRecords());
+                    //System.out.println(counter + " / " + pointCloud.getNumberOfPointRecords());
                 }
 
-            }
+            //}
         }
 
         aR.p_update.updateProgressThin();
