@@ -169,8 +169,8 @@ public class Thinner{
 
        //     for (int j = 0; j < maxi; j++) {
 
-                pointCloud.readFromBuffer(tempPoint);
-
+                //pointCloud.readFromBuffer(tempPoint);
+            pointCloud.readRecord(i, tempPoint);
                 /* Reading, so ask if this point is ok, or if
                 it should be modified.
                  */
