@@ -123,7 +123,7 @@ public class Thinner{
         double numberOfPixelsX = (int)Math.ceil((maxX - minX) / step) + 1;
         double numberOfPixelsY = (int)Math.ceil((maxY - minY) / step) + 1;
 
-        int[][] minIndex = new int[(int)numberOfPixelsX][(int)numberOfPixelsY];
+        long[][] minIndex = new long[(int)numberOfPixelsX][(int)numberOfPixelsY];
         float[][] min_z = new float[(int)numberOfPixelsX][(int)numberOfPixelsY];
 
         for(int x = 0; x < numberOfPixelsX; x++){
@@ -153,7 +153,7 @@ public class Thinner{
         int x_index;
         int y_index;
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000){
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000){
 
             maxi = (int)Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
