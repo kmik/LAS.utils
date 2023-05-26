@@ -156,21 +156,21 @@ public class Thinner{
         //System.out.println("READING");
         int counter = 0;
 
-        //for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000){
-        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
-            int j = 0;
-        //    maxi = (int)Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000){
+        //for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
+        //    int j = 0;
+            maxi = (int)Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-       //     try {
-       //         pointCloud.readRecord_noRAF(i, tempPoint, maxi);
-       //     }catch(Exception e){
-        //        e.printStackTrace();
-        //    }
+            try {
+                pointCloud.readRecord_noRAF(i, tempPoint, maxi);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
 
-       //     for (int j = 0; j < maxi; j++) {
+            for (int j = 0; j < maxi; j++) {
 
-                //pointCloud.readFromBuffer(tempPoint);
-            pointCloud.readRecord(i, tempPoint);
+                pointCloud.readFromBuffer(tempPoint);
+            //pointCloud.readRecord(i, tempPoint);
                 /* Reading, so ask if this point is ok, or if
                 it should be modified.
                  */
@@ -204,7 +204,7 @@ public class Thinner{
                     //System.out.println(counter + " / " + pointCloud.getNumberOfPointRecords());
                 }
 
-            //}
+            }
         }
 
         aR.p_update.updateProgressThin();
