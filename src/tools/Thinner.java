@@ -173,9 +173,9 @@ public class Thinner{
                 /* Reading, so ask if this point is ok, or if
                 it should be modified.
                  */
-                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
-                    continue;
-                }
+                //if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                //    continue;
+                //}
 
                 x_index = (int)Math.floor((tempPoint.x - minX) / step);
                 y_index = (int)Math.floor((maxY - tempPoint.y) / step);
