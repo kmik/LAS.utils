@@ -15,8 +15,8 @@ public class progressUpdater {
     public volatile int fileProgress = 0;
     public volatile int totalFiles = 0;
     public volatile int totalOutputFiles = 0;
-    public volatile int[] threadProgress;
-    public volatile int[] threadEnd;
+    public volatile long[] threadProgress;
+    public volatile long[] threadEnd;
     public volatile int[] threadInt;
     public volatile double[] threadDouble;
     public volatile String[] threadFile;
@@ -107,8 +107,8 @@ public class progressUpdater {
     public progressUpdater(argumentReader aR){
 
         this.aR = aR;
-        this.threadProgress = new int[aR.cores];
-        this.threadEnd = new int[aR.cores];
+        this.threadProgress = new long[aR.cores];
+        this.threadEnd = new long[aR.cores];
         this.threadFile = new String[aR.cores];
         this.threadDouble = new double[aR.cores];
         this.threadInt = new int[aR.cores];
@@ -407,6 +407,7 @@ public class progressUpdater {
 
         if(false)
             return;
+
         int first = 13;
 
         first += aR.cores;
@@ -430,7 +431,7 @@ public class progressUpdater {
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "____________________________________________________________________________");
 
         for(int i = 0; i < aR.cores; i++) {
-            System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "%-8d" + "%-25s" + "%-25s" + "%-10d", i+1, threadFile[i],  progeBar.getProgress(threadEnd[i],threadProgress[i]), threadInt[i]);
+            System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K" + "%-8d" + "%-25s" + "%-25s" + "%-10d", i+1, threadFile[i],  progeBar.getProgress(threadEnd[i],threadProgress[i]), threadProgress[i] / 100000);
         }
 
         System.out.printf(((char) 0x1b) + "[1B\r" + "\033[2K");

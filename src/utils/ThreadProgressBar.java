@@ -119,7 +119,7 @@ public class ThreadProgressBar{
 
     }
 
-    public String getProgress(int paatos, int proge) {
+    public String getProgress(long paatos, long proge) {
 
         if(paatos == -1 && proge == -1)
             return "|????????????????????|";

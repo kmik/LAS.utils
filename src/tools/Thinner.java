@@ -194,7 +194,7 @@ public class Thinner{
                 }
                 aR.p_update.threadProgress[coreNumber-1]++;
 
-                if(aR.p_update.threadProgress[coreNumber-1] % 10000 == 0)
+                if(aR.p_update.threadProgress[coreNumber-1] % 100000 == 0)
                     aR.p_update.updateProgressThin();
 
             }
