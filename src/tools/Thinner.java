@@ -156,9 +156,9 @@ public class Thinner{
         System.out.println("READING");
         int counter = 0;
 
-        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000){
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000){
 
-            maxi = (int)Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            maxi = (int)Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
             try {
                 pointCloud.readRecord_noRAF(i, tempPoint, maxi);
@@ -173,9 +173,9 @@ public class Thinner{
                 /* Reading, so ask if this point is ok, or if
                 it should be modified.
                  */
-                //if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
-                //    continue;
-                //}
+                if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
 
                 x_index = (int)Math.floor((tempPoint.x - minX) / step);
                 y_index = (int)Math.floor((maxY - tempPoint.y) / step);
@@ -198,7 +198,7 @@ public class Thinner{
                 aR.p_update.threadProgress[coreNumber-1]++;
                 counter++;
 
-                if(aR.p_update.threadProgress[coreNumber-1] % 100000 == 0) {
+                if(aR.p_update.threadProgress[coreNumber-1] % 1000000 == 0) {
                     aR.p_update.updateProgressThin();
                     System.out.println(counter + " / " + pointCloud.getNumberOfPointRecords());
                 }
