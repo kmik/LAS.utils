@@ -153,6 +153,9 @@ public class Thinner{
         int x_index;
         int y_index;
 
+        System.out.println("READING");
+        int counter = 0;
+
         for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000){
 
             maxi = (int)Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
@@ -193,9 +196,12 @@ public class Thinner{
                     }
                 }
                 aR.p_update.threadProgress[coreNumber-1]++;
+                counter++;
 
-                if(aR.p_update.threadProgress[coreNumber-1] % 100000 == 0)
+                if(aR.p_update.threadProgress[coreNumber-1] % 100000 == 0) {
                     aR.p_update.updateProgressThin();
+                    System.out.println(counter + " / " + pointCloud.getNumberOfPointRecords());
+                }
 
             }
         }

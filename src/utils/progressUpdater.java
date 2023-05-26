@@ -405,7 +405,7 @@ public class progressUpdater {
 
     public synchronized void updateProgressThin(){
 
-        if(false)
+        if(true)
             return;
 
         int first = 13;
