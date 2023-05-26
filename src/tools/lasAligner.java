@@ -278,7 +278,7 @@ public class lasAligner {
 
 
 
-                if(firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target < 0.5 && firstCheck[x][y].countTarget > 10 && checkSurroundings(firstCheck, x, y)) {
+                if(firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target < 0.75 && firstCheck[x][y].countTarget > 10 && checkSurroundings(firstCheck, x, y)) {
 
                     //System.out.println("DIFFERENCE: " + (firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()));
 
