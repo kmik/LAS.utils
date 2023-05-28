@@ -75,7 +75,7 @@ public class classifyTrunks {
 
             int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
             //in.readRecord_noRAF(i, tempPoint, 10000);
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             for (int j = 0; j < maxi; j++) {
 
@@ -163,7 +163,7 @@ public class classifyTrunks {
 
             int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
             //in.readRecord_noRAF(i, tempPoint, 10000);
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             //pointCloud.braf.buffer.position(0);
 
@@ -211,7 +211,7 @@ public class classifyTrunks {
 
             int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
             //in.readRecord_noRAF(i, tempPoint, 10000);
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             //pointCloud.braf.buffer.position(0);
 

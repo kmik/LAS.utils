@@ -80,7 +80,7 @@ public class pointDistributor {
 
             int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             for (int j = 0; j < maxi; j++) {
 
@@ -125,7 +125,7 @@ public class pointDistributor {
 
             int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             for (int j = 0; j < maxi; j++) {
 

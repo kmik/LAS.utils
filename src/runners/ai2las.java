@@ -2205,11 +2205,11 @@ class ai2las{
 
 		int thread_n = aR.pfac.addReadThread(asd2);
 
-		for(long i = 0; i < asd2.getNumberOfPointRecords(); i += 200000) {
+		for(long i = 0; i < asd2.getNumberOfPointRecords(); i += 20000) {
 
-			long maxi = (int) Math.min(200000, Math.abs(asd2.getNumberOfPointRecords() - i));
+			int maxi = (int) Math.min(20000, Math.abs(asd2.getNumberOfPointRecords() - i));
 
-			aR.pfac.prepareBuffer(thread_n, i, 200000);
+			aR.pfac.prepareBuffer(thread_n, i, maxi);
 
 			for (int j = 0; j < maxi; j++) {
 

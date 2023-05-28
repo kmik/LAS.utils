@@ -792,13 +792,13 @@ public class stemDetector{
         //for(int i = 0; i < n; i++){
 
             //pointCloud.readRecord(i, tempPoint);
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
 
-            maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
 
             //in.readRecord_noRAF(i, tempPoint, 10000);
-            aR.pfac.prepareBuffer(thread_n, i, 200000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             //pointCloud.braf.buffer.position(0);
 

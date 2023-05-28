@@ -182,11 +182,11 @@ public class trunkDBH {
         //HashMap<Short, Integer> trunk_plot_id = new HashMap<>();
 
 
-        for(int i = 0; i < this.pointCloud.getNumberOfPointRecords(); i += 10000) {
+        for(long i = 0; i < this.pointCloud.getNumberOfPointRecords(); i += 10000) {
 
             int maxi = (int) Math.min(10000, Math.abs(this.pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             for (int j = 0; j < maxi; j++) {
 
@@ -247,7 +247,7 @@ public class trunkDBH {
 
             int maxi = (int) Math.min(10000, Math.abs(this.pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             for (int j = 0; j < maxi; j++) {
 
@@ -980,11 +980,11 @@ public class trunkDBH {
         System.out.println("Linked trees: " + counter);
         System.out.println("RMSE(%): " + relRMSE(predicted, observed));
 
-        for(int i = 0; i < this.pointCloud.getNumberOfPointRecords(); i += 200000) {
+        for(int i = 0; i < this.pointCloud.getNumberOfPointRecords(); i += 20000) {
 
-            int maxi = (int) Math.min(200000, Math.abs(this.pointCloud.getNumberOfPointRecords() - i));
+            int maxi = (int) Math.min(20000, Math.abs(this.pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 200000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             for (int j = 0; j < maxi; j++) {
 

@@ -340,9 +340,9 @@ public class Tiler{
             //for(long i = 0; i < temp.getNumberOfPointRecords(); i++){
             for(long i = 0; i < temp.getNumberOfPointRecords(); i += 20000) {
 
-                long maxi2 = (int) Math.min(20000, Math.abs(temp.getNumberOfPointRecords() - i));
+                int maxi2 = (int) Math.min(20000, Math.abs(temp.getNumberOfPointRecords() - i));
 
-                aR.pfac.prepareBuffer(thread_n, i, 20000);
+                aR.pfac.prepareBuffer(thread_n, i, maxi2);
 
                 for (long j = 0; j < maxi2; j++) {
 

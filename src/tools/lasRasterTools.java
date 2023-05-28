@@ -176,7 +176,7 @@ public class lasRasterTools {
                             int maxi = (int) Math.min(20000, Math.abs(temp.getNumberOfPointRecords() - i));
 
                             try {
-                                aR.pfac.prepareBuffer(thread_n, i, 20000);
+                                aR.pfac.prepareBuffer(thread_n, i, maxi);
                             } catch (Exception e) {
                                 e.printStackTrace();
                                 System.exit(1);
@@ -257,7 +257,7 @@ public class lasRasterTools {
                     int maxi = (int) Math.min(20000, Math.abs(temp.getNumberOfPointRecords() - i));
 
                     try {
-                        aR.pfac.prepareBuffer(thread_n, i, 20000);
+                        aR.pfac.prepareBuffer(thread_n, i, maxi);
                     } catch (Exception e) {
                         e.printStackTrace();
                         System.exit(1);

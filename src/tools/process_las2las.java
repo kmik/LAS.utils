@@ -69,7 +69,7 @@ public class process_las2las {
 
             maxi = (int) Math.min(20000, Math.abs(in.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 20000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             for (int j = 0; j < maxi; j++) {
 

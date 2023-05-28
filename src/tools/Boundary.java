@@ -257,9 +257,9 @@ public class Boundary extends tool{
 
         for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
 
-            long maxi = (long) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            int maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 20000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             for (int j = 0; j < maxi; j++) {
 

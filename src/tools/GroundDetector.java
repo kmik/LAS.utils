@@ -1136,7 +1136,7 @@ public class GroundDetector{
                     maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - (p)));
 
                     try {
-                        aR.pfac.prepareBuffer(thread_n, p, 20000);
+                        aR.pfac.prepareBuffer(thread_n, p, maxi);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -2763,7 +2763,7 @@ public class GroundDetector{
 
             try {
                 //pointCloud.readRecord_noRAF(i, tempPoint, 10000);
-                aR.pfac.prepareBuffer(thread_n, i, 10000);
+                aR.pfac.prepareBuffer(thread_n, i, maxi);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -2881,7 +2881,7 @@ public class GroundDetector{
 
                 maxi = (int) Math.min(10000, pointCloud.getNumberOfPointRecords() - i);
 
-                aR.pfac.prepareBuffer(thread_n, i, 10000);
+                aR.pfac.prepareBuffer(thread_n, i, maxi);
 
                 for (int j = 0; j < maxi; j++) {
 
@@ -3073,7 +3073,7 @@ public class GroundDetector{
 
                 maxi = (int) Math.min(10000, pointCloud.getNumberOfPointRecords() - i);
 
-                aR.pfac.prepareBuffer(thread_n, i, 10000);
+                aR.pfac.prepareBuffer(thread_n, i, maxi);
 
                 for (int j = 0; j < maxi; j++) {
 
@@ -3630,7 +3630,7 @@ public class GroundDetector{
 
             int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             for (int j = 0; j < maxi; j++) {
 

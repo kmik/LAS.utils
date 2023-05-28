@@ -55,6 +55,7 @@ public class pointCloudMetrics {
         this.cutoff_n_points = aR.min_points;
 
         if(aR.res != 15){
+            System.out.println("CHANGING resolution");
             convolution_image_resolution = aR.res;
             convolution_image_resolution_x = aR.res;
             convolution_image_resolution_y = aR.res;

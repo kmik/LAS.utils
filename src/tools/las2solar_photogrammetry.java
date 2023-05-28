@@ -166,7 +166,7 @@ public class las2solar_photogrammetry {
 
             int maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 20000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             for (int j = 0; j < maxi; j++) {
 
@@ -257,7 +257,7 @@ public class las2solar_photogrammetry {
 
                 int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-                aR.pfac.prepareBuffer(thread_n, i, 10000);
+                aR.pfac.prepareBuffer(thread_n, i, maxi);
 
                 for (int j = 0; j < maxi; j++) {
 
@@ -565,7 +565,7 @@ public class las2solar_photogrammetry {
 
             int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             for (int j = 0; j < maxi; j++) {
 
@@ -672,11 +672,11 @@ public class las2solar_photogrammetry {
         this.chm_values_mean_x = new short[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
         this.chm_values_mean_z = new short[chm.getRasterYSize()][chm.getRasterXSize()][raster_z_size];
 
-        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 200000) {
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
 
-            int maxi = (int) Math.min(200000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+            int maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 200000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             for (int j = 0; j < maxi; j++) {
 
@@ -717,7 +717,7 @@ public class las2solar_photogrammetry {
 
                 int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-                aR.pfac.prepareBuffer(thread_n, i, 10000);
+                aR.pfac.prepareBuffer(thread_n, i, maxi);
 
                 for (int j = 0; j < maxi; j++) {
 
@@ -970,7 +970,7 @@ public class las2solar_photogrammetry {
 
             int maxi = (int) Math.min(10000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
 
-            aR.pfac.prepareBuffer(thread_n, i, 10000);
+            aR.pfac.prepareBuffer(thread_n, i, maxi);
 
             for (int j = 0; j < maxi; j++) {
 
