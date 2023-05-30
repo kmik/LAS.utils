@@ -1,5 +1,4 @@
 import LASio.LASReader;
-import tools.ToShp;
 import utils.argumentReader;
 import utils.fileDistributor;
 
@@ -10,7 +9,7 @@ import java.util.ArrayList;
 import static runners.RunLASutils.proge;
 import static utils.miscProcessing.prepareData;
 
-public class las2txt {
+public class txt2las {
 
 
     public static void main(String[] args) throws IOException {
@@ -25,7 +24,7 @@ public class las2txt {
             for (int i = 0; i < inputFiles.size(); i++) {
                 LASReader temp = new LASReader(aR.inputFiles.get(i));
                 try {
-                    tools.las2txt ddd = new tools.las2txt(temp, aR.odir, aR.oparse, aR, 1);
+                    tools.txt2las ddd = new tools.txt2las(temp, aR.odir, aR.iparse, aR, 1);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -92,9 +91,7 @@ public class las2txt {
                 LASReader temp = null;
                 try {
                     temp = new LASReader(f);
-
-                    tools.las2txt ddd = new tools.las2txt(temp, aR.odir, aR.oparse, aR, nCore);
-
+                    tools.txt2las ddd = new tools.txt2las(temp, aR.odir, aR.iparse, aR, 1);
                 }catch (Exception e){
                     e.printStackTrace();
                 }

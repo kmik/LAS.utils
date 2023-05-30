@@ -1,19 +1,21 @@
 package tools;
 
 import LASio.LASReader;
-import LASio.LasPoint;
 import LASio.LASwrite;
+import LASio.LasPoint;
+import utils.argumentReader;
+import utils.fileOperations;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import utils.*;
-public class las2txt{
+
+public class txt2las {
 
     argumentReader aR;
     int coreNumber = 0;
 
-    public las2txt(LASReader in, String odir, String oparse, argumentReader aR, int coreNumber) throws IOException {
+    public txt2las(LASReader in, String odir, String oparse, argumentReader aR, int coreNumber) throws IOException {
 
         this.coreNumber = coreNumber;
         this.aR = aR;
@@ -55,8 +57,8 @@ public class las2txt{
             tempOutFile.createNewFile();
 
             fw = new FileWriter(tempOutFile, true);
-            bw = new BufferedWriter(fw,32768);
-            //out = new PrintWriter(bw);
+            bw = new BufferedWriter(fw);
+            out = new PrintWriter(bw);
 
             n = in.getNumberOfPointRecords();
 
@@ -69,9 +71,6 @@ public class las2txt{
 
             int x_index;
             int y_index;
-
-            char[] charArray = aR.oparse.toCharArray();
-
 
             for(int i = 0; i < in.getNumberOfPointRecords(); i += 10000) {
 
@@ -113,9 +112,7 @@ public class las2txt{
                     }
 
 
-                    //out.println(LASwrite.LASpoint2String(tempPoint, aR.oparse, aR.sep));
-                    bw.write(LASwrite.LASpoint2String(tempPoint, charArray, aR.sep));
-                    bw.write("\n");
+                    out.println(LASwrite.LASpoint2String(tempPoint, aR.oparse, aR.sep));
 
                     aR.p_update.threadProgress[coreNumber-1]++;
 
@@ -124,8 +121,7 @@ public class las2txt{
                     //}
                 }
             }
-            bw.close();
-            //out.close();
+            out.close();
 
             //}
         }

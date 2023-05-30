@@ -484,6 +484,105 @@ public class MKid4pointsLAS{
         return true;
     }
 
+
+    public static void print2DArray(double[][] arr) {
+
+        for (int i = 0; i < arr.length; i++) {
+            for (int j = 0; j < arr[i].length; j++) {
+                System.out.print(arr[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+    // DOES NOT USE THE LAST POINT IN THE ARRAY
+    public double[] getCenterCoordinatesMinusTheLastPoint(double[][] xy){
+
+            double[] center = new double[2];
+
+            double x = 0.0;
+            double y = 0.0;
+
+            for(int i = 0; i < xy.length - 1; i++){
+                x += xy[i][0];
+                y += xy[i][1];
+            }
+
+            center[0] = x / (double)(xy.length-1);
+            center[1] = y / (double)(xy.length-1);
+
+            return center;
+    }
+    public double getRotation(double[][] arr){
+
+        double[] origin = getCenterCoordinatesMinusTheLastPoint(arr);
+        //print2DArray(arr);
+        //System.out.println(Arrays.toString(center));
+        //System.exit(1);
+        double rotation = 0.0;
+
+        double maxy = Double.NEGATIVE_INFINITY;
+
+        for(int i = 0; i < arr.length; i++){
+            if(arr[i][1] > maxy){
+                maxy = arr[i][1];
+            }
+        }
+
+        double rotationAngle = 0;
+
+        double[] point = new double[2];
+
+        for(int r = 0; r < 60; r++) {
+            for (int i = 0; i < arr.length; i++) {
+
+                point[0] = arr[i][0];
+                point[1] = arr[i][1];
+
+                rotate_point(origin, point, Math.toRadians(-r));
+
+                if (point[1] >= maxy) {
+                    maxy = point[1];
+                    rotation = r;
+                }
+
+            }
+        }
+
+        //System.out.println(rotation);
+
+        for(int i = 0; i < arr.length; i++){
+
+            rotate_point(origin, arr[i], Math.toRadians(-rotation));
+
+        }
+
+        //System.out.println("------------------");
+        //print2DArray(arr);
+        //System.exit(1);
+
+        return -rotation;
+
+    }
+
+    public void rotate_point(double[] origin, double[] p, double angle) {
+
+        double s = Math.sin(angle);
+        double c = Math.cos(angle);
+
+        // translate point back to origin:
+        p[0] -= origin[0];
+        p[1] -= origin[1];
+
+        // rotate point
+        double xnew = p[0] * c - p[1] * s;
+        double ynew = p[0] * s + p[1] * c;
+
+        // translate point back:
+        p[0] = xnew + origin[0];
+        p[1] = ynew + origin[1];
+    }
+
+
     public void clipPlots(String coords, int shapeType, ArrayList<String> pilvi,String outieFile,
                                  ArrayList<String> indeksitiedosto, String delim, String outShape, int part, int cores, boolean statCalc, String output_txt_points,
                                  String all_index, double buffer, String plotOutName, String oparse, String output, boolean split, String otype,
@@ -937,6 +1036,7 @@ public class MKid4pointsLAS{
         if(shapeType == 2) {
 
 
+
             ArrayList<Integer> plotID;
 
             ArrayList<double[][]> polyBank1 = new ArrayList<double[][]>();
@@ -1042,6 +1142,19 @@ public class MKid4pointsLAS{
                 //HashSet<String> pisteMappi = new HashSet<String>();
 
                 double[][] tempPolygon = polyBank.get(j);
+                double rotation = 99999.0;
+
+                if(aR.turnHexagon)
+                    rotation = getRotation(tempPolygon);
+
+                double[] centerOfPolygon = new double[2];
+
+                if(aR.clip_to_circle){
+
+                    centerOfPolygon = getCenterCoordinatesMinusTheLastPoint(tempPolygon);
+
+                }
+
 
                 //in[i][0] > maxX
                 /*
@@ -1248,8 +1361,17 @@ public class MKid4pointsLAS{
 
                                                 }
 
+                                                boolean insideCircle = true;
+
+                                                if(aR.clip_to_circle){
+
+                                                    insideCircle = euclideanDistance(tempPoint.x, tempPoint.y, centerOfPolygon[0], centerOfPolygon[1]) <= aR.radius ? true : false;
+
+                                                }
+
                                                 point_inside_polygon = pointInPolygon(haku, tempPolygon, holes, plotID.get(j));
 
+                                                if(insideCircle)
                                                 if ( (aR.eaba && eaba_but_ground && point_inside_polygon) ||    // ground
                                                         (aR.eaba && tree_id_found_) ||                          // tree within extending outside
                                                         (!aR.eaba && point_inside_polygon)) {                   // Basic without eaba
@@ -1440,9 +1562,17 @@ public class MKid4pointsLAS{
 
                                         }
 
+                                    boolean insideCircle = true;
+
+                                    if(aR.clip_to_circle){
+
+                                        insideCircle = euclideanDistance(tempPoint.x, tempPoint.y, centerOfPolygon[0], centerOfPolygon[1]) <= aR.radius ? true : false;
+
+                                    }
+
                                         point_inside_polygon = pointInPolygon(haku, tempPolygon, holes, plotID.get(j));
 
-
+                                        if(insideCircle)
                                         if ( (aR.eaba && eaba_but_ground && point_inside_polygon) ||    // ground
                                                 (aR.eaba && tree_id_found_) ||                          // tree within extending outside
                                                 (!aR.eaba && point_inside_polygon)) {                   // Basic without eaba
@@ -1588,7 +1718,7 @@ public class MKid4pointsLAS{
                             //System.out.println("HERE!!");
                         } else if (aR.convolution_metrics) {
                             ArrayList<Double> metrics_convolution = pCM.calc_nn_input_test_spectral(gridPoints_xyz_a, "_convo_f", colnames_convo, minmaxXY[0], minmaxXY[3],
-                                    minmaxXY[1], minmaxXY[2]);
+                                    minmaxXY[1], minmaxXY[2], rotation);
                             aR.lCMO.writeLine_convo_test(metrics_convolution, colnames_convo, plotID.get(j));
                             //System.out.println("HERE_test_data!!");
                         }
@@ -1658,6 +1788,13 @@ public class MKid4pointsLAS{
 
 
         polygonIndex[][] polygon_index;
+
+    }
+
+    public double euclideanDistance(double x1, double y1, double x2, double y2){
+
+
+        return Math.sqrt(  (x1 - x2) * ( x1 - x2) + ( y1 - y2) * ( y1 - y2) );
 
     }
 

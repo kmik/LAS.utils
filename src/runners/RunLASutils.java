@@ -1383,6 +1383,7 @@ public class RunLASutils {
 
                     //to.add(new LASraf(toFile));
                     LASraf tmp = new LASraf(toFile);
+
                     LASwrite.txt2las(from.get(i), tmp, parse, "txt2las", aR.sep, rule, echoClass, aR);
 
                     tmp.writeBuffer2();
@@ -1391,6 +1392,7 @@ public class RunLASutils {
                     //System.exit(1);
 
                     proge.updateCurrent(1);
+
                     if (i % (proge.end / 20 + 1) == 0)
                         proge.print();
 

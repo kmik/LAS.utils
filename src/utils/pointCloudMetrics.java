@@ -17,7 +17,7 @@ public class pointCloudMetrics {
     public boolean clip_to_hexagon = false;
 
     // THIS IS FOR THE HEXAGON
-    public double r = 9.0;
+    public double r = 8.0;
 
     //public double r = 7.5;
 
@@ -53,6 +53,10 @@ public class pointCloudMetrics {
         this.percentile_step_orig = aR.percentiles;
         this.cutoff = aR.z_cutoff;
         this.cutoff_n_points = aR.min_points;
+
+        if(aR.radius != 0.0){
+            this.r = aR.radius;
+        }
 
         if(aR.res != 15){
             System.out.println("CHANGING resolution");
@@ -416,7 +420,9 @@ public class pointCloudMetrics {
     }
 
     public ArrayList<Double> calc_nn_input_test_spectral(ArrayList<double[]> p, String suffix, ArrayList<String> colnames, double top_left_x, double top_left_y,
-                                                         double bottom_right_x, double bottom_right_y){
+                                                         double bottom_right_x, double bottom_right_y, double rotation){
+
+
 
         double center_x = top_left_x + convolution_image_width / 2.0;
         double center_y = top_left_y - convolution_image_height / 2.0;
@@ -471,6 +477,12 @@ public class pointCloudMetrics {
         //double square_side_length = Math.sqrt(circle_diameter * circle_diameter / 2.0 );
         double[] origin = new double[]{center_x, center_y};
         double angle = angle_increment;
+
+        if(rotation != 99999.0){
+
+            rotatePoints(origin, rotation, p);
+
+        }
 
         double point_count = (double)p.size();
 
@@ -903,6 +915,7 @@ public class pointCloudMetrics {
     }
     public void rotatePoints(double[] origin, double angle, ArrayList<double[]> p){
 
+        angle = Math.toRadians(angle);
         for(double[] p_ : p){
 
             rotate_point(origin, p_, angle);

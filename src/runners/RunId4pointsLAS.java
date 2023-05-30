@@ -896,12 +896,7 @@ public class RunId4pointsLAS{
 
         }
 
-
-
         if(lasFormat){
-
-
-
 
             for(String f : aR.files) {
                 inputFiles.add(new File(f));

@@ -26,6 +26,9 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public double radius = 0.0;
+    public boolean turnHexagon = false;
+
     public boolean onlyConvolutionMetrics = false;
 
     public boolean clip_to_circle = false;
@@ -648,6 +651,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("turn_hexagon")
+                .hasArg(false)
+                .desc("Rotate points from hexagon to upright pos")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("drop_noise")
                 .hasArg(false)
                 .desc("Drop noise (class 7)")
@@ -694,6 +704,13 @@ public class argumentReader {
                 .longOpt("concavity")
                 .hasArg(true)
                 .desc("Concavity")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("radius")
+                .hasArg(true)
+                .desc("radius")
                 .required(false)
                 .build());
 
@@ -2075,6 +2092,18 @@ public class argumentReader {
 
                 if(!this.debug_file.exists())
                     throw new argumentException("-debug_file does not exist!");
+            }
+
+            if(cmd.hasOption("turn_hexagon")){
+
+                this.turnHexagon = true;
+
+            }
+
+            if(cmd.hasOption("radius")){
+
+                this.radius = Double.parseDouble(cmd.getOptionValue("radius"));
+
             }
 
             if (cmd.hasOption("o")) {

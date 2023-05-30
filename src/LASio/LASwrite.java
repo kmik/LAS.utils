@@ -87,7 +87,6 @@ public class LASwrite {
 
 		String output = "";
 
-
 		char[] charArray = oparse.toCharArray();
 
 		boolean charFound = false;
@@ -154,6 +153,174 @@ public class LASwrite {
 			if(i != (charArray.length - 1)& charFound)
 				output += sep;
 
+			charFound = false;
+
+		}
+
+		charArray = null;
+
+		return output;
+
+	}
+
+	public static String LASpoint2String(LasPoint point, char[] charArray, String sep){
+
+		String output = "";
+
+		 //= oparse.toCharArray();
+
+		boolean charFound = false;
+
+		for(int i = 0; i < charArray.length; i++){
+
+			switch(charArray[i])
+			{
+				case 'x':
+					output += (Double.toString(point.x));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 'y':
+					output += (Double.toString(point.y));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 'z':
+					output += (Double.toString(point.z));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 'i':
+					output += (Integer.toString(point.intensity));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 'c':
+					output += (Integer.toString(point.classification));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 't':
+					output += (Double.toString(point.gpsTime));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 'n':
+					output += (Integer.toString(point.numberOfReturns));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 'r':
+					output += (Integer.toString(point.returnNumber));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 'p':
+					output += (Integer.toString(point.pointSourceId));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 'd':
+					output += (Integer.toString(point.scanAngleRank));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 'u':
+					output += (Integer.toString(point.userData));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 'R':
+					output += (Integer.toString(point.R));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 'G':
+					output += (Integer.toString(point.G));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 'B':
+					output += (Integer.toString(point.B));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 'N':
+					output += (Integer.toString(point.N));
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+				case 's':
+					output += (0);
+					if(i != (charArray.length - 1))
+						output += sep;
+					break;
+
+				default:
+					throw new argumentException("-iparse command " + charArray[i] + " not recognized");
+			}
+
+			/*
+			if(charArray[i] == 'x'){
+				output += (Double.toString(point.x));
+				charFound = true;
+			}
+			if(charArray[i] == 'y'){
+				output += (Double.toString(point.y));
+				charFound = true;
+			}
+			if(charArray[i] == 'z'){
+				output += (Double.toString(point.z));
+				charFound = true;
+			}
+			if(charArray[i] == 'i'){
+				output += (Integer.toString(point.intensity));
+				charFound = true;
+			}
+			if(charArray[i] == 'c'){
+				output += (Integer.toString(point.classification));
+				charFound = true;
+			}
+			if(charArray[i] == 't'){
+				output += (Double.toString(point.gpsTime));
+				charFound = true;
+			}
+			if(charArray[i] == 'n'){
+				output += (Integer.toString(point.numberOfReturns));
+				charFound = true;
+			}
+			if(charArray[i] == 'r'){
+				output += (Integer.toString(point.returnNumber));
+				charFound = true;
+			}
+			if(charArray[i] == 'p'){
+				output += (Integer.toString(point.pointSourceId));
+				charFound = true;
+			}
+			if(charArray[i] == 'u'){
+				output += (Integer.toString(point.userData));
+				charFound = true;
+			}
+			if(charArray[i] == 'R'){
+				output += (Integer.toString(point.R));
+				charFound = true;
+			}
+			if(charArray[i] == 'G'){
+				output += (Integer.toString(point.G));
+				charFound = true;
+			}
+			if(charArray[i] == 'B'){
+				output += (Integer.toString(point.B));
+				charFound = true;
+			}
+			if(charArray[i] == 's'){
+				output += (0);
+				charFound = true;
+			}
+
+			if(i != (charArray.length - 1)& charFound)
+				output += sep;
+*/
 			charFound = false;
 
 		}
@@ -470,6 +637,7 @@ public class LASwrite {
 			to.writeAscii(32, aR.identifier);// = braf.readAscii(16);
 		else
 	    	to.writeAscii(32, "LASutils (c) by Mikko Kukkonen");// systemIdentifier = braf.readAscii(32);
+
 	    to.writeAscii(32, (softwareName + " version 0.1"));// generatingSoftware = braf.readAscii(32);
 		int year = Calendar.getInstance().get(Calendar.YEAR); //now.getYear();
 		Calendar calendar = Calendar.getInstance();
