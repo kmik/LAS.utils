@@ -1735,7 +1735,7 @@ public class lasGridStats {
 
                         //printProgressBar(progress++, numberOfCellsToProcess);
 
-                        counterDoneCells++;
+                        //counterDoneCells++;
 
 
                         if(counterDoneCells++ % 10000 == 0){
@@ -2018,8 +2018,8 @@ public class lasGridStats {
                                     //}else{
                                     // }
                                     //if(!foundStands.contains(tempPoint.pointSourceId)) {
-                                    //if (!foundStands.contains(stand_id)) {
-                                    if (counterDoneCells == 1) {
+                                    if (!foundStands.contains(stand_id)) {
+                                    //if (counterDoneCells == 1) {
 
                                         //tins.add(new IncrementalTin());
                                         // tin_perimeters.add(null);
