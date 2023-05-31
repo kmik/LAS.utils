@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class threadProgressbars {
 
-    int[] progress;
+    volatile int[] progress;
     int[] end;
 
     int[] progress2;
