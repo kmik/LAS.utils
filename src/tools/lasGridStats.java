@@ -1664,8 +1664,6 @@ public class lasGridStats {
         writer_i.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
 
 
-
-
         if(!aR.eaba)
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
 
@@ -1981,18 +1979,24 @@ public class lasGridStats {
 
  */
 
-                for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
-                    QuickHull qh = new QuickHull();
-                    ArrayList<Point> p = null;
 
-                    if (points.get(ii).size() > 3) {
-                        p = qh.quickHull(points.get(ii));
-                        areas.add(polygonArea(p));
-                    } else {
+                if(false) {
+                    for (int ii = 0; ii < gridPoints_z_a.size(); ii++) {
+                        QuickHull qh = new QuickHull();
+                        ArrayList<Point> p = null;
+
+                        if (points.get(ii).size() > 3) {
+                            p = qh.quickHull(points.get(ii));
+                            areas.add(polygonArea(p));
+                        } else {
+                            areas.add(-99.9);
+                        }
+                    }
+                }else{
+                    for (int ii = 0; ii < gridPoints_z_a.size(); ii++) {
                         areas.add(-99.9);
                     }
                 }
-
 
 
                 double x_coord = orig_x + resolution * x;
@@ -2006,7 +2010,7 @@ public class lasGridStats {
 
                 boolean addedBecauseTooSmall = false;
 
-                if(!aR.photogrammetry)
+
                 /* Iterate over all the plot ids within this grid cell */
                 for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
 
@@ -2073,6 +2077,7 @@ public class lasGridStats {
 
                 long start_time = System.currentTimeMillis();
 
+                if(!aR.photogrammetry)
                 for(int ii = 0; ii < gridPoints_z_f.size(); ii++) {
 
                     if(gridPoints_z_f.get(ii).size() > aR.min_points) {

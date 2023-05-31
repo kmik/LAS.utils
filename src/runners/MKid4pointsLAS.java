@@ -1709,6 +1709,7 @@ public class MKid4pointsLAS{
 
                     boolean train = aR.convolution_metrics_train;
 
+                    if(!aR.noConvolution)
                     if(aR.convolution_metrics_train || aR.convolution_metrics) {
 
                         if (aR.convolution_metrics_train) {

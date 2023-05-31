@@ -713,12 +713,12 @@ public class RunId4pointsLAS{
         ArrayList<double[][]> polyBank = new ArrayList<double[][]>();
         HashMap<Integer, ArrayList<double[][]>> holes = new HashMap<>();
 
-        File checkFile = new File("tempWKT.csv");
+        File checkFile = new File("tempWKT_" + System.currentTimeMillis() + ".csv");
 
         int counter = 0;
         while(checkFile.exists()){
 
-            String name = "tempWKT" + (counter++) + ".csv";
+            String name = "tempWKT_" + System.currentTimeMillis() + ".csv";
             checkFile = new File(name);
         }
 
@@ -776,7 +776,7 @@ public class RunId4pointsLAS{
                 }
 
 
-            koealat = "tempWKT.csv";
+            koealat = checkFile.getAbsolutePath();
             shapeType = 2;
 
         }

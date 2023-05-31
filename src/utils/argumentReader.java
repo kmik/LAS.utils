@@ -72,6 +72,7 @@ public class argumentReader {
     public boolean convolution_metrics_train = false;
     public boolean convolution_metrics = true;
 
+    public boolean noConvolution = true;
     public boolean output_only_itc_segments = false;
 
     public int thread_safe_id = 0;
@@ -926,6 +927,13 @@ public class argumentReader {
                 .longOpt("validation2")
                 .hasArg(true)
                 .desc("neural network validation 2 set")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("convolution_metrics")
+                .hasArg(false)
+                .desc("do not compute convolution metrics")
                 .required(false)
                 .build());
 
@@ -2222,6 +2230,11 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("convolution_metrics")) {
+
+                this.noConvolution = false;
+
+            }
 
             if (cmd.hasOption("poly")) {
 
