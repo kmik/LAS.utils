@@ -102,6 +102,9 @@ public class lasGridStats {
                 try {
                     temp = new LASReader(f);
                     tools.lasGridStats lGS = new tools.lasGridStats(temp, aR, nCore);
+
+
+                    temp.close();
                 }catch (Exception e){
                     e.printStackTrace();
                 }
