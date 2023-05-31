@@ -30,7 +30,7 @@ public class lasReadWriteFactory {
 
     }
 
-    public synchronized void prepareBuffer(int thread, long i, int n) throws Exception{
+    public void prepareBuffer(int thread, long i, int n) throws Exception{
 
         pointClouds.get(thread).readRecord_noRAF(i, tempPoint, n);
 

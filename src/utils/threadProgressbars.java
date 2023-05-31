@@ -59,7 +59,7 @@ public class threadProgressbars {
 
     }
 
-    public synchronized void addProgress(int coreNumber, int progress) {
+    public void addProgress(int coreNumber, int progress) {
 
         this.progress[coreNumber] += progress;
 

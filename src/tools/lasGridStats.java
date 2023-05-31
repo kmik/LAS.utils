@@ -1633,7 +1633,7 @@ public class lasGridStats {
                     grid_of_points[x][y].clear();
                     grid_of_points[x][y] = null;
 
-                    if (counter % 1000 == 0) {
+                    if (counter % 100000 == 0) {
                         System.gc();
                     }
                 }
@@ -1687,6 +1687,7 @@ public class lasGridStats {
         writer_l.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
         writer_i.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
 
+        int counterDoneCells = 0;
 
         if (!aR.eaba){
 
@@ -1733,8 +1734,13 @@ public class lasGridStats {
                     if (number_of_points_per_cell[x][y] == 0) {
 
                         //printProgressBar(progress++, numberOfCellsToProcess);
+
+
                         aR.prog.addProgress(coreNumber - 1, 1);
-                        aR.prog.printProgressBar();
+
+                        if(counterDoneCells++ % 10000 == 0)
+                            aR.prog.printProgressBar();
+
                         counter++;
                         cell_only_id[x][y] = -1;
 
@@ -2468,7 +2474,7 @@ public class lasGridStats {
                         aR.p_update.threadProgress[coreNumber - 1]++;
 
 
-                        if (counter % 10000 == 0) {
+                        if (counter % 100000 == 0) {
                             aR.p_update.updateProgressGridStats();
                         }
                         if (counter % 100000 == 0)
