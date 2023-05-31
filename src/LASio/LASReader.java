@@ -201,7 +201,7 @@ public class LASReader {
     braf.pointDataRecordLength = this.pointDataRecordLength;
     braf.offsetToPointData = this.offsetToPointData;
 
-    //this.braf.setUpMappedByteBuffer();
+    this.braf.setUpMappedByteBuffer();
 
     try {
       getIndexMap();
@@ -1966,7 +1966,7 @@ public class LASReader {
     pointsRead = 0;
   }
 
-  public synchronized void readFromBuffer(LasPoint p){
+  public void readFromBuffer(LasPoint p){
 
     //here
     pointsRead++;

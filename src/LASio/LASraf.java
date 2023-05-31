@@ -51,7 +51,7 @@ public class LASraf implements Closeable {
   /**
    * The byte buffer used for reading (and eventually writing) data
    */
-  public final ByteBuffer buffer;
+  public ByteBuffer buffer;
   //public final ByteBuffer buffer2;
   public ByteBuffer writeBuffer;
   public ByteBuffer temp;

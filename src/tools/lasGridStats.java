@@ -68,7 +68,6 @@ public class lasGridStats {
 
     public lasGridStats(LASReader pointCloud, argumentReader aR, int coreNumber) throws Exception{
 
-
         this.coreNumber = coreNumber;
 
         this.resolution = aR.res;
@@ -1529,6 +1528,7 @@ public class lasGridStats {
 
             for (int j = 0; j < maxi; j++) {
 
+                //if(i == 0)
                 pointCloud.readFromBuffer(tempPoint);
 
                 int x = Math.min((int) ((tempPoint.x - minX) / resolution), grid_x_size - 1);
@@ -1542,6 +1542,14 @@ public class lasGridStats {
                 //int bBack = (int)c;
             }
         }
+
+        long endTime = System.currentTimeMillis();
+        long totalTime = endTime - tStart;
+
+        //System.out.println("Time to count points: " + totalTime);
+
+        //if(true)
+        //    return;
 
         int numberOfCellsToProcess = 0;
         for (int x = 0; x < grid_x_size; x++)
@@ -1739,7 +1747,7 @@ public class lasGridStats {
 
 
                         if(counterDoneCells++ % 10000 == 0){
-                            aR.prog.addProgress(coreNumber - 1, counterDoneCells);
+                            aR.prog.setProgress(coreNumber - 1, counterDoneCells);
                             aR.prog.printProgressBar();
 
                         }

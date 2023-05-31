@@ -100,11 +100,11 @@ public class lasGridStats {
                     continue;
                 LASReader temp = null;
                 try {
+
                     temp = new LASReader(f);
                     tools.lasGridStats lGS = new tools.lasGridStats(temp, aR, nCore);
-
-
                     temp.close();
+
                 }catch (Exception e){
                     e.printStackTrace();
                 }

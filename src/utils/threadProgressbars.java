@@ -65,6 +65,12 @@ public class threadProgressbars {
 
     }
 
+    public void setProgress(int coreNumber, int progress) {
+
+        this.progress[coreNumber] = progress;
+
+    }
+
     public synchronized void printProgressBar2() {
         for (int i = 0; i < progress.length; i++) {
             int percent = (int) Math.round((progress[i] / (double) end[i]) * 100);
