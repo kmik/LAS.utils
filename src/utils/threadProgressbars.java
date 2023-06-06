@@ -5,6 +5,7 @@ import java.util.Arrays;
 public class threadProgressbars {
 
     volatile int[] progress;
+    volatile long[] time;
     int[] end;
 
     int[] progress2;
@@ -23,6 +24,7 @@ public class threadProgressbars {
     public threadProgressbars(int cores, int totalFiles){
 
         progress = new int[cores];
+        time = new long[cores];
         end = new int[cores];
         lines = new String[cores];
         this.numCores = cores;
@@ -70,6 +72,13 @@ public class threadProgressbars {
         this.progress[coreNumber] = progress;
 
     }
+
+    public void setTime(int coreNumber, long time) {
+
+        this.time[coreNumber] = time;
+
+    }
+
 
     public synchronized void printProgressBar2() {
         for (int i = 0; i < progress.length; i++) {
@@ -129,7 +138,9 @@ public class threadProgressbars {
                     bar.append(" ");
                 }
             }
-            bar.append("] " + percent + "%");
+
+            long proge = Math.max(progress[i], 1);
+            bar.append("] " + percent + "% " + (time[i]/proge) + "us/unit");
             bar.append("\nFiles: " + fileProgress + "/" + totalFiles); // print files done
             System.out.print("\033[" + (i + 1) + ";0f"); // move cursor to ith line and 0th column
             System.out.print("\033[2K"); // clear the entire line

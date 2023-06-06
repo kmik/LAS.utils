@@ -271,6 +271,7 @@ public class LASraf implements Closeable {
 
   @Override
   public void close() throws IOException {
+
     if (raFile != null) {
       raFile.close();
       raFile = null;

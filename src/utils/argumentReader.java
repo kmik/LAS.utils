@@ -33,6 +33,7 @@ public class argumentReader {
 
     public boolean clip_to_circle = false;
 
+    public boolean thinToCenter = false;
     public int image_height = 0;
 
     public threadProgressbars prog = new threadProgressbars();
@@ -885,6 +886,13 @@ public class argumentReader {
                 .longOpt("eaba")
                 .hasArg(false)
                 .desc("Petteris eaba")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("thin_to_center")
+                .hasArg(false)
+                .desc("Move the thinned point to the center of the cell")
                 .required(false)
                 .build());
 
@@ -1931,6 +1939,7 @@ public class argumentReader {
 
                     if(new File(s).getName().contains("las")) {
                         if (new File(s).getName().split("\\.")[1].equals("las")) {
+
                             LASReader tempReader = null;
 
                             try {
@@ -1956,6 +1965,8 @@ public class argumentReader {
                         this.inputFiles.add(new File(s));
                     }
                 }
+
+                System.gc();
 
                 files = temp.toArray(new String[0]);
 
@@ -2545,6 +2556,14 @@ public class argumentReader {
                 this.kernel = Integer.parseInt(cmd.getOptionValue("kernel"));
 
             }
+
+            if (cmd.hasOption("thin_to_center")) {
+
+                this.thinToCenter = true;
+
+            }
+
+
 
             if (cmd.hasOption("set_user_data")) {
                 this.noModify = false;

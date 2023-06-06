@@ -2450,6 +2450,7 @@ public class LASReader {
 
     braf.close();
     braf = null;
+
   }
 
   /**

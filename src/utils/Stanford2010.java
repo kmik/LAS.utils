@@ -26,6 +26,8 @@ import tools.Point;
 import tools.QuickHull;
 import tools.createCHM;
 
+import org.gdal.osr.SpatialReference;
+
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.io.BufferedWriter;
@@ -43,6 +45,9 @@ public class Stanford2010 {
     HashSet<Integer> processedStands = new HashSet<>();
     HashSet<Integer> excludedStands = new HashSet<>();
 
+    int runningPlotId = 0;
+    double plotRadius = 9;
+    int runningId = 0;
 
     int concave_hull_k = 75;
     ArrayList<String> failedFiles = new ArrayList<>();
@@ -57,10 +62,12 @@ public class Stanford2010 {
     KdTree centroids = new KdTree();
 
     Layer allStandsShapeFileLayer;
+    Layer allPlotsShapeFileLayer;
 
     public Stanford2010(argumentReader aR) throws toolException {
         this.aR = aR;
         this.declareMergedShapefile();
+        this.declarePlotShapefile();
     }
 
 
@@ -89,13 +96,93 @@ public class Stanford2010 {
         DataSource outShp = shpDriver.CreateDataSource(outFile.getAbsolutePath());
         allStandsShapeFileLayer = outShp.CreateLayer("out_name", null, 0);
         FieldDefn layerFieldDef = new FieldDefn("id",0);
-
         allStandsShapeFileLayer.CreateField(layerFieldDef);
     }
 
+    public void declarePlotShapefile(){
+
+        gdal.AllRegister();
+
+        String driverName = "ESRI Shapefile";
+
+        Driver shpDriver = ogr.GetDriverByName(driverName);
+
+        String pathSeparator = System.getProperty("file.separator");
+
+        File output_directory = new File(aR.odir + pathSeparator);
+
+        File outFile = new File(output_directory.getAbsolutePath() + pathSeparator + "plots.shp");
+        DataSource outShp = shpDriver.CreateDataSource(outFile.getAbsolutePath());
+
+
+        allPlotsShapeFileLayer = outShp.CreateLayer("out_name", null, 0);
+
+        FieldDefn layerFieldDef = new FieldDefn("id",0);
+        allPlotsShapeFileLayer.CreateField(layerFieldDef);
+
+        FieldDefn layerFieldDef2 = new FieldDefn("stand_id",0);
+        allPlotsShapeFileLayer.CreateField(layerFieldDef2);
+
+        FieldDefn layerFieldDef3 = new FieldDefn("v_log_p",2);
+        allPlotsShapeFileLayer.CreateField(layerFieldDef3);
+
+        FieldDefn layerFieldDef4 = new FieldDefn("v_log_s",2);
+        allPlotsShapeFileLayer.CreateField(layerFieldDef4);
+
+        FieldDefn layerFieldDef5 = new FieldDefn("v_log_b",2);
+        allPlotsShapeFileLayer.CreateField(layerFieldDef5);
+
+        FieldDefn layerFieldDef9 = new FieldDefn("v_pulp_p",2);
+        allPlotsShapeFileLayer.CreateField(layerFieldDef9);
+
+        FieldDefn layerFieldDef10 = new FieldDefn("v_pulp_s",2);
+        allPlotsShapeFileLayer.CreateField(layerFieldDef10);
+
+        FieldDefn layerFieldDef11 = new FieldDefn("v_pulp_b",2);
+        allPlotsShapeFileLayer.CreateField(layerFieldDef11);
+
+        FieldDefn layerFieldDef12 = new FieldDefn("v_energy_p",2);
+        allPlotsShapeFileLayer.CreateField(layerFieldDef12);
+
+        FieldDefn layerFieldDef13 = new FieldDefn("v_energy_s",2);
+        allPlotsShapeFileLayer.CreateField(layerFieldDef13);
+
+        FieldDefn layerFieldDef14 = new FieldDefn("v_energy_b",2);
+        allPlotsShapeFileLayer.CreateField(layerFieldDef14);
+
+
+
+    }
+
     public void finalizeMergedShapefile(){
+/*
+        SpatialReference spatialRef = new SpatialReference();
+        spatialRef.ImportFromEPSG(3067);
+
+        // Create and add features...
+
+        // Iterate over features and assign spatial reference
+        allPlotsShapeFileLayer.ResetReading();
+        Feature feature;
+
+        while ((feature = allPlotsShapeFileLayer.GetNextFeature()) != null) {
+            feature.GetGeometryRef().AssignSpatialReference(spatialRef);
+            allPlotsShapeFileLayer.SetFeature(feature);
+            feature.delete();
+        }
+
+        // Iterate over features and assign spatial reference
+        allStandsShapeFileLayer.ResetReading();
+        while ((feature = allStandsShapeFileLayer.GetNextFeature()) != null) {
+            feature.GetGeometryRef().AssignSpatialReference(spatialRef);
+            allStandsShapeFileLayer.SetFeature(feature);
+            feature.delete();
+        }
+
+*/
 
         allStandsShapeFileLayer.SyncToDisk();
+        allPlotsShapeFileLayer.SyncToDisk();
 
     }
 
@@ -120,6 +207,71 @@ public class Stanford2010 {
 
         }
 
+    }
+
+    public void addPlotToShapefile(double x, double y, double r,  int id, int stand_id,
+                                   double v_log_pine, double v_log_spruce, double v_log_birch,
+                                   double v_pulp_pine, double v_pulp_spruce, double v_pulp_birch,
+                                   double v_energy_pine, double v_energy_spruce, double v_energy_birch){
+
+        gdal.AllRegister();
+        List<double[]> circlePoints = calculateCircleBoundary(x, y, r);
+
+        Geometry outShpGeom2 = new Geometry(ogr.wkbLinearRing);
+        Geometry outShpGeom = new Geometry(ogr.wkbPolygon);
+
+        for(int i = 0; i < circlePoints.size(); i++) {
+
+            //System.out.println("Wrote " + i);
+            outShpGeom2.AddPoint_2D(circlePoints.get(i)[0], circlePoints.get(i)[1]);
+
+        }
+
+        outShpGeom2.AddPoint_2D(circlePoints.get(0)[0], circlePoints.get(0)[1]);
+
+        outShpGeom.AddGeometry(outShpGeom2);
+
+        FeatureDefn outShpFeatDefn = allPlotsShapeFileLayer.GetLayerDefn();
+        Feature feature = new Feature(outShpFeatDefn);
+        feature.SetGeometryDirectly(outShpGeom);
+
+        //Feature feature = new Feature(allPlotsShapeFileLayer.GetLayerDefn());
+        //feature.SetGeometry(outShpGeom);
+
+        // Set feature attributes
+
+        feature.SetField("id", id);
+        feature.SetField("stand_id", stand_id);
+        feature.SetField("v_log_p", v_log_pine);
+        feature.SetField("v_log_s", v_log_spruce);
+        feature.SetField("v_log_b", v_log_birch);
+        feature.SetField("v_pulp_p", v_pulp_pine);
+        feature.SetField("v_pulp_s", v_pulp_spruce);
+        feature.SetField("v_pulp_b", v_pulp_birch);
+        feature.SetField("v_energy_p", v_energy_pine);
+        feature.SetField("v_energy_s", v_energy_spruce);
+        feature.SetField("v_energy_b", v_energy_birch);
+
+        SpatialReference spatialRef = new SpatialReference();
+        spatialRef.ImportFromEPSG(3067);
+        feature.GetGeometryRef().AssignSpatialReference(spatialRef);
+
+        allPlotsShapeFileLayer.CreateFeature(feature);
+
+    }
+
+    public List<double[]> calculateCircleBoundary(double centerX, double centerY, double radius) {
+        List<double[]> boundaryPoints = new ArrayList<>();
+        int numPoints = 20; // Number of points to approximate the circle
+
+        for (int i = 0; i < numPoints; i++) {
+            double angle = 2 * Math.PI * i / numPoints;
+            double x = centerX + radius * Math.cos(angle);
+            double y = centerY + radius * Math.sin(angle);
+            boundaryPoints.add(new double[]{x, y});
+        }
+
+        return boundaryPoints;
     }
 
     public void exportShapefile(File outputFileName, ArrayList<tools.ConcaveHull.Point> border, int id){
@@ -152,8 +304,8 @@ public class Stanford2010 {
             //System.out.println("Wrote " + i);
             outShpGeom2.AddPoint_2D(border.get(i).getX(), border.get(i).getY());
             System.out.println(border.get(i).getX() + " " + border.get(i).getY());
-        }
 
+        }
         CoordinateTransformation transform = new CoordinateTransformation(srs, srs);
 
         //outShpGeom2.Transform(transform);
@@ -165,6 +317,8 @@ public class Stanford2010 {
         outShpFeat.SetField("id",id);
 
         outShpFeat.SetGeometryDirectly(bufferedShapefile);
+
+
         outShpLayer.CreateFeature(outShpFeat);
         outShpLayer.SyncToDisk();
         System.out.println("features: " + outShpLayer.GetFeatureCount());
@@ -320,6 +474,191 @@ public class Stanford2010 {
             }
             System.out.println();
         }
+    }
+
+    public static double distanceToPolygonBorder(double pointX, double pointY, ArrayList<ConcaveHull.Point> hull) {
+        double minDistance = Double.MAX_VALUE;
+        int numPoints = hull.size();
+
+        for (int i = 0; i < numPoints; i++) {
+            ConcaveHull.Point currentPoint = hull.get(i);
+            ConcaveHull.Point nextPoint = hull.get((i + 1) % numPoints);
+
+            double distance = distanceToSegment(pointX, pointY, currentPoint.getX(), currentPoint.getY(), nextPoint.getX(), nextPoint.getY());
+            minDistance = Math.min(minDistance, distance);
+        }
+
+        return minDistance;
+    }
+
+    private static double distanceToSegment(double pointX, double pointY, double segmentStartX, double segmentStartY,
+                                            double segmentEndX, double segmentEndY) {
+        double segmentLength = distance(segmentStartX, segmentStartY, segmentEndX, segmentEndY);
+
+        if (segmentLength == 0.0) {
+            // The segment is actually a point
+            return distance(pointX, pointY, segmentStartX, segmentStartY);
+        }
+
+        double u = ((pointX - segmentStartX) * (segmentEndX - segmentStartX) +
+                (pointY - segmentStartY) * (segmentEndY - segmentStartY)) / (segmentLength * segmentLength);
+
+        if (u < 0.0 || u > 1.0) {
+            // The closest point is outside the segment, return the distance to the nearest endpoint
+            double distanceToStart = distance(pointX, pointY, segmentStartX, segmentStartY);
+            double distanceToEnd = distance(pointX, pointY, segmentEndX, segmentEndY);
+            return Math.min(distanceToStart, distanceToEnd);
+        }
+
+        double intersectionX = segmentStartX + u * (segmentEndX - segmentStartX);
+        double intersectionY = segmentStartY + u * (segmentEndY - segmentStartY);
+        return distance(pointX, pointY, intersectionX, intersectionY);
+    }
+
+    private static double distance(double x1, double y1, double x2, double y2) {
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    public void createPlots(HashMap<Integer, Tree> trees, HashMap<Integer, ArrayList<ConcaveHull.Point>> hulls){
+
+        double plotAreaSquaremeters = Math.PI * Math.pow(plotRadius, 2);
+
+        double plotAreaHectares = plotAreaSquaremeters / 10000;
+
+        HashMap<Integer, ArrayList<Tree>> treesPerStand = new HashMap<Integer, ArrayList<Tree>>();
+
+        for(Map.Entry<Integer, Tree> entry : trees.entrySet()){
+
+            if(!entry.getValue().trulyInStand)
+                continue;
+
+            int standId = entry.getValue().standId;
+
+            if(!treesPerStand.containsKey(standId)){
+                treesPerStand.put(standId, new ArrayList<Tree>());
+            }
+
+            treesPerStand.get(standId).add(entry.getValue());
+
+        }
+
+        KdTree.XYZPoint tmpPoint = new KdTree.XYZPoint(0,0,0,0);
+
+        for(int standid : treesPerStand.keySet()){
+
+            ArrayList<Tree> treesInStand = treesPerStand.get(standid);
+
+            double currentX = treesInStand.get(0).getX_coordinate_machine();
+            double currentY = treesInStand.get(0).getY_coordinate_machine();
+
+            KdTree tmpTree = new KdTree();
+
+            for(Tree tree : treesInStand){
+
+                KdTree.XYZPoint point = new KdTree.XYZPoint(tree.getX_coordinate_machine(), tree.getY_coordinate_machine(), 0, tree.id);
+
+                tmpTree.add(point);
+
+            }
+
+
+            for(Tree tree : treesInStand){
+
+                double distanceToPreviousPlot = euclideanDistance(tree.getX_coordinate_machine(), tree.getY_coordinate_machine(), currentX, currentY);
+                double distanceToBoundary = distanceToPolygonBorder(tree.getX_coordinate_machine(), tree.getY_coordinate_machine(), hulls.get(standid));
+
+                if(distanceToPreviousPlot > 20 && distanceToBoundary > 15){
+
+
+                    currentX = tree.getX_coordinate_machine();
+                    currentY = tree.getY_coordinate_machine();
+
+                    //List<double[]> circle = calculateCircleBoundary(currentX, currentY, 9);
+
+
+                    tmpPoint.x = tree.getX_coordinate_machine();
+                    tmpPoint.y = tree.getY_coordinate_machine();
+                    tmpPoint.z = 0;
+
+                    List<KdTree.XYZPoint> nearestNeighbour = (List<KdTree.XYZPoint>) tmpTree.nearestNeighbourSearch(50, tmpPoint);
+
+                    double sum_v_log_pine = 0;
+                    double sum_v_log_spruce = 0;
+                    double sum_v_log_birch = 0;
+                    double sum_v_pulp_pine = 0;
+                    double sum_v_pulp_spruce = 0;
+                    double sum_v_pulp_birch = 0;
+
+                    double sum_v_energy_pine = 0;
+                    double sum_v_energy_spruce = 0;
+                    double sum_v_energy_birch = 0;
+
+
+                    for(KdTree.XYZPoint point : nearestNeighbour){
+
+                        Tree currentTree = trees.get(point.getIndex());
+
+                        double distanceToPlotCenter = euclideanDistance(currentTree.getX_coordinate_machine(), currentTree.getY_coordinate_machine(),
+                                currentX, currentY);
+
+                        if(distanceToPlotCenter < 9 ){
+                            //System.out.println("Tree " + tree.id + " inside plot " + distanceToPlotCenter);
+
+                            /*
+                            if(pines.contains(value)){
+            return 1;
+        }
+        if(spruces.contains(value)){
+            return 2;
+        }
+        if(birches.contains(value)){
+            return 3;
+        }
+        if(other.contains(value)){
+            return 4;
+        }
+                             */
+                            if(currentTree.species == 1) {
+                                sum_v_energy_pine += currentTree.volume_energia;
+                                sum_v_log_pine += currentTree.volume_tukki;
+                                sum_v_pulp_pine += currentTree.volume_kuitu;
+                            }
+                            if(currentTree.species == 2) {
+                                sum_v_energy_spruce += currentTree.volume_energia;
+                                sum_v_log_spruce += currentTree.volume_tukki;
+                                sum_v_pulp_spruce += currentTree.volume_kuitu;
+                            }
+                            if(currentTree.species == 3) {
+                                sum_v_energy_birch += currentTree.volume_energia;
+                                sum_v_log_birch += currentTree.volume_tukki;
+                                sum_v_pulp_birch += currentTree.volume_kuitu;
+                            }
+
+                        }
+                    }
+
+                    //System.out.println("Plot " + currentX + " " + currentY + " " + sum_v_log/plotAreaHectares + " " + sum_v_pulp/plotAreaHectares + " " + sum_v_energy/plotAreaHectares);
+                    System.out.println( " " + sum_v_log_pine/plotAreaHectares + " " + sum_v_log_spruce/plotAreaHectares + " " + sum_v_log_birch/plotAreaHectares +
+                            " " + sum_v_pulp_pine/plotAreaHectares + " " + sum_v_pulp_spruce/plotAreaHectares + " " + sum_v_pulp_birch/plotAreaHectares +
+                            " " + sum_v_energy_pine/plotAreaHectares + " " + sum_v_energy_spruce/plotAreaHectares + " " + sum_v_energy_birch/plotAreaHectares);
+
+                    System.out.println("----------------------------------------------");
+                    //addPlotToShapefile(currentX, currentY, this.plotRadius,sum_v_log/plotAreaHectares, sum_v_pulp/plotAreaHectares, sum_v_energy/plotAreaHectares);
+                    addPlotToShapefile(currentX, currentY, this.plotRadius, this.runningPlotId++, tree.standId,
+                            sum_v_log_pine/plotAreaHectares, sum_v_log_spruce/plotAreaHectares, sum_v_log_birch/plotAreaHectares,
+                            sum_v_pulp_pine/plotAreaHectares, sum_v_pulp_spruce/plotAreaHectares, sum_v_pulp_birch/plotAreaHectares,
+                            sum_v_energy_pine/plotAreaHectares, sum_v_energy_spruce/plotAreaHectares, sum_v_energy_birch/plotAreaHectares);
+                    System.out.println(nearestNeighbour.size());
+                }
+
+            }
+
+        }
+
+
+
     }
 
     public int treeInPolygons(double[] tree, HashMap<Integer, double[][]> polygons) {
@@ -592,9 +931,10 @@ public class Stanford2010 {
                 int insideStand = treeInPolygons(new double[]{transformed[0], transformed[1]}, standBounds);
 
                 tempTree.standId = insideStand;
-
+                tempTree.setGlobal_id(this.runningId++);
 
                 int stemNumber = Integer.parseInt(stem.getChild("StemNumber", ns).getValue());
+
                 tempTree.setId(stemNumber);
 
 
@@ -882,6 +1222,12 @@ public class Stanford2010 {
             System.out.println("Hull size: " + hull.size());
 
         }
+
+
+
+        this.createPlots(allTrees, hulls);
+
+        //sSystem.exit(1);
 
 
         System.out.println(standTreeLocations.size());
@@ -2017,7 +2363,7 @@ class Tree {
     public float height, diameter;
     public double x_coordinate_machine, y_coordinate_machine, z_coordinate_machine;
     public double x_coordinate_estimated, y_coordinate_estimated, z_coordinate_estimated;
-    public int species, key, id;
+    public int species, key, id, global_id;
 
     public double volume = 0, volume_kuitu = 0, volume_tukki = 0, volume_energia = 0, volume_pikkutukki = 0, volume_unknown = 0;
 
@@ -2136,6 +2482,15 @@ class Tree {
 
     public void setZ_coordinate_estimated(double z_coordinate_estimated) {
         this.z_coordinate_estimated = z_coordinate_estimated;
+    }
+
+    public void setGlobal_id(int id){
+
+        this.global_id = id;
+    }
+
+    public int getGlobal_id(){
+        return this.global_id;
     }
 
     public double getBoomAngle() {

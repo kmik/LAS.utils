@@ -156,6 +156,8 @@ public class Thinner{
         //System.out.println("READING");
         int counter = 0;
 
+
+
         for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000){
         //for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
         //    int j = 0;
@@ -177,6 +179,9 @@ public class Thinner{
                 if(!aR.inclusionRule.ask(tempPoint, i+j, true)){
                     continue;
                 }
+
+                double x_offset = ((tempPoint.x - minX) / step) % 1;
+                double y_offset = ((maxY - tempPoint.y) / step) % 1;
 
                 x_index = (int)Math.floor((tempPoint.x - minX) / step);
                 y_index = (int)Math.floor((maxY - tempPoint.y) / step);
@@ -242,6 +247,13 @@ public class Thinner{
                     //    pointCount++;
 
                     try {
+
+                        if(aR.thinToCenter){
+
+                            tempPoint.x = (float)(minX + x * step + step / 2.0);
+                            tempPoint.y = (float)(maxY - y * step - step / 2.0);
+
+                        }
 
                         aR.pfac.writePoint(tempPoint, minIndex[x][y], thread_n);
 

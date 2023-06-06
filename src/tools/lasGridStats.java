@@ -25,6 +25,8 @@ public class lasGridStats {
     double minX_finnishMap6k = 20000.0;
     double maxY_finnishMap6k = 7818000.0;
 
+    double grid_x_size_MML = 45033;
+
     LASReader pointCloud;
     argumentReader aR;
     double orig_y, orig_x;
@@ -1697,6 +1699,8 @@ public class lasGridStats {
 
         int counterDoneCells = 0;
 
+        long startTime_ = System.nanoTime();
+
         if (!aR.eaba){
 
             //int thread_n = aR.pfac.addReadThread(pointCloud);
@@ -1715,6 +1719,7 @@ public class lasGridStats {
 
                     pointCloud.readFromBuffer(tempPoint);
                     //for (int i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
+
 
                     //pointCloud.readRecord(i, tempPoint);
 
@@ -1748,9 +1753,16 @@ public class lasGridStats {
 
                         if(counterDoneCells++ % 10000 == 0){
                             aR.prog.setProgress(coreNumber - 1, counterDoneCells);
+                            aR.prog.setTime(coreNumber - 1, (System.nanoTime() - startTime_) / 1000);
                             aR.prog.printProgressBar();
 
                         }
+
+                        //if(counterDoneCells++ % 1000000 == 0)
+                        //    System.gc();
+
+                        //if(true)
+                        //    continue;
 
                         counter++;
                         cell_only_id[x][y] = -1;
@@ -1826,7 +1838,7 @@ public class lasGridStats {
 */
                             int p = 0;
 
-                            long startTime = System.currentTimeMillis();
+                            //long startTime = System.currentTimeMillis();
 
                             if(stands_delineated)
                             for (int p_ = 0; p_ < grid_of_points[x][y].size(); p_++) {
@@ -2196,7 +2208,7 @@ public class lasGridStats {
 
                         }
 
-                        double grid_cell_id = (y + VMI_maxIndexY) * grid_x_size + (x + VMI_minIndexX);
+                        double grid_cell_id = (y + VMI_maxIndexY) * grid_x_size_MML + (x + VMI_minIndexX);
 /*
                 for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
 
@@ -2489,8 +2501,8 @@ public class lasGridStats {
                         if (counter % 100000 == 0) {
                             aR.p_update.updateProgressGridStats();
                         }
-                        if (counter % 100000 == 0)
-                            System.gc();
+                        //if (counter % 100000 == 0)
+                        //    System.gc();
 
                     }
                 }
