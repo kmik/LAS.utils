@@ -282,7 +282,7 @@ public class lasAligner {
 
                 System.out.println((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) + " " + firstCheck[x][y].countTarget + " " + checkSurroundings(firstCheck, x, y) + " " + i);
 
-                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 1.0 && firstCheck[x][y].countTarget > 2) { // && checkSurroundings(firstCheck, x, y)) {
+                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 1.0 && firstCheck[x][y].countTarget > 4) { // && checkSurroundings(firstCheck, x, y)) {
 
                     //System.out.println("DIFFERENCE: " + (firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()));
 
@@ -316,10 +316,13 @@ public class lasAligner {
 
             for(int i : properCells){
 
-                int x = i % numberOfPixelsX;
-                int y = i / numberOfPixelsX;
+                int y = (int)Math.floor(i / numberOfPixelsX);
+                int x = i - y * numberOfPixelsX;
 
-                if(firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target < 0.5 && firstCheck[x][y].countTarget > 10 && checkSurroundings(firstCheck, x, y)){
+                //int x = i % numberOfPixelsX;
+                //int y = i / numberOfPixelsX;
+
+                if(firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target < 1.0 && firstCheck[x][y].countTarget > 4) { //  && checkSurroundings(firstCheck, x, y)){
 
                     float[] outValue = new float[]{firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()};
 
