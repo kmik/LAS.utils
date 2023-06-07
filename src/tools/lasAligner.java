@@ -229,6 +229,7 @@ public class lasAligner {
 
 
             LASReader in = targets.get(i_);
+            int counterPoints = 0;
 
             int thread_n = aR.pfac.addReadThread(in);
 
@@ -281,7 +282,7 @@ public class lasAligner {
 
                 System.out.println((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) + " " + firstCheck[x][y].countTarget + " " + checkSurroundings(firstCheck, x, y) + " " + i);
 
-                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 1.0 && firstCheck[x][y].countTarget > 2 && checkSurroundings(firstCheck, x, y)) {
+                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 1.0 && firstCheck[x][y].countTarget > 2) { // && checkSurroundings(firstCheck, x, y)) {
 
                     //System.out.println("DIFFERENCE: " + (firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()));
 
