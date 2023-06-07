@@ -17,10 +17,7 @@ import utils.pointWriterMultiThread;
 
 import utils.tinManupulator;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.*;
 import java.util.stream.IntStream;
@@ -167,10 +164,16 @@ public class lasAligner {
 
             LasPoint tempPoint = new LasPoint();
 
+            System.out.println("target pairs: " + targetPairsInRef.get(i_).size());
+            System.out.println("origo_x: " + origo_x + " origo_y: " + origo_y);
+            System.out.println("numberOfPixelsX: " + numberOfPixelsX + " numberOfPixelsY: " + numberOfPixelsY + " " + resolution);
+
+
             for (int j = 0; j < targetPairsInRef.get(i_).size(); j++) {
 
 
                 LASReader in = null;
+
                 try {
                     in = new LASReader(refs.get(targetPairsInRef.get(i_).get(j)).getFile());
                 }catch (Exception e){
@@ -218,7 +221,10 @@ public class lasAligner {
                 }
             }
 
-            HashSet<Integer> properCells = new HashSet<>();
+            TreeSet<Integer> properCells = new TreeSet<>();
+
+            boolean[][] propCells = new boolean[numberOfPixelsX][numberOfPixelsY];
+            int n_propers = 0;
 
             for (int j = 0; j < numberOfPixelsX; j++) {
                 for (int k = 0; k < numberOfPixelsY; k++) {
@@ -230,19 +236,32 @@ public class lasAligner {
 
                         if (Double.isNaN(meanNonGround) || Math.abs(meanGround - meanNonGround) < 0.5) {
 
-                            if(firstCheck[j][k].max_ground - firstCheck[j][k].min_ground < 1.0)
-                                if( firstCheck[j][k].countGround / (firstCheck[j][k].countGround + firstCheck[j][k].countNonGround) > 0.90 )
+                            if(firstCheck[j][k].max_ground - firstCheck[j][k].min_ground < 0.66)
+                                if( firstCheck[j][k].countGround / (firstCheck[j][k].countGround + firstCheck[j][k].countNonGround) > 0.90 ) {
+
                                     properCells.add(j + k * numberOfPixelsX);
+                                    propCells[j][k] = true;
+                                    n_propers++;
+                                    //System.out.println("proper coords: " + (origo_x+j*resolution) + " " + (origo_y-k*resolution));
+                                }
                         }
                     }
                 }
             }
 
-            System.out.println("Proper cells: " + properCells.size());
+            System.out.println("Proper cells: " + properCells.size() + " " + n_propers);
+            System.out.println("origo_x: " + origo_x + " origo_y: " + origo_y + " " + resolution);
             HashSet<Integer> matchedCells = new HashSet<>();
+            LASReader in = null;
 
-            LASReader in = targets.get(i_);
+            try {
+                in = new LASReader(targets.get(i_).getFile());
+            }catch (Exception e){
+                e.printStackTrace();
+                System.exit(1);
+            }
             int counterPoints = 0;
+            int readPoints = 0;
 
             int thread_n = aR.pfac.addReadThread(in);
 
@@ -254,9 +273,12 @@ public class lasAligner {
                     aR.pfac.prepareBuffer(thread_n, i, maxi);
                 }
                 catch (Exception e){
+
                     e.printStackTrace();
                     System.exit(1);
+
                 }
+
                 for (int j_ = 0; j_ < maxi; j_++) {
 
                     in.readFromBuffer(tempPoint);
@@ -264,11 +286,20 @@ public class lasAligner {
                     int x = (int) Math.floor((tempPoint.x - origo_x) / resolution);
                     int y = (int) Math.floor((origo_y - tempPoint.y) / resolution);
 
-                    if(x < 0 || x >= numberOfPixelsX || y < 0 || y >= numberOfPixelsY)
+                    if(x < 0 || x >= numberOfPixelsX || y < 0 || y >= numberOfPixelsY) {
+
                         continue;
 
-                    if (properCells.contains(x + y * numberOfPixelsX)) {
+                    }
+                    //415960.0 6945859.99
 
+
+                    int searchThis = x + y * numberOfPixelsX;
+
+                    //if (properCells.contains(searchThis)) {
+                    if(propCells[x][y]){
+
+                        readPoints++;
                         matchedCells.add(x + y * numberOfPixelsX);
                         firstCheck[x][y].addTarget((double) tempPoint.z, (double)tempPoint.x, (double)tempPoint.y);
 
@@ -276,6 +307,13 @@ public class lasAligner {
 
                 }
             }
+
+            try {
+                in.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            System.out.println("read points: " + readPoints + " " + in.getNumberOfPointRecords());
 
             System.out.println("MATCHED CELLS:" + matchedCells.size());
             System.out.println("MATCHED CELLS:" + matchedCells.size());
@@ -302,7 +340,7 @@ public class lasAligner {
 
                 //System.out.println((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) + " " + firstCheck[x][y].countTarget + " " + checkSurroundings(firstCheck, x, y) + " " + i);
 
-                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 1.0 && firstCheck[x][y].countTarget > 4) { // && checkSurroundings(firstCheck, x, y)) {
+                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 0.5 && firstCheck[x][y].countTarget > 4) { // && checkSurroundings(firstCheck, x, y)) {
 
                     //System.out.println("DIFFERENCE: " + (firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()));
 
@@ -342,7 +380,7 @@ public class lasAligner {
                 //int x = i % numberOfPixelsX;
                 //int y = i / numberOfPixelsX;
 
-                if(firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target < 1.0 && firstCheck[x][y].countTarget > 4) { //  && checkSurroundings(firstCheck, x, y)){
+                if(firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target < 0.5 && firstCheck[x][y].countTarget > 4) { //  && checkSurroundings(firstCheck, x, y)){
 
                     double[] outValue = new double[]{firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()};
 
@@ -353,8 +391,8 @@ public class lasAligner {
 
                     double centricity = firstCheck[x][y].groundCentricity();
 
-                    if(Math.abs(centricity - 0.5) > 0.2)
-                        continue;
+                    //if(Math.abs(centricity - 0.5) > 0.2)
+                    //    continue;
                     //System.ou t.println("DIFFERENCE: " + (firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()));
 
 

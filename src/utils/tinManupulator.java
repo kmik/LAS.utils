@@ -309,7 +309,7 @@ public class tinManupulator {
 
         }
 
-        ArrayList<Integer> outlierIndexes = getOutlierIndexes(zValues, 2.5);
+        ArrayList<Integer> outlierIndexes = getOutlierIndexes(zValues, 2.0);
 
         HashSet<Integer> removeThese = new HashSet<>(outlierIndexes);
 

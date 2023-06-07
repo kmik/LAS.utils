@@ -30,7 +30,7 @@ public class lasAlign{
 
             lasAligner tooli = new lasAligner(aR);
             tooli.setTinManupulator(tin);
-            tooli.setResolution(5.0);
+            tooli.setResolution(3);
             tooli.setMin_points_in_cell(5);
             tooli.readRefs();
             tooli.readTargets();
@@ -55,7 +55,7 @@ public class lasAlign{
 
             tin.removeOutliers();
 
-            tin.writeTinToFile(tooli.targets.get(0).getFile(), 5.0);
+            tin.writeTinToFile(tooli.targets.get(0).getFile(), 3);
 
             tooli.applyCorrection();
 
