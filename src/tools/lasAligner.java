@@ -215,10 +215,10 @@ public class lasAligner {
                         float meanGround = firstCheck[j][k].getGroundMean();
                         float meanNonGround = firstCheck[j][k].getNonGroundMean();
 
-                        if (Float.isNaN(meanNonGround) || Math.abs(meanGround - meanNonGround) < 0.25) {
+                        if (Float.isNaN(meanNonGround) || Math.abs(meanGround - meanNonGround) < 0.5) {
 
                             if(firstCheck[j][k].max_ground - firstCheck[j][k].min_ground < 1.0)
-                                if( firstCheck[j][k].countGround / (firstCheck[j][k].countGround + firstCheck[j][k].countNonGround) > 0.95 )
+                                if( firstCheck[j][k].countGround / (firstCheck[j][k].countGround + firstCheck[j][k].countNonGround) > 0.80 )
                                     properCells.add(j + k * numberOfPixelsX);
                         }
                     }
@@ -278,7 +278,7 @@ public class lasAligner {
 
 
 
-                if(firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target < 0.66 && firstCheck[x][y].countTarget > 5 && checkSurroundings(firstCheck, x, y)) {
+                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 0.66 && firstCheck[x][y].countTarget > 4 && checkSurroundings(firstCheck, x, y)) {
 
                     //System.out.println("DIFFERENCE: " + (firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()));
 

@@ -1119,7 +1119,11 @@ public class LASraf implements Closeable {
    */
   public synchronized void write(byte[] arr, int pointLength) throws IOException{
 
+    //System.exit(1);
       //System.out.println(this.raFile.length());
+    if (this.raFile.getFilePointer() != this.raFile.length()) {
+      this.raFile.seek(this.raFile.length());
+    }
       this.raFile.seek(this.raFile.length());
       this.raFile.write(arr);
       this.writtenPoints += arr.length / pointLength;
