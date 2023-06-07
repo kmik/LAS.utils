@@ -195,9 +195,9 @@ public class lasAligner {
                             continue;
 
                         if (tempPoint.classification == 2) {
-                            firstCheck[x][y].addGround((float) tempPoint.z, (float)tempPoint.x, (float)tempPoint.y);
+                            firstCheck[x][y].addGround((double) tempPoint.z, (double)tempPoint.x, (double)tempPoint.y);
                         } else
-                            firstCheck[x][y].addNonGround((float) tempPoint.z);
+                            firstCheck[x][y].addNonGround(tempPoint.z);
 
                     }
 
@@ -786,7 +786,7 @@ class dataPointTiny{
     public short countGround = 0, countNonGround = 0, countTarget = 0;
     public double sum_z_ground = 0, sum_z_nonGround = 0, sum_z_target = 0, max_z_target = Float.NEGATIVE_INFINITY, min_z_target = Float.POSITIVE_INFINITY;
 
-    public double max_ground = Float.NEGATIVE_INFINITY, min_ground = Float.POSITIVE_INFINITY;
+    public double max_ground = Double.NEGATIVE_INFINITY, min_ground = Double.POSITIVE_INFINITY;
     public double sum_x = 0, sum_y = 0;
     public double sum_x_ground = 0, sum_y_ground = 0;
 
@@ -859,7 +859,7 @@ class dataPointTiny{
 
     }
 
-    public void addNonGround(float z){
+    public void addNonGround(double z){
         countNonGround++;
         sum_z_nonGround += z;
     }
