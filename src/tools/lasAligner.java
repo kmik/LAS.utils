@@ -226,7 +226,7 @@ public class lasAligner {
             }
 
             System.out.println("Proper cells: " + properCells.size());
-
+            HashSet<Integer> matchedCells = new HashSet<>();
 
             LASReader in = targets.get(i_);
             int counterPoints = 0;
@@ -256,6 +256,7 @@ public class lasAligner {
 
                     if (properCells.contains(x + y * numberOfPixelsX)) {
 
+                        matchedCells.add(x + y * numberOfPixelsX);
                         firstCheck[x][y].addTarget((double) tempPoint.z, (double)tempPoint.x, (double)tempPoint.y);
 
                     }
@@ -263,7 +264,13 @@ public class lasAligner {
                 }
             }
 
-            System.out.println("HERE1");
+            System.out.println("MATCHED CELLS:" + matchedCells.size());
+            System.out.println("MATCHED CELLS:" + matchedCells.size());
+            System.out.println("MATCHED CELLS:" + matchedCells.size());
+            System.out.println("MATCHED CELLS:" + matchedCells.size());
+            System.out.println("MATCHED CELLS:" + matchedCells.size());
+            System.out.println("MATCHED CELLS:" + matchedCells.size());
+
 
             //ogr.RegisterAll(); //Registering all the formats..
 
@@ -280,7 +287,7 @@ public class lasAligner {
                 //int x = i % numberOfPixelsX;
                 //int y = i / numberOfPixelsX;
 
-                System.out.println((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) + " " + firstCheck[x][y].countTarget + " " + checkSurroundings(firstCheck, x, y) + " " + i);
+                //System.out.println((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) + " " + firstCheck[x][y].countTarget + " " + checkSurroundings(firstCheck, x, y) + " " + i);
 
                 if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 1.0 && firstCheck[x][y].countTarget > 4) { // && checkSurroundings(firstCheck, x, y)) {
 
