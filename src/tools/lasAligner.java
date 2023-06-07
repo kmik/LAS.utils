@@ -36,7 +36,7 @@ public class lasAligner {
     public ArrayList<LASReader> refs = new ArrayList<LASReader>();
     public ArrayList<LASReader> targets = new ArrayList<LASReader>();
 
-    double resolution = 2.0;
+    double resolution = 4.0;
 
     int min_points_in_cell = 5;
 
