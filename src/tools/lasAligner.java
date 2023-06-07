@@ -212,10 +212,10 @@ public class lasAligner {
 
                     if (firstCheck[j][k].getGroundCount() > min_points_in_cell) {
                         //System.out.println("Ground mean: " + firstCheck[j][k].getGroundMean() + " non-ground mean: " + firstCheck[j][k].getNonGroundMean());
-                        float meanGround = firstCheck[j][k].getGroundMean();
-                        float meanNonGround = firstCheck[j][k].getNonGroundMean();
+                        double meanGround = firstCheck[j][k].getGroundMean();
+                        double meanNonGround = firstCheck[j][k].getNonGroundMean();
 
-                        if (Float.isNaN(meanNonGround) || Math.abs(meanGround - meanNonGround) < 0.5) {
+                        if (Double.isNaN(meanNonGround) || Math.abs(meanGround - meanNonGround) < 0.5) {
 
                             if(firstCheck[j][k].max_ground - firstCheck[j][k].min_ground < 1.0)
                                 if( firstCheck[j][k].countGround / (firstCheck[j][k].countGround + firstCheck[j][k].countNonGround) > 0.90 )
@@ -256,7 +256,7 @@ public class lasAligner {
 
                     if (properCells.contains(x + y * numberOfPixelsX)) {
 
-                        firstCheck[x][y].addTarget((float) tempPoint.z, (float)tempPoint.x, (float)tempPoint.y);
+                        firstCheck[x][y].addTarget((double) tempPoint.z, (double)tempPoint.x, (double)tempPoint.y);
 
                     }
 
@@ -286,7 +286,7 @@ public class lasAligner {
 
                     //System.out.println("DIFFERENCE: " + (firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()));
 
-                    float[] outValue = new float[]{firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()};
+                    double[] outValue = new double[]{firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()};
 
                     valuesToCheck.add((double) outValue[0]);
 
@@ -324,7 +324,7 @@ public class lasAligner {
 
                 if(firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target < 1.0 && firstCheck[x][y].countTarget > 4) { //  && checkSurroundings(firstCheck, x, y)){
 
-                    float[] outValue = new float[]{firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()};
+                    double[] outValue = new double[]{firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()};
 
                     if(outlierCells.contains(counter++)) {
                         System.out.println("OUTLIER: " + i + " " + outValue[0] + " ");
@@ -784,17 +784,17 @@ class dataPoint{
 class dataPointTiny{
 
     public short countGround = 0, countNonGround = 0, countTarget = 0;
-    public float sum_z_ground = 0, sum_z_nonGround = 0, sum_z_target = 0, max_z_target = Float.NEGATIVE_INFINITY, min_z_target = Float.POSITIVE_INFINITY;
+    public double sum_z_ground = 0, sum_z_nonGround = 0, sum_z_target = 0, max_z_target = Float.NEGATIVE_INFINITY, min_z_target = Float.POSITIVE_INFINITY;
 
-    public float max_ground = Float.NEGATIVE_INFINITY, min_ground = Float.POSITIVE_INFINITY;
-    public float sum_x = 0, sum_y = 0;
-    public float sum_x_ground = 0, sum_y_ground = 0;
+    public double max_ground = Float.NEGATIVE_INFINITY, min_ground = Float.POSITIVE_INFINITY;
+    public double sum_x = 0, sum_y = 0;
+    public double sum_x_ground = 0, sum_y_ground = 0;
 
     dataPointTiny(){
 
     }
 
-    public void addTarget(float z, float x, float y){
+    public void addTarget(double z, double x, double y){
         countTarget++;
         sum_z_target += z;
 
@@ -808,20 +808,20 @@ class dataPointTiny{
         sum_y += y;
     }
 
-    public float getMeanTargetX(){
+    public double getMeanTargetX(){
         return sum_x / countTarget;
     }
 
-    public float getMeanTargetY(){
+    public double getMeanTargetY(){
         return sum_y / countTarget;
     }
 
-    public float getTargetMean(){
+    public double getTargetMean(){
 
         return sum_z_target / countTarget;
 
     }
-    public void addGround(float z, float x, float y){
+    public void addGround(double z, double x, double y){
         countGround++;
         sum_z_ground += z;
 
@@ -836,11 +836,11 @@ class dataPointTiny{
 
     }
 
-    public float getMeanGroundX(){
+    public double getMeanGroundX(){
         return sum_x_ground / countGround;
     }
 
-    public float getMeanGroundY(){
+    public double getMeanGroundY(){
         return sum_y_ground / countGround;
     }
 
@@ -872,12 +872,12 @@ class dataPointTiny{
         return countNonGround;
     }
 
-    public float getGroundMean(){
+    public double getGroundMean(){
         return sum_z_ground / countGround;
 
     }
 
-    public float getNonGroundMean(){
+    public double getNonGroundMean(){
         return sum_z_nonGround / countNonGround;
     }
 
