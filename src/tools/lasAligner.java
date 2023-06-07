@@ -218,7 +218,7 @@ public class lasAligner {
                         if (Float.isNaN(meanNonGround) || Math.abs(meanGround - meanNonGround) < 0.5) {
 
                             if(firstCheck[j][k].max_ground - firstCheck[j][k].min_ground < 1.0)
-                                if( firstCheck[j][k].countGround / (firstCheck[j][k].countGround + firstCheck[j][k].countNonGround) > 0.80 )
+                                if( firstCheck[j][k].countGround / (firstCheck[j][k].countGround + firstCheck[j][k].countNonGround) > 0.90 )
                                     properCells.add(j + k * numberOfPixelsX);
                         }
                     }
@@ -273,12 +273,15 @@ public class lasAligner {
             ArrayList<Double> valuesToCheck = new ArrayList<>();
             for(int i : properCells){
 
-                int x = i % numberOfPixelsX;
-                int y = i / numberOfPixelsX;
+                int y = (int)Math.floor(i / numberOfPixelsX);
+                int x = i - y * numberOfPixelsX;
+
+                //int x = i % numberOfPixelsX;
+                //int y = i / numberOfPixelsX;
 
 
 
-                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 0.66 && firstCheck[x][y].countTarget > 4 && checkSurroundings(firstCheck, x, y)) {
+                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 1.0 && firstCheck[x][y].countTarget > 2 && checkSurroundings(firstCheck, x, y)) {
 
                     //System.out.println("DIFFERENCE: " + (firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()));
 
