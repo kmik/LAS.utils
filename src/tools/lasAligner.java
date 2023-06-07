@@ -279,7 +279,7 @@ public class lasAligner {
                 //int x = i % numberOfPixelsX;
                 //int y = i / numberOfPixelsX;
 
-
+                System.out.println((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) + " " + firstCheck[x][y].countTarget + " " + checkSurroundings(firstCheck, x, y) + " " + i);
 
                 if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 1.0 && firstCheck[x][y].countTarget > 2 && checkSurroundings(firstCheck, x, y)) {
 
