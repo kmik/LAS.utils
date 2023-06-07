@@ -169,9 +169,16 @@ public class lasAligner {
 
             for (int j = 0; j < targetPairsInRef.get(i_).size(); j++) {
 
-                int thread_n = aR.pfac.addReadThread(refs.get(targetPairsInRef.get(i_).get(j)));
 
-                LASReader in = refs.get(targetPairsInRef.get(i_).get(j));
+                LASReader in = null;
+                try {
+                    in = new LASReader(refs.get(targetPairsInRef.get(i_).get(j)).getFile());
+                }catch (Exception e){
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+                int thread_n = aR.pfac.addReadThread(in);
+
 
                 for (long i = 0; i < in.getNumberOfPointRecords(); i += 20000) {
 
@@ -203,6 +210,12 @@ public class lasAligner {
 
                 }
 
+                try {
+                    in.close();
+                }catch (Exception e){
+                    e.printStackTrace();
+                    System.exit(1);
+                }
             }
 
             HashSet<Integer> properCells = new HashSet<>();
