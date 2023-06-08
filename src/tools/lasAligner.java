@@ -31,7 +31,7 @@ import static org.tinfour.utils.Polyside.isPointInPolygon;
 public class lasAligner {
 
     tinManupulator tinM;
-    org.tinfour.standard.IncrementalTin tin = new org.tinfour.standard.IncrementalTin();
+    //org.tinfour.standard.IncrementalTin tin = new org.tinfour.standard.IncrementalTin();
     argumentReader aR;
 
     public ArrayList<LASReader> refs = new ArrayList<LASReader>();
@@ -395,7 +395,7 @@ public class lasAligner {
 
             VertexValuatorDefault valuator = new VertexValuatorDefault();
 
-            TriangularFacetInterpolator polator = new TriangularFacetInterpolator(tin);
+            //TriangularFacetInterpolator polator = new TriangularFacetInterpolator(tin);
 
             ArrayList<Double> valuesToCheck = new ArrayList<>();
             for(int i : properCells){
@@ -469,7 +469,7 @@ public class lasAligner {
                         System.out.println("OUTVALUE: " + outValue[0] + " " + (firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) + " " + firstCheck[x][y].countGround);
                     }
 
-                    tin.add(new org.tinfour.common.Vertex(x + resolution / 2.0, y - resolution / 2.0, outValue[0]));
+                    //tin.add(new org.tinfour.common.Vertex(x + resolution / 2.0, y - resolution / 2.0, outValue[0]));
 
                     tinM.addPointToTin(min_x + x * resolution + resolution / 2.0, max_y - y * resolution - resolution / 2.0, outValue[0] );
                     //tinNodes.add(new double[]{ this.min_x + x * resolution + resolution / 2.0, this.max_y - y * resolution - resolution / 2.0, outValue[0] });
@@ -520,7 +520,7 @@ public class lasAligner {
             dataset_output.SetGeoTransform(geoTransform);
 
 
-            polator.resetForChangeToTin();
+            //polator.resetForChangeToTin();
 
             double[][] smoothed = new double[numberOfPixelsX][numberOfPixelsY];
 
@@ -528,11 +528,11 @@ public class lasAligner {
             for (int j = 0; j < numberOfPixelsX; j++) {
                 for (int k = 0; k < numberOfPixelsY; k++) {
 
-                    float interpolatedValue = (float)polator.interpolate(j + resolution / 2.0, k - resolution / 2.0, valuator);
+                    //float interpolatedValue = (float)polator.interpolate(j + resolution / 2.0, k - resolution / 2.0, valuator);
 
-                    float[] outValue = new float[]{interpolatedValue};
+                    //float[] outValue = new float[]{interpolatedValue};
 
-                    smoothed[j][k] = interpolatedValue;
+                    //smoothed[j][k] = interpolatedValue;
 
                     //band.WriteRaster(j, k, 1, 1, outValue);
                 }
@@ -602,8 +602,8 @@ public class lasAligner {
                     double x = (tempPoint.x - min_x) / resolution;
                     double y = (max_y - tempPoint.y) / resolution;
 
-                    double interpolatedValue = polator.interpolate(x, y, valuator);
-
+                    //double interpolatedValue = polator.interpolate(x, y, valuator);
+/*
                     if(isPointInPolygon(tin.getPerimeter(), x, y) == Polyside.Result.Inside){
                         if(!Double.isNaN(interpolatedValue))
                             tempPoint.z -= interpolatedValue;
@@ -611,7 +611,7 @@ public class lasAligner {
                             tempPoint.z -= averageCorrection;
                     }else
                         tempPoint.z -= averageCorrection;
-
+*/
 
                     try {
 

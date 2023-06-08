@@ -164,6 +164,7 @@ public class tinManupulator {
         //System.out.println("Kernel: " + aR.kernel + " theta: " + aR.theta);
         //System.out.println(smoothed.length + " " + smoothed[0].length);
         //double[][] mirrored_tmp = mirrorAll(smoothed, aR.kernel);
+        startTime = System.currentTimeMillis();
 
         //System.out.println(mirrored_tmp.length + " " + mirrored_tmp[0].length);
         smoothed = GaussianSmooth.smooth(smoothed, numberOfPixelsX, numberOfPixelsY, aR.kernel, aR.theta);  // THIS IS GOOD!!!! :)
@@ -174,7 +175,6 @@ public class tinManupulator {
         //System.out.println(aR.kernel);
 
         //System.exit(1);
-        startTime = System.currentTimeMillis();
 
         // End timer
         endTime = System.currentTimeMillis();
