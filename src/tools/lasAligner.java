@@ -16,7 +16,11 @@ import utils.argumentReader;
 import utils.pointWriterMultiThread;
 
 import utils.tinManupulator;
+
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.*;
@@ -225,7 +229,26 @@ public class lasAligner {
 
             boolean[][] propCells = new boolean[numberOfPixelsX][numberOfPixelsY];
             int n_propers = 0;
+            int min_x_ = Integer.MAX_VALUE;
+            int min_y_ = Integer.MAX_VALUE;
+            int max_x_ = Integer.MIN_VALUE;
+            int max_y_ = Integer.MIN_VALUE;
 
+            // declare a file to write stuff in;
+                        /*
+            File file = new File("/home/koomikko/Documents/processing_directory/debug/properCells.txt");
+            FileWriter fw = null;
+
+            try {
+                fw = new FileWriter(file.getAbsoluteFile());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            BufferedWriter bw = new BufferedWriter(fw);
+
+
+*/
             for (int j = 0; j < numberOfPixelsX; j++) {
                 for (int k = 0; k < numberOfPixelsY; k++) {
 
@@ -236,9 +259,26 @@ public class lasAligner {
 
                         if (Double.isNaN(meanNonGround) || Math.abs(meanGround - meanNonGround) < 0.5) {
 
-                            if(firstCheck[j][k].max_ground - firstCheck[j][k].min_ground < 0.66)
-                                if( firstCheck[j][k].countGround / (firstCheck[j][k].countGround + firstCheck[j][k].countNonGround) > 0.90 ) {
+                            if(firstCheck[j][k].max_ground - firstCheck[j][k].min_ground < 5.0)
+                                if( firstCheck[j][k].countGround / (firstCheck[j][k].countGround + firstCheck[j][k].countNonGround) > 0.90 ||
+                                        Math.abs(meanGround - meanNonGround) < 0.2) {
 
+
+                                    if(j < min_x_)
+                                        min_x_ = j;
+                                    if(j > max_x_)
+                                        max_x_ = j;
+                                    if(k < min_y_)
+                                        min_y_ = k;
+                                    if(k > max_y_)
+                                        max_y_ = k;
+/*
+                                    try {
+                                        bw.write((origo_x+j*resolution) + " " + (origo_y-k*resolution) + "\n");
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+*/
                                     properCells.add(j + k * numberOfPixelsX);
                                     propCells[j][k] = true;
                                     n_propers++;
@@ -248,7 +288,16 @@ public class lasAligner {
                     }
                 }
             }
+/*
+            try {
+                bw.close();
+                fw.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
 
+ */
+            System.out.println("min_x: " + min_x_ + " max_x: " + max_x_ + " min_y: " + min_y_ + " max_y: " + max_y_);
             System.out.println("Proper cells: " + properCells.size() + " " + n_propers);
             System.out.println("origo_x: " + origo_x + " origo_y: " + origo_y + " " + resolution);
             HashSet<Integer> matchedCells = new HashSet<>();
@@ -262,6 +311,12 @@ public class lasAligner {
             }
             int counterPoints = 0;
             int readPoints = 0;
+
+            min_x_ = Integer.MAX_VALUE;
+            min_y_ = Integer.MAX_VALUE;
+            max_x_ = Integer.MIN_VALUE;
+            max_y_ = Integer.MIN_VALUE;
+
 
             int thread_n = aR.pfac.addReadThread(in);
 
@@ -291,8 +346,19 @@ public class lasAligner {
                         continue;
 
                     }
+
+                    if(x < min_x_)
+                        min_x_ = x;
+                    if(x > max_x_)
+                        max_x_ = x;
+                    if(y < min_y_)
+                        min_y_ = y;
+                    if(y > max_y_)
+                        max_y_ = y;
+
                     //415960.0 6945859.99
 
+                    //System.out.println("x: " + x + " y: " + y);
 
                     int searchThis = x + y * numberOfPixelsX;
 
@@ -313,6 +379,8 @@ public class lasAligner {
             }catch (Exception e){
                 e.printStackTrace();
             }
+
+            System.out.println("min_x_: " + min_x_ + " min_y_: " + min_y_ + " max_x_: " + max_x_ + " max_y_: " + max_y_);
             System.out.println("read points: " + readPoints + " " + in.getNumberOfPointRecords());
 
             System.out.println("MATCHED CELLS:" + matchedCells.size());
