@@ -2496,11 +2496,11 @@ public class lasGridStats {
                         gridCounter++;
 
                         aR.p_update.threadProgress[coreNumber - 1]++;
+                        //counter;
 
-
-                        if (counter % 100000 == 0) {
-                            aR.p_update.updateProgressGridStats();
-                        }
+                        //if (counter % 100000 == 0) {
+                        //    aR.p_update.updateProgressGridStats();
+                        //}
                         //if (counter % 100000 == 0)
                         //    System.gc();
 

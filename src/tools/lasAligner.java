@@ -227,7 +227,7 @@ public class lasAligner {
 
             TreeSet<Integer> properCells = new TreeSet<>();
 
-            boolean[][] propCells = new boolean[numberOfPixelsX][numberOfPixelsY];
+            //boolean[][] propCells = new boolean[numberOfPixelsX][numberOfPixelsY];
             int n_propers = 0;
             int min_x_ = Integer.MAX_VALUE;
             int min_y_ = Integer.MAX_VALUE;
@@ -280,7 +280,7 @@ public class lasAligner {
                                     }
 */
                                     properCells.add(j + k * numberOfPixelsX);
-                                    propCells[j][k] = true;
+                                    //propCells[j][k] = true;
                                     n_propers++;
                                     //System.out.println("proper coords: " + (origo_x+j*resolution) + " " + (origo_y-k*resolution));
                                 }
@@ -362,8 +362,8 @@ public class lasAligner {
 
                     int searchThis = x + y * numberOfPixelsX;
 
-                    //if (properCells.contains(searchThis)) {
-                    if(propCells[x][y]){
+                    if (properCells.contains(searchThis)) {
+                    //if(propCells[x][y]){
 
                         readPoints++;
                         matchedCells.add(x + y * numberOfPixelsX);
