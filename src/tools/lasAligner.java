@@ -408,7 +408,7 @@ public class lasAligner {
 
                 //System.out.println((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) + " " + firstCheck[x][y].countTarget + " " + checkSurroundings(firstCheck, x, y) + " " + i);
 
-                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 0.5 && firstCheck[x][y].countTarget > 4) { // && checkSurroundings(firstCheck, x, y)) {
+                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 0.5 && firstCheck[x][y].countTarget > 10) { // && checkSurroundings(firstCheck, x, y)) {
 
                     //System.out.println("DIFFERENCE: " + (firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()));
 
@@ -419,7 +419,7 @@ public class lasAligner {
                 }
             }
 
-            ArrayList<Integer> outliers = getOutlierIndexes(valuesToCheck, 2);
+            ArrayList<Integer> outliers = getOutlierIndexes(valuesToCheck, 2.5);
             //ArrayList<Integer> outliers = detectOutliersPercentile(valuesToCheck, 0.9);
             //System.exit(1);
             float maxOutlier = Float.NEGATIVE_INFINITY;
@@ -448,14 +448,20 @@ public class lasAligner {
                 //int x = i % numberOfPixelsX;
                 //int y = i / numberOfPixelsX;
 
-                if(firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target < 0.5 && firstCheck[x][y].countTarget > 4) { //  && checkSurroundings(firstCheck, x, y)){
+                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 0.5 && firstCheck[x][y].countTarget > 10) { //  && checkSurroundings(firstCheck, x, y)){
 
                     double[] outValue = new double[]{firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()};
 
+
+                    if(outValue[0] > maxOutlier || outValue[0] < minOutlier){
+                        continue;
+                    }
                     if(outlierCells.contains(counter++)) {
                         System.out.println("OUTLIER: " + i + " " + outValue[0] + " ");
                         continue;
                     }
+
+
 
                     double centricity = firstCheck[x][y].groundCentricity();
 
