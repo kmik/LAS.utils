@@ -39,7 +39,7 @@ public class LASraf implements Closeable {
 
   public boolean writeInProgress = false;
 
-  public int bufferSize = (int)Math.pow(2, 20);
+  public int bufferSize = (int)Math.pow(2, 22);
   //public byte[] allArray = new byte[0];
   public byte[] allArray2 = new byte[bufferSize];
   public int allArray2Index = 0;
