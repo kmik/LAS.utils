@@ -468,6 +468,7 @@ public class LASwrite {
 	public static void String2LASpoint(LasPoint point, String in, char[] charArray , String sep){
 
 		String[] tokens = in.split(sep);
+		//StringTokenizer tokenizer = new StringTokenizer(in, sep);
 
 		for(int i = 0; i < charArray.length; i++){
 
@@ -475,22 +476,27 @@ public class LASwrite {
 			switch(charArray[i])
 			{
 				case 'x':
-					point.x = Double.parseDouble(tokens[i]);
+					//point.x = Double.parseDouble(tokens[i]);
+					point.x = fastParseDouble(tokens[i]);
 					break;
 				case 'y':
-					point.y = Double.parseDouble(tokens[i]);
+					//point.y = Double.parseDouble(tokens[i]);
+					point.y = fastParseDouble(tokens[i]);
 					break;
 				case 'z':
-					point.z = Double.parseDouble(tokens[i]);
+					//point.z = Double.parseDouble(tokens[i]);
+					point.z = fastParseDouble(tokens[i]);
 					break;
 				case 'i':
-					point.intensity = (int)Math.round(Double.parseDouble(tokens[i]));
+					//point.intensity = (int)Math.round(Double.parseDouble(tokens[i]));
+					point.intensity = (int)Math.round(fastParseDouble(tokens[i]));
 					break;
 				case 'c':
 					point.classification = Integer.parseInt(tokens[i]);
 					break;
 				case 't':
-					point.gpsTime = Double.parseDouble(tokens[i]);
+					//point.gpsTime = Double.parseDouble(tokens[i]);
+					point.gpsTime = fastParseDouble(tokens[i]);
 					break;
 				case 'n':
 					point.numberOfReturns = Integer.parseInt(tokens[i]);
@@ -508,16 +514,20 @@ public class LASwrite {
 					point.userData = Integer.parseInt(tokens[i]);
 					break;
 				case 'R':
-					point.R = (short)Double.parseDouble(tokens[i]);
+					//point.R = (short)Double.parseDouble(tokens[i]);
+					point.R = (short)fastParseDouble(tokens[i]);
 					break;
 				case 'G':
-					point.G = (short)Double.parseDouble(tokens[i]);
+					//point.G = (short)Double.parseDouble(tokens[i]);
+					point.G = (short)fastParseDouble(tokens[i]);
 					break;
 				case 'B':
-					point.B = (short)Double.parseDouble(tokens[i]);
+					//point.B = (short)Double.parseDouble(tokens[i]);
+					point.B = (short)fastParseDouble(tokens[i]);
 					break;
 				case 'N':
-					point.N = (short)Double.parseDouble(tokens[i]);
+					//point.N = (short)Double.parseDouble(tokens[i]);
+					point.N = (short)fastParseDouble(tokens[i]);
 					break;
 				case 's':
 					/* SKIP */
@@ -526,6 +536,126 @@ public class LASwrite {
 					throw new argumentException("-iparse command " + charArray[i] + " not recognized");
 			}
 		}
+	}
+
+	public static void String2LASpoint__(LasPoint point, String in, char[] charArray , String sep, int n_elements){
+
+		//String[] tokens = in.split(sep);
+		String[] tokens = new String[n_elements];
+		StringTokenizer tokenizer = new StringTokenizer(in, sep);
+		//System.out.println("n_elements: " + n_elements);
+		//System.out.println(in);
+		for (int i = 0; i < n_elements; i++) {
+			tokens[i] = tokenizer.nextToken();
+		}
+
+		for(int i = 0; i < charArray.length; i++){
+
+			//System.out.println(tokens[i]);
+			switch(charArray[i])
+			{
+				case 'x':
+					//point.x = Double.parseDouble(tokens[i]);
+					point.x = fastParseDouble(tokens[i]);
+					break;
+				case 'y':
+					//point.y = Double.parseDouble(tokens[i]);
+					point.y = fastParseDouble(tokens[i]);
+					break;
+				case 'z':
+					//point.z = Double.parseDouble(tokens[i]);
+					point.z = fastParseDouble(tokens[i]);
+					break;
+				case 'i':
+					//point.intensity = (int)Math.round(Double.parseDouble(tokens[i]));
+					point.intensity = (int)Math.round(fastParseDouble(tokens[i]));
+					break;
+				case 'c':
+					point.classification = Integer.parseInt(tokens[i]);
+					break;
+				case 't':
+					//point.gpsTime = Double.parseDouble(tokens[i]);
+					point.gpsTime = fastParseDouble(tokens[i]);
+					break;
+				case 'n':
+					point.numberOfReturns = Integer.parseInt(tokens[i]);
+					break;
+				case 'r':
+					point.returnNumber = Integer.parseInt(tokens[i]);
+					break;
+				case 'p':
+					point.pointSourceId = (short)Integer.parseInt(tokens[i]);
+					break;
+				case 'd':
+					point.scanAngleRank = Integer.parseInt(tokens[i]);
+					break;
+				case 'u':
+					point.userData = Integer.parseInt(tokens[i]);
+					break;
+				case 'R':
+					//point.R = (short)Double.parseDouble(tokens[i]);
+					point.R = (short)fastParseDouble(tokens[i]);
+					break;
+				case 'G':
+					//point.G = (short)Double.parseDouble(tokens[i]);
+					point.G = (short)fastParseDouble(tokens[i]);
+					break;
+				case 'B':
+					//point.B = (short)Double.parseDouble(tokens[i]);
+					point.B = (short)fastParseDouble(tokens[i]);
+					break;
+				case 'N':
+					//point.N = (short)Double.parseDouble(tokens[i]);
+					point.N = (short)fastParseDouble(tokens[i]);
+					break;
+				case 's':
+					/* SKIP */
+					break;
+				default:
+					throw new argumentException("-iparse command " + charArray[i] + " not recognized");
+			}
+		}
+	}
+	public static double fastParseDouble(String str) {
+		int length = str.length();
+		if (length == 0) {
+			throw new NumberFormatException("Empty string");
+		}
+
+		int i = 0;
+		boolean isNegative = false;
+		if (str.charAt(0) == '-') {
+			isNegative = true;
+			i++;
+		}
+
+		double result = 0.0;
+		while (i < length && str.charAt(i) != '.') {
+			char c = str.charAt(i++);
+			if (c < '0' || c > '9') {
+				throw new NumberFormatException("Invalid character: " + c);
+			}
+			result = result * 10 + (c - '0');
+		}
+
+		if (i < length && str.charAt(i) == '.') {
+			i++;
+			double fraction = 0.1;
+			while (i < length) {
+				char c = str.charAt(i++);
+				if (c < '0' || c > '9') {
+					throw new NumberFormatException("Invalid character: " + c);
+				}
+				result += (c - '0') * fraction;
+				fraction *= 0.1;
+			}
+		}
+
+		if (isNegative) {
+			result = -result;
+		}
+
+		return result;
 	}
 
 	public static int getPointDataRecordLength(int pointDataRecordFormat){
@@ -598,6 +728,7 @@ public class LASwrite {
 
 		int x_offset_update = 0, y_offset_update = 0, z_offset_update = 0;
 		double x_scale_update = 0, y_scale_update = 0, z_scale_update = 0;
+		int n_elements = 0;
 
 		try {
 			FileInputStream fis = new FileInputStream(from);
@@ -606,6 +737,8 @@ public class LASwrite {
 			while ((line = in.readLine()) != null) {
 
 				String2LASpoint(tempPoint, line, charArray, sep);
+
+				n_elements = line.split(sep).length;
 
 				x_offset_update = (int)tempPoint.x;
 				y_offset_update = (int)tempPoint.y;
@@ -739,7 +872,7 @@ public class LASwrite {
 
 	        while((line = in.readLine())!= null){
 
-	        	String2LASpoint(tempPoint, line, charArray, sep);
+	        	String2LASpoint__(tempPoint, line, charArray, sep, n_elements);
 
 				if(!aR.inclusionRule.ask(tempPoint, 1, true)){
 					continue;
@@ -1042,6 +1175,7 @@ public class LASwrite {
 					x_scale_update, y_scale_update, z_scale_update);
 
 	}
+
 
 
 

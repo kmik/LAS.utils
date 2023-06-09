@@ -221,7 +221,7 @@ public class LasPointBufferCreator {
             return in &= ~(1 << bit);
     }
 
-        public synchronized boolean writePoint(LasPoint tempPoint, PointInclusionRule rule, long i) throws IOException {
+    public synchronized boolean writePoint(LasPoint tempPoint, PointInclusionRule rule, long i) throws IOException {
 
         /* Written or not */
         boolean output = false;

@@ -1520,11 +1520,11 @@ public class lasGridStats {
 
         long n = pointCloud.getNumberOfPointRecords();
 
-        for (long i = 0; i < n; i += 20000) {
+        for (long i = 0; i < n; i += 50000) {
 
             //for(long i = 0; i < in.getNumberOfPointRecords(); i++) {
 
-            int maxi = (int) Math.min(20000, Math.abs(n - i));
+            int maxi = (int) Math.min(50000, Math.abs(n - i));
 
             aR.pfac.prepareBuffer(thread_n, i, maxi);
 
@@ -1583,6 +1583,7 @@ public class lasGridStats {
             treetops = aR.treeTops;
 
             ds2 = ogr.Open(treetops.getAbsolutePath(), 0);
+
             Layer layeri = ds2.GetLayer(0);
 
             for (long i = 0; i < layeri.GetFeatureCount(); i++) {
@@ -1692,10 +1693,10 @@ public class lasGridStats {
                                    bin_i.writeDouble(0.0);
                                    bin_i.writeDouble(areas.get(ii));
          */
-        writer_a.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
-        writer_f.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
-        writer_l.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
-        writer_i.write("Grid_cell_id\tplot_id\tdiv\twhat\tarea\tx_coord\ty_coord\t");
+        writer_a.write("Grid_cell_id\tplot_id\tdiv\tabs_n\tarea\tx_coord\ty_coord\t");
+        writer_f.write("Grid_cell_id\tplot_id\tdiv\tabs_n\tarea\tx_coord\ty_coord\t");
+        writer_l.write("Grid_cell_id\tplot_id\tdiv\tabs_n\tarea\tx_coord\ty_coord\t");
+        writer_i.write("Grid_cell_id\tplot_id\tdiv\tabs_n\tarea\tx_coord\ty_coord\t");
 
         int counterDoneCells = 0;
 
@@ -1707,11 +1708,11 @@ public class lasGridStats {
 
             //long n = pointCloud.getNumberOfPointRecords();
 
-            for(long i = 0; i < n; i += 20000) {
+            for(long i = 0; i < n; i += 50000) {
 
                 //for(long i = 0; i < in.getNumberOfPointRecords(); i++) {
 
-                int maxi = (int) Math.min(20000, Math.abs(n - i));
+                int maxi = (int) Math.min(50000, Math.abs(n - i));
 
                 aR.pfac.prepareBuffer(thread_n, i, maxi);
 
@@ -1752,10 +1753,11 @@ public class lasGridStats {
 
 
                         if(counterDoneCells++ % 10000 == 0){
+
                             aR.prog.setProgress(coreNumber - 1, counterDoneCells);
                             aR.prog.setTime(coreNumber - 1, (System.nanoTime() - startTime_) / 1000);
                             aR.prog.printProgressBar();
-
+                            System.out.println("Number of calls: " + aR.prog.numberOfCalls);
                         }
 
                         //if(counterDoneCells++ % 1000000 == 0)
@@ -1802,6 +1804,7 @@ public class lasGridStats {
                         gridLocationInRaf_i.get(x).get(y).clear();
 
                         foundStands.clear();
+                        int n_points = grid_of_points[x][y].size();
 
                         if (true) {
 
@@ -2118,7 +2121,8 @@ public class lasGridStats {
                                     sum_z_a.set(0, sum_z_a.get(0) + tempPoint.z);
                                     sum_i_a.set(0, sum_i_a.get(0) + tempPoint.intensity);
 
-                                    points.get(0).add(new Point(tempPoint.x, tempPoint.y));
+
+                                    //points.get(0).add(new Point(tempPoint.x, tempPoint.y));
 
                                     //System.out.println("intensity" + tempPoint.intensity);
 
@@ -2281,7 +2285,7 @@ public class lasGridStats {
                                     bin_a.writeDouble(grid_cell_id);
                                     bin_a.writeDouble(ids.get(ii));
                                     bin_a.writeDouble(divided);
-                                    bin_a.writeDouble(0.0);
+                                    bin_a.writeDouble(n_points);
                                     bin_a.writeDouble(areas.get(ii));
                                     bin_a.writeDouble(x_coord);
                                     bin_a.writeDouble(y_coord);
@@ -2299,7 +2303,7 @@ public class lasGridStats {
                                     writer_a.write(grid_cell_id + "\t");
                                     writer_a.write(ids.get(ii) + "\t");
                                     writer_a.write(divided + "\t");
-                                    writer_a.write(0.0 + "\t");
+                                    writer_a.write(n_points + "\t");
                                     writer_a.write(areas.get(ii) + "\t");
                                     writer_a.write(x_coord + "\t");
                                     writer_a.write(y_coord + "\t");
@@ -2353,7 +2357,7 @@ public class lasGridStats {
                                         bin_f.writeDouble(grid_cell_id);
                                         bin_f.writeDouble(ids.get(ii));
                                         bin_f.writeDouble(divided);
-                                        bin_f.writeDouble(0.0);
+                                        bin_f.writeDouble(n_points);
                                         bin_f.writeDouble(areas.get(ii));
                                         bin_f.writeDouble(x_coord);
                                         bin_f.writeDouble(y_coord);
@@ -2365,7 +2369,7 @@ public class lasGridStats {
                                         writer_f.write(grid_cell_id + "\t");
                                         writer_f.write(ids.get(ii) + "\t");
                                         writer_f.write(divided + "\t");
-                                        writer_f.write(0.0 + "\t");
+                                        writer_f.write(n_points + "\t");
                                         writer_f.write(areas.get(ii) + "\t");
                                         writer_f.write(x_coord + "\t");
                                         writer_f.write(y_coord + "\t");
@@ -2411,7 +2415,7 @@ public class lasGridStats {
                                         bin_l.writeDouble(grid_cell_id);
                                         bin_l.writeDouble(ids.get(ii));
                                         bin_l.writeDouble(divided);
-                                        bin_l.writeDouble(0.0);
+                                        bin_l.writeDouble(n_points);
                                         bin_l.writeDouble(areas.get(ii));
                                         bin_l.writeDouble(x_coord);
                                         bin_l.writeDouble(y_coord);
@@ -2462,7 +2466,7 @@ public class lasGridStats {
                                         bin_i.writeDouble(grid_cell_id);
                                         bin_i.writeDouble(ids.get(ii));
                                         bin_i.writeDouble(divided);
-                                        bin_i.writeDouble(0.0);
+                                        bin_i.writeDouble(n_points);
                                         bin_i.writeDouble(areas.get(ii));
                                         bin_i.writeDouble(x_coord);
                                         bin_i.writeDouble(y_coord);
@@ -2474,7 +2478,7 @@ public class lasGridStats {
                                         writer_i.write(grid_cell_id + "\t");
                                         writer_i.write(ids.get(ii) + "\t");
                                         writer_i.write(divided + "\t");
-                                        writer_i.write(0.0 + "\t");
+                                        writer_i.write(n_points + "\t");
                                         writer_i.write(areas.get(ii) + "\t");
                                         writer_i.write(x_coord + "\t");
                                         writer_i.write(y_coord + "\t");

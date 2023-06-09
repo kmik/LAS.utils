@@ -2374,6 +2374,7 @@ public class LASReader {
 
     long filePos = this.offsetToPointData
             + recordIndex * this.pointDataRecordLength;
+
     braf.seek(filePos);
 
     braf.read(n * this.pointDataRecordLength);

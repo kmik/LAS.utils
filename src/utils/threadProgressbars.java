@@ -4,6 +4,8 @@ import java.util.Arrays;
 
 public class threadProgressbars {
 
+    public int numberOfCalls = 0;
+
     volatile int[] progress;
     volatile long[] time;
     int[] end;
@@ -126,6 +128,9 @@ public class threadProgressbars {
     }
 
     public synchronized void printProgressBar() {
+
+        this.numberOfCalls++;
+
         for (int i = 0; i < numCores; i++) {
             int percent = (int) Math.round((progress[i] / (double) end[i]) * 100);
             StringBuilder bar = new StringBuilder("[");
