@@ -306,4 +306,9 @@ public class ResidFunction_leverArm_Boresight implements LevenbergMarquardt.Resi
 
     }
 
+    public boolean rejectSolution(){
+
+        return false;
+    }
+
 }

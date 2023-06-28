@@ -561,6 +561,7 @@ public class LASwrite {
 				case 'y':
 					//point.y = Double.parseDouble(tokens[i]);
 					point.y = fastParseDouble(tokens[i]);
+
 					break;
 				case 'z':
 					//point.z = Double.parseDouble(tokens[i]);
@@ -865,6 +866,10 @@ public class LASwrite {
 		int version_minor_update = 2;
 		int point_data_format_update = 0;
 
+		int bufferSize = 1000;
+
+		double[][] points = new double[bufferSize][n_elements];
+		int counter = 0;
 
 		try {
 	        FileInputStream fis = new FileInputStream(from);
@@ -873,6 +878,7 @@ public class LASwrite {
 	        while((line = in.readLine())!= null){
 
 	        	String2LASpoint__(tempPoint, line, charArray, sep, n_elements);
+
 
 				if(!aR.inclusionRule.ask(tempPoint, 1, true)){
 					continue;
@@ -1207,6 +1213,7 @@ public class LASwrite {
 	}
 
 	public static byte setUnsetBit(byte in, int bit, int set){
+
 
 		if(set==1)
 			return in |= 1 << bit;

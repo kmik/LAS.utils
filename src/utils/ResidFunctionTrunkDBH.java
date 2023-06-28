@@ -295,4 +295,9 @@ public class ResidFunctionTrunkDBH  implements LevenbergMarquardt.ResidualFuncti
 
     }
 
+    public boolean rejectSolution(){
+
+        return false;
+    }
+
 }

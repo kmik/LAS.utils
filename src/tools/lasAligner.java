@@ -419,7 +419,7 @@ public class lasAligner {
                 }
             }
 
-            ArrayList<Integer> outliers = getOutlierIndexes(valuesToCheck, 2.5);
+            ArrayList<Integer> outliers = getOutlierIndexes(valuesToCheck, 1.0);
             //ArrayList<Integer> outliers = detectOutliersPercentile(valuesToCheck, 0.9);
             //System.exit(1);
             float maxOutlier = Float.NEGATIVE_INFINITY;

@@ -73,9 +73,9 @@ public class las2txt{
             char[] charArray = aR.oparse.toCharArray();
 
 
-            for(int i = 0; i < in.getNumberOfPointRecords(); i += 10000) {
+            for(int i = 0; i < in.getNumberOfPointRecords(); i += 50000) {
 
-                maxi = (int) Math.min(10000, Math.abs(in.getNumberOfPointRecords() - i));
+                maxi = (int) Math.min(50000, Math.abs(in.getNumberOfPointRecords() - i));
 
                 try {
                     in.readRecord_noRAF(i, tempPoint, maxi);

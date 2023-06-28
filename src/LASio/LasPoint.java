@@ -233,6 +233,10 @@ public class LasPoint implements Cloneable {
         this.G = another.G;
         this.B = another.B;
         this.N = another.N;
+
+        this.extra_bytes = another.extra_bytes;
+        this.extra_bytes_custom = another.extra_bytes_custom;
+
     }
 
     public Object clone() throws CloneNotSupportedException{

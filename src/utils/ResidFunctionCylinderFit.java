@@ -281,6 +281,11 @@ public class ResidFunctionCylinderFit implements LevenbergMarquardt.ResidualFunc
         double normalLength = Math.sqrt((B.x-A.x)*(B.x-A.x)+(B.y-A.y)*(B.y-A.y));
         return Math.abs((P.x-A.x)*(B.y-A.y)-(P.y-A.y)*(B.x-A.x))/normalLength;
     }
+
+    public boolean rejectSolution(){
+
+        return false;
+    }
 /*
     public static double betweenPointAndLine(double[] point, double[] lineStart, double[] lineEnd){
 

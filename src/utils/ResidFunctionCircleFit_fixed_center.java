@@ -49,4 +49,10 @@ public class ResidFunctionCircleFit_fixed_center implements LevenbergMarquardt.R
     public int numFunctions(){
         return num_functions;
     }
+
+    public boolean rejectSolution(){
+
+        return false;
+    }
+
 }

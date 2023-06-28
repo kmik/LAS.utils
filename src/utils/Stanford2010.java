@@ -20,13 +20,11 @@ import org.gdal.osr.SpatialReference;
 import org.jdom2.*;
 import org.jdom2.input.SAXBuilder;
 import org.locationtech.jts.geom.GeometryCollection;
-import tools.ConcaveHull;
-import tools.ConvexHull_arraylist;
-import tools.Point;
-import tools.QuickHull;
-import tools.createCHM;
+import tools.*;
 
 import org.gdal.osr.SpatialReference;
+import tools.ConcaveHull;
+import tools.QuickHull;
 
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
@@ -76,6 +74,23 @@ public class Stanford2010 {
 
         this.xml_file = file;
 
+    }
+
+    public double diameterToHeight(double diameter, int species){
+
+        double m = species == 2 ? 3.0 : 2.0;
+
+        if(species == 1){
+            return (Math.pow(diameter, m)) / Math.pow((1.181 + 0.247 * diameter), m) + 1.3;
+
+        }else if(species == 2){
+            return (Math.pow(diameter, m)) / Math.pow((1.760 + 0.327 * diameter), m) + 1.3;
+
+        }else if(species == 3) {
+            return (Math.pow(diameter, m)) / Math.pow((1.014 + 0.238 * diameter), m) + 1.3;
+        }
+
+        return -1;
     }
 
     public void declareMergedShapefile(){
@@ -327,7 +342,65 @@ public class Stanford2010 {
 
     }
 
+    public ArrayList<tools.ConcaveHull.Point> exportShapefile_(File outputFileName, ArrayList<tools.ConcaveHull.Point> border, int id){
 
+        ArrayList<tools.ConcaveHull.Point> bufferedBorder = new ArrayList<>();
+        //ogr.RegisterAll(); //Registering all the formats..
+        gdal.AllRegister();
+
+        Geometry outShpGeom2 = new Geometry(ogr.wkbLinearRing);
+        Geometry outShpGeom = new Geometry(ogr.wkbPolygon);
+
+        String driverName = "ESRI Shapefile";
+
+        Driver shpDriver = ogr.GetDriverByName(driverName);
+
+        DataSource outShp = shpDriver.CreateDataSource(outputFileName.getAbsolutePath());
+
+        Layer outShpLayer = outShp.CreateLayer("out_name", null, 0);
+
+        FieldDefn layerFieldDef = new FieldDefn("id",0);
+
+        outShpLayer.CreateField(layerFieldDef);
+        FeatureDefn outShpFeatDefn = outShpLayer.GetLayerDefn();
+        Feature outShpFeat = new Feature(outShpFeatDefn);
+
+        SpatialReference srs = new SpatialReference();
+        srs.ImportFromEPSG(3067); // WGS84
+
+        for(int i = 0; i < border.size(); i++) {
+
+            //System.out.println("Wrote " + i);
+            outShpGeom2.AddPoint_2D(border.get(i).getX(), border.get(i).getY());
+            System.out.println(border.get(i).getX() + " " + border.get(i).getY());
+
+        }
+        CoordinateTransformation transform = new CoordinateTransformation(srs, srs);
+
+        //outShpGeom2.Transform(transform);
+        //bufferedShapefile.Transform(transform);
+
+        outShpGeom.AddGeometry(outShpGeom2);
+        Geometry bufferedShapefile = outShpGeom.Buffer(7.5);
+
+        outShpFeat.SetField("id",id);
+
+        outShpFeat.SetGeometryDirectly(bufferedShapefile);
+
+        double[][] bufferedPoints = bufferedShapefile.GetGeometryRef(0).GetPoints();
+
+        for(int i = 0; i < bufferedPoints.length; i++){
+            bufferedBorder.add(new tools.ConcaveHull.Point(bufferedPoints[i][0], bufferedPoints[i][1]));
+        }
+
+        outShpLayer.CreateFeature(outShpFeat);
+        outShpLayer.SyncToDisk();
+        System.out.println("features: " + outShpLayer.GetFeatureCount());
+
+        allStandsShapeFileLayer.CreateFeature(outShpFeat);
+
+        return bufferedBorder;
+    }
     public void readShapeFiles(String shapeFile) throws IOException {
 
         DataSource ds = ogr.Open( shapeFile );
@@ -676,6 +749,8 @@ public class Stanford2010 {
 
     public void parse() throws IOException{
 
+        curveFitting fitter = new curveFitting(aR);
+
         SAXBuilder builder = new SAXBuilder();
 
         System.out.println("Parsing XML file: " + this.xml_file.getAbsolutePath());
@@ -938,6 +1013,7 @@ public class Stanford2010 {
                 tempTree.setId(stemNumber);
 
 
+
                 if(insideStand == -1){
 
                     point.setX(transformed[0]);
@@ -1013,6 +1089,18 @@ public class Stanford2010 {
                 tempTree.setDiameter((float)dbh);
                 //System.out.println("logs: " + stemInfo.size());
 
+                ArrayList<Double> stemCurveX = new ArrayList<Double>();
+                ArrayList<Double> stemCurveY = new ArrayList<Double>();
+
+                //stemCurveX.add(1.3);
+                //stemCurveY.add(dbh / 100.0);
+
+                double height = diameterToHeight(dbh, tempTree.getSpecies());
+                System.out.println("height: " + height);
+                tempTree.setHeight((float)height);
+
+                double currentHeight = 0.5;
+
                 for(int i_ = 0; i_ < stemInfo.size(); i_++){
 
                    double volume = Double.parseDouble(stemInfo.get(i_).getChildren("LogVolume", ns).get(0).getValue());
@@ -1058,6 +1146,13 @@ public class Stanford2010 {
                        double logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
                        double logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
 
+                       currentHeight += loglength / 2.0 / 100.0;
+                       stemCurveX.add(currentHeight);
+                       stemCurveY.add(logdiameterEnd / 10.0);
+                       currentHeight += loglength / 2.0 / 100.0;
+                       stemCurveX.add(currentHeight);
+                       stemCurveY.add(logdiameterMid / 10.0);
+
                        knownKuitu.add(new double[]{Double.parseDouble(stemInfo.get(i_).getChildren("LogKey", ns).get(0).getValue()),
                                stemInfo.size(),
                                Double.parseDouble(stemInfo.get(i_).getChildren("LogVolume", ns).get(0).getValue()),
@@ -1075,6 +1170,13 @@ public class Stanford2010 {
                        double logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
                        double logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
 
+                       currentHeight += loglength / 2.0 / 100.0;
+                       stemCurveX.add(currentHeight);
+                       stemCurveY.add(logdiameterEnd / 10.0);
+                       currentHeight += loglength / 2.0 / 100.0;
+                       stemCurveX.add(currentHeight);
+                       stemCurveY.add(logdiameterMid / 10.0);
+
                        knownTukki.add(new double[]{Double.parseDouble(stemInfo.get(i_).getChildren("LogKey", ns).get(0).getValue()),
                                stemInfo.size(),
                                Double.parseDouble(stemInfo.get(i_).getChildren("LogVolume", ns).get(0).getValue()),
@@ -1086,9 +1188,37 @@ public class Stanford2010 {
                    }
                    if(puutavaralaji == 3){
                        tempTree.volume_energia += volume;
+
+                       Element stemInfo_ = stemInfo.get(i_).getChild("LogMeasurement", ns);
+
+                       double loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
+                       double logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                       double logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
+
+                       currentHeight += loglength / 2.0 / 100.0;
+                       stemCurveX.add(currentHeight);
+                       stemCurveY.add(logdiameterEnd / 10.0);
+                       currentHeight += loglength / 2.0 / 100.0;
+                       stemCurveX.add(currentHeight);
+                       stemCurveY.add(logdiameterMid / 10.0);
+
                    }
                    if(puutavaralaji == 4){
                        tempTree.volume_pikkutukki += volume;
+
+                       Element stemInfo_ = stemInfo.get(i_).getChild("LogMeasurement", ns);
+
+                       double loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
+                       double logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                       double logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
+
+                       currentHeight += loglength / 2.0 / 100.0;
+                       stemCurveX.add(currentHeight);
+                       stemCurveY.add(logdiameterEnd / 10.0);
+                       currentHeight += loglength / 2.0 / 100.0;
+                       stemCurveX.add(currentHeight);
+                       stemCurveY.add(logdiameterMid / 10.0);
+
                    }
                    if(puutavaralaji == -1){
 
@@ -1099,6 +1229,13 @@ public class Stanford2010 {
                        double loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
                        double logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
                        double logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
+
+                       currentHeight += loglength / 2.0 / 100.0;
+                       stemCurveX.add(currentHeight);
+                       stemCurveY.add(logdiameterEnd / 10.0);
+                       currentHeight += loglength / 2.0 / 100.0;
+                       stemCurveX.add(currentHeight);
+                       stemCurveY.add(logdiameterMid / 10.0);
 
                        unknown.add(new double[]{Double.parseDouble(stemInfo.get(i_).getChildren("LogKey", ns).get(0).getValue()),
                                stemInfo.size(),
@@ -1111,6 +1248,15 @@ public class Stanford2010 {
 
                 }
 
+
+                tempTree.setStemCurveX(stemCurveX.stream().mapToDouble(Double::doubleValue).toArray());
+                tempTree.setStemCurveY(stemCurveY.stream().mapToDouble(Double::doubleValue).toArray());
+
+                //System.out.println(Arrays.toString(tempTree.getStemCurveX()));
+                //System.out.println(Arrays.toString(tempTree.getStemCurveY()));
+                //tempTree.estimateHeight(fitter);
+                //System.out.println(tempTree.getHeight());
+                //System.out.println("---------");
                 trees.add(tempTree);
 
 
@@ -1204,6 +1350,8 @@ public class Stanford2010 {
             }
         }
 
+
+
         HashMap<Integer, ArrayList<ConcaveHull.Point>> hulls = new HashMap<>();
         HashMap<Integer, ArrayList<Point>> hulls_convex = new HashMap<>();
 
@@ -1213,9 +1361,7 @@ public class Stanford2010 {
 
             ArrayList<tools.ConcaveHull.Point> currentTrees = standTreeLocations.get(i);
             ArrayList<ConcaveHull.Point> hull = calculateConcaveHull(currentTrees, concave_hull_k);
-            //ConvexHull_arraylist convexHull = new ConvexHull_arraylist(standTreeLocations_convex.get(i));
-            //convexHull.computeConvexHull();
-            //ArrayList<Point> convexHullPoints = convexHull.getConvexHull();
+
             ArrayList<Point> convexHullPoints = quickHull.quickHull(standTreeLocations_convex.get(i));
             hulls_convex.put(i, convexHullPoints);
             hulls.put(i, hull);
@@ -1243,6 +1389,8 @@ public class Stanford2010 {
 
         System.out.println("output_directory: " + output_directory.getAbsolutePath());
         output_directory.mkdirs();
+
+        HashMap<Integer, ArrayList<ConcaveHull.Point>> bufferedHulls = new HashMap<>();
 
 
 
@@ -1297,7 +1445,9 @@ public class Stanford2010 {
             System.out.println("Stand " + i + " size: " + standTreeLocations.get(i).size());
 */
             File tmpFile = new File(output_directory.getAbsolutePath() + pathSeparator + "stand_" + i + "_boundary.shp");
-            exportShapefile(tmpFile, hulls.get(i), i);
+            ArrayList<ConcaveHull.Point> buf_ = exportShapefile_(tmpFile, hulls.get(i), i);
+
+            bufferedHulls.put(i, buf_);
             //exportShapefileConcave(tmpFile, concave, i);
             //exportShapefileConvex(tmpFile, hulls_convex.get(i), i);
         }
@@ -1307,9 +1457,6 @@ public class Stanford2010 {
 
         //aR.pfac.closeThread(thread_n);
 
-
-
-        //System.exit(1);
 
 
         dynamicStatistics stats_x = new dynamicStatistics();
@@ -1322,6 +1469,7 @@ public class Stanford2010 {
         double maxDistanceFromAchrorTree = 5.0;
 
         Tree anchorTree = new Tree();
+        Tree previousAnchorTree = new Tree();
 
         int trees_size = trees2.size() - 1;
 
@@ -1341,6 +1489,10 @@ public class Stanford2010 {
 
         System.out.println(canDrawPerpendicular(p_[0],p_[1], p1_, p2_));
 
+        int countAnchors = 0;
+
+        boolean firstBatchCorrected = false;
+
         //System.exit(1);
         for(int i = 0; i < trees.size(); i++){
 
@@ -1355,6 +1507,7 @@ public class Stanford2010 {
                 stats_y.reset();
                 stats_x.add(trees.get(i).getX_coordinate_machine());
                 stats_y.add(trees.get(i).getY_coordinate_machine());
+
             }else {
 
                 stats_x.add(trees.get(i).getX_coordinate_machine());
@@ -1431,9 +1584,12 @@ public class Stanford2010 {
                 //tmpTree.setY_coordinate_machine(previousMeanY);
 
                 if(!isBad) {
+                    countAnchors++;
                     tmpTree.setId(trackID);
                     tmpTree.setKey(counter++);
                     trees2.add(tmpTree);
+
+                    previousAnchorTree = anchorTree.clone();
                     anchorTree = trees.get(i);
 
                     if (distance2 > trackChangeDistance) {
@@ -1441,10 +1597,65 @@ public class Stanford2010 {
                     }
                 }
             }
+            else {
+
+            }
+
+
+            if(countAnchors >= 2){
+
+                double bearing = angleFromOnePointToAnother(previousAnchorTree.getX_coordinate_machine(), previousAnchorTree.getY_coordinate_machine(), anchorTree.getX_coordinate_machine(), anchorTree.getY_coordinate_machine());
+
+
+                if(!firstBatchCorrected) {
+
+                    firstBatchCorrected = true;
+
+                    for (int i_ = 0; i_ <= i; i_++) {
+
+                        trees.get(i_).setMachineBearing(bearing);
+
+                    }
+
+                }else{
+                    trees.get(i).setMachineBearing(bearing);
+                }
+            }else{
+
+            }
         }
 
-        System.out.println(trees2.size() + " " + trees.size());
+        for(int i : standTreeLocations.keySet()){
+            System.out.println("standid: " + i + " " + standTreeLocations.get(i).size());
+        }
 
+        //System.out.println(trees2.size() + " " + trees.size());
+
+        for(int i = 0; i < trees.size(); i++){
+            //System.out.println(trees.get(i).getMachineBearing());
+        }
+
+        treeLocationEstimator estimator = new treeLocationEstimator(aR);
+
+        if(aR.aux_file != null){
+            estimator.setAuxiliaryDataFile(aR.aux_file);
+            estimator.readRaster();
+        }
+
+        estimator.setTrees(trees);
+        estimator.setStandBoundaries(bufferedHulls);
+
+        //estimator.simpleEstimation(10, 180, 2);
+
+        //estimator.simpleEstimationWithProbabilities(10, 180, 2, new double[]{0.05, 0.2, 0.65, 0.2}, new double[]{3.0, 6.0, 8.0, 10.0});
+
+        //estimator.estimationWithAuxiliaryData(10, 180, 2,
+        //        new double[]{0.05, 0.15, 0.4, 0.3}, new double[]{3.0, 6.0, 8.0, 10.0}, 15.0);
+
+        System.out.println("STARTING OPTIMIZED ESTIMATION");
+        estimator.estimationWithAuxiliaryDataOptimized();
+
+        System.exit(1);
         double[][] points = new double[trees.size()][2];
 
         for(int i = 0; i < trees.size(); i++){
@@ -1520,7 +1731,7 @@ public class Stanford2010 {
 
         try {
             ofile.createNewFile();
-            writeTrees(trees, ofile);
+            writeTreesEstimatedLocations(trees, ofile);
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -1599,6 +1810,27 @@ public class Stanford2010 {
 
         }
 
+    }
+
+    public double angleFromOnePointToAnother(double x_start, double y_start, double x_end, double y_end) {
+        double deltaX = x_end - x_start;
+        double deltaY = y_end - y_start;
+
+        // Calculate the angle in radians
+        double angleRad = Math.atan2(deltaY, deltaX);
+
+        // Convert the angle from radians to degrees
+        double angleDeg = Math.toDegrees(angleRad);
+
+        // Adjust the angle to be within the range of 0 to 360 degrees
+        if (angleDeg < 0) {
+            angleDeg += 360;
+        }
+
+        // Adjust the angle to match the convention where 0 angle points north
+        angleDeg = (angleDeg + 360) % 360;
+
+        return angleDeg;
     }
 
     public ArrayList<double[]> makeConcave(LASReader pointCloud) throws Exception{
@@ -2042,6 +2274,20 @@ public class Stanford2010 {
         bw.close();
     }
 
+    public void writeTreesEstimatedLocations(ArrayList<Tree> trees, File ofile) throws IOException {
+        ofile.createNewFile();
+        BufferedWriter bw = new BufferedWriter(new FileWriter(ofile));
+
+        bw.write("fileName id key insideStand dToStand species dbh x y vtukki vkuitu vpikkutukki venergia vunknown" + "\n");
+        for(int i = 0; i < trees.size(); i++){
+            bw.write(trees.get(i).HPR_FILE_NAME + " " + trees.get(i).getId() + " " + trees.get(i).getKey() + " " + trees.get(i).trulyInStand + " " + trees.get(i).distanceToStandBorder + " " + + trees.get(i).species + " " + trees.get(i).diameter + " " +  trees.get(i).getX_coordinate_estimated() + " " + trees.get(i).getY_coordinate_estimated() +
+                    " " + trees.get(i).volume_tukki + " " + trees.get(i).volume_kuitu + " " + trees.get(i).volume_pikkutukki + " " + trees.get(i).volume_energia +
+                    " " + trees.get(i).volume_unknown  + "\n");
+        }
+
+        bw.close();
+    }
+
     public static List<RealVector> filterPoints(List<RealVector> points) {
         List<RealVector> filteredPoints = new ArrayList<>();
 
@@ -2357,197 +2603,6 @@ class stemChecker {
 
 }
 
-class Tree {
-
-    public tools.ConcaveHull.Point point = new tools.ConcaveHull.Point(0d,0d);
-    public float height, diameter;
-    public double x_coordinate_machine, y_coordinate_machine, z_coordinate_machine;
-    public double x_coordinate_estimated, y_coordinate_estimated, z_coordinate_estimated;
-    public int species, key, id, global_id;
-
-    public double volume = 0, volume_kuitu = 0, volume_tukki = 0, volume_energia = 0, volume_pikkutukki = 0, volume_unknown = 0;
-
-    public double distanceToStandBorder = -1;
-    public int standId = -1;
-    public boolean trulyInStand = true;
-    //
-    public double boomAngle, boomPosition, boomExtension, machineBearing;
-
-    public String HPR_FILE_NAME = "";
-
-    public Tree(){
-
-    }
-
-    public Tree(float height, float diameter, int species){
-
-        this.height = height;
-        this.species = species;
-        this.species = species;
-
-    }
-
-    public float getHeight() {
-        return height;
-    }
-
-    public void setHeight(float height) {
-        this.height = height;
-    }
-
-    public float getDiameter() {
-        return diameter;
-    }
-
-    public void setDiameter(float diameter) {
-        this.diameter = diameter;
-    }
-
-    public double getX_coordinate_machine() {
-        return x_coordinate_machine;
-    }
-
-    public void setX_coordinate_machine(double x_coordinate_machine) {
-        this.x_coordinate_machine = x_coordinate_machine;
-    }
-
-    public double getY_coordinate_machine() {
-        return y_coordinate_machine;
-    }
-
-    public void setY_coordinate_machine(double y_coordinate_machine) {
-        this.y_coordinate_machine = y_coordinate_machine;
-    }
-
-    public void setPoint(){
-        this.point = new tools.ConcaveHull.Point(x_coordinate_machine, y_coordinate_machine);
-        //System.out.println("point: " + this.point.toString());
-    }
-
-    public tools.ConcaveHull.Point getPoint(){
-        return this.point;
-    }
-
-    public double getZ_coordinate_machine() {
-        return z_coordinate_machine;
-    }
-
-    public void setZ_coordinate_machine(double z_coordinate_machine) {
-        this.z_coordinate_machine = z_coordinate_machine;
-    }
-
-    public int getSpecies() {
-        return species;
-    }
-
-    public void setSpecies(int species) {
-        this.species = species;
-    }
-
-    public int getKey() {
-        return key;
-    }
-
-    public void setKey(int key) {
-        this.key = key;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public double getX_coordinate_estimated() {
-        return x_coordinate_estimated;
-    }
-
-    public void setX_coordinate_estimated(double x_coordinate_estimated) {
-        this.x_coordinate_estimated = x_coordinate_estimated;
-    }
-
-    public double getY_coordinate_estimated() {
-        return y_coordinate_estimated;
-    }
-
-    public void setY_coordinate_estimated(double y_coordinate_estimated) {
-        this.y_coordinate_estimated = y_coordinate_estimated;
-    }
-
-    public double getZ_coordinate_estimated() {
-        return z_coordinate_estimated;
-    }
-
-    public void setZ_coordinate_estimated(double z_coordinate_estimated) {
-        this.z_coordinate_estimated = z_coordinate_estimated;
-    }
-
-    public void setGlobal_id(int id){
-
-        this.global_id = id;
-    }
-
-    public int getGlobal_id(){
-        return this.global_id;
-    }
-
-    public double getBoomAngle() {
-        return boomAngle;
-    }
-
-    public void setBoomAngle(double boomAngle) {
-        this.boomAngle = boomAngle;
-    }
-
-    public double getBoomPosition() {
-        return boomPosition;
-    }
-
-    public void setBoomPosition(double boomPosition) {
-        this.boomPosition = boomPosition;
-    }
-
-    public double getBoomExtension() {
-        return boomExtension;
-    }
-
-    public void setBoomExtension(double boomExtension) {
-        this.boomExtension = boomExtension;
-    }
-
-    public double getMachineBearing() {
-        return machineBearing;
-    }
-
-    public void setMachineBearing(double machineBearing) {
-        this.machineBearing = machineBearing;
-    }
-
-
-
-    @Override
-    public String toString() {
-        return "Tree{" +
-                "height=" + height +
-                ", diameter=" + diameter +
-                ", x_coordinate_machine=" + x_coordinate_machine +
-                ", y_coordinate_machine=" + y_coordinate_machine +
-                ", z_coordinate_machine=" + z_coordinate_machine +
-                ", x_coordinate_estimated=" + x_coordinate_estimated +
-                ", y_coordinate_estimated=" + y_coordinate_estimated +
-                ", z_coordinate_estimated=" + z_coordinate_estimated +
-                ", species=" + species +
-                ", key=" + key +
-                ", id=" + id +
-                ", boomAngle=" + boomAngle +
-                ", boomPosition=" + boomPosition +
-                ", boomExtension=" + boomExtension +
-                ", machineBearing=" + machineBearing +
-                '}';
-    }
-};
 
 class Stand{
 

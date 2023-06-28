@@ -571,4 +571,9 @@ public class ResidFunction implements LevenbergMarquardt.ResidualFunction {
 
     }
 
+    public boolean rejectSolution(){
+
+        return false;
+    }
+
 }

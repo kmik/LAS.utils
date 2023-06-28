@@ -28,7 +28,7 @@ import org.ejml.dense.row.NormOps_DDRM;
  */
 public class LevenbergMarquardt {
     // Convergence criteria
-    private int maxIterations = 100;
+    private int maxIterations = 10000;
     private double ftol = 1e-12;
     private double gtol = 1e-12;
 
@@ -132,10 +132,12 @@ public class LevenbergMarquardt {
         // iterate until the difference between the costs is insignificant
         double lambda = initialLambda;
 
+        System.out.println("INITIAL COST: " + initialCost);
         // if it should recompute the Jacobian in this iteration or not
         boolean computeHessian = true;
 
         for( int iter = 0; iter < maxIterations; iter++ ) {
+            System.out.println("HERE1");
             if( computeHessian ) {
                 // compute some variables based on the gradient
                 computeGradientAndHessian(parameters);
@@ -152,7 +154,7 @@ public class LevenbergMarquardt {
                 if( converged )
                     return true;
             }
-
+            System.out.println("HERE2");
             // H = H + lambda*I
             for (int i = 0; i < H.numRows; i++) {
                 H.set(i,i, Hdiag.get(i) + lambda);
@@ -163,14 +165,16 @@ public class LevenbergMarquardt {
             if( !CommonOps_DDRM.solve(H, g, negativeStep) ) {
                 return false;
             }
-            //System.out.println("HERE");
+
             // compute the candidate parameters
             CommonOps_DDRM.subtract(parameters, negativeStep, candidateParameters);
 
             double cost = cost(candidateParameters);
-            //System.out.println(cost + " " + previousCost);
+            System.out.println(cost + " " + previousCost);
+
+
             if( cost <= previousCost ) {
-               // System.out.println("cost: " + cost);
+                System.out.println("BETTERcost: " + cost);
                 // the candidate parameters produced better results so use it
                 computeHessian = true;
                 parameters.set(candidateParameters);
@@ -287,7 +291,7 @@ public class LevenbergMarquardt {
 
         long startTime = System.currentTimeMillis();
 
-        if(true)
+        if(false)
         if(param.getNumElements() >= n_threads * 10) {
             for (int i = 0; i < n_threads; i++) {
 
@@ -314,7 +318,7 @@ public class LevenbergMarquardt {
 
         // compute the jacobian by perturbing the parameters slightly
         // then seeing how it effects the results.
-        if(false)
+        if(true)
         for( int i = 0; i < param.getNumElements(); i++ ) {
 
             param.data[i] += DELTA;
@@ -352,6 +356,8 @@ public class LevenbergMarquardt {
         int numFunctions();
 
         double getSomething();
+
+        boolean rejectSolution();
     }
 
 }

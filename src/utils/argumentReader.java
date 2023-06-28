@@ -26,6 +26,7 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public File aux_file = null;
     public double radius = 0.0;
     public boolean turnHexagon = false;
 
@@ -706,6 +707,13 @@ public class argumentReader {
                 .longOpt("concavity")
                 .hasArg(true)
                 .desc("Concavity")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("aux_file")
+                .hasArg(true)
+                .desc("Auxiliary data file")
                 .required(false)
                 .build());
 
@@ -2254,6 +2262,15 @@ public class argumentReader {
                 if(!new File(this.poly).exists())
                     throw new argumentException("-poly does not exist!");
 
+
+            }
+
+            if (cmd.hasOption("aux_file")) {
+
+                this.aux_file = new File(cmd.getOptionValue("aux_file"));
+
+                if(!this.aux_file.exists())
+                    throw new argumentException("-aux_file does not exist!");
 
             }
 

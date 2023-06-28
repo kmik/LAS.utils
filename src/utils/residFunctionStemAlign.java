@@ -2345,4 +2345,9 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
 
         this.trajectory = trajectory;
     }
+
+    public boolean rejectSolution(){
+
+        return false;
+    }
 }
