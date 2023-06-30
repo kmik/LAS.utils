@@ -2350,4 +2350,7 @@ public class residFunctionStemAlign implements LevenbergMarquardt.ResidualFuncti
 
         return false;
     }
+    public void onlyModifyThis(int i){
+
+    }
 }

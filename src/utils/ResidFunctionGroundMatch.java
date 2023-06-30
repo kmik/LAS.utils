@@ -393,5 +393,8 @@ public class ResidFunctionGroundMatch implements LevenbergMarquardt.ResidualFunc
 
         return false;
     }
+    public void onlyModifyThis(int i){
+
+    }
 
 }

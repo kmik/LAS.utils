@@ -55,4 +55,7 @@ public class ResidFunctionCircleFit_fixed_radius implements LevenbergMarquardt.R
         return false;
     }
 
+    public void onlyModifyThis(int i){
+
+    }
 }

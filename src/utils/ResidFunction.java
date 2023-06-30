@@ -576,4 +576,7 @@ public class ResidFunction implements LevenbergMarquardt.ResidualFunction {
         return false;
     }
 
+    public void onlyModifyThis(int i){
+
+    }
 }

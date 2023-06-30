@@ -419,7 +419,9 @@ public class lasAligner {
                 }
             }
 
-            ArrayList<Integer> outliers = getOutlierIndexes(valuesToCheck, 1.0);
+            double[] limits = new double[]{0.0, 0.0};
+
+            ArrayList<Integer> outliers = getOutlierIndexes(valuesToCheck, 1.0, limits);
             //ArrayList<Integer> outliers = detectOutliersPercentile(valuesToCheck, 0.9);
             //System.exit(1);
             float maxOutlier = Float.NEGATIVE_INFINITY;
@@ -429,12 +431,16 @@ public class lasAligner {
 
             for(int i = 0; i < outliers.size(); i++){
 
+
                 if(valuesToCheck.get(outliers.get(i)) > maxOutlier)
                     maxOutlier = valuesToCheck.get(outliers.get(i)).floatValue();
                 if(valuesToCheck.get(outliers.get(i)) < minOutlier)
                     minOutlier = valuesToCheck.get(outliers.get(i)).floatValue();
 
             }
+
+            minOutlier = (float)limits[0];
+            maxOutlier = (float)limits[1];
 
             System.out.println("outliers: " + outliers.size() + " " + maxOutlier + " " + minOutlier + " " + valuesToCheck.size());
             //System.exit(1);
@@ -456,6 +462,7 @@ public class lasAligner {
                     if(outValue[0] > maxOutlier || outValue[0] < minOutlier){
                         continue;
                     }
+
                     if(outlierCells.contains(counter++)) {
                         System.out.println("OUTLIER: " + i + " " + outValue[0] + " ");
                         continue;
@@ -815,7 +822,7 @@ public class lasAligner {
     }
 
 
-    public static ArrayList<Integer> getOutlierIndexes(ArrayList<Double> values, double zScoreThreshold) {
+    public static ArrayList<Integer> getOutlierIndexes(ArrayList<Double> values, double zScoreThreshold, double[] limits) {
         ArrayList<Integer> outlierIndexes = new ArrayList<>();
 
         // Calculate the mean and standard deviation
@@ -831,6 +838,9 @@ public class lasAligner {
             sumSquaredDeviations += deviation * deviation;
         }
         double stdDev = Math.sqrt(sumSquaredDeviations / values.size());
+
+        limits[0] = mean - stdDev;
+        limits[1] = mean + stdDev;
 
         // Check each value to see if it's an outlier
         for (int i = 0; i < values.size(); i++) {

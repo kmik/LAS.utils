@@ -13,6 +13,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.index.strtree.GeometryItemDistance;
+import com.vividsolutions.jts.index.strtree.STRtree;
+
 public class treeLocationEstimator {
 
     float[][] auxData = null;
@@ -414,7 +418,6 @@ public class treeLocationEstimator {
         int number_of_pix_y = tifDataset.getRasterYSize();
 
         this.geoTransform = tifDataset.GetGeoTransform();
-
         this.auxData = new float[tifDataset.GetRasterXSize()][tifDataset.GetRasterYSize()];
 
         float[] floatArray = new float[number_of_pix_x];

@@ -286,6 +286,9 @@ public class ResidFunctionCylinderFit implements LevenbergMarquardt.ResidualFunc
 
         return false;
     }
+    public void onlyModifyThis(int i){
+
+    }
 /*
     public static double betweenPointAndLine(double[] point, double[] lineStart, double[] lineEnd){
 

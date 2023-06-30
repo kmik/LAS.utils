@@ -311,4 +311,9 @@ public class ResidFunction_leverArm_Boresight implements LevenbergMarquardt.Resi
         return false;
     }
 
+
+    public void onlyModifyThis(int i){
+
+    }
+
 }

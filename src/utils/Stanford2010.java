@@ -1640,6 +1640,7 @@ public class Stanford2010 {
         if(aR.aux_file != null){
             estimator.setAuxiliaryDataFile(aR.aux_file);
             estimator.readRaster();
+
         }
 
         estimator.setTrees(trees);

@@ -246,11 +246,13 @@ public class LevenbergMarquardt {
 
         computeNumericalJacobian(param,jacobian);
 
+        System.out.println("done computing jacobian");
         CommonOps_DDRM.multTransA(jacobian, residuals, g);
-
+        System.out.println("done computing g");
         CommonOps_DDRM.multTransA(jacobian, jacobian,  H);
-
+        System.out.println("done computing H");
         CommonOps_DDRM.extractDiag(H,Hdiag);
+        System.out.println("done computing Hdiag");
 
     }
 
@@ -313,6 +315,8 @@ public class LevenbergMarquardt {
                     e.printStackTrace();
                 }
             }
+
+
         }
         long estimatedTime = System.currentTimeMillis() - startTime;
 
@@ -321,7 +325,9 @@ public class LevenbergMarquardt {
         if(true)
         for( int i = 0; i < param.getNumElements(); i++ ) {
 
+
             param.data[i] += DELTA;
+            function.onlyModifyThis(i);
             function.compute(param, temp1);
             // compute the difference between the two parameters and divide by the delta
             // temp1 = (temp1 - temp0)/delta
@@ -332,6 +338,9 @@ public class LevenbergMarquardt {
             CommonOps_DDRM.insert(temp1,jacobian,0,i);
 
             param.data[i] -= DELTA;
+
+            //System.out.println(i + " / " + param.getNumElements());
+
         }
 
     }
@@ -358,6 +367,8 @@ public class LevenbergMarquardt {
         double getSomething();
 
         boolean rejectSolution();
+
+        void onlyModifyThis(int i);
     }
 
 }
@@ -405,6 +416,7 @@ class jacobianParallel extends Thread{
             CommonOps_DDRM.insert(temp1,jacobian,0,i);
 
             param.data[i] -= DELTA;
+
         }
 
     }
