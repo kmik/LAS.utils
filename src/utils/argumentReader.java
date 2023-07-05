@@ -2,10 +2,7 @@ package utils;
 
 import LASio.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,6 +22,8 @@ import org.apache.commons.cli.Options;
 
 @SuppressWarnings("unchecked")
 public class argumentReader {
+
+    public File logFile = null;
 
     public File aux_file = null;
     public double radius = 0.0;
@@ -3422,6 +3421,39 @@ public class argumentReader {
         return tempFile;
     }
 
+    public synchronized File createFile(String extension) throws IOException {
+
+        File tempFile = new File(extension);
+        String tempPath = this.output;
+
+
+        if(!odir.equals("asd")) {
+
+            File diri = new File(odir);
+            tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
+
+        }else{
+
+
+                tempFile = fo.transferDirectories(tempFile, this.inputFiles.get(0).getAbsoluteFile().getParent());
+        }
+
+        //if(tempFile.exists()){
+
+        //tempFile = fo.createNewFileWithNewExtension(tempFile, extension);
+
+        //}
+
+        //System.out.println("tempFile: " + this.inputFiles.get(0).getAbsoluteFile().getParent());
+
+        if(tempFile.exists())
+            tempFile.delete();
+
+
+        tempFile.createNewFile();
+
+        return tempFile;
+    }
     public synchronized File createOutputFileWithExtension(File in, String extension, String odir_in) throws IOException {
 
         File tempFile = null;
@@ -3583,6 +3615,19 @@ public class argumentReader {
             pointCloud.pointDataRecordLength = 63;
         }
 
+
+    }
+
+    public synchronized void writeLineToLogFile(String line){
+
+        try{
+            FileWriter fstream = new FileWriter(logFile, true);
+            BufferedWriter out = new BufferedWriter(fstream);
+            out.write(line + "\n");
+            out.close();
+        }catch (Exception e){
+            System.err.println("Error: " + e.getMessage());
+        }
 
     }
 

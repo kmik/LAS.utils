@@ -459,14 +459,14 @@ public class lasAligner {
                     double[] outValue = new double[]{firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()};
 
 
-                    if(outValue[0] > maxOutlier || outValue[0] < minOutlier){
-                        continue;
-                    }
+                    //if(outValue[0] > maxOutlier || outValue[0] < minOutlier){
+                    //    continue;
+                    //}
 
-                    if(outlierCells.contains(counter++)) {
-                        System.out.println("OUTLIER: " + i + " " + outValue[0] + " ");
-                        continue;
-                    }
+                    //if(outlierCells.contains(counter++)) {
+                    //    System.out.println("OUTLIER: " + i + " " + outValue[0] + " ");
+                    //    continue;
+                    //}
 
 
 
