@@ -347,7 +347,7 @@ public class tinManupulator {
 
             originalTinEdges.add(edge);
 
-            double dista = distanceToExtent__(perimeterEdges, edge[0], edge[1], edge[2], edge[3]);
+            double dista = 0;// distanceToExtent__(perimeterEdges, edge[0], edge[1], edge[2], edge[3]);
 
             if(dista > maxDistanceToPerimeter){
                 maxDistanceToPerimeter = dista;
@@ -406,20 +406,21 @@ public class tinManupulator {
         }
 
 
+        //if(false)
         for(Vertex v : tin.getVertices()){
 
             if(v.getZ() > min && v.getZ() < max){
                 //removeThese.add(counter);
                 tin2.add(new Vertex(v.getX(), v.getY(), v.getZ()));
             }
-
+/*
             double distanceFromBoundingbox = this.calculateDistance(v.getX(), v.getY());
 
             //System.out.println("Distance from bounding box: " + distanceFromBoundingbox);
             if(distanceFromBoundingbox < minDistanceFromBoundingBox){
                 minDistanceFromBoundingBox = distanceFromBoundingbox;
             }
-
+*/
             meanAllNodes += v.getZ();
             sumAllNodes += (v.getZ() * v.getZ());
 
@@ -480,16 +481,17 @@ public class tinManupulator {
         double minNodes = Double.POSITIVE_INFINITY;
         double maxNodes = Double.NEGATIVE_INFINITY;
 
+        //if(false)
         for(Vertex v : tin2.getVertices()){
 
             tin.add(new Vertex(v.getX(), v.getY(), v.getZ()));
-
+/*
             double distanceFromBoundingbox = this.calculateDistance(v.getX(), v.getY());
 
             if(distanceFromBoundingbox < minDistanceFromBoundingBox2){
                 minDistanceFromBoundingBox2 = distanceFromBoundingbox;
             }
-
+*/
             mean += v.getZ();
             sum += (v.getZ() * v.getZ());
 
@@ -526,7 +528,7 @@ public class tinManupulator {
             outShpGeom3.AddPoint_2D(e.getA().getX(), e.getA().getY());
             outShpGeom3.AddPoint_2D(e.getB().getX(), e.getB().getY());
 
-            double dista = distanceToExtent__(perimeterEdges, edge[0], edge[1], edge[2], edge[3]);
+            double dista = 0; // distanceToExtent__(perimeterEdges, edge[0], edge[1], edge[2], edge[3]);
 
             if(dista > maxDistanceToPerimeter2){
                 maxDistanceToPerimeter2 = dista;
