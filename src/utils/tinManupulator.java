@@ -515,6 +515,7 @@ public class tinManupulator {
         meanx = 0.0;
         meany = 0.0;
 
+
         for(IQuadEdge e : tin.getPerimeter()){
 
             double[] edge = new double[]{e.getA().getX(), e.getA().getY(), e.getB().getX(), e.getB().getY()};

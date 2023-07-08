@@ -6,7 +6,7 @@ import java.util.Random;
 
 public class simulatedAnnealingPREMOTO {
 
-    ResidFunction rs;
+    ResidFunctionPREMOTO rs;
 
     Random random = new Random();
 
@@ -19,20 +19,27 @@ public class simulatedAnnealingPREMOTO {
 
     int numParamsSwitched;
 
-    double cooling = 0.8;
+    double cooling = 0.7;
 
-    int iterPerTemp = 20;
+    int iterPerTemp = 100;
 
     double step = 1e-1d;
+    double step2 = 1e-1d;
     double initialCost;
+
+
+    double[] rangeParam1 = new double[]{2.0, 10.0};
+    double[] rangeParam2 = new double[]{0.0, 360.0};
+
 
     public simulatedAnnealingPREMOTO(){}
 
-    public void optimize(ResidFunction rs, DMatrixRMaj parameters ){
+    public void optimize(ResidFunctionPREMOTO rs, DMatrixRMaj parameters ){
 
         this.rs = rs;
 
         residuals.set(0,0, 0);
+        residuals = new DMatrixRMaj(rs.trees.size(), 1);
 
         DMatrixRMaj parameters_temp = new DMatrixRMaj(parameters.numRows,parameters.numCols);
         DMatrixRMaj parameters_optimum = new DMatrixRMaj(parameters.numRows,parameters.numCols);
@@ -45,23 +52,77 @@ public class simulatedAnnealingPREMOTO {
         numParamsSwitched = parameters.numRows;
         t = maxT;
 
+        step = (rangeParam1[1] - rangeParam1[0]) / 10;
+        step2 = (rangeParam2[1] - rangeParam2[0]) / 10;
+
         double previousCost = initialCost = cost(parameters);
+
+        System.out.println("INITIAL COST: " + initialCost);
+
         double currentCost;
         double all_time_best_cost = Double.POSITIVE_INFINITY;
+        double stepNow = step;
 
         while(t >= minT){
 
             step *= t;
+            step2 *= t;
+
+            step = 0.5;
+            step2 = 2.5;
+
+            System.out.println("step distance: " + step + " step angle " + step2);
 
             numParamsSwitched = (int)Math.ceil(numParamsSwitched * t);
+
+            numParamsSwitched = (int) (0.5 * parameters.data.length);
 
             for(int p = 0; p < iterPerTemp; p++) {
 
                 shuffleArray(indexes);
 
                 for (int i = 0; i < numParamsSwitched; i++) {
-                    parameters_temp.set(indexes[i], 0, parameters.get(indexes[i], 0) + (( random.nextBoolean() ? 1 : -1 ) * step));
+
+                    if( indexes[i] % 2 == 0) {
+                        stepNow = step;
+                    }
+                    else {
+                        stepNow = step2;
+                    }
+                    //System.out.println("before: " + parameters.get(indexes[i], 0));
+                    double amountOfChange = (( random.nextBoolean() ? 1 : -1 ) * stepNow);
+
+                    if(amountOfChange < 0)
+                        amountOfChange *= -1;
+
+                    double randomDistance = randomDouble(2, 10);
+                    double randomAngle = randomDouble(0, 360);
+
+                    if(indexes[i] % 2 == 0) {
+
+                        parameters_temp.set(indexes[i], 0, randomDistance);
+
+                        if (parameters.get(indexes[i], 0) + amountOfChange > rangeParam1[1])
+
+                            amountOfChange = parameters.get(indexes[i], 0) + amountOfChange - rangeParam1[1];
+
+                    }else{
+
+                        parameters_temp.set(indexes[i], 0, randomAngle);
+
+                        if (parameters.get(indexes[i], 0) + amountOfChange > rangeParam2[1])
+
+                            amountOfChange = parameters.get(indexes[i], 0) + amountOfChange - rangeParam2[1];
+
+                    }
+
+
+
+                    //parameters_temp.set(indexes[i], 0, parameters.get(indexes[i], 0) + amountOfChange);
+                    //System.out.println("after: " + parameters_temp.get(indexes[i], 0));
+                    //System.out.println("----------------------");
                 }
+
 
                 currentCost = cost(parameters_temp);
 
@@ -95,6 +156,11 @@ public class simulatedAnnealingPREMOTO {
 
     }
 
+    public double randomDouble(double min, double max){
+        return min + (max - min) * Math.random();
+    }
+
+
     public boolean accept(double t, double oldCost, double newCost){
 
         double e = Math.exp(1);
@@ -110,7 +176,24 @@ public class simulatedAnnealingPREMOTO {
 
         rs.compute(parameters, residuals);
 
-        return residuals.get(0,0);
+        if(residuals.data.length > 0){
+            return average(residuals.data);
+        }
+        else
+            return residuals.get(0,0);
+
+    }
+
+    public double average(double[] in){
+
+        double sum = 0;
+
+        for(int i = 0; i < in.length; i++){
+            sum += in[i];
+        }
+
+        return sum / in.length;
+
     }
 
     public void shuffleArray(int[] array) {

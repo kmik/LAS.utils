@@ -50,6 +50,9 @@ public class ResidFunctionPREMOTO implements LevenbergMarquardt.ResidualFunction
     ArrayList<Tree> trees = new ArrayList<>();
     int numFunctions = 1;
 
+    int numParamPerTree = 2;
+
+
 
     public ResidFunctionPREMOTO(){
 
@@ -166,7 +169,6 @@ public class ResidFunctionPREMOTO implements LevenbergMarquardt.ResidualFunction
 
             numberOfTrees = new short[chm.length][chm[0].length];
 
-
             for (int i = 0; i < this.trees.size(); i++) {
 
                 int standId = trees.get(i).standId;
@@ -175,6 +177,8 @@ public class ResidFunctionPREMOTO implements LevenbergMarquardt.ResidualFunction
 
                 double distance = param.data[i * 2 + 0];
                 double angle = trees.get(i).getMachineBearing() + param.data[i * 2 + 1];
+
+                //  System.out.println("Distance: " + distance + " Angle: " + angle);
 
                 meanAngle += angle;
                 meanDistance += distance;
@@ -231,13 +235,14 @@ public class ResidFunctionPREMOTO implements LevenbergMarquardt.ResidualFunction
 
                 float chmHeight = chm[y][x];
                 float treeHeight = trees.get(i).getHeight();
-                float diff = chmHeight - treeHeight;
+                float diff = Math.abs(chmHeight - treeHeight);
 
                 residual.data[i] = diff + cost;
 
                 //points.get(i).x = translatedCoordinates[0];
                 //points.get(i).y = translatedCoordinates[1];
                 this.residuals[i] = residual.data[i];
+
             }
         }
 /*

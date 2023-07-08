@@ -378,13 +378,41 @@ public class treeLocationEstimator {
         for(int g = 0 ; g < param.numRows; g++)
             param.set(g,0,0);
 
+        simulatedAnnealingPREMOTO annealing = new simulatedAnnealingPREMOTO();
+
 
         residFunctionPREMOTOR.setChm(this.auxData);
         residFunctionPREMOTOR.setTrees(this.trees);
         residFunctionPREMOTOR.setGeotransform(this.geoTransform);
         residFunctionPREMOTOR.setStandBoundaries(this.standBoundaries_);
+
+        annealing.optimize(residFunctionPREMOTOR, param);
+        applyAnnealingToTrees(param);
+
+        /*
         lm.setDelta(200);
         lm.optimize(residFunctionPREMOTOR, param);
+
+         */
+
+
+
+    }
+
+    public void applyAnnealingToTrees(DMatrixRMaj param){
+
+        for(int i = 0; i < trees.size(); i++){
+
+            double distance = param.data[i * 2 + 0];
+            double angle = trees.get(i).getMachineBearing() + param.data[i * 2 + 1];
+
+
+            double[] translatedCoordinates = translatePoint(trees.get(i).getX_coordinate_machine(), trees.get(i).getY_coordinate_machine(), distance, angle);
+
+            trees.get(i).setX_coordinate_estimated(translatedCoordinates[0]);
+            trees.get(i).setY_coordinate_estimated(translatedCoordinates[1]);
+
+        }
 
 
     }

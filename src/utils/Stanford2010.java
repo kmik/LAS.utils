@@ -1656,7 +1656,7 @@ public class Stanford2010 {
         System.out.println("STARTING OPTIMIZED ESTIMATION");
         estimator.estimationWithAuxiliaryDataOptimized();
 
-        System.exit(1);
+        //System.exit(1);
         double[][] points = new double[trees.size()][2];
 
         for(int i = 0; i < trees.size(); i++){

@@ -28,7 +28,7 @@ public class lasAlign{
             //threadTool(aR, fD);
         //}else{
 
-            aR.logFile = aR.createFile("alignerLog.txt");
+            aR.logFile = aR.createFile("alignerLog.log");
             lasAligner tooli = new lasAligner(aR);
             tooli.setTinManupulator(tin);
             tooli.setResolution(5);
