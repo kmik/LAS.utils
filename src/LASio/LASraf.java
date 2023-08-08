@@ -135,6 +135,7 @@ public class LASraf implements Closeable {
   public LASraf(File file) throws IOException {
 
     if (file == null) {
+      System.out.println("FILE IS NULL");
       throw new NullPointerException();
     }
 

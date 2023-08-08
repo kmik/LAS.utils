@@ -713,17 +713,17 @@ public class Stanford2010 {
                     }
 
                     //System.out.println("Plot " + currentX + " " + currentY + " " + sum_v_log/plotAreaHectares + " " + sum_v_pulp/plotAreaHectares + " " + sum_v_energy/plotAreaHectares);
-                    System.out.println( " " + sum_v_log_pine/plotAreaHectares + " " + sum_v_log_spruce/plotAreaHectares + " " + sum_v_log_birch/plotAreaHectares +
-                            " " + sum_v_pulp_pine/plotAreaHectares + " " + sum_v_pulp_spruce/plotAreaHectares + " " + sum_v_pulp_birch/plotAreaHectares +
-                            " " + sum_v_energy_pine/plotAreaHectares + " " + sum_v_energy_spruce/plotAreaHectares + " " + sum_v_energy_birch/plotAreaHectares);
+                    //System.out.println( " " + sum_v_log_pine/plotAreaHectares + " " + sum_v_log_spruce/plotAreaHectares + " " + sum_v_log_birch/plotAreaHectares +
+                    //        " " + sum_v_pulp_pine/plotAreaHectares + " " + sum_v_pulp_spruce/plotAreaHectares + " " + sum_v_pulp_birch/plotAreaHectares +
+                    //        " " + sum_v_energy_pine/plotAreaHectares + " " + sum_v_energy_spruce/plotAreaHectares + " " + sum_v_energy_birch/plotAreaHectares);
 
-                    System.out.println("----------------------------------------------");
+                    //System.out.println("----------------------------------------------");
                     //addPlotToShapefile(currentX, currentY, this.plotRadius,sum_v_log/plotAreaHectares, sum_v_pulp/plotAreaHectares, sum_v_energy/plotAreaHectares);
                     addPlotToShapefile(currentX, currentY, this.plotRadius, this.runningPlotId++, tree.standId,
                             sum_v_log_pine/plotAreaHectares, sum_v_log_spruce/plotAreaHectares, sum_v_log_birch/plotAreaHectares,
                             sum_v_pulp_pine/plotAreaHectares, sum_v_pulp_spruce/plotAreaHectares, sum_v_pulp_birch/plotAreaHectares,
                             sum_v_energy_pine/plotAreaHectares, sum_v_energy_spruce/plotAreaHectares, sum_v_energy_birch/plotAreaHectares);
-                    System.out.println(nearestNeighbour.size());
+                    //System.out.println(nearestNeighbour.size());
                 }
 
             }
@@ -1350,12 +1350,57 @@ public class Stanford2010 {
             }
         }
 
+        HashSet<Integer> removeThese = new HashSet<>();
+        HashSet<Integer> removeTheseSets = new HashSet<>();
+        Set<Integer> removeThese_ = new TreeSet<>(Comparator.reverseOrder());
+        Set<Integer> removeThese__ = new TreeSet<>(Comparator.reverseOrder());
 
+        for(int i : standTreeLocations.keySet()){
+            if(standTreeLocations.get(i).size() < 10) {
+                System.out.println("REMOVE: " + i + " ntrees: " + standTreeLocations.get(i).size());
+                removeThese.add(i);
+            }
+        }
+
+
+
+        for(int i : removeThese){
+            standTreeLocations_.remove(i);
+            standTreeLocations.remove(i);
+            standTreeLocations_convex.remove(i);
+        }
+
+        for(int i = 0; i < trees.size(); i++){
+
+            if(removeThese.contains(trees.get(i).standId)){
+                removeThese_.add(i);
+                removeThese__.add(trees.get(i).getId());
+
+            }
+        }
+
+        for(int i : removeThese_){
+            trees.remove(i);
+        }
+
+        for(int i : removeThese__){
+            allTrees.remove(i);
+        }
+
+        for(Tree tree : trees){
+            if(tree.standId == 123){
+                System.out.println("FOUND " + removeThese.contains(tree.standId));
+                System.exit(1);
+            }
+        }
 
         HashMap<Integer, ArrayList<ConcaveHull.Point>> hulls = new HashMap<>();
         HashMap<Integer, ArrayList<Point>> hulls_convex = new HashMap<>();
 
         QuickHull quickHull = new QuickHull();
+        HashSet<Integer> removeThese2 = new HashSet<>();
+
+        System.out.println("Calculating hulls " + standTreeLocations.size());
 
         for(int i : standTreeLocations.keySet()){
 
@@ -1363,17 +1408,50 @@ public class Stanford2010 {
             ArrayList<ConcaveHull.Point> hull = calculateConcaveHull(currentTrees, concave_hull_k);
 
             ArrayList<Point> convexHullPoints = quickHull.quickHull(standTreeLocations_convex.get(i));
+
             hulls_convex.put(i, convexHullPoints);
-            hulls.put(i, hull);
-            System.out.println("Hull size: " + hull.size());
+
+            if(hull.size() < 3){
+
+                removeThese2.add(i);
+
+            }else
+                hulls.put(i, hull);
+            System.out.println("Hull size: " + hull.size() + " " + convexHullPoints.size());
 
         }
 
+        Set<Integer> removeThese_2 = new TreeSet<>(Comparator.reverseOrder());
+        Set<Integer> removeThese__2 = new TreeSet<>(Comparator.reverseOrder());
+
+        for(int i : removeThese2){
+            standTreeLocations_.remove(i);
+            standTreeLocations.remove(i);
+            standTreeLocations_convex.remove(i);
+        }
+
+        for(int i = 0; i < trees.size(); i++){
+
+            if(removeThese2.contains(trees.get(i).standId)){
+
+                removeThese_2.add(i);
+                removeThese__2.add(trees.get(i).getId());
+
+            }
+        }
+
+        for(int i : removeThese_2){
+            trees.remove(i);
+        }
+
+        for(int i : removeThese__2){
+            allTrees.remove(i);
+        }
 
 
         this.createPlots(allTrees, hulls);
 
-        //sSystem.exit(1);
+        //System.exit(1);
 
 
         System.out.println(standTreeLocations.size());
@@ -1445,6 +1523,7 @@ public class Stanford2010 {
             System.out.println("Stand " + i + " size: " + standTreeLocations.get(i).size());
 */
             File tmpFile = new File(output_directory.getAbsolutePath() + pathSeparator + "stand_" + i + "_boundary.shp");
+            System.out.println("HULL SIZE: " + hulls.get(i).size());
             ArrayList<ConcaveHull.Point> buf_ = exportShapefile_(tmpFile, hulls.get(i), i);
 
             bufferedHulls.put(i, buf_);
@@ -1646,18 +1725,21 @@ public class Stanford2010 {
         estimator.setTrees(trees);
         estimator.setStandBoundaries(bufferedHulls);
 
-        //estimator.simpleEstimation(10, 180, 2);
+        estimator.simpleEstimation(10, 210, 2);
 
-        //estimator.simpleEstimationWithProbabilities(10, 180, 2, new double[]{0.05, 0.2, 0.65, 0.2}, new double[]{3.0, 6.0, 8.0, 10.0});
+        //estimator.simpleEstimationWithProbabilities(10, 210, 2, new double[]{0.1, 0.2, 0.5, 0.2}, new double[]{2.0, 6.0, 8.0, 10.0});
 
         //estimator.estimationWithAuxiliaryData(10, 180, 2,
-        //        new double[]{0.05, 0.15, 0.4, 0.3}, new double[]{3.0, 6.0, 8.0, 10.0}, 15.0);
+        //        new double[]{0.1, 0.2, 0.5, 0.2}, new double[]{2.0, 6.0, 8.0, 10.0}, 15.0);
 
+        //estimator.noEstimation();
         System.out.println("STARTING OPTIMIZED ESTIMATION");
-        estimator.estimationWithAuxiliaryDataOptimized();
+        //estimator.estimationWithAuxiliaryDataOptimized2();
 
         //System.exit(1);
         double[][] points = new double[trees.size()][2];
+
+
 
         for(int i = 0; i < trees.size(); i++){
             points[i][0] = trees.get(i).getX_coordinate_machine();

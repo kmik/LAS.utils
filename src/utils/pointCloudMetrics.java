@@ -434,8 +434,8 @@ public class pointCloudMetrics {
         center_y = top_left_y - ((top_left_y - bottom_right_y) / 2.0);
 
 
-        double grid_top_left_x = center_x - convolution_image_width / 2.0;
-        double grid_top_left_y = center_y + convolution_image_width / 2.0;
+        double grid_top_left_x = center_x - (convolution_image_width / 2.0) * convolution_image_resolution_x;
+        double grid_top_left_y = center_y + (convolution_image_width / 2.0) * convolution_image_resolution_y;
 
         double[][] hexagon = new double[7][2];
 
@@ -461,10 +461,10 @@ public class pointCloudMetrics {
         //ArrayList<Double> output = new ArrayList<>();
         colnames.clear();
 
-        double max_x = center_x + convolution_image_width / 2.0;
-        double max_y = center_y + convolution_image_height / 2.0;
-        double min_x = center_x - convolution_image_width / 2.0;
-        double min_y = center_y - convolution_image_height / 2.0;
+        double max_x = center_x + (convolution_image_width / 2.0) * convolution_image_resolution_x;
+        double max_y = center_y + (convolution_image_height / 2.0) * convolution_image_resolution_y;
+        double min_x = center_x - (convolution_image_width / 2.0) * convolution_image_resolution_x;
+        double min_y = center_y - (convolution_image_height / 2.0) * convolution_image_resolution_y;
 
         /* circle_diameter = a√2
          *
@@ -486,9 +486,22 @@ public class pointCloudMetrics {
 
         double point_count = (double)p.size();
 
-        int z_dim = (int)Math.ceil((convolution_image_depth) / convolution_image_resolution_z);
-        int x_dim = (int)Math.ceil(convolution_image_width / convolution_image_resolution_x);
-        int y_dim = (int)Math.ceil(convolution_image_height / convolution_image_resolution_y);
+        double boxWidth = (max_x - min_x);
+        double boxHeight = (max_y - min_y);
+
+        int z_dim = (int)Math.round((convolution_image_depth) * convolution_image_resolution_z);
+        int x_dim = (int)Math.round(convolution_image_width * convolution_image_resolution_x);
+        int y_dim = (int)Math.round(convolution_image_height * convolution_image_resolution_y);
+
+        z_dim = (int)convolution_image_depth;
+        x_dim = (int)convolution_image_width;
+        y_dim = (int)convolution_image_height;
+
+
+        System.out.println("x_dim: " + x_dim + " y_dim: " + y_dim + " z_dim: " + z_dim);
+        System.out.println("boxWidth: " + boxWidth + " boxHeight: " + boxHeight);
+        System.out.println(convolution_image_width + " " + convolution_image_resolution_x);
+
 
         this.x_dim_ = x_dim;
         this.y_dim_ = y_dim;
@@ -555,11 +568,14 @@ public class pointCloudMetrics {
             int y = (int)Math.min((int)((max_y - p_[1]) / convolution_image_resolution_y), y_dim - 1);
             int z = Math.max((int)Math.min((int)((p_[2] - 0) / convolution_image_resolution_z), z_dim - 1), 0);
 
-            if(p_[0] > center_x - convolution_image_width / 2.0 && p_[0] < center_x + convolution_image_width / 2.0 &&
-                    p_[1] > center_y - convolution_image_width / 2.0 && p_[1] < center_y + convolution_image_width / 2.0) {
+            if(x < 0 || y < 0 || z < 0 || x >= x_dim || y >= y_dim || z >= z_dim){
+                continue;
+            }
+            //if(p_[0] > center_x - (convolution_image_width / 2.0)*convolution_image_resolution_x && p_[0] < center_x + (convolution_image_width / 2.0)*convolution_image_resolution_x &&
+             //       p_[1] > center_y - (convolution_image_width / 2.0)*convolution_image_resolution_y && p_[1] < center_y + (convolution_image_width / 2.0)*convolution_image_resolution_y) {
+            if(p_[0] > min_x && p_[0] < max_x &&
+                    p_[1] > min_y && p_[1] < max_y) {
                 if (grid_mask[x][y] == 1 || square) {
-
-
 
                     if (p_[2] <= 2) {
                         continue;
@@ -578,6 +594,9 @@ public class pointCloudMetrics {
         //System.out.println(x_dim + " " + y_dim + " " + z_dim);
 
         output = (resetGrid_colnames_spectral(grid, grid_R, grid_G, grid_B, grid_N, point_count, colnames, grid_mask));
+
+        //System.out.println("x_dim: " + x_dim + " y_dim: " + y_dim + " z_dim: " + z_dim);
+
 
         return output;
     }

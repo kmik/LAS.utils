@@ -454,7 +454,7 @@ public class lasAligner {
                 //int x = i % numberOfPixelsX;
                 //int y = i / numberOfPixelsX;
 
-                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 0.5 && firstCheck[x][y].countTarget > 10) { //  && checkSurroundings(firstCheck, x, y)){
+                if((firstCheck[x][y].max_z_target - firstCheck[x][y].min_z_target) < 0.5 && firstCheck[x][y].countTarget > 5) { //  && checkSurroundings(firstCheck, x, y)){
 
                     double[] outValue = new double[]{firstCheck[x][y].getTargetMean() - firstCheck[x][y].getGroundMean()};
 

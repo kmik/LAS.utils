@@ -78,10 +78,23 @@ public class treeLocationEstimator {
         KdTree.XYZPoint point = new KdTree.XYZPoint(0,0,0);
         List<KdTree.XYZPoint> nearest = new ArrayList<KdTree.XYZPoint>();
 
+        double maxBoomAngleOriginal = maxBoomAngle;
+        double minDistanceBetweenTreesOriginal = minDistanceBetweenTrees;
+
+        boolean notFirst = false;
+
+        int nTriesBeforeLowerStandards = 100;
+
         for(int i = 0; i < trees.size(); i++){
+
+
+            maxBoomAngle = maxBoomAngleOriginal;
+            minDistanceBetweenTrees = minDistanceBetweenTreesOriginal;
+
 
             if(!trees.get(i).trulyInStand)
                 continue;
+
 
             int standId = trees.get(i).standId;
             double distance = randomDouble(0, maxBoomDistance);
@@ -96,7 +109,9 @@ public class treeLocationEstimator {
             double distanceToNearestTree = Double.NEGATIVE_INFINITY;
             boolean insideStand = false;
 
-            if(i > 0){
+            if(notFirst){
+
+                int nTries = 0;
 
                 while(distanceToNearestTree <= minDistanceBetweenTrees || !insideStand){
 
@@ -108,15 +123,27 @@ public class treeLocationEstimator {
                     point.setX(translatedCoordinates[0]);
                     point.setY(translatedCoordinates[1]);
 
+                    if(!standBoundaries_.containsKey(standId)) {
+                        System.out.println("trees: " + this.trees.size());
+                        System.out.println("QUERY: " + standId);
+                    }
+
                     insideStand = pointInPolygon(standBoundaries_.get(standId), translatedCoordinates);
 
                     nearest = (List< KdTree.XYZPoint>) kdTree.nearestNeighbourSearch(1, point);
 
                     distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
 
+                    nTries++;
+
+                    if(nTries % nTriesBeforeLowerStandards == 0){
+                        maxBoomAngle += 50;
+                        //maxBoomDistance += 0.5;
+                        minDistanceBetweenTrees -= 0.25;
+                    }
                 }
 
-                System.out.println(distanceToNearestTree + " " + insideStand);
+                //System.out.println(distanceToNearestTree + " " + insideStand);
 
                 trees.get(i).setX_coordinate_estimated(translatedCoordinates[0]);
                 trees.get(i).setY_coordinate_estimated(translatedCoordinates[1]);
@@ -135,6 +162,9 @@ public class treeLocationEstimator {
 
                     kdTree.add(trees.get(i).toXYZPoint_estimatedCoords());
             }
+
+            System.out.println(i);
+            notFirst = true;
         }
     }
 
@@ -163,11 +193,21 @@ public class treeLocationEstimator {
 
         KdTree kdTree = new KdTree();
 
+        double[] boomDistanceProbabilities_ = boomDistanceProbabilities.clone();
+        double[] boomDistanceRanges_ = boomDistanceRanges.clone();
+
         KdTree.XYZPoint point = new KdTree.XYZPoint(0,0,0);
         List<KdTree.XYZPoint> nearest = new ArrayList<KdTree.XYZPoint>();
         int counter = 0;
+        int nTriesBeforeLowerStandards = 100;
+
+        double maxBoomAngleOriginal = maxBoomAngle;
+        double minDistanceBetweenTreesOriginal = minDistanceBetweenTrees;
 
         for(int i = 0; i < trees.size(); i++){
+
+            maxBoomAngle = maxBoomAngleOriginal;
+            minDistanceBetweenTrees = minDistanceBetweenTreesOriginal;
 
             if(!trees.get(i).trulyInStand)
                 continue;
@@ -184,8 +224,11 @@ public class treeLocationEstimator {
 
             double distanceToNearestTree = Double.NEGATIVE_INFINITY;
             boolean insideStand = false;
+            boolean startPrinting = false;
 
             if(counter > 0){
+
+                int nTries = 0;
 
                 if(trees.get(i).id == 811){
                     //System.out.println("debug " + trees.get(i).boomAngle);
@@ -205,6 +248,19 @@ public class treeLocationEstimator {
                     nearest = (List< KdTree.XYZPoint>) kdTree.nearestNeighbourSearch(1, point);
 
                     distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
+
+                    nTries++;
+
+                    if(nTries % nTriesBeforeLowerStandards == 0){
+                        maxBoomAngle += 50;
+                        minDistanceBetweenTrees -= 0.25;
+                        //maxBoomDistance += 0.5;
+                        startPrinting = true;
+                    }
+
+                    if(startPrinting){
+                        //System.out.println("nTries: " + nTries + " isinside: " + insideStand + " distanceToNearest " + distanceToNearestTree);
+                    }
 
                 }
 
@@ -254,7 +310,7 @@ public class treeLocationEstimator {
         double randomDistance = 0;
 
         if(selectedRangeIndex == 0){
-            randomDistance = Math.random() * selectedRange;
+            randomDistance = randomDouble(0, selectedRange);
         }else{
             randomDistance = randomDouble(DISTANCE_RANGES[selectedRangeIndex - 1], selectedRange);
         }
@@ -274,11 +330,22 @@ public class treeLocationEstimator {
         KdTree.XYZPoint point = new KdTree.XYZPoint(0,0,0);
         List<KdTree.XYZPoint> nearest = new ArrayList<KdTree.XYZPoint>();
         int counter = 0;
+        int nTriesBeforeLowerStandards = 100;
+
+        double lowerDistanceBy = 0.25;
+        double lowerDistanceBy_ = 0.0;
+
+        double maxBoomAngleOriginal = maxBoomAngle;
+        double minDistanceBetweenTreesOriginal = minDistanceBetweenTrees;
 
         for(int i = 0; i < trees.size(); i++){
 
             if(!trees.get(i).trulyInStand)
                 continue;
+
+            maxBoomAngle = maxBoomAngleOriginal;
+            minDistanceBetweenTrees = minDistanceBetweenTreesOriginal;
+            lowerDistanceBy_ = 0.0;
 
             int standId = trees.get(i).standId;
             double distance = randomDouble(0, maxBoomDistance);
@@ -305,6 +372,11 @@ public class treeLocationEstimator {
                 if(trees.get(i).id == 811){
                     //System.out.println("debug " + trees.get(i).boomAngle);
                 }
+
+                int nTries = 0;
+
+                floatArray[0] = 0;
+
                 while(!distanceCondition || !insideStand || floatArray[0] < 3){
 
                     distanceCondition = false;
@@ -317,7 +389,10 @@ public class treeLocationEstimator {
                     int x = (int) Math.round((translatedCoordinates[0] - geoTransform[0]) / geoTransform[1]);
                     int y = (int) Math.round((translatedCoordinates[1] - geoTransform[3]) / geoTransform[5]);
 
-                    tifBand.ReadRaster(x, y, 1, 1, floatArray);
+                    //tifBand.ReadRaster(x, y, 1, 1, floatArray);
+                    System.out.println("x: " + x + " y: " + y);
+                    System.out.println(auxData.length + " " + auxData[0].length);
+                    floatArray[0] = auxData[x][y];
                     deltaToAuxData = Math.abs(floatArray[0] - treeHeight);
 
                     point.setX(translatedCoordinates[0]);
@@ -331,17 +406,24 @@ public class treeLocationEstimator {
 
                     double deltah = Math.abs(trees.get(i).getHeight() - trees.get(nearest.get(0).getIndex()).getHeight());
                     double highest = Math.max(trees.get(i).getHeight(), trees.get(nearest.get(0).getIndex()).getHeight());
+
                     //max(1, 2.5 - (highest * 0.5) - (deltaH * 0.1))
-                    if(distanceToNearestTree > Math.max(1, 2.5 - (highest * 0.5) - (deltah * 0.1))){
+                    if(distanceToNearestTree >  ( Math.max(1, 2.5 - (highest * 0.5) - (deltah * 0.1)) - lowerDistanceBy_)){
                         distanceCondition = true;
                     }
 
-                    System.out.println("raster value: " + floatArray[0] + " tree height: " + treeHeight + " distanceToNearest " + distanceToNearestTree);
+                    //System.out.println("raster value: " + floatArray[0] + " tree height: " + treeHeight + " distanceToNearest " + distanceToNearestTree);
+                    if(nTries % nTriesBeforeLowerStandards == 0){
+                        maxBoomAngle += 50;
+                        minDistanceBetweenTrees -= 0.5;
+                        lowerDistanceBy_ += lowerDistanceBy;
+                        //maxBoomDistance += 0.5;
 
+                    }
 
                 }
 
-                System.out.println(distance + " " + insideStand);
+                //System.out.println(distance + " " + insideStand);
 
                 trees.get(i).setX_coordinate_estimated(translatedCoordinates[0]);
                 trees.get(i).setY_coordinate_estimated(translatedCoordinates[1]);
@@ -399,6 +481,37 @@ public class treeLocationEstimator {
 
     }
 
+    public void estimationWithAuxiliaryDataOptimized2(){
+
+        LevenbergMarquardt lm = new LevenbergMarquardt(10);
+
+        ResidFunctionPREMOTO residFunctionPREMOTOR = new ResidFunctionPREMOTO();
+
+        DMatrixRMaj param = new DMatrixRMaj(this.trees.size(), 1);
+
+        for(int g = 0 ; g < param.numRows; g++)
+            param.set(g,0,0);
+
+        simulatedAnnealingPREMOTO annealing = new simulatedAnnealingPREMOTO();
+
+
+        residFunctionPREMOTOR.setChm(this.auxData);
+        residFunctionPREMOTOR.setTrees(this.trees);
+        residFunctionPREMOTOR.setGeotransform(this.geoTransform);
+        residFunctionPREMOTOR.setStandBoundaries(this.standBoundaries_);
+
+        annealing.optimize2(residFunctionPREMOTOR, param);
+        annealing.apply(param);
+
+        /*
+        lm.setDelta(200);
+        lm.optimize(residFunctionPREMOTOR, param);
+
+         */
+
+
+
+    }
     public void applyAnnealingToTrees(DMatrixRMaj param){
 
         for(int i = 0; i < trees.size(); i++){
@@ -416,6 +529,9 @@ public class treeLocationEstimator {
 
 
     }
+
+
+
     public double randomDouble(double min, double max){
         return min + (max - min) * Math.random();
     }
@@ -431,6 +547,7 @@ public class treeLocationEstimator {
         // Create and return the new point
         return new double[] { translatedX, translatedY };
     }
+
 
     public void setAuxiliaryDataFile(File auxiliaryDataFile) {
         this.auxiliaryDataFile = auxiliaryDataFile;

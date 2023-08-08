@@ -1204,6 +1204,9 @@ public class MKid4pointsLAS{
                     extentti2[2] = all_min_y.get(th);
                     extentti2[3] = all_max_y.get(th);
 
+                    System.out.println("Point cloud: " + Arrays.toString(extentti2));
+                    System.out.println("Polygon: " + Arrays.toString(minmaxXY));
+
                     if(buffer > 0){
 
                         extentti2[0] -= buffer;
@@ -1282,6 +1285,7 @@ public class MKid4pointsLAS{
 
 
                 if (valinta.size() == 0) {
+                    System.out.println("No point clouds found for this polygon.");
 
                 }
                 npoints = 0;
@@ -1297,9 +1301,11 @@ public class MKid4pointsLAS{
                 for (int va = 0; va < valinta.size(); va++) {
 
                     doneIndexes.clear();
-                    //LASReader asd = new LASReader(aR.inputFiles.get(valinta.get(va))); //pointClouds.get(valinta.get(va));
-                    LASReader asd = (aR.pointClouds.get(valinta.get(va))); //pointClouds.get(valinta.get(va));
-                    
+                    LASReader asd = new LASReader(aR.inputFiles.get(valinta.get(va))); //pointClouds.get(valinta.get(va));
+                    //LASReader asd = (aR.pointClouds.get(valinta.get(va))); //pointClouds.get(valinta.get(va));
+
+                    System.out.println("HERE!! " + va);
+                    //System.exit(1);
                     /* Define the variables that we need */
                     int tree_id = -1, treeId = -1;
 
@@ -1322,7 +1328,7 @@ public class MKid4pointsLAS{
                         // TODO ADD BUFFER HERE IF aR.eaba
 
                         asd.queryPoly2(minmaxXY[0], minmaxXY[1], minmaxXY[2], minmaxXY[3]);
-
+                        System.out.println(asd.braf.offsetToPointData);
                         LasPoint tempPoint = new LasPoint();
 
                         try {
@@ -1524,6 +1530,7 @@ public class MKid4pointsLAS{
 
                                 int count = 0;
                                 asd.readRecord_noRAF(p, tempPoint, maxi);
+
                                 //pointCloud.braf.buffer.position(0);
 
                                 for (int s = 0; s < maxi; s++) {
@@ -1698,8 +1705,13 @@ public class MKid4pointsLAS{
                         }
                     }
 
-                    asd.close();
-                    asd = null;
+                    try {
+                        asd.close();
+                        asd = null;
+                    }catch (Exception e){
+                        System.out.println(asd.getFile().getAbsolutePath());
+                        e.printStackTrace();
+                    }
                     //System.gc();
                 }
 

@@ -134,6 +134,7 @@ public class LASReader {
   public int pointsRead = 0;
   fileOperations fo = new fileOperations();
 
+  public boolean errorCode1 = false;
 
   public LASReader(File path) throws IOException {
 
@@ -304,6 +305,7 @@ public class LASReader {
         //System.out.println("minmax222: " + indexMinMax.get(index_u)[0] + " " + (indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1));
 
       }catch (Exception e){
+
         e.printStackTrace();
       }
 
@@ -402,7 +404,7 @@ public class LASReader {
 
     return index_p++;
   }
-  public void prepareBuffer(){
+  public void prepareBuffer() throws Exception{
 
     doneIndexes.clear();
     int pienin, suurin;
@@ -447,7 +449,10 @@ public class LASReader {
       //System.out.println("READING " + (indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1) + " POINTS");
       //System.out.println("minmax111: " + indexMinMax.get(index_u)[0] + " " + (indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1));
     }catch (Exception e){
+      System.out.println("HERE!");
+      this.errorCode1 = true;
       e.printStackTrace();
+
     }
 
     //System.out.println(index_u);
@@ -734,6 +739,11 @@ public class LASReader {
 
     this.prepareBuffer();
 
+    if(this.errorCode1){
+      this.errorCode1 = false;
+      this.queriedIndexes2.clear();
+      return false;
+    }
     return true;
 
   }
@@ -2404,6 +2414,7 @@ public class LASReader {
 
     long filePos = this.offsetToPointData
             + recordIndex * this.pointDataRecordLength;
+
     braf.seek(filePos);
 
     braf.read(n * this.pointDataRecordLength);

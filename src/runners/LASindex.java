@@ -371,6 +371,7 @@ class LASindex {
 
 		File indfile = new File(indfile2);
 
+		if(false)
 		if(indfile.exists() && indfile.length() > 0){
 			//System.out.println("DELETE");
 			return new double[]{0,0};
