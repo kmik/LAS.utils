@@ -236,12 +236,25 @@ public class Thinner{
         aR.p_update.threadEnd[coreNumber-1] = (int)numberOfPixelsX * (int)numberOfPixelsY;
         aR.p_update.threadProgress[coreNumber-1] = 0;
 
+        reset2dArray(min_z, -1.0f);
+
+        LasPoint genericPoint = new LasPoint();
+
+
         for(int x = 0; x < numberOfPixelsX; x++) {
             for (int y = 0; y < numberOfPixelsY; y++) {
 
                 if(minIndex[x][y] != -1){
 
                     pointCloud.readRecord(minIndex[x][y], tempPoint);
+
+                    if(x == 0 && y == 0)
+                        try {
+                            genericPoint = (LasPoint) tempPoint.clone();
+                            genericPoint.synthetic = true;
+                        }catch(Exception e){
+                            e.printStackTrace();
+                        }
                     //if(br.writePoint( tempPoint, rule, pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
                     //        pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset, pointCloud.pointDataRecordFormat, minIndex[x][y]))
                     //    pointCount++;
@@ -256,6 +269,7 @@ public class Thinner{
                         }
 
                         aR.pfac.writePoint(tempPoint, minIndex[x][y], thread_n);
+                        min_z[x][y] = (float)tempPoint.z;
 
                     }catch (Exception e){
                         e.printStackTrace();
@@ -273,6 +287,49 @@ public class Thinner{
             }
         }
 
+        if(aR.thinToCenter && aR.interpolate) {
+            int countNanBefore = countNanvalues(min_z, -1.0f);
+
+            boolean[][] interpolated = interpolate2dArrayMedian(min_z, -1.0f);
+
+            int countNanAfter = countNanvalues(min_z, -1.0f);
+
+            System.out.println("CountNanBefore: " + countNanBefore + " CountNanAfter: " + countNanAfter);
+            System.out.println("CountNanBefore: " + countNanBefore + " CountNanAfter: " + countNanAfter);
+            System.out.println("CountNanBefore: " + countNanBefore + " CountNanAfter: " + countNanAfter);
+            System.out.println("CountNanBefore: " + countNanBefore + " CountNanAfter: " + countNanAfter);
+            System.out.println("CountNanBefore: " + countNanBefore + " CountNanAfter: " + countNanAfter);
+            System.out.println("CountNanBefore: " + countNanBefore + " CountNanAfter: " + countNanAfter);
+
+            for (int x = 0; x < numberOfPixelsX; x++) {
+                for (int y = 0; y < numberOfPixelsY; y++) {
+
+                    if (interpolated[x][y]) {
+
+                        try {
+
+                            if (aR.thinToCenter) {
+
+                                genericPoint.x = (float) (minX + x * step + step / 2.0);
+                                genericPoint.y = (float) (maxY - y * step - step / 2.0);
+
+                            }
+                            genericPoint.z = min_z[x][y];
+                            aR.pfac.writePoint(genericPoint, -1, thread_n);
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            System.exit(1);
+                        }
+
+                    }
+
+                }
+
+            }
+        }
+        //System.exit(1);
+
         //br.writeBuffer2();
         //br.updateHeader2();
 
@@ -281,6 +338,239 @@ public class Thinner{
         aR.p_update.updateProgressThin();
 
     }
+
+    public int countNanvalues(float[][] array, float nanvalue){
+
+            int count = 0;
+
+            int ncols = array.length;
+            int nrows = array[0].length;
+
+            for(int i = 0; i < ncols; i++){
+                for(int j = 0; j < nrows; j++){
+                    if(array[i][j] == nanvalue)
+                        count++;
+                }
+            }
+
+            return count;
+
+    }
+
+    public static float[][] clone2DArray(float[][] original) {
+        int rows = original.length;
+        float[][] clone = new float[rows][];
+
+        for (int i = 0; i < rows; i++) {
+            int columns = original[i].length;
+            clone[i] = new float[columns];
+            System.arraycopy(original[i], 0, clone[i], 0, columns);
+        }
+
+        return clone;
+    }
+
+    public boolean[][] interpolate2dArrayMedian(float[][] array, float nanvalue){
+
+        float[][] tmpArray = clone2DArray(array);
+
+        int ncols = array.length;
+        int nrows = array[0].length;
+
+        boolean[][] changed = new boolean[ncols][nrows];
+
+
+        int countDone = 0;
+        List<Long> nanvalues = new ArrayList<>();
+        //List<Long> nanvalues2 = new LinkedList<>();
+
+        for(int i = 0; i < ncols; i++){
+            for(int j = 0; j < nrows; j++){
+
+                if(array[i][j] == nanvalue){
+                    nanvalues.add((long)j * ncols + i);
+                }
+            }
+        }
+
+        //boolean switch_ = true;
+
+        int size = nanvalues.size();
+        int currentIndex = 0;
+
+        HashMap<Long, Float> map = new HashMap<>();
+
+
+
+        while(countDone < nanvalues.size()){
+
+
+                Long index = nanvalues.get(currentIndex);
+
+                if(nanvalues.get(currentIndex) == -99L){
+                    currentIndex++;
+
+                    if(currentIndex >= nanvalues.size()) {
+
+                        System.out.println("RESETTING ITERATOR");
+                        for (Long key : map.keySet()) {
+                            int x_ = (int) (key % ncols);
+                            int y_ = (int) (key / ncols);
+                            array[x_][y_] = map.get(key);
+                            tmpArray[x_][y_] = map.get(key);
+                        }
+                        map.clear();
+                        currentIndex = 0;
+
+                    }
+
+                    continue;
+                }
+
+                int x = (int)(index % ncols);
+                int y = (int)(index / ncols);
+
+                //float mean = getMeanFromNeighbors(tmpArray, x, y, nanvalue);
+                float mean = getMedianFromNeighbors(tmpArray, x, y, nanvalue);
+
+                if(mean != nanvalue){
+                    //array[x][y] = mean;
+                    map.put(index, mean);
+                    changed[x][y] = true;
+                    nanvalues.set(currentIndex, -99L);
+                    countDone++;
+                }
+
+                currentIndex++;
+
+                if(currentIndex >= nanvalues.size()) {
+
+                    System.out.println("RESETTING ITERATOR");
+                    for (Long key : map.keySet()) {
+                        int x_ = (int) (key % ncols);
+                        int y_ = (int) (key / ncols);
+                        array[x_][y_] = map.get(key);
+                        tmpArray[x_][y_] = map.get(key);
+                    }
+                    map.clear();
+                    currentIndex = 0;
+
+                }
+
+            if(countDone % 1000 == 0)
+                System.out.println("countDone: " + countDone + " / " + size);
+            //System.out.println("nanvalues: " + nanvalues.size() + " nanvalues2: " + nanvalues2.size() + " sum: " + (nanvalues.size() + nanvalues2.size()));
+
+        }
+
+        if(map.size() > 0){
+            for (Long key : map.keySet()) {
+                int x_ = (int) (key % ncols);
+                int y_ = (int) (key / ncols);
+                array[x_][y_] = map.get(key);
+                tmpArray[x_][y_] = map.get(key);
+            }
+        }
+
+        for(int i = 0; i < nanvalues.size(); i++){
+            if(nanvalues.get(i) != -99L)
+                System.out.println("ERROR: nanvalues.get(i) != -99L");
+        }
+
+        return changed;
+
+    }
+
+    public float getMeanFromNeighbors(float[][] array, int x, int y, float nanvalue){
+
+        int numRows = array.length;
+        int numCols = array[0].length;
+
+        float sum = 0;
+        int count = 0;
+
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                int newX = x + dx;
+                int newY = y + dy;
+
+                // Check if the neighboring cell is within bounds
+                if (newX >= 0 && newX < numRows && newY >= 0 && newY < numCols) {
+                    float neighborValue = array[newX][newY];
+
+                    // Ignore neighbors with nanvalue
+                    if (neighborValue != nanvalue) {
+                        sum += neighborValue;
+                        count++;
+                    }
+                }
+            }
+        }
+
+        //System.out.println("count: " + count + " sum: " + sum);
+
+        // Calculate the mean (average) value
+        if (count > 0) {
+            return sum / count;
+        } else {
+            // No valid neighbors found, return a special value (e.g., NaN or -1) to indicate that
+            return nanvalue;
+        }
+
+    }
+
+    public float getMedianFromNeighbors(float[][] array, int x, int y, float nanvalue) {
+        int numRows = array.length;
+        int numCols = array[0].length;
+
+        List<Float> neighbors = new ArrayList<>();
+
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                int newX = x + dx;
+                int newY = y + dy;
+
+                // Check if the neighboring cell is within bounds
+                if (newX >= 0 && newX < numRows && newY >= 0 && newY < numCols) {
+                    float neighborValue = array[newX][newY];
+
+                    // Ignore neighbors with nanvalue
+                    if (neighborValue != nanvalue) {
+                        neighbors.add(neighborValue);
+                    }
+                }
+            }
+        }
+
+        // Sort the list of valid neighboring values
+        Float[] sortedNeighbors = neighbors.toArray(new Float[0]);
+        Arrays.sort(sortedNeighbors);
+
+        // Calculate the median value
+        int size = sortedNeighbors.length;
+        if (size < 2) {
+            // No valid neighbors found, return a special value (e.g., NaN or -1) to indicate that
+            return nanvalue;
+        } else if (size % 2 == 0) {
+            // If there is an even number of values, return the average of the two middle values
+            int middle = size / 2;
+            float median = (sortedNeighbors[middle - 1] + sortedNeighbors[middle]) / 2.0f;
+            return median;
+        } else {
+            // If there is an odd number of values, return the middle value
+            int middle = size / 2;
+            return sortedNeighbors[middle];
+        }
+    }
+    public void reset2dArray(float[][] array, float value){
+        for(int i = 0; i < array.length; i++){
+            for(int j = 0; j < array[0].length; j++){
+                array[i][j] = value;
+            }
+        }
+    }
+
+
 
     public static class Pair implements Comparable<Pair> {
         public final int index;

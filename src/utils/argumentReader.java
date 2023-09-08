@@ -23,8 +23,10 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public boolean noLasUtilsInput = false;
     public File logFile = null;
 
+    public String extraByteName = "asd";
     public File aux_file = null;
     public double radius = 0.0;
     public boolean turnHexagon = false;
@@ -563,6 +565,13 @@ public class argumentReader {
                 .required(false)
                 .build());
 
+        options.addOption( Option.builder()
+                .longOpt("name")
+                .hasArg(true)
+                .desc("naming convention")
+                .required(false)
+                .build());
+
         options.addOption(Option.builder("o")
                 .longOpt("output")
                 .hasArg(true)
@@ -694,6 +703,12 @@ public class argumentReader {
                 .build());
 
 
+        options.addOption(Option.builder()
+                .longOpt("externalData")
+                .hasArg(false)
+                .desc("Data is external to lasutils")
+                .required(false)
+                .build());
 
         options.addOption(Option.builder()
                 .longOpt("exclude")
@@ -1912,7 +1927,6 @@ public class argumentReader {
 
             }
 
-
             if(cmd.hasOption("ground")){
 
                 gr = cmd.getOptionValues("ground");
@@ -2293,6 +2307,10 @@ public class argumentReader {
 
             }
 
+            if(cmd.hasOption("name")){
+                this.extraByteName = cmd.getOptionValue("name");
+            }
+
             if (cmd.hasOption("measured_trees")) {
 
                 this.measured_trees = new File(cmd.getOptionValue("measured_trees"));
@@ -2398,6 +2416,12 @@ public class argumentReader {
                 this.pitFree = true;
 
             }
+
+            if(cmd.hasOption("externalData")){
+                this.noLasUtilsInput = true;
+
+            }
+
             if (cmd.hasOption("ray_trace")) {
 
                 this.ray_trace = true;

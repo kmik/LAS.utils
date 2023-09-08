@@ -933,7 +933,12 @@ public class RunId4pointsLAS{
 
         origo = LASindex.indexAll3(aR.inputFiles, indeksi_pathi_all);
 
-        aR.add_extra_bytes(6, "polygon_id", "Polygon id from lasclip");
+        String nameForExtraBytes = "polygon_id";
+
+        if(!aR.extraByteName.equals("asd"))
+            nameForExtraBytes = aR.extraByteName;
+
+        aR.add_extra_bytes(6, nameForExtraBytes, "Polygon id from lasclip");
 
         boolean split = (aR.numarg1 == 1);
 

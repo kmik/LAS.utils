@@ -893,22 +893,25 @@ public class createCHM{
 
              int counter = 0;
 
+             int x__ = x_;
+             int y__ = y_;
+
                 for(int y = y_ - 1 ; y <= y_ + 1; y++) {
                     for(int x = x_ - 1 ; x <= x_ + 1; x++){
 
-                        x = Math.max(0, x);
-                        x = Math.min(xDim - 1, x);
-                        y = Math.max(0, y);
-                        y = Math.min(yDim - 1, y);
+                        x__ = Math.max(0, x);
+                        x__ = Math.min(xDim - 1, x__);
+                        y__ = Math.max(0, y);
+                        y__ = Math.min(yDim - 1, y__);
 
-                        //System.out.println(counter + " " + x + " " + y + " xDim: " + xDim + " yDim: " + yDim + " x_: " + x_ + " y_: " + y_);
+                        //System.out.println(counter + " " + x__ + " " + y__ + " xDim: " + xDim + " yDim: " + yDim + " x_: " + x_ + " y_: " + y_);
 
                         if(counter >= 9){
                          //   throw new toolException("counter >= 9");
                         }
-                        floatArray_1[counter] = raster_id_array[x][y];
-                        floatArray_2[counter] = raster_flag_array[x][y];
-                        floatArray_3[counter] = raster_z_array[x][y];
+                        floatArray_1[counter] = raster_id_array[x__][y__];
+                        floatArray_2[counter] = raster_flag_array[x__][y__];
+                        floatArray_3[counter] = raster_z_array[x__][y__];
                         counter++;
 
                 }
@@ -1824,7 +1827,7 @@ public class createCHM{
 	public static class WaterShed{
 
         //double roundness = 500;
-        double roundness = 15;
+        double roundness = 5;
 
         double minx = Double.MAX_VALUE, maxx = Double.MIN_VALUE;
         double miny = Double.MAX_VALUE, maxy = Double.MIN_VALUE;

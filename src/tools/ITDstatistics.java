@@ -1289,7 +1289,6 @@ public class ITDstatistics{
 
         }
 
-
         KdTree.XYZPoint tempTreePoint_ = new KdTree.XYZPoint(treeTop[0], treeTop[1], treeTop[2]);
         tempTreePoint_.setIndex(-99);
         kd_tree_all_segments.add(tempTreePoint_);
@@ -2146,8 +2145,9 @@ public class ITDstatistics{
 
 
                 printti = printti.concat(mean_intensity + "\t");
+                colnames.add("mean_intensity");
                 printti = printti.concat(mean_intensity_all + "\t");
-
+                colnames.add("mean_intensity_all");
 
                 printti = printti.concat(std_z + "\t");
                 colnames.add("std_z");
@@ -2310,13 +2310,13 @@ public class ITDstatistics{
                 }
 */
                 stdR = Math.sqrt(stdR / ((double)z.length-1));
-                colnames.add("std_R");
+
 
                 stdG = Math.sqrt(stdG / ((double)z.length-1));
-                colnames.add("std_G");
+                //colnames.add("std_G");
 
                 stdB = Math.sqrt(stdB / ((double)z.length-1));
-                colnames.add("std_B");
+                //colnames.add("std_B");
 
                 stdVARI = Math.sqrt(stdVARI / ((double)z.length-1));
                 stdTGI = Math.sqrt(stdTGI / ((double)z.length-1));
@@ -2334,6 +2334,13 @@ public class ITDstatistics{
                 //meanB = meanB / (meanR + meanG + meanB);
 
                 printti += meanR + "\t";
+                colnames.add("std_R");
+                printti += stdG + "\t";
+                colnames.add("std_G");
+                printti += stdB + "\t";
+                colnames.add("std_B");
+
+                printti += stdR + "\t";
                 colnames.add("mean_R");
                 printti += meanG + "\t";
                 colnames.add("mean_G");
@@ -2592,35 +2599,19 @@ public class ITDstatistics{
 
         int index;
 
-        /* Tree x*/
-        //trees[treeCount][0] = Double.parseDouble(line.split(",")[3]);
 
-        /* Tree y*/
-        //trees[treeCount][1] = Double.parseDouble(line.split(",")[4]);
+        this.colnames.add(0, "n_closest_trees");
 
-        /* Tree height*/
-        //trees[treeCount][2] = Double.parseDouble(line.split(",")[11]);
+        this.colnames.add(0, "c13");
+        this.colnames.add(0, "c12");
+        this.colnames.add(0, "c9");
 
-        /* Tree diameter*/
-        //trees[treeCount][3] = Double.parseDouble(line.split(",")[9]);
-
-        /* Tree species*/
-        //trees[treeCount][4] = Math.min(Double.parseDouble(line.split(",")[7]), 3.0);
-
-        /* Tree WHAT?*/
-        //trees[treeCount][5] = 0.0;
-
-        /* Tree volume*/
-        //trees[treeCount][6] = Double.parseDouble(line.split(",")[42]);
-
-        /* Tree plot-id*/
-        //trees[treeCount][7] = Double.parseDouble(line.split(",")[2])
-
-        /* Tree id*/
-        //trees[treeCount][8] = Double.parseDouble(line.split(",")[1]);
+        this.colnames.add("field_tree_plot_id");
+        this.colnames.add("field_tree_id");
+        this.colnames.add("field_tree_height");
+        this.colnames.add("field_tree_species");
 
         while(it.hasNext()){
-
 
             KdTree.XYZPoint tem = (KdTree.XYZPoint)it.next();
 
@@ -2638,8 +2629,6 @@ public class ITDstatistics{
 
             nearest2 = (List<KdTree.XYZPoint>)kd_tree_all_segments.nearestNeighbourSearch2d(50, tem);
 
-            //System.out.println("nearest within 10m: " + nearest2.size());
-
             double c11 = 0, c12 = 0, c13 = 0, c9 = 0, n = 0;
 
             /* Start from 1 because 0 is always the point itself (0 distance) */
@@ -2653,12 +2642,8 @@ public class ITDstatistics{
                     c13 += nearest2.get(i).getZ() / tem.getZ() * FastMath.atan(nearest2.get(i).getZ() / distance_);
                 }else
                     break;
-                //System.out.println("dist " + i + " " + distance_);
-
 
             }
-
-            //System.out.println("n: " + n + " c13: " + c13 + " c12: " + c12 + " c9: " + c9);
 
             distance = tem.euclideanDistance(nearest.get(0));
             boolean isInside = false;
@@ -2685,27 +2670,13 @@ public class ITDstatistics{
                 temp += (treeBank[index][4]-1) + "\t";
 
 
-                /* HERE WE MOVE THE FILE "index".tif to directory (treeBank[index][4]-1) */
-
-                //String fileToBeMoved = "/home/koomikko/Documents/research/3d_tree_species/convolution_data/" + indeksi + ".tif";
-                //String moveTo = "/home/koomikko/Documents/research/3d_tree_species/convolution_data/" + (int)(treeBank[index][4]-1) + "/" + indeksi + ".tif";
-
-               // try {
-                //    Files.move(Paths.get(fileToBeMoved), Paths.get(moveTo), StandardCopyOption.REPLACE_EXISTING);
-               // }catch (Exception e){
-                //    e.printStackTrace();
-               // }
-
                 temp += 1 + "\t";
 
                 output.set(tem.getIndex(), temp);
 
             }else if(!isInside && nearest.size() > 0){
 
-
                 index = nearest.get(0).getIndex();
-
-
                 String temp = output.get(tem.getIndex());
 
                 temp = nearest2.size() + "\t" + temp;
@@ -2714,12 +2685,14 @@ public class ITDstatistics{
                 temp = c9 + "\t" + temp;
 
                 temp += treeBank[index][7] + "\t";
+                //temp += "-1\t";
                 temp += "-1\t";
                 temp += "-1\t";
                 temp += "-1\t";
                 temp += -1 + "\t";
 
                 output.set(tem.getIndex(), temp);
+
             }else if(isInside && nearest.size() > 0){
 
 
@@ -3187,6 +3160,7 @@ public class ITDstatistics{
         treeCount = 0;
         lineCount = 0;
 
+        HashMap<String, Integer> column_name_to_index = new HashMap<>();
 
 
         try (BufferedReader br = new BufferedReader(new FileReader(measuredTreesFile))) {
@@ -3194,6 +3168,10 @@ public class ITDstatistics{
             String line;
 
             while ((line = br.readLine()) != null) {
+
+                line = line.replaceAll("\"", "");
+
+
 
                 if(lineCount != 0){
                     //if(Double.parseDouble(line.split(",")[5]) == -1.0){
@@ -3235,10 +3213,105 @@ public class ITDstatistics{
 
                     treeCount++;
 
+                }else{
+
+                    String[] header = line.split(",");
+
+                    HashMap<String, HashSet<String>> correctNames = new HashMap<>();
+
+                    correctNames.put("diameter", new HashSet<>(Arrays.asList("diameter", "Diameter", "d", "D", "tree_diameter")));
+                    correctNames.put("height", new HashSet<>(Arrays.asList("height", "Height", "h", "H", "tree_height")));
+                    correctNames.put("species", new HashSet<>(Arrays.asList("species", "Species", "s", "S", "tree_species")));
+                    correctNames.put("x", new HashSet<>(Arrays.asList("tree_x", "x", "X", "x_coordinate")));
+                    correctNames.put("y", new HashSet<>(Arrays.asList("tree_y", "y", "Y", "y_coordinate")));
+                    correctNames.put("volume", new HashSet<>(Arrays.asList("volume", "Volume", "v", "V", "tree_volume", "vtot")));
+                    correctNames.put("plot_id", new HashSet<>(Arrays.asList( "plot_id", "Plot_id", "plot", "Plot", "p", "P")));
+                    correctNames.put("tree_id", new HashSet<>(Arrays.asList("tree_id", "Tree_id", "tree", "Tree", "t", "T")));
+                    correctNames.put("tree_plot_id", new HashSet<>(Arrays.asList("tree_plot_id", "Tree_plot_id")));
+
+
+
+                    for(int i = 0; i < header.length; i++){
+
+                        if(correctNames.containsKey("diameter"))
+                        if(correctNames.get("diameter").contains(header[i])){
+                            column_name_to_index.put("diameter", i);
+                            correctNames.remove("diameter");
+                        }
+
+                        if(correctNames.containsKey("height"))
+
+                            if(correctNames.get("height").contains(header[i])){
+                            column_name_to_index.put("height", i);
+                            correctNames.remove("height");
+                        }
+
+                        if(correctNames.containsKey("species"))
+
+                            if(correctNames.get("species").contains(header[i])){
+                            column_name_to_index.put("species", i);
+                            correctNames.remove("species");
+                        }
+
+                        if(correctNames.containsKey("x"))
+                        if(correctNames.get("x").contains(header[i])){
+                            column_name_to_index.put("x", i);
+                            correctNames.remove("x");
+                        }
+
+                        if(correctNames.containsKey("y"))
+
+                        if(correctNames.get("y").contains(header[i])){
+                            column_name_to_index.put("y", i);
+                            correctNames.remove("y");
+                        }
+
+                        if(correctNames.containsKey("volume"))
+                        if(correctNames.get("volume").contains(header[i])){
+                            column_name_to_index.put("volume", i);
+                            correctNames.remove("volume");
+                        }
+
+                        if(correctNames.containsKey("plot_id"))
+
+                            if(correctNames.get("plot_id").contains(header[i])){
+                            column_name_to_index.put("plot_id", i);
+                            correctNames.remove("plot_id");
+                        }
+
+                        if(correctNames.containsKey("tree_id"))
+                        if(correctNames.get("tree_id").contains(header[i])){
+                            column_name_to_index.put("tree_id", i);
+                            correctNames.remove("tree_id");
+                        }
+
+                        if(correctNames.containsKey("tree_plot_id"))
+                        if(correctNames.get("tree_plot_id").contains(header[i])){
+                            column_name_to_index.put("tree_plot_id", i);
+                            correctNames.remove("tree_plot_id");
+                        }
+
+
+
+                    }
+
+                    if(correctNames.size() != 0){
+                        System.out.println("Could not find the following columns in the measured trees file: ");
+                        for(String key : correctNames.keySet()){
+                            System.out.println(key);
+                            System.out.println("Consider using the following names: ");
+                            for(String name : correctNames.get(key)){
+                                System.out.println(name);
+                            }
+                            System.out.println("----------------");
+                        }
+
+                    }
                 }
 
                 lineCount++;
             }
+
         }
 
         this.setTreeBank(trees.clone());
@@ -3516,6 +3589,12 @@ public class ITDstatistics{
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
+
+                if(aR.noLasUtilsInput) {
+                    tempPoint.classification = 0;
+                    tempPoint.pointSourceId = 0;
+                }
+
                 treeId = tempPoint.getExtraByteInt(tree_id);
 
                 if(pointSourceSubset != null){
@@ -3536,6 +3615,10 @@ public class ITDstatistics{
 
                 xCoord= (int) Math.floor((tempPoint.x - pointCloud.getMinX()) / resolution);
                 yCoord = (int) Math.floor((pointCloud.getMaxY() - tempPoint.y) / resolution);
+
+                xCoord = Math.max(0, xCoord);
+                yCoord = Math.max(0, yCoord);
+
 
                 if(tempPoint.z > raster[xCoord][yCoord])
                     raster[xCoord][yCoord] = (float)tempPoint.z;
@@ -3604,7 +3687,7 @@ public class ITDstatistics{
                 }
 
                 /* Means the point is part of the treeTop x and y location */
-                if(tempPoint.classification == 15){
+                if(tempPoint.classification == 15 || aR.noLasUtilsInput){
 
                     //System.out.println(tempPoint.z);
                     if(mappi3.containsKey(treeId) && tempPoint.z > mappi3.get(treeId)[2]){
@@ -3641,6 +3724,12 @@ public class ITDstatistics{
 
                 pointCloud.readFromBuffer(tempPoint);
 
+                if(aR.noLasUtilsInput){
+
+                    tempPoint.classification = 0;
+                    tempPoint.pointSourceId = 0;
+
+                }
                 /* Reading, so ask if this point is ok, or if
                 it should be modified.
                  */
@@ -3992,7 +4081,19 @@ public class ITDstatistics{
         int counter = 0;
         int end = output.size();
 
+        System.out.println(output.get(0).split("\t").length);
+        System.out.println(this.colnames.size());
+        //System.exit(1);
+
+        for(String i : colnames) {
+
+            out.print(i + "\t");
+        }
+
+        out.print("\n");
+
         for(String i : output) {
+
             printLine(i);
 
             if(counter % 10 == 0){

@@ -185,6 +185,8 @@ public class lasITC_metrics {
             if (aR.measured_trees != null)
                 stats.labelTrees();
 
+
+
             stats.printOutput();
 
             stats.closeFile();
