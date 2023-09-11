@@ -1992,14 +1992,14 @@ public class Stanford2010 {
         estimator.setTrees(trees);
         estimator.setStandBoundaries(bufferedHulls);
 
-        estimator.simpleEstimation(10, 210, 2);
+        //estimator.simpleEstimation(11, 270, 2);
 
-        //estimator.simpleEstimationWithProbabilities(10, 210, 2, new double[]{0.1, 0.2, 0.5, 0.2}, new double[]{2.0, 6.0, 8.0, 10.0});
+        estimator.simpleEstimationWithProbabilities(11, 270, 2, new double[]{0.1, 0.2, 0.5, 0.2}, new double[]{2.0, 6.0, 8.0, 10.0});
 
         //estimator.estimationWithAuxiliaryData(10, 180, 2,
         //        new double[]{0.1, 0.2, 0.5, 0.2}, new double[]{2.0, 6.0, 8.0, 10.0}, 15.0);
 
-        estimator.noEstimation();
+        //estimator.noEstimation();
         System.out.println("STARTING OPTIMIZED ESTIMATION");
         //estimator.estimationWithAuxiliaryDataOptimized2();
 
