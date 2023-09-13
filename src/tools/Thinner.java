@@ -487,7 +487,7 @@ public class Thinner{
 
         HashMap<Long, Float> map = new HashMap<>();
 
-
+        int countDoneBefore = 0;
 
         while(countDone < nanvalues.size()){
 
@@ -539,6 +539,15 @@ public class Thinner{
                         array[x_][y_] = map.get(key);
                         tmpArray[x_][y_] = map.get(key);
                     }
+
+                    if(countDoneBefore == countDone) {
+                        System.out.println("COULD NOT INTERPOLATE ALL NAN VALUES");
+                        break;
+                    }
+
+                    countDoneBefore = countDone;
+
+
                     map.clear();
                     currentIndex = 0;
 
