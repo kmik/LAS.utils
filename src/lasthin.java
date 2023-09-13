@@ -95,7 +95,7 @@ public class lasthin {
                     e.printStackTrace();
                 }
                 try {
-                    Thinner thi = new Thinner(temp, aR.step, aR, 1);
+                    Thinner thi = new Thinner(temp, aR.step, aR, nCore);
 
                 } catch (Exception e) {
                     e.printStackTrace();

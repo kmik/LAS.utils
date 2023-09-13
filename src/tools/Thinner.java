@@ -1,5 +1,10 @@
 package tools;
 import LASio.*;
+import err.toolException;
+import org.gdal.gdal.Band;
+import org.gdal.gdal.Dataset;
+import org.gdal.gdal.gdal;
+import org.gdal.gdalconst.gdalconst;
 import utils.*;
 
 import java.io.*;
@@ -17,6 +22,8 @@ import java.util.*;
 
 public class Thinner{
 
+    boolean[][] mask = null;
+    double[] geoTransform = null;
     String oparse = "xyz";
     double step = 2.0;
 
@@ -60,6 +67,10 @@ public class Thinner{
      * @throws IOException
      */
     public Thinner(LASReader pointCloud2, double step2, argumentReader aR, int coreNumber) throws IOException{
+
+        if(aR.ref.size() > 0){
+            this.readRasters();
+        }
 
         this.coreNumber = coreNumber;
 
@@ -313,9 +324,26 @@ public class Thinner{
                                 genericPoint.x = (float) (minX + x * step + step / 2.0);
                                 genericPoint.y = (float) (maxY - y * step - step / 2.0);
 
+
                             }
-                            genericPoint.z = min_z[x][y];
-                            aR.pfac.writePoint(genericPoint, -1, thread_n);
+
+                            if(aR.ref.size() > 0){
+                                int x_ = (int) Math.round((genericPoint.x - geoTransform[0]) / geoTransform[1]);
+                                int y_ = (int) Math.round((genericPoint.y - geoTransform[3]) / geoTransform[5]);
+
+                                if(this.mask[x][y] != false){
+                                    genericPoint.z = 0;
+                                }else{
+                                    genericPoint.z = min_z[x][y];
+                                }
+
+                                aR.pfac.writePoint(genericPoint, -1, thread_n);
+
+                            }else {
+
+                                genericPoint.z = min_z[x][y];
+                                aR.pfac.writePoint(genericPoint, -1, thread_n);
+                            }
 
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -336,6 +364,56 @@ public class Thinner{
         aR.pfac.closeThread(thread_n);
 
         aR.p_update.updateProgressThin();
+
+    }
+
+    public void readRasters(){
+
+        gdal.AllRegister();
+
+        if(aR.ref.size() > 1){
+            throw new toolException("Only one reference raster can be used at a time!");
+        }
+        if(aR.ref.size() == 0){
+            throw new toolException("No reference raster provided!");
+        }
+
+        Dataset tifDataset = gdal.Open(aR.ref.get(0).getAbsolutePath(), gdalconst.GA_ReadOnly);
+        Band tifBand = tifDataset.GetRasterBand(1);
+        int number_of_pix_x = tifDataset.getRasterXSize();
+        int number_of_pix_y = tifDataset.getRasterYSize();
+
+        this.geoTransform = tifDataset.GetGeoTransform();
+
+        this.mask = new boolean[tifDataset.GetRasterXSize()][tifDataset.GetRasterYSize()];
+
+        float[] floatArray = new float[number_of_pix_x];
+
+        System.out.println("Reading raster line by line");
+
+        long startTime = System.currentTimeMillis();
+
+        for(int y = 0; y < number_of_pix_y; y++) {
+
+            tifBand.ReadRaster(0, y, number_of_pix_x, 1, floatArray);
+
+            for (int x = 0; x < number_of_pix_x; x++) {
+
+                //System.out.println("line " + y);
+                float value = floatArray[x];
+
+                if (value == 1.0f) {
+                    mask[x][y] = true;
+
+                }else{
+
+                }
+            }
+        }
+
+        long endTime = System.currentTimeMillis();
+
+        //printTimeInMinutesSeconds(endTime - startTime, "Raster to 2d array");
 
     }
 
