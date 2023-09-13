@@ -541,7 +541,7 @@ public class Thinner{
                     }
 
                     if(countDoneBefore == countDone) {
-                        System.out.println("COULD NOT INTERPOLATE ALL NAN VALUES");
+                        System.out.println("COULD NOT INTERPOLATE ALL NAN VALUES - STOPPING. MISSING: " + (nanvalues.size() - countDone) + " / " + nanvalues.size());
                         break;
                     }
 
