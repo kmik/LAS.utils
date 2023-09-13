@@ -69,15 +69,17 @@ public class Thinner{
      */
     public Thinner(LASReader pointCloud2, double step2, argumentReader aR, int coreNumber) throws IOException{
 
-        if(aR.ref.size() > 0){
-            this.readRasters();
-        }
 
         this.coreNumber = coreNumber;
 
         this.step = step2;
         this.pointCloud = pointCloud2;
         this.aR = aR;
+
+
+        if(aR.ref.size() > 0){
+            this.readRasters();
+        }
 
         this.n_ranodm = aR.few;
 
