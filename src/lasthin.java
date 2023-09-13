@@ -1,4 +1,5 @@
 import LASio.LASReader;
+import org.gdal.ogr.ogr;
 import tools.Thinner;
 import tools.process_las2las;
 import utils.argumentReader;
@@ -14,6 +15,8 @@ import static utils.miscProcessing.prepareData;
 public class lasthin {
 
     public static void main(String[] args) throws IOException {
+
+        ogr.RegisterAll();
 
         argumentReader aR = new argumentReader(args);
         ArrayList<File> inputFiles = prepareData(aR, "lasthin");

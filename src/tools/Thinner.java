@@ -5,6 +5,7 @@ import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconst;
+import org.gdal.ogr.ogr;
 import utils.*;
 
 import java.io.*;
@@ -374,6 +375,7 @@ public class Thinner{
 
     public void readRasters(){
 
+        ogr.RegisterAll();
         gdal.AllRegister();
 
         if(aR.ref.size() > 1){
