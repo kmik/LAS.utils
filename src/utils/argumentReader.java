@@ -1945,6 +1945,9 @@ public class argumentReader {
                     this.ref.add(new File(s));
                 }
 
+                System.out.println("SETTING REF!! " + this.ref.size());
+                System.out.println(cmd.getOptionValues("ref"));
+
             }
 
             if(cmd.hasOption("tar")){
