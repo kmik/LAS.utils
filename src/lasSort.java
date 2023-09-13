@@ -32,6 +32,8 @@ public class lasSort {
             }
         }
 
+        aR.cleanup();
+
     }
 
     private static void threadTool(argumentReader aR, fileDistributor fD) {

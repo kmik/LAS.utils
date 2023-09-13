@@ -33,6 +33,7 @@ public class lasSplit {
             }
         }
 
+        aR.cleanup();
     }
 
     private static void threadTool(argumentReader aR, fileDistributor fD) {

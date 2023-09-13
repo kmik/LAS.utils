@@ -3669,7 +3669,7 @@ public class argumentReader {
 
         Path path = Paths.get(this.getPath());
         String libs = path.getParent().getParent().getParent().toString() + this.pathSep + "lib" + this.pathSep + "laszip4j-0.15.jar";
-        System.out.println(libs);
+        //System.out.println(libs);
 
         ForkJoinPool customThreadPool = new ForkJoinPool(4);
 
@@ -3715,8 +3715,8 @@ public class argumentReader {
                 e.printStackTrace();
             }
 
-            System.out.println("Command output:\n" + output);
-            System.out.println("Exit code: " + exitCode);
+            //System.out.println("Command output:\n" + output);
+            //System.out.println("Exit code: " + exitCode);
 
             this.files[i] = outputLasFile;
 
@@ -3776,7 +3776,7 @@ public class argumentReader {
                         // Construct the full path to the .java source file
                         String sourceFilePath = classDirectory + sourceFileName;
 
-                        System.out.println("Path to the .java source file: " + sourceFilePath);
+                        //System.out.println("Path to the .java source file: " + sourceFilePath);
                         return sourceFilePath;
                     } catch (Exception e) {
                         e.printStackTrace();
