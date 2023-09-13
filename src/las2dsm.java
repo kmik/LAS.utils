@@ -40,7 +40,7 @@ public class las2dsm {
                 createCHM.chm testi = testi_c.new chm(temp, "y", 1, aR, 1);
             }
         }
-
+        aR.cleanup();
     }
 
     private static void threadTool(argumentReader aR, fileDistributor fD) {

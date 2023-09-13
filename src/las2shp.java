@@ -32,6 +32,7 @@ public class las2shp {
             }
         }
 
+        aR.cleanup();
     }
 
     private static void threadTool(argumentReader aR, fileDistributor fD) {

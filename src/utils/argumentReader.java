@@ -3,10 +3,16 @@ package utils;
 import LASio.*;
 
 import java.io.*;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import err.argumentException;
@@ -151,6 +157,7 @@ public class argumentReader {
 
     public int batch_size = 32;
 
+    ArrayList<String> ORIGINAL_FILES = new ArrayList<String>();
 
     public int prepare_nn_input = 0;
 
@@ -214,6 +221,8 @@ public class argumentReader {
 
     public String sep = "\t";
 
+    public boolean lazInput = false;
+    public String tmpDirectory = null;
     public boolean axelsson_mirror = false;
 
     public int cores = 1;
@@ -343,6 +352,11 @@ public class argumentReader {
 
     long startTimegc = 0L;
     long endTimegc = 10000L;
+
+    boolean noEstimation = true;
+    boolean simpleEstimation = false;
+    boolean simpleEstimationWithProb = false;
+    boolean estimationWithCHM = false;
 
     /**
      * A sort of a "thread-safe" gc. Avoid calling GC multiple
@@ -645,6 +659,8 @@ public class argumentReader {
                 .required(false)
                 .build());
 
+
+
         options.addOption(Option.builder()
                 .longOpt("raster")
                 .hasArg(true)
@@ -665,6 +681,27 @@ public class argumentReader {
                 .longOpt("turn_hexagon")
                 .hasArg(false)
                 .desc("Rotate points from hexagon to upright pos")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("simpleEstimation")
+                .hasArg(false)
+                .desc("PREMOTO - simpleEstimation")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("simpleEstimationWithProb")
+                .hasArg(false)
+                .desc("PREMOTO - simpleEstimationWithProb")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("estimationWithCHM")
+                .hasArg(false)
+                .desc("PREMOTO - estimationWithCHM")
                 .required(false)
                 .build());
 
@@ -1953,10 +1990,23 @@ public class argumentReader {
                 }
 
                 ArrayList<String> temp = new ArrayList<>();
+                for(String s : files) {
+                    ORIGINAL_FILES.add(s);
+                }
+
+                for(String s : files) {
+
+                    if(new File(s).getName().contains("laz")){
+                        this.convertLasToLaz();
+                    }
+
+                }
 
                 for(String s : files){
 
                     //System.out.println(s);
+
+
 
                     if(new File(s).getName().contains("las")) {
                         if (new File(s).getName().split("\\.")[1].equals("las")) {
@@ -2287,6 +2337,46 @@ public class argumentReader {
 
             }
 
+            /*
+            options.addOption(Option.builder()
+                .longOpt("simpleEstimation")
+                .hasArg(false)
+                .desc("PREMOTO - simpleEstimation")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("simpleEstimationWithProb")
+                .hasArg(false)
+                .desc("PREMOTO - simpleEstimationWithProb")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("estimationWithCHM")
+                .hasArg(false)
+                .desc("PREMOTO - estimationWithCHM")
+                .required(false)
+                .build());
+             */
+
+            if (cmd.hasOption("simpleEstimation")) {
+
+                this.noEstimation = false;
+                this.simpleEstimation = true;
+            }
+
+            if (cmd.hasOption("simpleEstimationWithProb")) {
+
+                this.noEstimation = false;
+                this.simpleEstimationWithProb = true;
+            }
+
+            if (cmd.hasOption("estimationWithCHM")) {
+
+                this.noEstimation = false;
+                this.estimationWithCHM = true;
+            }
 
 
             if (cmd.hasOption("convolution_option")) {
@@ -2815,6 +2905,10 @@ public class argumentReader {
                 this.odir = cmd.getOptionValue("odir");
                 File odr = new File(odir);
 
+                if(!odr.exists()){
+
+                    odr.mkdirs();
+                }
                 if(!odr.isDirectory()){
 
                     throw new argumentException("-odir is not a directory!");
@@ -3552,6 +3646,150 @@ public class argumentReader {
         return tempFile;
 
     }
+
+    public void convertLasToLaz() throws IOException{
+
+        this.lazInput = true;
+
+        if(this.odir.equals("asd")) {
+            File tmpDirectory = new File("tmpLAS");
+            this.tmpDirectory = tmpDirectory.getAbsolutePath();
+            tmpDirectory.mkdirs();
+            this.odir = new File(tmpDirectory.getAbsolutePath()).getParent();
+            //System.out.println(tmpDirectory.getAbsolutePath());
+            //System.out.println(this.odir);
+            //System.exit(1);
+        }
+        else{
+            File tmpDirectory = new File(this.odir + this.pathSep + "tmpLAS");
+            this.tmpDirectory = tmpDirectory.getAbsolutePath();
+            tmpDirectory.mkdirs();
+        }
+
+
+        Path path = Paths.get(this.getPath());
+        String libs = path.getParent().getParent().getParent().toString() + this.pathSep + "lib" + this.pathSep + "laszip4j-0.15.jar";
+        System.out.println(libs);
+
+        ForkJoinPool customThreadPool = new ForkJoinPool(4);
+
+        try {
+
+            customThreadPool.submit(() ->
+
+                    IntStream.range(0, this.files.length).parallel().forEach(i -> {
+        //for(int i = 0; i < this.files.length; i++){
+
+            String jarFilePath = libs;
+            String inputLazFile = files[i];
+
+            File tmpFile = new File(inputLazFile);
+            String outputLasFile = tmpFile.getName().replace(".laz", ".las");
+            outputLasFile = "tmpLAS" + this.pathSep + outputLasFile;
+
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    "java", "-jar", jarFilePath, "-i", inputLazFile, "-o", outputLasFile
+            );
+
+            //ProcessBuilder processBuilder = new ProcessBuilder("ls");
+
+            // Optionally, set the working directory
+            // processBuilder.directory(new File("/path/to/working/directory"));
+
+            // Start the process
+            Process process = null;
+            try {
+               process = processBuilder.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            // Read the output (if any)
+            java.io.InputStream inputStream = process.getInputStream();
+            java.util.Scanner scanner = new java.util.Scanner(inputStream).useDelimiter("\\A");
+            String output = scanner.hasNext() ? scanner.next() : "";
+            // Wait for the process to complete
+            int exitCode = -1;
+            try {
+                exitCode = process.waitFor();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            System.out.println("Command output:\n" + output);
+            System.out.println("Exit code: " + exitCode);
+
+            this.files[i] = outputLasFile;
+
+        //}
+        })).get();
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void cleanup(){
+
+            if(this.lazInput){
+
+                for(int i = 0; i < this.files.length; i++){
+                    File tmpFile = new File(this.files[i]);
+                    boolean do_not_delete = false;
+                    for(int i_ = 0; i_ < this.ORIGINAL_FILES.size(); i_++){
+                        if(this.ORIGINAL_FILES.get(i_).equals(tmpFile.getAbsolutePath()))
+                            do_not_delete = true;
+
+                    }
+                    if(!do_not_delete)
+                        tmpFile.delete();
+                }
+            }
+
+    }
+
+
+    public String getPath(){
+            Class<?> currentClass = argumentReader.class;
+            String className = currentClass.getSimpleName() + ".class";
+            URL classUrl = currentClass.getResource(className);
+
+            if (classUrl != null) {
+                String classPath = classUrl.toString();
+
+                if (classPath.startsWith("jar:file:") || classPath.startsWith("file:")) {
+                    try {
+                        String classFilePath = classPath.substring(classPath.indexOf(':') + 1);
+
+                        if (classFilePath.startsWith("file:")) {
+                            classFilePath = classFilePath.substring(5); // Remove "file:"
+                        }
+
+                        // Remove the class file path from the end to get the directory
+                        String classDirectory = classFilePath.substring(0, classFilePath.length() - className.length());
+
+                        // Replace .class with .java to get the source file name
+                        String sourceFileName = currentClass.getSimpleName() + ".java";
+
+                        // Construct the full path to the .java source file
+                        String sourceFilePath = classDirectory + sourceFileName;
+
+                        System.out.println("Path to the .java source file: " + sourceFilePath);
+                        return sourceFilePath;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println("Unable to determine the .java source file path.");
+                }
+            } else {
+                System.out.println("Unable to determine the .java source file path.");
+            }
+
+            return "null";
+        }
 
     public boolean checkIfTree(int tree_id, int plot_id){
 

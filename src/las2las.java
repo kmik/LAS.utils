@@ -73,6 +73,8 @@ public class las2las {
             }
         }
 
+        aR.cleanup();
+
     }
 
     private static void threadTool(argumentReader aR, fileDistributor fD) {
