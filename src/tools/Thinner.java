@@ -499,7 +499,7 @@ public class Thinner{
 
                     if(currentIndex >= nanvalues.size()) {
 
-                        System.out.println("RESETTING ITERATOR");
+                        //System.out.println("RESETTING ITERATOR");
                         for (Long key : map.keySet()) {
                             int x_ = (int) (key % ncols);
                             int y_ = (int) (key / ncols);
@@ -532,7 +532,7 @@ public class Thinner{
 
                 if(currentIndex >= nanvalues.size()) {
 
-                    System.out.println("RESETTING ITERATOR");
+                    //System.out.println("RESETTING ITERATOR");
                     for (Long key : map.keySet()) {
                         int x_ = (int) (key % ncols);
                         int y_ = (int) (key / ncols);
@@ -635,7 +635,7 @@ public class Thinner{
 
         // Calculate the median value
         int size = sortedNeighbors.length;
-        if (size < 2) {
+        if (size < 1) {
             // No valid neighbors found, return a special value (e.g., NaN or -1) to indicate that
             return nanvalue;
         } else if (size % 2 == 0) {
