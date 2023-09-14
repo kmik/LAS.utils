@@ -331,15 +331,16 @@ public class Thinner{
                             }
 
                             if(aR.ref.size() > 0){
+
                                 int x_ = (int) Math.round((genericPoint.x - geoTransform[0]) / geoTransform[1]);
                                 int y_ = (int) Math.round((genericPoint.y - geoTransform[3]) / geoTransform[5]);
 
 
-                                if(x < 0 || x >= mask.length || y < 0 || y >= mask[0].length){
+                                if(x_ < 0 || x_ >= mask.length || y_ < 0 || y_ >= mask[0].length){
                                     genericPoint.z = min_z[x][y];
                                     aR.pfac.writePoint(genericPoint, -1, thread_n);
                                 }
-                                else if(this.mask[x][y] != false){
+                                else if(this.mask[x_][y_] != false){
                                     genericPoint.z = 0;
                                 }else{
                                     genericPoint.z = min_z[x][y];
