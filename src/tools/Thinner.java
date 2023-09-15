@@ -492,7 +492,6 @@ public class Thinner{
 
         while(countDone < nanvalues.size()){
 
-
                 Long index = nanvalues.get(currentIndex);
 
                 if(nanvalues.get(currentIndex) == -99L){

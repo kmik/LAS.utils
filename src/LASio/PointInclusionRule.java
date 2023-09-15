@@ -494,7 +494,9 @@ public class PointInclusionRule{
 	 */
 
 
-	public synchronized boolean ask(LasPoint tempPoint, long i, boolean areYouReading){
+	// CHANGED THIS FROM SYNCHRONIZED TO UNSYNCHRONIZED. CHECK IF IT CAUSES THREAD ISSUES
+	// IT must have caused slowing issues when using multiple threads.
+	public boolean ask(LasPoint tempPoint, long i, boolean areYouReading){
 
 
 		//System.out.println("HERE!! " + areYouReading + " " + applyWhenReading);

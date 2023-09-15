@@ -1954,6 +1954,9 @@ public class createCHM{
 		    this.aR = aR;
 			canopy = inChm;
 
+            // convert roundness from pixels to meters
+            roundness = roundness / canopy.resolution_m;
+
 			this.raster_ds = inMat;
 			this.raster_band = this.raster_ds.GetRasterBand(1);
 

@@ -226,7 +226,7 @@ public class LasPointBufferCreator {
         /* Written or not */
         boolean output = false;
 
-            tempPoint.returnNumber = Math.max(tempPoint.returnNumber, 1);
+        tempPoint.returnNumber = Math.max(tempPoint.returnNumber, 1);
         /* Write if rule says so */
         if(rule.ask(tempPoint, i, false)){
 

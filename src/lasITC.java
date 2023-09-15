@@ -62,6 +62,7 @@ public class lasITC {
 
         printProcessingTime();
 
+        aR.cleanup();
     }
 
     @NotNull
