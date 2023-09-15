@@ -53,6 +53,7 @@ public class pointWriterMultiThread {
         this.y_scale = tempReader.yScaleFactor;
         this.z_scale = tempReader.zScaleFactor;
 
+
         outputFile = new LASraf(outFile2);
 
         int orig_point_type = tempReader.pointDataRecordFormat;
@@ -123,7 +124,7 @@ public class pointWriterMultiThread {
     }
 
     public synchronized void setHeaderBlockData(double minX, double maxX, double minY, double maxY, double minZ, double maxZ, long[] pointsByReturn){
-
+/*
         if(minX < this.minX)
             this.minX = minX;
         if(maxX > this.maxX)
@@ -138,6 +139,16 @@ public class pointWriterMultiThread {
             this.minZ = minZ;
         if(maxZ > this.maxZ)
             this.maxZ = maxZ;
+        */
+
+        this.minX = minX;
+        this.maxX = maxX;
+        this.minY = minY;
+        this.maxY = maxY;
+        this.minZ = minZ;
+        this.maxZ = maxZ;
+
+
 
         for(int i = 0; i < pointsByReturn.length; i++)
             this.pointsByReturn[i] += pointsByReturn[i];
@@ -150,14 +161,15 @@ public class pointWriterMultiThread {
 
     public void close(argumentReader aR) throws IOException{
 
-        if(this.version_minor_destination >= 4) {
-            outputFile.updateHeader_1_4(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn, this.pointsByReturn_1_4, aR,
-                    this.x_offset, this.y_offset, this.z_offset, this.x_scale, this.y_scale, this.z_scale);
-        }
-        else
-            outputFile.updateHeader(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn, aR,
-                    this.x_offset, this.y_offset, this.z_offset, this.x_scale, this.y_scale, this.z_scale);
+        if(true) {
+            if (this.version_minor_destination >= 4) {
+                outputFile.updateHeader_1_4(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn, this.pointsByReturn_1_4, aR,
+                        this.x_offset, this.y_offset, this.z_offset, this.x_scale, this.y_scale, this.z_scale);
 
+            } else
+                outputFile.updateHeader(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn, aR,
+                        this.x_offset, this.y_offset, this.z_offset, this.x_scale, this.y_scale, this.z_scale);
+        }
         outputFile.close();
         this.releaseMemory();
     }

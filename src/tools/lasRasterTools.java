@@ -8,6 +8,8 @@ import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconst;
+import org.gdal.ogr.Geometry;
+import org.gdal.osr.SpatialReference;
 import utils.argumentReader;
 import utils.pointWriterMultiThread;
 
@@ -20,6 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
+
+import static tools.createCHM.fo;
 
 
 public class lasRasterTools {
@@ -291,6 +295,151 @@ public class lasRasterTools {
             e.printStackTrace();
         }
 
+
+    }
+
+    public void rasterize(LASReader pointCloud, double resolution){
+
+        String outputFileName = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster.tif").getAbsolutePath();
+        /*
+        double pointCloudMinX = pointCloud.getMinX() - aR.res/2.0;
+        double pointCloudMinY = pointCloud.getMinY() - aR.res/2.0;
+        double pointCloudMaxX = pointCloud.getMaxX() + aR.res/2.0;
+        double pointCloudMaxY = pointCloud.getMaxY() + aR.res/2.0;
+*/
+
+        double pointCloudMinX = pointCloud.getMinX();
+        double pointCloudMinY = pointCloud.getMinY();
+        double pointCloudMaxX = pointCloud.getMaxX();
+        double pointCloudMaxY = pointCloud.getMaxY();
+
+
+
+        int rasterWidth = (int) Math.ceil((pointCloudMaxX - pointCloudMinX) / resolution);
+        int rasterHeight = (int) Math.ceil((pointCloudMaxY - pointCloudMinY) / resolution);
+
+        double[] geoTransform = new double[6];
+        geoTransform[0] = pointCloudMinX;
+        geoTransform[1] = resolution;
+        geoTransform[2] = 0;
+        geoTransform[3] = pointCloudMaxY;
+        geoTransform[4] = 0;
+        geoTransform[5] = -resolution;
+
+        LasPoint tempPoint = new LasPoint();
+
+        org.gdal.gdal.Driver driver = null;
+        driver = gdal.GetDriverByName("GTiff");
+        driver.Register();
+
+        Dataset cehoam;
+
+        try {
+            cehoam = driver.Create(outputFileName, rasterWidth, rasterHeight, 1, gdalconst.GDT_Float32);
+
+        }catch (Exception e){
+            System.out.println("Not enough points! Are you using remove_buffer and ALL points in this .las file are part of the buffer?");
+            return;
+        }
+
+        Band band = cehoam.GetRasterBand(1);
+
+        band.SetNoDataValue(Float.NaN);
+
+        SpatialReference sr = new SpatialReference();
+
+        sr.ImportFromEPSG(3067);
+
+        cehoam.SetProjection(sr.ExportToWkt());
+        cehoam.SetGeoTransform(geoTransform);
+
+        double[][] chm_array = new double[rasterWidth][rasterHeight];
+
+        double minx = pointCloud.getMinX();
+        double miny = pointCloud.getMinY();
+        double maxx = pointCloud.getMaxX();
+        double maxy = pointCloud.getMaxY();
+
+        long n = pointCloud.getNumberOfPointRecords();
+
+        int thread_n = aR.pfac.addReadThread(pointCloud);
+
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
+
+            int maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+            try {
+                aR.pfac.prepareBuffer(thread_n, i, maxi);
+            }catch (Exception e){
+                e.printStackTrace();
+                System.exit(1);
+            }
+
+            for (int j = 0; j < maxi; j++) {
+
+                pointCloud.readFromBuffer(tempPoint);
+
+
+                if(tempPoint.x < minx)
+                    minx = tempPoint.x;
+                if(tempPoint.y < miny)
+                    miny = tempPoint.y;
+                if(tempPoint.x > maxx)
+                    maxx = tempPoint.x;
+
+                int x = (int) Math.round((tempPoint.x - geoTransform[0]) / geoTransform[1]);
+                int y = (int) Math.round((tempPoint.y - geoTransform[3]) / geoTransform[5]);
+
+                if (x >= 0 && x < rasterWidth && y >= 0 && y < rasterHeight) {
+
+                    if(Double.isNaN(chm_array[x][y]))
+                        chm_array[x][y] = (double)tempPoint.z;
+                    else if ( (float)tempPoint.z > chm_array[x][y])
+                        chm_array[x][y] = (double)tempPoint.z;
+                    else{
+
+                    }
+                }
+
+            }
+
+
+
+
+        }
+
+        System.out.println("minx: " + minx + " pointCloudMinX: " + pointCloudMinX);
+        System.out.println("miny: " + miny + " pointCloudMinY: " + pointCloudMinY);
+        System.out.println("maxx: " + maxx + " pointCloudMaxX: " + pointCloudMaxX);
+        System.out.println("maxy: " + maxy + " pointCloudMaxY: " + pointCloudMaxY);
+
+        copyRasterContents(chm_array, band);
+
+        cehoam.FlushCache();
+        band.FlushCache();
+
+    }
+
+    public static void copyRasterContents(double[][] from, Band to){
+
+
+        int x = to.getXSize();
+        int y = to.getYSize();
+
+        float[] read = new float[x*y];
+
+        int counter = 0;
+
+        for(int y_ = 0; y_ < from[0].length; y_++){
+            for(int x_ = 0; x_ < from.length; x_++){
+
+
+                read[counter++] = (float)from[x_][y_];
+
+            }
+        }
+
+        to.WriteRaster(0, 0, x, y, read);
 
     }
 }

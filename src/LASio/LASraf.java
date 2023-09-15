@@ -820,7 +820,17 @@ public class LASraf implements Closeable {
             (byte)(value >>> 32),
             (byte)(value >>> 40),
             (byte)(value >>> 48),
-            (byte)(value >>> 56)};
+            (byte)(value >>> 56)
+    };
+  }
+
+  public static synchronized byte[] longToByteArray2(long value) {
+    return new byte[] {
+            (byte)(value >>> 24),
+            (byte)(value >>> 16),
+            (byte)(value >>> 8),
+            (byte)(value)
+    };
   }
 
 
@@ -1141,6 +1151,61 @@ public class LASraf implements Closeable {
 
   }
 
+  public void writeScaleFactors(double x_scale, double y_scale, double z_scale) throws IOException{
+
+    if(true)
+      return;
+
+    int skip = 131;
+
+    raFile.seek(skip);
+    x_scale = 0.01;
+    //System.out.println(x_scale);
+    //System.exit(1);
+    long v = Double.doubleToLongBits(x_scale);
+    byte [] array = new byte[8];// buffer.allocate(8).putDouble(in).array();
+    array[0] = (byte)(v);
+    array[1] = (byte)(v>>>8);
+    array[2] = (byte)(v>>>16);
+    array[3] = (byte)(v>>>24);
+    array[4] = (byte)(v>>>32);
+    array[5] = (byte)(v>>>40);
+    array[6] = (byte)(v>>>48);
+    array[7]   = (byte)(v>>>56);
+    raFile.write(array);
+
+    raFile.seek(skip + 8);
+
+    v = Double.doubleToLongBits(y_scale);
+    array = new byte[8];// buffer.allocate(8).putDouble(in).array();
+    array[0] = (byte)(v);
+    array[1] = (byte)(v>>>8);
+    array[2] = (byte)(v>>>16);
+    array[3] = (byte)(v>>>24);
+    array[4] = (byte)(v>>>32);
+    array[5] = (byte)(v>>>40);
+    array[6] = (byte)(v>>>48);
+    array[7]   = (byte)(v>>>56);
+    raFile.write(array);
+
+    raFile.seek(skip + 16);
+
+    v = Double.doubleToLongBits(z_scale);
+    array = new byte[8];// buffer.allocate(8).putDouble(in).array();
+    array[0] = (byte)(v);
+    array[1] = (byte)(v>>>8);
+    array[2] = (byte)(v>>>16);
+    array[3] = (byte)(v>>>24);
+    array[4] = (byte)(v>>>32);
+    array[5] = (byte)(v>>>40);
+    array[6] = (byte)(v>>>48);
+    array[7]   = (byte)(v>>>56);
+    raFile.write(array);
+
+
+
+  }
+
   public synchronized void writeMinMax(double minX, double maxX, double minY, double maxY
     , double maxZ, double minZ)throws IOException{
 
@@ -1256,33 +1321,38 @@ public class LASraf implements Closeable {
   public synchronized void writePByReturn(long[] in)throws IOException{
 
     int skip = 111;
+    //int skip = 107;
 
     raFile.seek(skip);
-    //byte[] array = intToByteArray((int)in[0]);
-    byte[] array = longToByteArray(in[0]);
+    byte[] array = intToByteArray((int)in[0]);
+    //byte[] array = longToByteArray(in[0]);
 
     raFile.write(array);
+    //System.out.println(Arrays.toString(array));
 
     raFile.seek(skip + 4);
-    //array = intToByteArray((int)in[1]);
-    array = longToByteArray(in[1]);
+    array = intToByteArray((int)in[1]);
+    //array = longToByteArray(in[1]);
     raFile.write(array);
-
+    //System.out.println(Arrays.toString(array));
     raFile.seek(skip + 4 * 2);
-    //array = intToByteArray((int)in[2]);
-    array = longToByteArray(in[2]);
+    array = intToByteArray((int)in[2]);
+    //array = longToByteArray(in[2]);
     raFile.write(array);
+    //System.out.println(Arrays.toString(array));
 
     raFile.seek(skip + 4 * 3);
-    //array = intToByteArray((int)in[3]);
-    array = longToByteArray(in[3]);
+    array = intToByteArray((int)in[3]);
+    //array = longToByteArray(in[3]);
     raFile.write(array);
+    //System.out.println(Arrays.toString(array));
 
     raFile.seek(skip + 4 * 4);
-    //array = intToByteArray((int)in[4]);
-    array = longToByteArray(in[4]);
+    array = intToByteArray((int)in[4]);
+    //array = longToByteArray(in[4]);
     raFile.write(array);
-    
+    //System.out.println(Arrays.toString(array));
+
   }
 
   public synchronized void write_x_scale_factor(double in)throws IOException{
@@ -1575,9 +1645,14 @@ public class LASraf implements Closeable {
     this.writePointCount(this.writtenPoints);
 
     this.writeMinMax(min_x, max_x, min_y, max_y, max_z, min_z);
+
+    this.writeScaleFactors(x_scale, y_scale, z_scale);
+
     this.writePByReturn(pointsByReturn);
 
   }
+
+
 
   public void updateHeader_1_4_2(int pointCount, double minX, double maxX, double minY, double maxY, double minZ, double maxZ, long[] pointsByReturn, long[] pointsByReturn_1_4,
                                argumentReader aR,
@@ -1603,6 +1678,7 @@ public class LASraf implements Closeable {
 
     //this.writeMinMax(min_x, max_x, min_y, max_y, max_z, min_z);
     this.writeMinMax(minX, maxX, minY, maxY, minZ, maxZ);
+    this.writeScaleFactors(x_scale, y_scale, z_scale);
 
     //System.out.println(this.pointDataRecordFormat);
     if(this.pointDataRecordFormat >= 6){
@@ -1653,6 +1729,7 @@ public class LASraf implements Closeable {
     double max_z = lz * z_scale + z_offset;
 
     this.writeMinMax(min_x, max_x, min_y, max_y, max_z, min_z);
+    this.writeScaleFactors(x_scale, y_scale, z_scale);
 
     if(this.pointDataRecordFormat >= 6){
       this.writePointCount(0);
@@ -1753,6 +1830,7 @@ public class LASraf implements Closeable {
 
 
     this.writeMinMax(minX, maxX, minY, maxY, maxZ, minZ);
+
     this.writePByReturn(pointsByReturn);
 
   }

@@ -978,6 +978,7 @@ public class LasPointBufferCreator {
         //    closed = true;
             pwrite.writeRemaining(allArray2, allArray2Index);
             pwrite.setHeaderBlockData(this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.pointsByReturn);
+
         //}
             this.releaseMemory();
     }
