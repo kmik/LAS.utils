@@ -1400,6 +1400,321 @@ public class pointCloudMetrics {
         return output;
     }
 
+
+    public ArrayList<Double> calcZonal(ArrayList<Double> z, double sum_z, String suffix, ArrayList<String> colnames){
+
+        ArrayList<Double> output = new ArrayList<>();
+        colnames.clear();
+
+        /* Should we have insufficient number of points to calculate metrics,
+          then we just output NaN for all metrics.
+         */
+        if(z.size() < cutoff_n_points){
+
+            int p_size = (int)Math.ceil((0.95 / this.percentile_step_orig));
+
+            colnames.add("max_z" + suffix);
+            output.add(Double.NaN);
+            colnames.add("min_z" + suffix);
+            output.add(Double.NaN);
+            colnames.add("sd_z" + suffix);
+            output.add(Double.NaN);
+            colnames.add("median_z" + suffix);
+            output.add(Double.NaN);
+            colnames.add("mean_z" + suffix);
+            output.add(Double.NaN);
+            colnames.add("skewness_z" + suffix);
+            output.add(Double.NaN);
+            colnames.add("kurtosis_z" + suffix);
+            output.add(Double.NaN);
+
+            int counter22 = 0;
+
+            double[] percentiles_names = new double[p_size];
+            double percentile_step_z2 = percentile_step_orig;
+            for(int i = 0; i < p_size; i++){
+
+                percentiles_names[i] = percentile_step_z2;
+                percentile_step_z2 += percentile_step_orig;
+
+            }
+
+            for(int i = 0 ; i < p_size; i++){
+
+                colnames.add("p_" + (Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
+                output.add(Double.NaN);
+
+            }
+
+            for(int i = 0; i < densities.length; i++) {
+
+                colnames.add("d_" + densities[i] + "_z" + suffix);
+                output.add(Double.NaN);
+            }
+            return output;
+        }
+
+        ArrayList<Double> z_above_threshold = new ArrayList<>();
+
+        double percentile_step_z = percentile_step_orig;
+
+        double[] densitiesOutput = new double[densities.length];
+
+
+
+        double z_val;
+        int i_val;
+
+        double z_sum_run = 0.0d;
+
+        double sd_z = 0;
+        double sd_i = 0;
+
+        double mean_z = sum_z / (double)z.size();
+
+        sum_z = 0;
+
+        double n_above_t_hold = 0;
+
+        double max_z = Double.NEGATIVE_INFINITY;
+        int max_i = Integer.MIN_VALUE;
+
+        double min_z = Double.POSITIVE_INFINITY;
+        int min_i = Integer.MAX_VALUE;
+
+        for(int i = 0; i < z.size(); i++){
+
+            z_val = z.get(i);
+
+            for(int j = densities.length-1 ; j >= 0; j--){
+
+                if(z_val <= densities[j]){
+                    densitiesOutput[j]++;
+
+                }
+
+            }
+
+            if(z_val < cutoff) {
+                continue;
+            }
+
+            sum_z += z_val;
+
+            z_above_threshold.add(z_val);
+
+            n_above_t_hold++;
+
+            if(z_val > max_z)
+                max_z = z_val;
+            if(z_val < min_z)
+                min_z = z_val;
+
+
+        }
+
+        if(z_above_threshold.size() < cutoff_n_points){
+            /* Should we have insufficient number of points to calculate metrics,
+              then we just output NaN for all metrics. This check is done here
+              again because we only just now check for point that are within
+              the legal boundaries.
+             */
+            //if(z.size() < cutoff_n_points){
+
+            int p_size = (int)Math.ceil((0.95 / this.percentile_step_orig));
+
+            colnames.add("max_z" + suffix);
+            output.add(Double.NaN);
+            colnames.add("min_z" + suffix);
+            output.add(Double.NaN);
+            colnames.add("sd_z" + suffix);
+            output.add(Double.NaN);
+            colnames.add("median_z" + suffix);
+            output.add(Double.NaN);
+            colnames.add("mean_z" + suffix);
+            output.add(Double.NaN);
+            colnames.add("skewness_z" + suffix);
+            output.add(Double.NaN);
+            colnames.add("kurtosis_z" + suffix);
+            output.add(Double.NaN);
+
+            int counter22 = 0;
+
+            double[] percentiles_names = new double[p_size];
+            double percentile_step_z2 = percentile_step_orig;
+            for(int i = 0; i < p_size; i++){
+
+                percentiles_names[i] = percentile_step_z2;
+                percentile_step_z2 += percentile_step_orig;
+
+            }
+
+            for(int i = 0 ; i < p_size; i++){
+
+                colnames.add("p_" + (Math.round(percentiles_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
+                output.add(Double.NaN);
+
+            }
+            counter22 = 0;
+
+            for(int i = 0; i < densities.length; i++) {
+
+                colnames.add("d_" + densities[i] + "_z" + suffix);
+                output.add(Double.NaN);
+            }
+            return output;
+            //}
+        }
+
+        mean_z = sum_z / (double)z_above_threshold.size();
+
+        double median_z = -1, median_i = -1;
+
+        double z_skewness_v = 0;
+        double i_skewness_v = 0;
+
+        double z_kurtosis_v = 0;
+        double z_kurtosis_v_2 = 0;
+        double i_kurtosis_v = 0;
+        double i_kurtosis_v_2 = 0;
+
+        int densities_counter = 0;
+
+
+        double sum_z_above = 0.0;
+        double sum_i_above = 0.0;
+
+        for(int i = 0; i < z_above_threshold.size(); i++){
+
+            z_val = z_above_threshold.get(i);
+
+            z_sum_run += z_val;
+
+            sd_z += ((z_val - mean_z) * (z_val - mean_z));
+
+            z_skewness_v += ((z_val - mean_z) * (z_val - mean_z) * (z_val - mean_z) );
+
+            z_kurtosis_v += ((z_val - mean_z) * (z_val - mean_z) * (z_val - mean_z) * (z_val - mean_z));
+            z_kurtosis_v_2 += ((z_val - mean_z) * (z_val - mean_z));
+
+
+            if(z_val < 0)
+                z_val = 0;
+
+
+        }
+
+        sd_z = sd_z / (n_above_t_hold-1);
+
+        sd_z = Math.sqrt(sd_z);
+
+        double skewness_z = (n_above_t_hold / ((n_above_t_hold -1.0) * (n_above_t_hold - 2.0)) ) * z_skewness_v / (sd_z*sd_z*sd_z);
+
+
+/*
+        double kurtosis_z = z_kurtosis_v / (double)z.size() / (sd_z*sd_z*sd_z*sd_z) - 3.0;
+        double kurtosis_i = i_kurtosis_v / (double)intensity.size() / (sd_i*sd_i*sd_i*sd_i) - 3.0;
+
+ */
+        double kurtosis_z = z_kurtosis_v / n_above_t_hold / ( ( z_kurtosis_v_2 / n_above_t_hold ) * ( z_kurtosis_v_2 / n_above_t_hold )) ;
+        double kurtosis_i = i_kurtosis_v / n_above_t_hold / ( ( i_kurtosis_v_2 / n_above_t_hold ) * ( i_kurtosis_v_2 / n_above_t_hold ));
+
+        Collections.sort(z_above_threshold);
+
+        if (z_above_threshold.size() % 2 == 0) {
+            //System.out.println(z_above_threshold.size());
+            median_z = ( (z_above_threshold.get(z_above_threshold.size() / 2) + z_above_threshold.get(z_above_threshold.size() / 2 - 1)) / 2.0);
+
+        }
+        else {
+            median_z = z_above_threshold.get(z_above_threshold.size() / 2);
+
+        }
+
+
+        //skewness_z = 1.0 / (sd_z*sd_z*sd_z) * (z_skewness_v / (double)z.size());
+
+        //percentiles_z[percentiles_z.length-1] = z.get(z.size()-1);
+        //percentiles_i[percentiles_i.length-1] = intensity.get(intensity.size()-1);
+
+        for(int j = 0 ; j < densities.length; j++){
+
+            densitiesOutput[j] /= z.size();
+
+        }
+/*
+        System.out.println(Arrays.toString(percentiles_z) + " " + z.get(z.size()-1));
+        System.out.println(Arrays.toString(densitiesOutput));
+        System.out.println(sd_z + " " + sd_i + " " + skewness_z + " " + kurtosis_z);
+*/
+        colnames.clear();
+
+        int counter = 0;
+
+        double[] z_array = ArrayUtils.toPrimitive(z_above_threshold.toArray(new Double[z_above_threshold.size()]));
+
+
+
+        Percentile p_z = new Percentile(this.percentile_step_orig);
+
+        p_z.setData(z_array);
+
+        int pers_size = (int)Math.ceil((0.95 / percentile_step_z));
+
+        double[] percentiles_z = new double[pers_size];
+        double[] percentiles_z_names = new double[pers_size];
+
+        for(int i = 0; i < percentiles_z.length; i++){
+
+            percentiles_z[i] = p_z.evaluate(percentile_step_z * 100.0);
+            percentiles_z_names[i] = percentile_step_z;
+
+            percentile_step_z += percentile_step_orig;
+
+        }
+
+        //System.out.println("end: ");
+
+
+
+        colnames.add("max_z" + suffix);
+        output.add(max_z);
+        colnames.add("min_z" + suffix);
+        output.add(min_z);
+        colnames.add("sd_z" + suffix);
+        output.add(sd_z);
+        colnames.add("median_z" + suffix);
+        output.add(median_z);
+        colnames.add("mean_z" + suffix);
+        output.add(mean_z);
+        colnames.add("skewness_z" + suffix);
+        output.add(skewness_z);
+        colnames.add("kurtosis_z" + suffix);
+        output.add(kurtosis_z);
+
+        counter = 0;
+        for(int i = 0 ; i < percentiles_z.length; i++){
+
+            colnames.add("p_" + (Math.round(percentiles_z_names[i] * 100.0d) / 100.0d) + "_z" + suffix);
+            output.add(percentiles_z[counter++]);
+
+        }
+        counter = 0;
+
+        for(int i = 0; i < densities.length; i++){
+
+            colnames.add("d_" + densities[i] + "_z" + suffix);
+            output.add(densitiesOutput[i]);
+
+        }
+
+/*
+        System.out.println(Arrays.toString(colnames.toArray()));
+        System.out.println(Arrays.toString(output.toArray()));
+*/
+        return output;
+    }
+
     public ArrayList<Double> calc_with_RGB(ArrayList<Double> z, ArrayList<Integer> intensity, double sum_z, double sum_i, String suffix, ArrayList<String> colnames,
                                            ArrayList<int[]> RGB){
 

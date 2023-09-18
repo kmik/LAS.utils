@@ -97,15 +97,12 @@ public class las2raster {
                 File f = fD.getFile();
                 if (f == null)
                     continue;
-                LASReader temp = null;
+                lasRasterTools tool = new lasRasterTools(aR);
+
                 try {
-                    temp = new LASReader(f);
+                    LASReader temp = new LASReader(f);
+                    tool.rasterize(temp, aR.res);
                 }catch (Exception e){
-                    e.printStackTrace();
-                }
-                try {
-                    tooli.convert(temp, aR);
-                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }

@@ -77,7 +77,21 @@ public class lasClipMetricOfile {
 
     }
 
+    public void prepZonal(File in){
 
+
+
+        try {
+
+            echo_class_files.add(aR.fo.createNewFileWithNewExtension(in, "_metrics_a.txt"));
+            echo_class_FileWriter.add(new FileWriter(echo_class_files.get(echo_class_files.size()-1)));
+
+
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+    }
     public synchronized void writeColumnNames_convo(ArrayList<String> colnames_convo){
 
         if(colnamesWritten)
@@ -144,6 +158,60 @@ public class lasClipMetricOfile {
 
     }
 
+    public synchronized void writeColumnNamesZonal(ArrayList<String> colnames_a){
+
+        if(colnamesWritten)
+            return;
+
+        try {
+
+            echo_class_FileWriter.get(0).write("poly_id\t");
+
+
+            for (int i = 0; i < colnames_a.size(); i++) {
+
+                echo_class_FileWriter.get(0).write(colnames_a.get(i) + "\t");
+
+
+            }
+
+            echo_class_FileWriter.get(0).write("\n");
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        this.colnamesWritten = true;
+
+    }
+    public synchronized void writeColumnNamesZonalGrid(ArrayList<String> colnames_a){
+
+        if(colnamesWritten)
+            return;
+
+        try {
+
+            echo_class_FileWriter.get(0).write("poly_id\tx\ty\t");
+
+
+            for (int i = 0; i < colnames_a.size(); i++) {
+
+                echo_class_FileWriter.get(0).write(colnames_a.get(i) + "\t");
+
+
+            }
+
+            echo_class_FileWriter.get(0).write("\n");
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        this.colnamesWritten = true;
+
+    }
     public synchronized void writeLine_convo(ArrayList<ArrayList<Double>> metrics, ArrayList<String> colnames, double poly_id){
 
         if(!colnamesWritten) {
@@ -244,6 +312,61 @@ public class lasClipMetricOfile {
 
     }
 
+    public synchronized void writeLineZonal(ArrayList<Double> metrics_a,
+                                       ArrayList<String> colnames_a, double poly_id){
+
+        if(!colnamesWritten) {
+
+            this.writeColumnNamesZonal(colnames_a);
+
+        }
+
+        try {
+
+            echo_class_FileWriter.get(0).write(poly_id + "\t");
+
+            for (int i = 0; i < metrics_a.size(); i++) {
+
+                echo_class_FileWriter.get(0).write(metrics_a.get(i) + "\t");
+
+            }
+
+            echo_class_FileWriter.get(0).write("\n");
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public synchronized void writeLineZonalGrid(ArrayList<Double> metrics_a,
+                                            ArrayList<String> colnames_a, double poly_id, double x_coord, double y_coord){
+
+        if(!colnamesWritten) {
+
+            this.writeColumnNamesZonalGrid(colnames_a);
+
+        }
+
+        try {
+
+            echo_class_FileWriter.get(0).write(poly_id + "\t");
+            echo_class_FileWriter.get(0).write(x_coord + "\t");
+            echo_class_FileWriter.get(0).write(y_coord + "\t");
+
+            for (int i = 0; i < metrics_a.size(); i++) {
+
+                echo_class_FileWriter.get(0).write(metrics_a.get(i) + "\t");
+
+            }
+
+            echo_class_FileWriter.get(0).write("\n");
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
     public void closeFiles(){
 
         System.out.println("Closing output metric files");
@@ -253,6 +376,18 @@ public class lasClipMetricOfile {
             echo_class_FileWriter.get(2).close();
             echo_class_FileWriter.get(3).close();
             convolution_FileWriter.get(0).close();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public void closeFilesZonal(){
+
+        System.out.println("Closing output metric files");
+        try {
+            echo_class_FileWriter.get(0).close();
 
         }catch (Exception e){
             e.printStackTrace();

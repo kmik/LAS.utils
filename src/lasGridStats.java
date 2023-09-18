@@ -1,4 +1,5 @@
 import LASio.LASReader;
+import org.gdal.ogr.ogr;
 import tools.ToShp;
 import utils.argumentReader;
 import utils.fileDistributor;
@@ -19,12 +20,25 @@ public class lasGridStats {
 
     public static void main(String[] args) throws IOException {
 
+        ogr.RegisterAll();
+
         argumentReader aR = new argumentReader(args);
         ArrayList<File> inputFiles = prepareData(aR, "lasGridStats");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
         threadProgressbars prog = new threadProgressbars(aR.cores, aR.inputFiles.size());
         aR.setProgressBars(prog);
+
+        if(aR.inputFiles.get(0).getName().contains(".tif")){
+
+            try{
+                tools.lasGridStats lGS = new tools.lasGridStats(aR, 1);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            System.exit(1);
+
+        }
 
         if(aR.cores > 1){
             threadTool(aR, fD);

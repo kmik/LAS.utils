@@ -1,6 +1,8 @@
 package tools;
 import LASio.*;
 import err.toolException;
+import org.gdal.gdal.Band;
+import org.gdal.gdal.Dataset;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
 import org.tinfour.common.IQuadEdge;
@@ -79,7 +81,7 @@ public class lasGridStats {
         this.pointCloud = pointCloud;
 
         if(!pointCloud.isIndexed){
-            pointCloud.index((int)aR.res);
+            pointCloud.index((int)(aR.res * 1.5));
         }
 
         this.aR = aR;
@@ -121,6 +123,28 @@ public class lasGridStats {
 
     }
 
+    public lasGridStats(argumentReader aR, int coreNumber) throws Exception{
+
+        this.coreNumber = coreNumber;
+
+        this.resolution = aR.res;
+
+        this.z_cutoff = aR.z_cutoff;
+
+        this.aR = aR;
+
+
+
+
+        this.outputMetricFile_a = this.aR.createOutputFileWithExtension(aR.inputFiles.get(0), "_gridStats_all_echoes.txt");
+
+        bin_a = new gridRAF(this.aR.createOutputFileWithExtension(aR.inputFiles.get(0), "_temp_a.bin"));
+
+        this.start_2_raster();
+
+        aR.p_update.fileProgress++;
+
+    }
     public void prepareMML(){
 
         double anchor_x = minX_finnishMap6k;
@@ -150,6 +174,36 @@ public class lasGridStats {
         maxX = pointCloud.maxX;
         minY = pointCloud.minY;
         maxY = pointCloud.maxY;
+
+    }
+
+    public void findExtentRaster(ArrayList<double[]> rasterBoundingBoxes){
+
+        minX = Double.POSITIVE_INFINITY;
+        maxX = Double.NEGATIVE_INFINITY;
+        minY = Double.POSITIVE_INFINITY;
+        maxY = Double.NEGATIVE_INFINITY;
+
+        for(double[] rasterBoundingBox : rasterBoundingBoxes){
+
+            if(rasterBoundingBox[0] < minX){
+                minX = rasterBoundingBox[0];
+            }
+
+            if(rasterBoundingBox[3] > maxY){
+                maxY = rasterBoundingBox[3];
+            }
+
+            if(rasterBoundingBox[2] > maxX){
+                maxX = rasterBoundingBox[2];
+            }
+
+            if(rasterBoundingBox[1] < minY){
+                minY = rasterBoundingBox[1];
+            }
+
+        }
+
 
     }
 
@@ -3631,6 +3685,160 @@ public class lasGridStats {
 
         System.out.println("TOOK: " + minutes + " min " + seconds + " sec");
     }
+
+    public void start_2_raster(){
+
+        lasRasterTools lRT = new lasRasterTools(aR);
+
+        ArrayList<Dataset> rasters = lRT.readMultipleRasters(aR);
+
+        ArrayList<double[]> rasterExtents = new ArrayList<double[]>();
+        ArrayList<double[]> rasterWidthHeight = new ArrayList<double[]>();
+        ArrayList<double[]> rasterBoundingBoxes = new ArrayList<double[]>();
+        ArrayList<Band> rasterBands = new ArrayList<Band>();
+
+
+
+        for(Dataset raster : rasters){
+
+            double[] rasterExtent = new double[6];
+            raster.GetGeoTransform(rasterExtent);
+            //System.out.println(Arrays.toString(rasterExtent));
+            rasterExtents.add(rasterExtent);
+
+            double[] rasterWidthHeight_ = new double[2];
+            rasterWidthHeight_[0] = raster.GetRasterXSize();
+            rasterWidthHeight_[1] = raster.GetRasterYSize();
+
+            rasterWidthHeight.add(rasterWidthHeight_);
+
+            rasterBoundingBoxes.add(new double[]{rasterExtent[0], rasterExtent[3] + rasterExtent[5] * rasterWidthHeight_[1],rasterExtent[0] + rasterExtent[1] * rasterWidthHeight_[0],  rasterExtent[3]});
+
+            System.out.println(Arrays.toString(rasterBoundingBoxes.get(rasterBoundingBoxes.size() - 1)));
+            //System.exit(1);
+            rasterBands.add(raster.GetRasterBand(1));
+        }
+
+
+
+        if(aR.orig_x == -1 || aR.orig_y == -1){
+
+            this.orig_x = Double.POSITIVE_INFINITY;
+            this.orig_y = Double.NEGATIVE_INFINITY;
+
+            for(int i = 0; i < rasterExtents.size(); i++){
+
+                if(rasterExtents.get(i)[0] < this.orig_x){
+                    this.orig_x = rasterExtents.get(i)[0];
+                }
+
+                if(rasterExtents.get(i)[3] > this.orig_y){
+                    this.orig_y = rasterExtents.get(i)[3];
+                }
+            }
+
+        }else{
+            this.orig_x = aR.orig_x;
+            this.orig_y = aR.orig_y;
+
+        }
+
+        findExtentRaster(rasterBoundingBoxes);
+
+        if(aR.MML_klj){
+            this.resolution = cellSizeVMI;
+            this.prepareMML();
+        }
+
+        int nCellsX = (int)Math.ceil((this.maxX  - this.minX) / this.resolution);
+        int nCellsY = (int)Math.ceil((this.maxY  - this.minY) / this.resolution);
+
+        System.out.println("nCellsX: " + nCellsX);
+        System.out.println("nCellsY: " + nCellsY);
+
+        pointCloudMetrics pCM = new pointCloudMetrics(aR);
+        aR.lCMO.prepZonal(aR.inputFiles.get(0));
+
+
+        for(int x_ = 0; x_ < nCellsX; x_++){
+            for(int y_ = 0; y_ < nCellsY; y_++){
+
+                double grid_cell_id = (y_ + VMI_maxIndexY) * grid_x_size_MML + (x_ + VMI_minIndexX);
+
+                double x_coord = orig_x + resolution * x_;
+                double y_coord = orig_y - resolution * y_;
+
+                ArrayList<Double> gridPoints_z_a = new ArrayList<>();
+                ArrayList<String> colnames_a = new ArrayList<>();
+                double sum_z_a = 0.0;
+
+                double cellMinX = this.minX + x_ * this.resolution;
+                double cellMaxY = this.maxY - y_ * this.resolution;
+                double cellMaxX = cellMinX + this.resolution;
+                double cellMinY = cellMaxY - this.resolution;
+
+                for(int j = 0; j < rasterExtents.size(); j++) {
+
+                    if (cellMinX > rasterBoundingBoxes.get(j)[2] || cellMaxX < rasterBoundingBoxes.get(j)[0] || cellMinY > rasterBoundingBoxes.get(j)[3] || cellMaxY < rasterBoundingBoxes.get(j)[1]) {
+                        System.out.println("Polygon does not overlap with raster");
+                        continue;
+                    }
+
+                    Band band = rasterBands.get(j);
+
+                    int[] extentInPixelCoordinates = new int[4];
+
+                    extentInPixelCoordinates[0] = (int)Math.floor((cellMinX - rasterBoundingBoxes.get(j)[0]) / rasterExtents.get(j)[1]);
+                    extentInPixelCoordinates[3] = (int)Math.floor((rasterBoundingBoxes.get(j)[3] - cellMinY ) / rasterExtents.get(j)[1]);
+                    extentInPixelCoordinates[2] = (int)Math.floor((cellMaxX - rasterBoundingBoxes.get(j)[0]) / rasterExtents.get(j)[1]);
+                    extentInPixelCoordinates[1] = (int)Math.floor((rasterBoundingBoxes.get(j)[3] - cellMaxY ) / rasterExtents.get(j)[1]);
+
+                    for(int x = extentInPixelCoordinates[0]; x <= extentInPixelCoordinates[2]; x++) {
+                        for (int y = extentInPixelCoordinates[1]; y <= extentInPixelCoordinates[3]; y++) {
+
+
+                            if(x < 0 || y < 0 || x >= rasterWidthHeight.get(j)[0] || y >= rasterWidthHeight.get(j)[1]){
+                                continue;
+                            }
+
+                            double[] realCoordinates = new double[2];
+                            realCoordinates[0] = rasterExtents.get(j)[0] + x * rasterExtents.get(j)[1] + rasterExtents.get(j)[1] / 2;
+                            realCoordinates[1] = rasterExtents.get(j)[3] + y * rasterExtents.get(j)[5] + rasterExtents.get(j)[5] / 2;
+
+                            boolean pointInrectangle = pointInsideRectangle(realCoordinates[0], realCoordinates[1], cellMinX, cellMinY, cellMaxX, cellMaxY);
+
+                            if(pointInrectangle) {
+                                float[] pixelValue = new float[1];
+                                band.ReadRaster(x, y, 1, 1, pixelValue);
+                                gridPoints_z_a.add((double)pixelValue[0]);
+                                sum_z_a += pixelValue[0];
+                            }
+                        }
+                    }
+                }
+
+                ArrayList<Double> metrics_a = pCM.calcZonal(gridPoints_z_a, sum_z_a, "_a", colnames_a);
+                //System.out.println(Arrays.toString(gridPoints_z_a.toArray()));
+                //System.out.println("HERE");
+                aR.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord);
+
+            }
+        }
+
+        aR.lCMO.closeFilesZonal();
+        System.exit(1);
+
+    }
+
+    public boolean pointInsideRectangle(double x, double y, double rectangleminX, double rectangleminY, double rectanglemaxX, double rectanglemaxY){
+
+        if(x >= rectangleminX && x <= rectanglemaxX && y >= rectangleminY && y <= rectanglemaxY){
+            return true;
+        }
+        return false;
+    }
+
+
 
     public static void printProgressBar(int progress, int end) {
         int percent = (int) Math.round((progress / (double) end) * 100);

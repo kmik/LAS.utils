@@ -16,6 +16,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import LASio.*;
+import tools.lasRasterTools;
 import utils.argumentReader;
 import utils.fileOperations;
 import utils.pointWriterMultiThread;
@@ -651,6 +652,7 @@ public class RunId4pointsLAS{
     }
 
 
+
     public static void main(String[] args) throws IOException {
 
 
@@ -664,6 +666,7 @@ public class RunId4pointsLAS{
         aR.setExecDir( System.getProperty("user.dir"));
 
 
+
         ogr.RegisterAll(); //Registering all the formats..
         gdal.AllRegister();
 
@@ -671,6 +674,12 @@ public class RunId4pointsLAS{
 
         File treetops = null;
         DataSource ds2 = null;
+
+
+        if(aR.inputFiles.get(0).getName().contains(".tif")){
+            clipFromRaster(aR);
+            System.exit(1);
+        }
 
 
         double[] origo = new double[2];
@@ -1163,6 +1172,17 @@ public class RunId4pointsLAS{
             }
         }
 
+    }
+
+    public static void clipFromRaster(argumentReader aR){
+
+        lasRasterTools lRT = new lasRasterTools();
+
+        try {
+            lRT.zonalStatistics(aR);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 
