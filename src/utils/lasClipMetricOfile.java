@@ -92,6 +92,22 @@ public class lasClipMetricOfile {
         }
 
     }
+
+    public void prepZonal(File in, String ext){
+
+
+
+        try {
+
+            echo_class_files.add(aR.fo.createNewFileWithNewExtension(in, ext));
+            echo_class_FileWriter.add(new FileWriter(echo_class_files.get(echo_class_files.size()-1)));
+
+
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+    }
     public synchronized void writeColumnNames_convo(ArrayList<String> colnames_convo){
 
         if(colnamesWritten)

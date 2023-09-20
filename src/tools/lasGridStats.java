@@ -137,7 +137,7 @@ public class lasGridStats {
 
 
 
-        this.outputMetricFile_a = this.aR.createOutputFileWithExtension(aR.inputFiles.get(0), "_gridStats_all_echoes.txt");
+        //this.outputMetricFile_a = this.aR.createOutputFileWithExtension(aR.inputFiles.get(0), "_gridStats_all_echoes.txt");
 
         bin_a = new gridRAF(this.aR.createOutputFileWithExtension(aR.inputFiles.get(0), "_temp_a.bin"));
 
@@ -3758,7 +3758,8 @@ public class lasGridStats {
         System.out.println("nCellsY: " + nCellsY);
 
         pointCloudMetrics pCM = new pointCloudMetrics(aR);
-        aR.lCMO.prepZonal(aR.inputFiles.get(0));
+        //aR.lCMO.prepZonal(aR.inputFiles.get(0));
+        aR.lCMO.prepZonal(aR.inputFiles.get(0), "_gridStats_all_echoes.txt");
 
 
         for(int x_ = 0; x_ < nCellsX; x_++){
