@@ -11,6 +11,7 @@ import org.tinfour.standard.IncrementalTin;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -3825,8 +3826,16 @@ public class lasGridStats {
             }
         }
 
+        bin_a.file.delete();
+
+        try {
+            bin_a.close();
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+
         aR.lCMO.closeFilesZonal();
-        System.exit(1);
+
 
     }
 

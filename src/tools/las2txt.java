@@ -33,7 +33,6 @@ public class las2txt{
         BufferedWriter bw = null;//
         PrintWriter out = null;
 
-
         aR.p_update.threadFile[coreNumber-1] = in.getFile().getName();
         aR.p_update.threadProgress[coreNumber-1] = 0;
         aR.p_update.threadEnd[coreNumber-1] = (int)in.getNumberOfPointRecords();
@@ -73,9 +72,9 @@ public class las2txt{
             char[] charArray = aR.oparse.toCharArray();
 
 
-            for(int i = 0; i < in.getNumberOfPointRecords(); i += 50000) {
+            for(int i = 0; i < in.getNumberOfPointRecords(); i += 20000) {
 
-                maxi = (int) Math.min(50000, Math.abs(in.getNumberOfPointRecords() - i));
+                maxi = (int) Math.min(20000, Math.abs(in.getNumberOfPointRecords() - i));
 
                 try {
                     in.readRecord_noRAF(i, tempPoint, maxi);
