@@ -59,8 +59,6 @@ public class VoxelNeighborhood {
         data = new double[3][capacity];
         pointIndexes = new int[capacity];
 
-        mat = new Array2DRowRealMatrix(capacity, 3);
-
     }
 
     public void release(){
@@ -225,6 +223,10 @@ public class VoxelNeighborhood {
     }
     public void calculateNormal(){
 
+        //System.out.println("calculating normal");
+
+
+        mat = new Array2DRowRealMatrix(capacity, 3);
 
         this.n_solid_points = (int)(((double)n_solid_points / (double)capacity) * 100.0);
 

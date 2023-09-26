@@ -3698,8 +3698,6 @@ public class lasGridStats {
         ArrayList<double[]> rasterBoundingBoxes = new ArrayList<double[]>();
         ArrayList<Band> rasterBands = new ArrayList<Band>();
 
-
-
         for(Dataset raster : rasters){
 
             double[] rasterExtent = new double[6];

@@ -28,7 +28,7 @@ public class las2trunk {
                 LASReader temp = new LASReader(aR.inputFiles.get(i));
                 try {
                     //stemDetector_filtered sd = new stemDetector_filtered(temp, 0.1, 0.5, 1, aR);
-                    stemDetector sd = new stemDetector(temp, 0.1, 0.4, 1,  aR);
+                    stemDetector sd = new stemDetector(temp, 0.15, 0.4, 1,  aR);
                     sd.setUpOutputFiles(temp);
                     sd.detect(!aR.dz_on_the_fly);
                 } catch (Exception e) {

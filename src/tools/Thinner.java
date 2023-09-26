@@ -253,7 +253,7 @@ public class Thinner{
         reset2dArray(min_z, -1.0f);
 
         LasPoint genericPoint = new LasPoint();
-
+        boolean genericPointSet = false;
 
         for(int x = 0; x < numberOfPixelsX; x++) {
             for (int y = 0; y < numberOfPixelsY; y++) {
@@ -262,9 +262,9 @@ public class Thinner{
 
                     pointCloud.readRecord(minIndex[x][y], tempPoint);
 
-                    if(x == 0 && y == 0)
+                    if(!genericPointSet)
                         try {
-                            genericPoint = (LasPoint) tempPoint.clone();
+                            genericPoint = new LasPoint(tempPoint);
                             genericPoint.synthetic = true;
                         }catch(Exception e){
                             e.printStackTrace();
@@ -277,8 +277,8 @@ public class Thinner{
 
                         if(aR.thinToCenter){
 
-                            tempPoint.x = (float)(minX + x * step + step / 2.0);
-                            tempPoint.y = (float)(maxY - y * step - step / 2.0);
+                            tempPoint.x = (double)(minX + x * step + step / 2.0);
+                            tempPoint.y = (double)(maxY - y * step - step / 2.0);
 
                         }
 
@@ -324,8 +324,8 @@ public class Thinner{
 
                             if (aR.thinToCenter) {
 
-                                genericPoint.x = (float) (minX + x * step + step / 2.0);
-                                genericPoint.y = (float) (maxY - y * step - step / 2.0);
+                                genericPoint.x = (double) (minX + x * step + step / 2.0);
+                                genericPoint.y = (double) (maxY - y * step - step / 2.0);
 
 
                             }
@@ -335,15 +335,14 @@ public class Thinner{
                                 int x_ = (int) Math.round((genericPoint.x - geoTransform[0]) / geoTransform[1]);
                                 int y_ = (int) Math.round((genericPoint.y - geoTransform[3]) / geoTransform[5]);
 
-
                                 if(x_ < 0 || x_ >= mask.length || y_ < 0 || y_ >= mask[0].length){
                                     genericPoint.z = min_z[x][y];
-                                    aR.pfac.writePoint(genericPoint, -1, thread_n);
+                                    //aR.pfac.writePoint(genericPoint, -1, thread_n);
                                 }
                                 else if(this.mask[x_][y_] != false){
                                     genericPoint.z = 0;
                                 }else{
-                                    genericPoint.z = min_z[x][y];
+                                    genericPoint.z = (double)min_z[x][y];
                                 }
 
                                 aR.pfac.writePoint(genericPoint, -1, thread_n);

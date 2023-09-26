@@ -13,7 +13,7 @@ public class lasReadWriteFactory {
 
     ArrayList<LASReader> pointClouds = new ArrayList<>();
     ArrayList<pointWriterMultiThread> pw = new ArrayList<>();
-    ArrayList<LasPointBufferCreator> buf = new ArrayList<>();
+    public ArrayList<LasPointBufferCreator> buf = new ArrayList<>();
 
 
     public lasReadWriteFactory(argumentReader aR){

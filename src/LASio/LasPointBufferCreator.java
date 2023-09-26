@@ -92,6 +92,8 @@ public class LasPointBufferCreator {
 
         if(allArray2Index + intArray.length >= allArray2.length) {
 
+            //System.out.println("Buffer full, writing to file");
+            //System.out.println(allArray2Index + " " + intArray.length + " " + allArray2.length);
             allArray2[allArray2Index] = intArray[0];
             allArray2Index++;
             allArray2[allArray2Index] = intArray[1];

@@ -118,12 +118,12 @@ public class stemDetector{
 
         this.pointCloud = pointCloud;
         this.pointCloud_thin = new LASReader(this.pointCloud.getFile());
-        this.cloudMaxX = pointCloud.getMaxX();
-        this.cloudMaxY = pointCloud.getMaxY();
-        this.cloudMinX = pointCloud.getMinX();
-        this.cloudMinY = pointCloud.getMinY();
-        this.cloudMinZ = pointCloud.getMinZ();
-        this.cloudMaxZ = pointCloud.getMaxZ();
+        this.cloudMaxX = pointCloud_thin.getMaxX();
+        this.cloudMaxY = pointCloud_thin.getMaxY();
+        this.cloudMinX = pointCloud_thin.getMinX();
+        this.cloudMinY = pointCloud_thin.getMinY();
+        this.cloudMinZ = pointCloud_thin.getMinZ();
+        this.cloudMaxZ = pointCloud_thin.getMaxZ();
 
         this.z_cutoff_max = cloudMaxZ * (2.0/4.0);
 
@@ -445,6 +445,8 @@ public class stemDetector{
 */
         int maxi;
 
+
+
         for(int i = 0; i < n; i += 10000) {
 
             maxi = (int) Math.min(10000, Math.abs(n - i));
@@ -480,12 +482,17 @@ public class stemDetector{
                 if (tempPoint.pointSourceId > maxITDid)
                     maxITDid = tempPoint.pointSourceId;
 
+                if(tempPoint.x > cloudMaxX || tempPoint.x < cloudMinX || tempPoint.y > cloudMaxY || tempPoint.y < cloudMinY || tempPoint.z > cloudMaxZ || tempPoint.z < cloudMinZ){
+                    System.out.println("out of bounds");
+                    System.exit(1);
+                }
+
                 /* && tempPoint.pointSourceId > 0 means that we work only with ITD segments */
                 if (tempPoint.z >= z_cutoff && tempPoint.z < z_cutoff_max){// && tempPoint.pointSourceId > 0) {
 
                     int xLocation = (int) Math.floor((tempPoint.x - cloudMinX) / y_interval);
                     int yLocation = (int) Math.floor((cloudMaxY - tempPoint.y) / y_interval);
-                    int zLocation = (int) Math.floor((tempPoint.z - cloudMinZ) / y_interval);
+                    int zLocation = (int) Math.floor((tempPoint.z - 0) / y_interval);
 
 
 /*
@@ -499,6 +506,8 @@ public class stemDetector{
                                     surface[xLocation + x][yLocation + y][zLocation + z].addObservable();
                     }
 */
+
+                    //System.out.println("x " + xLocation + " y " + yLocation + " z " + zLocation);
                     if (voxels[xLocation][yLocation][zLocation] < Byte.MAX_VALUE)
                         voxels[xLocation][yLocation][zLocation]++;
 
@@ -540,7 +549,7 @@ public class stemDetector{
 
                     int xLocation = (int) Math.floor((tempPoint.x - cloudMinX) / y_interval);
                     int yLocation = (int) Math.floor((cloudMaxY - tempPoint.y) / y_interval);
-                    int zLocation = (int) Math.floor((tempPoint.z - cloudMinZ) / y_interval);
+                    int zLocation = (int) Math.floor((tempPoint.z - 0) / y_interval);
 
                     if (xLocation < this.xDim - 1 && xLocation > 0 &&
                             yLocation < this.yDim - 1 && yLocation > 0 &&
@@ -595,6 +604,7 @@ public class stemDetector{
                     }
 
 
+        System.out.println("DONE PREPARE");
         for(int i = 0; i < n; i += 10000) {
 
             maxi = (int) Math.min(10000, Math.abs(n - i));
@@ -625,7 +635,7 @@ public class stemDetector{
 
                     int xLocation = (int) Math.floor((tempPoint.x - cloudMinX) / y_interval);
                     int yLocation = (int) Math.floor((cloudMaxY - tempPoint.y) / y_interval);
-                    int zLocation = (int) Math.floor((tempPoint.z - cloudMinZ) / y_interval);
+                    int zLocation = (int) Math.floor((tempPoint.z - 0) / y_interval);
 
                     if (xLocation < this.xDim - 1 && xLocation > 0 &&
                             yLocation < this.yDim - 1 && yLocation > 0 &&
@@ -640,6 +650,12 @@ public class stemDetector{
                 }
             }
         }
+
+
+        System.gc();
+        System.gc();
+        System.gc();
+        System.gc();
 
         int end = xDim * yDim * zDim;
         int counter22 = 0;
@@ -691,6 +707,7 @@ public class stemDetector{
                 pointCloud.fileSourceID, pointCloud.globalEncoding,
                 pointCloud.xScaleFactor, pointCloud.yScaleFactor, pointCloud.zScaleFactor,
                 pointCloud.xOffset, pointCloud.yOffset, pointCloud.zOffset);
+
         int pointCount = 0;
 /*
         for(int i = 0; i < n; i += 10000) {
@@ -741,8 +758,8 @@ public class stemDetector{
             }
         }
 */
-        asd2.writeBuffer2();
-        asd2.updateHeader2();
+        //asd2.writeBuffer2();
+       // asd2.updateHeader2();
 
         //outputFile = new File("stems_" + coreNumber + ".las");
 
@@ -818,7 +835,7 @@ public class stemDetector{
 
                     int xLocation = (int) Math.floor((tempPoint.x - cloudMinX) / y_interval);
                     int yLocation = (int) Math.floor((cloudMaxY - tempPoint.y) / y_interval);
-                    int zLocation = (int) Math.floor((tempPoint.z - cloudMinZ) / y_interval);
+                    int zLocation = (int) Math.floor((tempPoint.z - 0) / y_interval);
 
                     //if(voxels[xLocation][yLocation][zLocation] < 0) {
                     if (surface[xLocation][yLocation][zLocation] != null) {
@@ -882,8 +899,8 @@ public class stemDetector{
 
         pointCount = 0;
 
-        asd2.writeBuffer2();
-        asd2.updateHeader2();
+        //asd2.writeBuffer2();
+        //asd2.updateHeader2();
 
         LASReader pointCloud2 = new LASReader(outputFile);
 
@@ -1540,8 +1557,8 @@ public class stemDetector{
         }
 
         //System.out.println("Point count: " + pointCount);
-        asd3.writeBuffer2();
-        asd3.updateHeader2();
+        //asd3.writeBuffer2();
+        //asd3.updateHeader2();
 
         //File outputFile3 = new File("underStoreyC4_" + coreNumber + ".las");
 
@@ -1614,9 +1631,9 @@ public class stemDetector{
 
                 int xLocation = (int) Math.floor((tempPoint.x - cloudMinX) / y_interval);
                 int yLocation = (int) Math.floor((cloudMaxY - tempPoint.y) / y_interval);
-                int zLocation = (int) Math.floor((delta_z - cloudMinZ) / y_interval);
+                int zLocation = (int) Math.floor((delta_z - 0) / y_interval);
 
-                if (zLocation < this.zDim) {
+                if (zLocation < this.zDim && zLocation >= 0) {
                     //System.out.println(xLocation + " " + yLocation + " " + zLocation);
                     if (surface[xLocation][yLocation][zLocation] != null) {
 
