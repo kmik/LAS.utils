@@ -651,7 +651,7 @@ public class Thinner{
 
         // Calculate the median value
         int size = sortedNeighbors.length;
-        if (size < 1) {
+        if (size < 2) {
             // No valid neighbors found, return a special value (e.g., NaN or -1) to indicate that
             return nanvalue;
         } else if (size % 2 == 0) {
