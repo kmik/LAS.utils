@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 import static runners.RunLASutils.proge;
 import static utils.miscProcessing.prepareData;
+import static utils.miscProcessing.printProcessingTime;
 
 public class lasthin {
 
@@ -34,6 +35,8 @@ public class lasthin {
             }
         }
         aR.cleanup();
+
+        printProcessingTime();
     }
 
     private static void threadTool(argumentReader aR, fileDistributor fD) {
@@ -62,6 +65,7 @@ public class lasthin {
                 e.printStackTrace();
             }
         }
+
     }
 
     /**

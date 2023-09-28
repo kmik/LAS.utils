@@ -428,7 +428,17 @@ public class lasRasterTools {
 
         copyRasterContents(chm_array, band);
 
-        String[] options = new String[]{"COMPRESS=LZW"};
+        //String[] options = new String[]{"COMPRESS=LZW"};
+
+        // Compression options
+        String[] options = new String[]{
+                "COMPRESS=DEFLATE",   // Use DEFLATE compression
+                "PREDICTOR=1",        // Use predictor=1
+                "TILED=YES",          // Enable tiling
+                "BLOCKXSIZE=256",    // Tile width in pixels
+                "BLOCKYSIZE=256"     // Tile height in pixels
+        };
+
         cehoam.FlushCache();
         band.FlushCache();
 
@@ -439,7 +449,6 @@ public class lasRasterTools {
 
     public static void copyRasterContents(double[][] from, Band to){
 
-
         int x = to.getXSize();
         int y = to.getYSize();
 
@@ -449,7 +458,6 @@ public class lasRasterTools {
 
         for(int y_ = 0; y_ < from[0].length; y_++){
             for(int x_ = 0; x_ < from.length; x_++){
-
 
                 read[counter++] = (float)from[x_][y_];
 

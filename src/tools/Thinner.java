@@ -170,7 +170,10 @@ public class Thinner{
         //System.out.println("READING");
         int counter = 0;
 
-
+        ArrayList<Integer> laspointIndexes = new ArrayList<Integer>();
+        ArrayList<Integer> laspointxy = new ArrayList<Integer>();
+        HashMap<Integer, Long> laspointIndexesMap = new HashMap<Integer, Long>();
+        HashSet<Long> allyouneed = new HashSet<Long>();
 
         for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000){
         //for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
@@ -205,14 +208,23 @@ public class Thinner{
 
                 if(aR.lowest) {
                     if (tempPoint.z < min_z[x_index][y_index]) {
+
                         min_z[x_index][y_index] = (float) tempPoint.z;
                         minIndex[x_index][y_index] = i + j;
+                        //laspointIndexesMap.put(y_index * (int)numberOfPixelsX + x_index, (long)i+(long)j);
+
                     }
+
+
+
                 }
                 else {
                     if (tempPoint.z > min_z[x_index][y_index]) {
+
                         min_z[x_index][y_index] = (float) tempPoint.z;
                         minIndex[x_index][y_index] = i + j;
+                        //laspointIndexesMap.put(y_index * (int)numberOfPixelsX + x_index, (long)i+(long)j);
+
                     }
                 }
                 aR.p_update.threadProgress[coreNumber-1]++;
@@ -225,6 +237,29 @@ public class Thinner{
 
             }
         }
+
+        //HashMap<Long, Integer> swapped = (HashMap<Long, Integer>)swapKeysAndValues(laspointIndexesMap);
+        //TreeMap<Integer, Long> map = new TreeMap<Integer, Long>();
+
+        //if(aR.thinToCenter)
+
+            for(long x = 0; x < numberOfPixelsX; x++){
+                for(long y = 0; y < numberOfPixelsY; y++) {
+                    if(minIndex[(int)x][(int)y] != -1) {
+                        //put minindex and coordinates in map
+                        allyouneed.add(minIndex[(int)x][(int)y]);
+                    }
+                }
+            }
+
+        ArrayList<Integer> pointIndexes = null;
+        ArrayList<Long> pixelIndexes = null;
+
+            //pixelIndexes = new ArrayList<Long>(map.values());
+            //pointIndexes = new ArrayList<Integer>(map.keySet());
+
+
+
 
         aR.p_update.updateProgressThin();
 
@@ -255,6 +290,79 @@ public class Thinner{
         LasPoint genericPoint = new LasPoint();
         boolean genericPointSet = false;
 
+        int rollingNumber = 0;
+
+        int pointsRead = 0;
+
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
+            //for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i++) {
+            //    int j = 0;
+            maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+            try {
+                pointCloud.readRecord_noRAF(i, tempPoint, maxi);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            for (int j = 0; j < maxi; j++) {
+
+                pointCloud.readFromBuffer(tempPoint);
+                pointsRead++;
+
+                if(!genericPointSet)
+                    try {
+                        genericPoint = new LasPoint(tempPoint);
+                        genericPoint.synthetic = true;
+                        genericPointSet = true;
+                    }catch(Exception e){
+                        e.printStackTrace();
+                    }
+
+
+                //if(rollingNumber >= pointIndexes.size())
+                 //   break;
+
+                //if((j+i) == pointIndexes.get(rollingNumber)){
+                if(allyouneed.contains((long)i+(long)j)) {
+
+
+                    x_index = (int)Math.floor((tempPoint.x - minX) / step);
+                    y_index = (int)Math.floor((maxY - tempPoint.y) / step);
+
+                    x_index = Math.max(0, x_index);
+                    y_index = Math.max(0, y_index);
+                    //int x = (int)(pixelIndexes.get(rollingNumber) % numberOfPixelsX);
+                    //int y = (int)(pixelIndexes.get(rollingNumber) / numberOfPixelsX);
+
+                    try {
+
+                        if(aR.thinToCenter){
+
+                            tempPoint.x = (double)(minX + x_index * step + step / 2.0);
+                            tempPoint.y = (double)(maxY - y_index * step - step / 2.0);
+
+                        }
+
+                        aR.pfac.writePoint(tempPoint, minIndex[x_index][y_index], thread_n);
+                        min_z[x_index][y_index] = (float)tempPoint.z;
+
+                    }catch (Exception e){
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
+
+                    //rollingNumber++;
+                }
+                //System.out.println(rollingNumber + " / " + pointIndexes.size() + " " + (j+i) + " / " + pointCloud.getNumberOfPointRecords());
+            }
+        }
+
+        //System.out.println("points read: " + pointsRead + " == " + pointCloud.getNumberOfPointRecords());
+        //System.exit(1);
+
+
+        if(false)
         for(int x = 0; x < numberOfPixelsX; x++) {
             for (int y = 0; y < numberOfPixelsY; y++) {
 
@@ -266,6 +374,7 @@ public class Thinner{
                         try {
                             genericPoint = new LasPoint(tempPoint);
                             genericPoint.synthetic = true;
+                            genericPointSet = true;
                         }catch(Exception e){
                             e.printStackTrace();
                         }
@@ -372,6 +481,44 @@ public class Thinner{
         aR.pfac.closeThread(thread_n);
 
         aR.p_update.updateProgressThin();
+
+    }
+
+    public static <K, V> Map<V, K> swapKeysAndValues(Map<K, V> originalMap) {
+        Map<V, K> swappedMap = new HashMap<>();
+
+        for (Map.Entry<K, V> entry : originalMap.entrySet()) {
+            swappedMap.put(entry.getValue(), entry.getKey());
+        }
+
+        return swappedMap;
+    }
+
+    public static int binarySearch(ArrayList<Integer> arr, int value, int upperIndex) {
+        int left = 0;
+        int right = Math.min(upperIndex, arr.size() - 1); // Ensure right is within bounds
+
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+
+            if (arr.get(mid) == value) {
+                return mid; // Found the value
+            } else if (arr.get(mid) < value) {
+                left = mid + 1; // Search the right half
+            } else {
+                right = mid - 1; // Search the left half
+            }
+        }
+
+        return -1; // Value not found
+    }
+
+    public void treeMapToTwoArrayLists(TreeMap<Integer, Long> map, ArrayList<Integer> keys, ArrayList<Long> values){
+
+        for(Map.Entry<Integer, Long> entry : map.entrySet()){
+            keys.add(entry.getKey());
+            values.add(entry.getValue());
+        }
 
     }
 
@@ -486,6 +633,8 @@ public class Thinner{
         int currentIndex = 0;
 
         HashMap<Long, Float> map = new HashMap<>();
+        ArrayList<Float> mapArray = new ArrayList<>();
+        ArrayList<Long> mapArrayIndex = new ArrayList<>();
 
         int countDoneBefore = 0;
 
@@ -499,11 +648,19 @@ public class Thinner{
                     if(currentIndex >= nanvalues.size()) {
 
                         //System.out.println("RESETTING ITERATOR");
+                        if(false)
                         for (Long key : map.keySet()) {
                             int x_ = (int) (key % ncols);
                             int y_ = (int) (key / ncols);
                             array[x_][y_] = map.get(key);
                             tmpArray[x_][y_] = map.get(key);
+                        }
+
+                        for(int i = 0; i < mapArray.size(); i++){
+                            int x_ = (int) (mapArrayIndex.get(i) % ncols);
+                            int y_ = (int) (mapArrayIndex.get(i) / ncols);
+                            array[x_][y_] = mapArray.get(i);
+                            tmpArray[x_][y_] = mapArray.get(i);
                         }
 
                         if(countDoneBefore == countDone) {
@@ -514,6 +671,9 @@ public class Thinner{
                         countDoneBefore = countDone;
 
                         map.clear();
+                        mapArray.clear();
+                        mapArrayIndex.clear();
+
                         currentIndex = 0;
 
                     }
@@ -529,7 +689,10 @@ public class Thinner{
 
                 if(mean != nanvalue){
                     //array[x][y] = mean;
-                    map.put(index, mean);
+                    //map.put(index, mean);
+                    mapArray.add(mean);
+                    mapArrayIndex.add(index);
+
                     changed[x][y] = true;
                     nanvalues.set(currentIndex, -99L);
                     countDone++;
@@ -540,11 +703,19 @@ public class Thinner{
                 if(currentIndex >= nanvalues.size()) {
 
                     //System.out.println("RESETTING ITERATOR");
+                    if(false)
                     for (Long key : map.keySet()) {
                         int x_ = (int) (key % ncols);
                         int y_ = (int) (key / ncols);
                         array[x_][y_] = map.get(key);
                         tmpArray[x_][y_] = map.get(key);
+                    }
+
+                    for(int i = 0; i < mapArray.size(); i++){
+                        int x_ = (int) (mapArrayIndex.get(i) % ncols);
+                        int y_ = (int) (mapArrayIndex.get(i) / ncols);
+                        array[x_][y_] = mapArray.get(i);
+                        tmpArray[x_][y_] = mapArray.get(i);
                     }
 
                     if(countDoneBefore == countDone) {
@@ -556,22 +727,35 @@ public class Thinner{
 
 
                     map.clear();
+                    mapArray.clear();
+                    mapArrayIndex.clear();
+
                     currentIndex = 0;
 
                 }
 
-            if(countDone % 1000 == 0)
-                System.out.println("countDone: " + countDone + " / " + size);
+            //if(countDone % 1000 == 0)
+             //   System.out.println("countDone: " + countDone + " / " + size);
             //System.out.println("nanvalues: " + nanvalues.size() + " nanvalues2: " + nanvalues2.size() + " sum: " + (nanvalues.size() + nanvalues2.size()));
 
         }
 
+        if(false)
         if(map.size() > 0){
             for (Long key : map.keySet()) {
                 int x_ = (int) (key % ncols);
                 int y_ = (int) (key / ncols);
                 array[x_][y_] = map.get(key);
                 tmpArray[x_][y_] = map.get(key);
+            }
+        }
+
+        if(mapArray.size() > 0){
+            for(int i = 0; i < mapArray.size(); i++){
+                int x_ = (int) (mapArrayIndex.get(i) % ncols);
+                int y_ = (int) (mapArrayIndex.get(i) / ncols);
+                array[x_][y_] = mapArray.get(i);
+                tmpArray[x_][y_] = mapArray.get(i);
             }
         }
 
