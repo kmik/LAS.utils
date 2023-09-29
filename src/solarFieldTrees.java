@@ -26,8 +26,8 @@ public class solarFieldTrees {
         for (int i = 0; i < inputFiles.size(); i++) {
 
             LASReader temp = new LASReader(aR.inputFiles.get(i));
-
             s2t.processPointCloud(temp);
+
         }
 
         s2t.closeOutputStream();

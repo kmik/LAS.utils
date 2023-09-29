@@ -420,11 +420,6 @@ public class lasRasterTools {
 
             }
         }
-        
-        System.out.println("minx: " + minx + " pointCloudMinX: " + pointCloudMinX);
-        System.out.println("miny: " + miny + " pointCloudMinY: " + pointCloudMinY);
-        System.out.println("maxx: " + maxx + " pointCloudMaxX: " + pointCloudMaxX);
-        System.out.println("maxy: " + maxy + " pointCloudMaxY: " + pointCloudMaxY);
 
         copyRasterContents(chm_array, band);
 

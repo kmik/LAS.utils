@@ -54,7 +54,7 @@ public class las2txt{
             tempOutFile.createNewFile();
 
             fw = new FileWriter(tempOutFile, true);
-            bw = new BufferedWriter(fw,32768);
+            bw = new BufferedWriter(fw);
             //out = new PrintWriter(bw);
 
             n = in.getNumberOfPointRecords();
@@ -70,6 +70,7 @@ public class las2txt{
             int y_index;
 
             char[] charArray = aR.oparse.toCharArray();
+            String[] stringArray = new String[charArray.length];
 
 
             for(int i = 0; i < in.getNumberOfPointRecords(); i += 20000) {
@@ -111,14 +112,14 @@ public class las2txt{
 
                     }
 
-
                     //out.println(LASwrite.LASpoint2String(tempPoint, aR.oparse, aR.sep));
-                    bw.write(LASwrite.LASpoint2String(tempPoint, charArray, aR.sep));
+                    bw.write(LASwrite.LASpoint2String___(tempPoint, charArray, stringArray, aR.sep));
+                    //bw.write(LASwrite.LASpoint2String(tempPoint, charArray, aR.sep));
                     bw.write("\n");
 
                     aR.p_update.threadProgress[coreNumber-1]++;
 
-                    if(aR.p_update.threadProgress[coreNumber-1] % 10000 == 0)
+                    if(aR.p_update.threadProgress[coreNumber-1] % 100000     == 0)
                         aR.p_update.updateProgressLas2txt();
                     //}
                 }

@@ -260,7 +260,8 @@ public class progressUpdater {
 
     public synchronized void updateProgressNBorder(){
 
-
+        if(true)
+            return;
         int first = 13;
 
         first += aR.cores;

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 import static runners.RunLASutils.proge;
 import static utils.miscProcessing.prepareData;
+import static utils.miscProcessing.printProcessingTime;
 
 public class las2raster {
 
@@ -37,6 +38,7 @@ public class las2raster {
         }
 
         aR.cleanup();
+        printProcessingTime();
 
     }
 

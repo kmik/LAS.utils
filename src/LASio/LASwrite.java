@@ -4,11 +4,15 @@ package LASio;
 import err.argumentException;
 import err.lasFormatException;
 import utils.argumentReader;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class LASwrite {
+
+	private static final int POW10[] = {1, 10, 100, 1000, 10000, 100000, 1000000};
 
 	public static Byte myByte = new Byte("00000000");
 	public static Byte myByte2 = new Byte("0000000000000000");
@@ -328,6 +332,176 @@ public class LASwrite {
 		charArray = null;
 
 		return output;
+
+	}
+
+	public static String format(double val, int precision) {
+		StringBuilder sb = new StringBuilder();
+		if (val < 0) {
+			sb.append('-');
+			val = -val;
+		}
+		int exp = POW10[precision];
+		long lval = (long)(val * exp + 0.5);
+		sb.append(lval / exp).append('.');
+		long fval = lval % exp;
+		for (int p = precision - 1; p > 0 && fval < POW10[p]; p--) {
+			sb.append('0');
+		}
+		sb.append(fval);
+		return sb.toString();
+	}
+
+	public static String LASpoint2String___(LasPoint point, char[] charArray, String[] stringArray, String sep){
+
+
+		StringBuilder stringBuilder = new StringBuilder();
+
+		for(int i = 0; i < charArray.length; i++) {
+
+			switch (charArray[i]) {
+				case 'x':
+					stringArray[i] = format(point.x, 3);
+					//stringArray[i] = it.unimi.dsi.fastutil.doubles.DoubleArrayList.toString(point.x);
+					break;
+				case 'y':
+					stringArray[i] = format(point.y, 3);
+
+					break;
+				case 'z':
+					stringArray[i] = format(point.z, 3);
+					break;
+				case 'i':
+					stringArray[i] = Integer.toString(point.intensity);
+					break;
+				case 'c':
+					stringArray[i] = Integer.toString(point.classification);
+					break;
+				case 't':
+					stringArray[i] = Double.toString(point.gpsTime);
+					break;
+				case 'n':
+					stringArray[i] = Integer.toString(point.numberOfReturns);
+					break;
+				case 'r':
+					stringArray[i] = Integer.toString(point.returnNumber);
+					break;
+				case 'p':
+					stringArray[i] = Integer.toString(point.pointSourceId);
+					break;
+				case 'd':
+					stringArray[i] = Integer.toString(point.scanAngleRank);
+					break;
+				case 'u':
+					stringArray[i] = Integer.toString(point.userData);
+					break;
+				case 'R':
+					stringArray[i] = Integer.toString(point.R);
+					break;
+				case 'G':
+					stringArray[i] = Integer.toString(point.G);
+					break;
+				case 'B':
+					stringArray[i] = Integer.toString(point.B);
+					break;
+				case 'N':
+					stringArray[i] = Integer.toString(point.N);
+					break;
+				case 's':
+					stringArray[i] = "0";
+					break;
+
+				default:
+					throw new argumentException("-iparse command " + charArray[i] + " not recognized");
+			}
+
+		}
+
+		for (String word : stringArray) {
+			stringBuilder.append(word).append(sep); // Append each word followed by a space
+		}
+
+		if (stringBuilder.length() > 0) {
+			stringBuilder.setLength(stringBuilder.length() - 1);
+		}
+
+		return stringBuilder.toString();
+
+	}
+	public static String LASpoint2String__(LasPoint point, char[] charArray, String[] stringArray, String sep){
+
+		StringBuilder stringBuilder = new StringBuilder();
+
+
+		for(int i = 0; i < charArray.length; i++) {
+
+			switch (charArray[i]) {
+				case 'x':
+					stringArray[i] = Double.toString(point.x);
+					//stringArray[i] = it.unimi.dsi.fastutil.doubles.DoubleArrayList.toString(point.x);
+					break;
+				case 'y':
+					stringArray[i] = Double.toString(point.y);
+
+					break;
+				case 'z':
+					stringArray[i] = Double.toString(point.z);
+					break;
+				case 'i':
+					stringArray[i] = Integer.toString(point.intensity);
+					break;
+				case 'c':
+					stringArray[i] = Integer.toString(point.classification);
+					break;
+				case 't':
+					stringArray[i] = Double.toString(point.gpsTime);
+					break;
+				case 'n':
+					stringArray[i] = Integer.toString(point.numberOfReturns);
+					break;
+				case 'r':
+					stringArray[i] = Integer.toString(point.returnNumber);
+					break;
+				case 'p':
+					stringArray[i] = Integer.toString(point.pointSourceId);
+					break;
+				case 'd':
+					stringArray[i] = Integer.toString(point.scanAngleRank);
+					break;
+				case 'u':
+					stringArray[i] = Integer.toString(point.userData);
+					break;
+				case 'R':
+					stringArray[i] = Integer.toString(point.R);
+					break;
+				case 'G':
+					stringArray[i] = Integer.toString(point.G);
+					break;
+				case 'B':
+					stringArray[i] = Integer.toString(point.B);
+					break;
+				case 'N':
+					stringArray[i] = Integer.toString(point.N);
+					break;
+				case 's':
+					stringArray[i] = "0";
+					break;
+
+				default:
+					throw new argumentException("-iparse command " + charArray[i] + " not recognized");
+			}
+
+		}
+
+		for (String word : stringArray) {
+			stringBuilder.append(word).append(sep); // Append each word followed by a space
+		}
+
+		if (stringBuilder.length() > 0) {
+			stringBuilder.setLength(stringBuilder.length() - 1);
+		}
+
+		return stringBuilder.toString();
 
 	}
 

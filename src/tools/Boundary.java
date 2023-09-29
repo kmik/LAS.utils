@@ -380,7 +380,7 @@ public class Boundary extends tool{
         if(!pointCloud.isIndexed()){
             aR.p_update.threadFile[coreNumber-1] = "indexing";
             aR.p_update.updateProgressNBorder();
-            pointCloud.index(20);
+            pointCloud.index(this.concavity);
         }else{
             pointCloud.getIndexMap();
         }
@@ -430,7 +430,7 @@ public class Boundary extends tool{
                 counter++;
                 aR.p_update.threadProgress[coreNumber-1] = counter;
 
-                if(counter % 10000 == 0){
+                if(counter % 100000 == 0){
                     aR.p_update.updateProgressNoise();
                 }
             }
@@ -565,35 +565,70 @@ public class Boundary extends tool{
                             /* Reading, so ask if this point is ok, or if
                             it should be modified.
                              */
-                            if(!rule.ask(tempPoint, p, true)){
+                            if(!rule.ask(tempPoint2, p, true)){
                                 continue;
                             }
 
                             dist = euclideanDistance(tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
 
-                            if (p != prevIndex && dist < concavity) { //  && !path.contains(tempPoint2.x, tempPoint2.y)
+                            if (p != prevIndex && dist < concavity && dist > 0.1) { //  && !path.contains(tempPoint2.x, tempPoint2.y)
 
+/*
+                                tempPoint1.x = 0;
+                                tempPoint1.y = 4;
+
+                                tempPoint3.x = 5;
+                                tempPoint3.y = 4;
+
+                                tempPoint2.x = 5;
+                                tempPoint2.y = 10;
+*/
+
+                                // tempPoint1 is the first point in line
+                                // tempPoint2 is the current point
+                                // tempPoint3 is the previous point
+/*
+                                // print point 1 x and y
+                                System.out.println("Point 1: " + tempPoint1.x + " " + tempPoint1.y);
+                                // print point 2 x and y
+                                System.out.println("Point 2: " + tempPoint2.x + " " + tempPoint2.y);
+                                // print point 3 x and y
+                                System.out.println("Point 3: " + tempPoint3.x + " " + tempPoint3.y);
+                                System.out.println("----------------------");
+
+
+ */
                                 angle = angleBetween2(tempPoint1.x, tempPoint1.y, tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
                                 double angle3 = calculateAngleDeviation(tempPoint1.x, tempPoint1.y, tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
                                 double angle2 = angleBetween(tempPoint1.x, tempPoint1.y, tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
+                                double angle4 = calculateAngle_(tempPoint1.x, tempPoint1.y, tempPoint3.x, tempPoint3.y, tempPoint2.x, tempPoint2.y);
 
-                                double angle_test = findAngle(tempPoint1.x, tempPoint1.y, tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
+
+                                double angle_test = findAngle(tempPoint1.x, tempPoint1.y, tempPoint3.x, tempPoint3.y, tempPoint2.x, tempPoint2.y);
+
+                                //System.out.println("angle: " + angle + " angle2 " + angle2 + " angle3 " + angle3 + " angle4 " + angle4 + " angle_test " + angle_test);
+                                //System.exit(1);
+
+                                // angle_test distance from 180 degrees
+                                //Math.abs(angle_test - 180.0);
+
                                 //System.out.println(angle_test);
                                 //System.exit(1);
                                 //System.out.println(angle + " " + angle2 + " " + angle3);
                                 //System.out.println("angle: " + angle + " angle2 " + angle2);
                                  angle = angle_test;
+                                 angle = angle4;
                                 //if (angle < 0.0)
                                 //    angle = 360 + angle;
 
                                 if (angle < smallestAngle && angle != 0.0) {
 
 
-                                    boolean iter = intersection(tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
+                                    boolean iter = intersection(tempPoint3.x, tempPoint3.y, tempPoint2.x, tempPoint2.y);
 
                                     //System.out.println("GOT HERE! " + iter);
-
-                                    if (!iter || (prevIndex != startIndex && p == startIndex)) {
+                                     //
+                                    if (!iter &&  angle > 1.0 || (prevIndex != startIndex && p == startIndex)) {
 
                                         minidisti = dist;
                                         angleIndex = p;
@@ -605,6 +640,8 @@ public class Boundary extends tool{
 
                                         if(aR.p_update.threadInt[coreNumber-1] % 100 == 0)
                                             aR.p_update.updateProgressNBorder();
+                                    }else{
+
                                     }
                                 }
                             }
@@ -615,8 +652,16 @@ public class Boundary extends tool{
 
             pointCloud.resetReadPoints();
 
+            // print point 1 x and y
+            System.out.println("Point 1: " + tempPoint1.x + " " + tempPoint1.y);
+            // print point 2 x and y
+            System.out.println("Point 3: " + tempPoint3.x + " " + tempPoint3.y);
+            System.out.println("Point 2: " + tempPoint.x + " " + tempPoint.y);
+            System.out.println("anleindex: " + angleIndex + " " + prevIndex);
+            // print point 3 x and y
+            System.out.println("----------------------");
 
-            //System.out.println("smallestangle: " + smallestAngle + " " + minidisti + " " + angleIndex + " " + counter1 + " " + border.size());
+            System.out.println("smallestangle: " + smallestAngle + " " + minidisti + " " + angleIndex + " " + counter1 + " " + border.size());
 
             //if(counteri == 10)
             //System.exit(1);
@@ -654,7 +699,7 @@ public class Boundary extends tool{
                 pointCloud.queryPoly2(tempPoint.x - concavity + increase, tempPoint.x + concavity + increase, tempPoint.y - concavity + increase, tempPoint.y + concavity + increase);
                 increase += 5.0;
 
-                //System.out.println("HERE! " + increase);
+                System.out.println("HERE! " + increase);
             }
 
             /* Here is the termination condition! If the current vertex is the same as the starting vertex,
@@ -662,8 +707,10 @@ public class Boundary extends tool{
              */
 
             //System.out.println("angleIndex: " + angleIndex + " startIndex: " + startIndex);
-            if(angleIndex == startIndex)
+            if(angleIndex == startIndex || smallestAngle == Double.POSITIVE_INFINITY)
                 running = false;
+
+            System.out.println(angleIndex + " " + startIndex + " " + running + " "  + pointCloud.numberOfPointRecords);
 
             counti++;
 
@@ -712,6 +759,32 @@ public class Boundary extends tool{
 
         exportShapefile(oput);
 
+    }
+
+    public static double calculateAngle_(double x1, double y1, double x2, double y2, double x3, double y3) {
+        double angle1 = Math.atan2(y1 - y2, x1 - x2);
+        double angle2 = Math.atan2(y3 - y2, x3 - x2);
+        double angle = Math.toDegrees(angle2 - angle1);
+
+        // Ensure the angle is positive
+        if (angle < 0) {
+            angle += 360;
+        }
+
+        return angle;
+    }
+
+    public static double calculateAngle__(double x1, double y1, double x2, double y2, double x3, double y3) {
+        double angle1 = Math.atan2(y2 - y1, x2 - x1);
+        double angle2 = Math.atan2(y3 - y2, x3 - x2);
+        double angle = Math.toDegrees(angle2 - angle1);
+
+        // Ensure the angle is positive
+        if (angle < 0) {
+            angle += 360;
+        }
+
+        return angle;
     }
 
     public boolean intersection(double x1, double y1, double x2, double y2){
