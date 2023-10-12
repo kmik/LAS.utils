@@ -33,7 +33,7 @@ public class Tree {
     }
 
     public float getHeight() {
-        return height;
+        return this.height;
     }
 
     public void setHeight(float height) {

@@ -4,6 +4,7 @@ import LASio.LASReader;
 import LASio.LasPoint;
 import LASio.LasPointBufferCreator;
 import err.toolException;
+import javafx.util.Pair;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.gdal;
@@ -35,6 +36,7 @@ public class lasRasterTools {
     boolean[][] mask = null;
     double[] geoTransform = null;
 
+    ArrayList<Pair<String, String>> metadata = new ArrayList<Pair<String, String>>();
     argumentReader aR;
     public lasRasterTools(){
 
@@ -48,6 +50,33 @@ public class lasRasterTools {
         System.out.println(message + " -- Time taken: " + (timeInMilliseconds / 1000) / 60 + " minutes and " + (timeInMilliseconds / 1000) % 60 + " seconds.");
     }
 
+    public void readMetadata(String metadatafile){
+
+        File metadataFile = new File(metadatafile);
+
+        if(!metadataFile.exists()){
+            throw new toolException("Metadata file does not exist!");
+        }
+
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(metadataFile));
+            String line = br.readLine();
+            while (line != null) {
+                String[] temp = line.split("=");
+                metadata.add(new Pair<String, String>(temp[0], temp[1]));
+                line = br.readLine();
+            }
+            br.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+
+    }
+
     public ArrayList<Dataset> readMultipleRasters(argumentReader aR){
 
         ArrayList<Dataset> rasters = new ArrayList<Dataset>();
@@ -57,6 +86,7 @@ public class lasRasterTools {
         }
 
         return rasters;
+
     }
     public void readRasters(){
 
@@ -312,6 +342,8 @@ public class lasRasterTools {
 
     }
 
+
+
     public void rasterize(LASReader pointCloud, double resolution){
 
         String outputFileName = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster.tif").getAbsolutePath();
@@ -351,14 +383,14 @@ public class lasRasterTools {
 
         try {
             cehoam = driver.Create(outputFileName, rasterWidth, rasterHeight, 1, gdalconst.GDT_Float32);
-            cehoam.SetMetadataItem("COMPRESSION", compressionOptions);
+            //cehoam.SetMetadataItem("COMPRESSION", compressionOptions);
 
 
         }catch (Exception e){
             System.out.println("Not enough points! Are you using remove_buffer and ALL points in this .las file are part of the buffer?");
             return;
         }
-        cehoam.SetMetadataItem("test", "leaf-off");
+        //cehoam.SetMetadataItem("test", "leaf-off");
         Band band = cehoam.GetRasterBand(1);
 
         band.SetNoDataValue(Float.NaN);
@@ -438,6 +470,18 @@ public class lasRasterTools {
         band.FlushCache();
 
         Dataset outputDataset = gdal.GetDriverByName("GTiff").CreateCopy(outputFileName, cehoam, 0, options);
+
+        if(this.metadata.size() > 0){
+
+            for(int i = 0; i < this.metadata.size(); i++){
+
+                outputDataset.SetMetadataItem(this.metadata.get(i).getKey(), this.metadata.get(i).getValue());
+
+            }
+
+        }
+
+
         outputDataset.FlushCache();
 
     }

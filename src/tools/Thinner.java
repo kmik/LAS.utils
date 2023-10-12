@@ -134,8 +134,31 @@ public class Thinner{
         double minY = pointCloud.getMinY();
         double maxY = pointCloud.getMaxY();
 
-        double numberOfPixelsX = (int)Math.ceil((maxX - minX) / step) + 1;
-        double numberOfPixelsY = (int)Math.ceil((maxY - minY) / step) + 1;
+        if(aR.mapSheetExtent){
+
+            KarttaLehtiJako klj = new KarttaLehtiJako();
+
+            try {
+                klj.readFromFile(new File(""));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            //System.out.println("before: " + minX + " " + maxX + " " + minY + " " + maxY);
+
+            minX = Math.floor((minX - klj.minX) / 6000) * 6000 + klj.minX;
+            maxY = klj.maxY - (Math.ceil( (klj.maxY - maxY) / 6000) * 6000);
+
+            maxX = minX + 6000;
+            minY = maxY - 6000;
+
+            //System.out.println("after: " + minX + " " + maxX + " " + minY + " " + maxY);
+            //System.exit(1);
+        }
+        //double numberOfPixelsX = (int)Math.ceil((maxX - minX) / step) + 1;
+        double numberOfPixelsX = (int)Math.ceil((maxX - minX) / step);
+        //double numberOfPixelsY = (int)Math.ceil((maxY - minY) / step) + 1;
+        double numberOfPixelsY = (int)Math.ceil((maxY - minY) / step);
 
         long[][] minIndex = new long[(int)numberOfPixelsX][(int)numberOfPixelsY];
         float[][] min_z = new float[(int)numberOfPixelsX][(int)numberOfPixelsY];
@@ -410,8 +433,13 @@ public class Thinner{
             }
         }
 
+        System.out.println("HERE!!");
         if(aR.thinToCenter && aR.interpolate) {
+
+
             int countNanBefore = countNanvalues(min_z, -1.0f);
+
+            System.out.println("CountNanBefore: " + countNanBefore);
 
             boolean[][] interpolated = interpolate2dArrayMedian(min_z, -1.0f);
 

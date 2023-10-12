@@ -5,10 +5,10 @@ import java.util.HashMap;
 
 public class KarttaLehtiJako {
     double sideLength = 6000;
-    double minX = 0;
-    double minY = 0;
-    double maxX = 0;
-    double maxY = 0;
+    public double minX = 0;
+    public double minY = 0;
+    public double maxX = 0;
+    public double maxY = 0;
 
     int xDim = 0;
     int yDim = 0;

@@ -3253,7 +3253,7 @@ public class GroundDetector{
 
                     double minx = Double.POSITIVE_INFINITY, maxx = Double.NEGATIVE_INFINITY, miny = Double.POSITIVE_INFINITY, maxy = Double.NEGATIVE_INFINITY;
 
-                    int p = 0;
+                    long p = 0;
 
                     for(int i = 0; i < chosenLASFiles.size(); i++) {
 

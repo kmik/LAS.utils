@@ -394,13 +394,13 @@ public class Boundary extends tool{
         double minY = Double.POSITIVE_INFINITY;
 
         int counter = 0;
-        int minYindex = 0;
+        long minYindex = 0;
 
         int maxi = 0;
 
-        pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
+        //pointCloud.braf.raFile.seek(pointCloud.braf.raFile.length());
 
-        aR.p_update.threadEnd[coreNumber-1] = (int)pointCloud.getNumberOfPointRecords();
+        aR.p_update.threadEnd[coreNumber-1] = (long)pointCloud.getNumberOfPointRecords();
         aR.p_update.threadProgress[coreNumber-1] = 0;
 
         /* First find the index of the lowest Y point
@@ -449,7 +449,7 @@ public class Boundary extends tool{
          */
         pointCloud.readRecord(minYindex, tempPoint3);
 
-        int startIndex = minYindex;
+        long startIndex = minYindex;
 
         double[] prevSegment = new double[]{0,0,0,0};
 
@@ -491,7 +491,7 @@ public class Boundary extends tool{
         int counti = 0;
         double dist = -1;
 
-        int prevIndex = startIndex;
+        long prevIndex = startIndex;
 
         double minidisti =-5.0;
 
@@ -558,7 +558,7 @@ public class Boundary extends tool{
             while(!pointCloud.index_read_terminated){
 
 
-                int p = pointCloud.fastReadFromQuery(tempPoint2);
+                long p = pointCloud.fastReadFromQuery(tempPoint2);
                 counter1++;
 
                 //System.out.println("p = " + p + " angleindex: " + angleIndex);

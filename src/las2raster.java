@@ -30,7 +30,10 @@ public class las2raster {
             for (int i = 0; i < inputFiles.size(); i++) {
 
                 lasRasterTools tool = new lasRasterTools(aR);
+
+                tool.readMetadata(aR.metadatafile);
                 LASReader temp = new LASReader(aR.inputFiles.get(i));
+
                 tool.rasterize(temp, aR.res);
 
             }
@@ -41,6 +44,8 @@ public class las2raster {
         printProcessingTime();
 
     }
+
+
 
     private static void threadTool(argumentReader aR, fileDistributor fD) {
 

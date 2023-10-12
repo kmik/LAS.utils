@@ -71,7 +71,7 @@ public class LASReader {
 
   ArrayList<int[]> indexMinMax = new ArrayList<>();
 
-  int index_p = 0;
+  long index_p = 0;
 
 
   public String fileSignature;
@@ -228,7 +228,7 @@ public class LASReader {
 
   }
 
-  public int fastReadFromQuery(LasPoint tempPoint){
+  public long fastReadFromQuery(LasPoint tempPoint){
 
     boolean lastNotRead = false;
 
@@ -309,12 +309,12 @@ public class LASReader {
         e.printStackTrace();
       }
 
-      int output = this.index_p;
+      long output = this.index_p;
 
       this.index_p = indexMinMax.get(index_u)[0];
 
       if(lastNotRead)
-        return -999;
+        return -999L;
       else
         return output;
 
@@ -323,7 +323,7 @@ public class LASReader {
     return index_p++;
   }
 
-  public int fastReadFromQuery_backup(LasPoint tempPoint){
+  public long fastReadFromQuery_backup(LasPoint tempPoint){
 
     try {
       if (!doneIndexes.contains(index_p)) {
@@ -392,7 +392,7 @@ public class LASReader {
         e.printStackTrace();
       }
 
-      int output = this.index_p;
+      long output = this.index_p;
 
       this.index_p = indexMinMax.get(index_u)[0];
 

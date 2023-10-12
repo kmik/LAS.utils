@@ -469,7 +469,7 @@ public class lasGridStats {
 
                             for (int p = pienin; p <= suurin; p++) {
 */
-                    int p = 0;
+                    long p = 0;
 
                     long startTime = System.currentTimeMillis();
 

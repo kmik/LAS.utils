@@ -29,6 +29,8 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public String metadatafile = null;
+    public boolean mapSheetExtent = false;
     public boolean noLasUtilsInput = false;
     public File logFile = null;
 
@@ -637,6 +639,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("mapSheetExtent")
+                .hasArg(false)
+                .desc("Use extent from MML map sheets (6km)")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("drop_z_above")
                 .hasArg(true)
                 .desc("Drop z above threshold")
@@ -1219,6 +1228,15 @@ public class argumentReader {
                 .numberOfArgs(1)
                 .required(false)
                 .build());
+
+        options.addOption(Option.builder()
+                .longOpt("metadata")
+                .hasArg(true)
+                .desc("Metadata .txt file")
+                .numberOfArgs(1)
+                .required(false)
+                .build());
+
 
         options.addOption(Option.builder()
                 .longOpt("epsg")
@@ -1930,9 +1948,31 @@ public class argumentReader {
 
             }
 
-            if(cmd.hasOption("ref") || cmd.hasOption("raster")){
+            if(cmd.hasOption("ref")){
 
                 ref_ = cmd.getOptionValues("ref");
+
+                if(ref_[0].split(";").length > 1){
+                    ref_ = ref_[0].split(";");
+                }
+                ArrayList<String> temp = new ArrayList<>();
+
+                for(String s : ref_){
+
+                    //System.out.println(s);
+
+                    this.ref.add(new File(s));
+                }
+
+                System.out.println("SETTING REF!! " + this.ref.size());
+                System.out.println(cmd.getOptionValues("ref"));
+
+            }
+
+            if(cmd.hasOption("raster")){
+
+                ref_ = cmd.getOptionValues("raster");
+
                 if(ref_[0].split(";").length > 1){
                     ref_ = ref_[0].split(";");
                 }
@@ -2043,6 +2083,7 @@ public class argumentReader {
                 System.gc();
 
                 files = temp.toArray(new String[0]);
+
 
             }
 
@@ -2375,6 +2416,10 @@ public class argumentReader {
                 this.simpleEstimationWithProb = true;
             }
 
+            if( cmd.hasOption("mapSheetExtent")){
+                this.mapSheetExtent = true;
+            }
+
             if (cmd.hasOption("estimationWithCHM")) {
 
                 this.noEstimation = false;
@@ -2487,6 +2532,16 @@ public class argumentReader {
             if(cmd.hasOption("skip_global")){
                 this.skip_global = true;
             }
+
+            if(cmd.hasOption("metadata")){
+                File metadata = new File(cmd.getOptionValue("metadata"));
+
+                if(!metadata.exists())
+                    throw new argumentException("-metadata does not exist!");
+
+                this.metadatafile = cmd.getOptionValue("metadata");
+            }
+
 
             if(cmd.hasOption("use_p_source")){
                 this.use_p_source = true;

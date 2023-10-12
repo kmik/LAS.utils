@@ -8,10 +8,7 @@ import org.gdal.gdalconst.gdalconst;
 import utils.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.index.strtree.GeometryItemDistance;
@@ -19,7 +16,13 @@ import com.vividsolutions.jts.index.strtree.STRtree;
 
 public class treeLocationEstimator {
 
+    rasterCollection rasters = new rasterCollection();
     float[][] auxData = null;
+
+    double[] extent = null;
+
+    double extentBuffer = 15;
+
     Dataset tifDataset = null;
     Band tifBand = null;
 
@@ -29,10 +32,12 @@ public class treeLocationEstimator {
     argumentReader aR;
 
     ArrayList<Tree> trees = new ArrayList<Tree>();
+    ArrayList<Tree> trees_sorted = new ArrayList<Tree>();
 
     HashMap<Integer, ArrayList<ConcaveHull.Point>> standBoundaries = new HashMap<>();
     HashMap<Integer, double[][]> standBoundaries_ = new HashMap<>();
 
+    public boolean noAuxDataAvailable = false;
 
     public treeLocationEstimator(){
 
@@ -48,19 +53,54 @@ public class treeLocationEstimator {
         this.trees = trees;
     }
 
+    public void sortTreesByHeight(){
+        Tree[] trees_ = new Tree[trees.size()];
+        for(int i = 0; i < trees.size(); i++){
+            trees_[i] = trees.get(i);
+        }
+        Arrays.sort(trees_, new treeHeightComparator());
+        //trees.clear();
+        for(int i = 0; i < trees_.length; i++){
+            trees_sorted.add(trees_[i]);
+        }
+    }
+
+
+
     public void setStandBoundaries(HashMap<Integer, ArrayList<ConcaveHull.Point>> standBoundaries){
+
+        double minx = Double.POSITIVE_INFINITY;
+        double maxx = Double.NEGATIVE_INFINITY;
+        double miny = Double.POSITIVE_INFINITY;
+        double maxy = Double.NEGATIVE_INFINITY;
 
         for(int i : standBoundaries.keySet()){
             ArrayList<ConcaveHull.Point> temp = standBoundaries.get(i);
             double[][] temp_ = new double[temp.size()][2];
+
+
+
             for(int j = 0; j < temp.size(); j++){
                 temp_[j][0] = temp.get(j).x;
                 temp_[j][1] = temp.get(j).y;
+
+                if(temp.get(j).x < minx)
+                    minx = temp.get(j).x;
+                if(temp.get(j).x > maxx)
+                    maxx = temp.get(j).x;
+                if(temp.get(j).y < miny)
+                    miny = temp.get(j).y;
+                if(temp.get(j).y > maxy)
+                    maxy = temp.get(j).y;
+
             }
             standBoundaries_.put(i, temp_);
         }
 
         this.standBoundaries = standBoundaries;
+
+        this.extent = new double[]{minx - extentBuffer, maxx + extentBuffer, miny - extentBuffer, maxy + extentBuffer};
+
     }
 
 
@@ -71,6 +111,11 @@ public class treeLocationEstimator {
             trees.get(i).setZ_coordinate_estimated(trees.get(i).getZ_coordinate_machine());
         }
     }
+
+    public void setRasters(rasterCollection rasters){
+        this.rasters = rasters;
+    }
+
     public void simpleEstimation(double maxBoomDistance, double maxBoomAngle, double minDistanceBetweenTrees){
 
         KdTree kdTree = new KdTree();
@@ -334,20 +379,25 @@ public class treeLocationEstimator {
 
         double lowerDistanceBy = 0.25;
         double lowerDistanceBy_ = 0.0;
+        double lowerDistanceToCHMBy = 2.0;
+
 
         double maxBoomAngleOriginal = maxBoomAngle;
         double minDistanceBetweenTreesOriginal = minDistanceBetweenTrees;
 
-        for(int i = 0; i < trees.size(); i++){
+        this.sortTreesByHeight();
 
-            if(!trees.get(i).trulyInStand)
+
+        for(int i = 0; i < trees_sorted.size(); i++){
+
+            if(!trees_sorted.get(i).trulyInStand)
                 continue;
 
             maxBoomAngle = maxBoomAngleOriginal;
             minDistanceBetweenTrees = minDistanceBetweenTreesOriginal;
             lowerDistanceBy_ = 0.0;
-
-            int standId = trees.get(i).standId;
+            double maxDistanceToCHM = 2.0;
+            int standId = trees_sorted.get(i).standId;
             double distance = randomDouble(0, maxBoomDistance);
             double angle = randomDouble(-maxBoomAngle/2.0, maxBoomAngle/2.0);
 
@@ -355,21 +405,32 @@ public class treeLocationEstimator {
 
             //System.out.println(Arrays.toString(debug));
             //System.exit(1);
-            double[] translatedCoordinates = translatePoint(trees.get(i).getX_coordinate_machine(), trees.get(i).getY_coordinate_machine(), distance, angle);
+            double[] translatedCoordinates = translatePoint(trees_sorted.get(i).getX_coordinate_machine(), trees_sorted.get(i).getY_coordinate_machine(), distance, angle);
 
             double distanceToNearestTree = Double.NEGATIVE_INFINITY;
             boolean insideStand = false;
 
             double deltaToAuxData = Double.POSITIVE_INFINITY;
-            double treeHeight = trees.get(i).getHeight();
+            double treeHeight = trees_sorted.get(i).getHeight();
+
+            //System.out.println("TREE HEIGHT: " + treeHeight);
 
             double auxDataValue = -1;
 
             boolean distanceCondition = false;
 
-            if(counter > 0){
+            int numberOfTries_CHM = 0;
+            int numberOfTries_other = 0;
 
-                if(trees.get(i).id == 811){
+            boolean switchToAbsoluteValueInChm = false;
+
+
+            int numOutsideCHM = 0;
+            boolean treeOutsideCHM = false;
+
+            if(counter > -1){
+
+                if(trees_sorted.get(i).id == 811){
                     //System.out.println("debug " + trees.get(i).boomAngle);
                 }
 
@@ -377,71 +438,122 @@ public class treeLocationEstimator {
 
                 floatArray[0] = 0;
 
-                while(!distanceCondition || !insideStand || floatArray[0] < 3){
+                while(!distanceCondition || !insideStand || floatArray[0] > maxDistanceToCHM){
 
                     distanceCondition = false;
 
                     distance = generateRandomDistance(boomDistanceProbabilities, boomDistanceRanges);
-                    angle = trees.get(i).getMachineBearing() + randomDouble(-maxBoomAngle/2.0, maxBoomAngle/2.0);
+                    angle = trees_sorted.get(i).getMachineBearing() + randomDouble(-maxBoomAngle/2.0, maxBoomAngle/2.0);
 
-                    translatedCoordinates = translatePoint(trees.get(i).getX_coordinate_machine(), trees.get(i).getY_coordinate_machine(), distance, angle);
+                    translatedCoordinates = translatePoint(trees_sorted.get(i).getX_coordinate_machine(), trees_sorted.get(i).getY_coordinate_machine(), distance, angle);
 
-                    int x = (int) Math.round((translatedCoordinates[0] - geoTransform[0]) / geoTransform[1]);
-                    int y = (int) Math.round((translatedCoordinates[1] - geoTransform[3]) / geoTransform[5]);
+                    int x = (int) Math.round((translatedCoordinates[0] - rasters.getCurrentSelectionMinX()) / rasters.getResolution());
+                    //int x = (int) Math.round((translatedCoordinates[0] - geoTransform[0]) / geoTransform[1]);
+                    int y = (int) Math.round((translatedCoordinates[1] - rasters.getCurrentSelectionMaxY()) / -rasters.getResolution());
+                    //int y = (int) Math.round((translatedCoordinates[1] - geoTransform[3]) / geoTransform[5]);
 
                     //tifBand.ReadRaster(x, y, 1, 1, floatArray);
-                    System.out.println("x: " + x + " y: " + y);
-                    System.out.println(auxData.length + " " + auxData[0].length);
+                    //System.out.println("x: " + x + " y: " + y);
+                    //System.out.println(auxData.length + " " + auxData[0].length);
+
+                    if(x < 0 || x >= auxData.length || y < 0 || y >= auxData[0].length){
+                        numOutsideCHM++;
+                        treeOutsideCHM = true;
+                        break;
+                    }
+
                     floatArray[0] = auxData[x][y];
                     deltaToAuxData = Math.abs(floatArray[0] - treeHeight);
+
+
+                    floatArray[0] = (float)deltaToAuxData;
+
+
+
 
                     point.setX(translatedCoordinates[0]);
                     point.setY(translatedCoordinates[1]);
 
                     insideStand = pointInPolygon(standBoundaries_.get(standId), translatedCoordinates);
 
-                    nearest = (List< KdTree.XYZPoint>) kdTree.nearestNeighbourSearch(1, point);
+                    double deltah = 0;
+                    double highest = 0;
 
-                    distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
+                    if(counter > 0) {
+                        nearest = (List<KdTree.XYZPoint>) kdTree.nearestNeighbourSearch(1, point);
 
-                    double deltah = Math.abs(trees.get(i).getHeight() - trees.get(nearest.get(0).getIndex()).getHeight());
-                    double highest = Math.max(trees.get(i).getHeight(), trees.get(nearest.get(0).getIndex()).getHeight());
+                        distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
+
+                        deltah = Math.abs(trees_sorted.get(i).getHeight() - trees_sorted.get(nearest.get(0).getIndex()).getHeight());
+                        highest = Math.max(trees_sorted.get(i).getHeight(), trees_sorted.get(nearest.get(0).getIndex()).getHeight());
+
+
+                    }else{
+                         distanceCondition = true;
+                    }
 
                     //max(1, 2.5 - (highest * 0.5) - (deltaH * 0.1))
-                    if(distanceToNearestTree >  ( Math.max(1, 2.5 - (highest * 0.5) - (deltah * 0.1)) - lowerDistanceBy_)){
+                    //if(counter > 0 && (distanceToNearestTree >  ( Math.max(1, 2.5 - (highest * 0.5) - (deltah * 0.1)) - lowerDistanceBy_))){
+                    if(distanceToNearestTree > minDistanceBetweenTrees){
                         distanceCondition = true;
                     }
 
                     //System.out.println("raster value: " + floatArray[0] + " tree height: " + treeHeight + " distanceToNearest " + distanceToNearestTree);
                     if(nTries % nTriesBeforeLowerStandards == 0){
-                        maxBoomAngle += 50;
-                        minDistanceBetweenTrees -= 0.5;
-                        lowerDistanceBy_ += lowerDistanceBy;
+
+                        if(numberOfTries_CHM > numberOfTries_other){
+                            maxDistanceToCHM += lowerDistanceToCHMBy;
+                        }
+                        else {
+                            maxBoomAngle += 25;
+                            minDistanceBetweenTrees -= lowerDistanceBy;
+
+                            //lowerDistanceBy_ += lowerDistanceBy;
+                        }
                         //maxBoomDistance += 0.5;
 
+                        if( Math.abs(treeHeight - maxDistanceToCHM) < 5)
+                            switchToAbsoluteValueInChm = true;
+
                     }
+
+                    if(floatArray[0] > maxDistanceToCHM){
+                        numberOfTries_CHM++;
+
+                    }
+
+                    if(!distanceCondition || !insideStand)
+                        numberOfTries_other++;
 
                 }
 
                 //System.out.println(distance + " " + insideStand);
 
-                trees.get(i).setX_coordinate_estimated(translatedCoordinates[0]);
-                trees.get(i).setY_coordinate_estimated(translatedCoordinates[1]);
-                trees.get(i).setZ_coordinate_estimated(trees.get(i).getZ_coordinate_machine());
-                trees.get(i).setBoomAngle(angle);
-                trees.get(i).setBoomExtension(distance);
+                trees_sorted.get(i).setX_coordinate_estimated(translatedCoordinates[0]);
+                trees_sorted.get(i).setY_coordinate_estimated(translatedCoordinates[1]);
+                trees_sorted.get(i).setZ_coordinate_estimated(trees_sorted.get(i).getZ_coordinate_machine());
+                trees_sorted.get(i).setBoomAngle(angle);
+                trees_sorted.get(i).setBoomExtension(distance);
 
-                kdTree.add(trees.get(i).toXYZPoint_estimatedCoords(i));
+                kdTree.add(trees_sorted.get(i).toXYZPoint_estimatedCoords(i));
+
+                if(treeOutsideCHM){
+                    System.out.println("tree outside CHM");
+                    for(int i_ = 0; i_ < trees_sorted.size(); i_++){
+                        trees_sorted.get(i).trulyInStand = false;
+                    }
+                    break;
+                }
 
             }else{
 
-                trees.get(i).setX_coordinate_estimated(translatedCoordinates[0]);
-                trees.get(i).setY_coordinate_estimated(translatedCoordinates[1]);
-                trees.get(i).setZ_coordinate_estimated(trees.get(i).getZ_coordinate_machine());
-                trees.get(i).setBoomAngle(angle);
-                trees.get(i).setBoomExtension(distance);
+                trees_sorted.get(i).setX_coordinate_estimated(translatedCoordinates[0]);
+                trees_sorted.get(i).setY_coordinate_estimated(translatedCoordinates[1]);
+                trees_sorted.get(i).setZ_coordinate_estimated(trees_sorted.get(i).getZ_coordinate_machine());
+                trees_sorted.get(i).setBoomAngle(angle);
+                trees_sorted.get(i).setBoomExtension(distance);
 
-                kdTree.add(trees.get(i).toXYZPoint_estimatedCoords(i));
+                kdTree.add(trees_sorted.get(i).toXYZPoint_estimatedCoords(i));
             }
 
             counter++;
@@ -585,5 +697,105 @@ public class treeLocationEstimator {
             }
         }
 
+    }
+
+    public void readRasters(){
+
+        gdal.AllRegister();
+
+        ArrayList<Integer> overlappin = this.rasters.findOverlappingRasters(this.extent[0], this.extent[1], this.extent[2], this.extent[3]);
+
+        System.out.println("Number of overlapping rasters: " + overlappin.size());
+
+
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double maxX = Double.NEGATIVE_INFINITY;
+        double maxY = Double.NEGATIVE_INFINITY;
+
+        double resolution = this.rasters.getRaster(0).getResolution();
+
+        for(int i = 0 ; i < overlappin.size(); i++){
+
+                int rasterIndex = overlappin.get(i);
+
+                if(this.rasters.getRaster(rasterIndex).getMinX() < minX)
+                    minX = this.rasters.getRaster(rasterIndex).getMinX();
+
+                if(this.rasters.getRaster(rasterIndex).getMinY() < minY)
+                    minY = this.rasters.getRaster(rasterIndex).getMinY();
+
+                if(this.rasters.getRaster(rasterIndex).getMaxX() > maxX)
+                    maxX = this.rasters.getRaster(rasterIndex).getMaxX();
+
+                if(this.rasters.getRaster(rasterIndex).getMaxY() > maxY)
+                    maxY = this.rasters.getRaster(rasterIndex).getMaxY();
+
+        }
+
+        double numPixelsX = (maxX - minX) / resolution;
+        double numPixelsY = (maxY - minY) / resolution;
+
+
+        System.out.println("Number of pixels: " + numPixelsX + " " + numPixelsY);
+
+        if(overlappin.size() == 0){
+            for(int i = 0; i < trees.size(); i++){
+                trees.get(i).trulyInStand = false;
+            }
+
+            noAuxDataAvailable = true;
+            return;
+        }
+
+        this.auxData = rasters.currenSelectionToArray();
+
+        //System.exit(1);
+
+    }
+
+    public void readMultipleRastersTo2dArray(float[][] array, ArrayList<Integer> overlappin, rasterCollection rasters){
+
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double maxX = Double.NEGATIVE_INFINITY;
+        double maxY = Double.NEGATIVE_INFINITY;
+
+        double resolution = this.rasters.getRaster(0).getResolution();
+
+        for(int i = 0 ; i < overlappin.size(); i++){
+
+            int rasterIndex = overlappin.get(i);
+
+            if(this.rasters.getRaster(rasterIndex).getMinX() < minX)
+                minX = this.rasters.getRaster(rasterIndex).getMinX();
+
+            if(this.rasters.getRaster(rasterIndex).getMinY() < minY)
+                minY = this.rasters.getRaster(rasterIndex).getMinY();
+
+            if(this.rasters.getRaster(rasterIndex).getMaxX() > maxX)
+                maxX = this.rasters.getRaster(rasterIndex).getMaxX();
+
+            if(this.rasters.getRaster(rasterIndex).getMaxY() > maxY)
+                maxY = this.rasters.getRaster(rasterIndex).getMaxY();
+
+        }
+
+        double numPixelsX = (maxX - minX) / resolution;
+        double numPixelsY = (maxY - minY) / resolution;
+
+        array = new float[(int)numPixelsX][(int)numPixelsY];
+
+
+
+    }
+}
+
+// Custom comparator for comparing Person objects based on age
+class treeHeightComparator implements Comparator<Tree> {
+    @Override
+    public int compare(Tree tree1, Tree tree2) {
+        // Compare persons based on their ages
+        return Float.compare(tree2.getHeight()   , tree1.getHeight());
     }
 }

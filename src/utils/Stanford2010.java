@@ -42,6 +42,8 @@ import static tools.ConcaveHull.calculateConcaveHull;
 
 public class Stanford2010 {
 
+    rasterCollection rasters = null;
+
     HashSet<Integer> processedStands = new HashSet<>();
     HashSet<Integer> excludedStands = new HashSet<>();
 
@@ -150,6 +152,10 @@ public class Stanford2010 {
             System.exit(1);
         }
 
+    }
+
+    public void setRasters(rasterCollection rasters){
+        this.rasters = rasters;
     }
 
     public void writeLineToLogfile(String line){
@@ -618,7 +624,7 @@ public class Stanford2010 {
 
                 Feature tempF = shapeFileLayer.GetFeature(i);
 
-                int id = (int)tempF.GetFieldAsDouble("MT_KORJU_3");
+                int id = (int)tempF.GetFieldAsDouble("MT_KORJU_4");
 
                 if(usedStandids.containsKey(id)){
                     usedStandids.put(id, usedStandids.get(id) + 1);
@@ -1603,14 +1609,27 @@ public class Stanford2010 {
                     }
                     */
 
+                    double loglength = -1;
+                    double logdiameterMid = -1;
+                    double logdiameterEnd = -1;
+
+
+
                    if(puutavaralaji == 1){
                        tempTree.volume_kuitu += volume;
 
                        Element stemInfo_ = stemInfo.get(i_).getChild("LogMeasurement", ns);
+                       int size = stemInfo_.getChildren("LogDiameter", ns).size();
 
-                       double loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
-                       double logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
-                       double logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
+                       if(size >= 3) {
+                           loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
+                           logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                           logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
+                       }else{
+                           loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
+                           logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                           logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                       }
 
                        currentHeight += loglength / 2.0 / 100.0;
                        stemCurveX.add(currentHeight);
@@ -1632,10 +1651,17 @@ public class Stanford2010 {
 
                        Element stemInfo_ = stemInfo.get(i_).getChild("LogMeasurement", ns);
 
-                       double loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
-                       double logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
-                       double logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
+                       int size = stemInfo_.getChildren("LogDiameter", ns).size();
 
+                       if(size >= 3) {
+                           loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
+                           logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                           logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
+                       }else{
+                           loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
+                           logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                           logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                       }
                        currentHeight += loglength / 2.0 / 100.0;
                        stemCurveX.add(currentHeight);
                        stemCurveY.add(logdiameterEnd / 10.0);
@@ -1657,10 +1683,17 @@ public class Stanford2010 {
 
                        Element stemInfo_ = stemInfo.get(i_).getChild("LogMeasurement", ns);
 
-                       double loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
-                       double logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
-                       double logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
+                       int size = stemInfo_.getChildren("LogDiameter", ns).size();
 
+                       if(size >= 3) {
+                           loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
+                           logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                           logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
+                       }else{
+                           loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
+                           logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                           logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                       }
                        currentHeight += loglength / 2.0 / 100.0;
                        stemCurveX.add(currentHeight);
                        stemCurveY.add(logdiameterEnd / 10.0);
@@ -1674,10 +1707,17 @@ public class Stanford2010 {
 
                        Element stemInfo_ = stemInfo.get(i_).getChild("LogMeasurement", ns);
 
-                       double loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
-                       double logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
-                       double logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
+                       int size = stemInfo_.getChildren("LogDiameter", ns).size();
 
+                       if(size >= 3) {
+                           loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
+                           logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                           logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
+                       }else{
+                           loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
+                           logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                           logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                       }
                        currentHeight += loglength / 2.0 / 100.0;
                        stemCurveX.add(currentHeight);
                        stemCurveY.add(logdiameterEnd / 10.0);
@@ -1692,10 +1732,17 @@ public class Stanford2010 {
 
                        Element stemInfo_ = stemInfo.get(i_).getChild("LogMeasurement", ns);
 
-                       double loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
-                       double logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
-                       double logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
+                       int size = stemInfo_.getChildren("LogDiameter", ns).size();
 
+                       if(size >= 3) {
+                           loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
+                           logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                           logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(3).getValue());
+                       }else{
+                           loglength = Double.parseDouble(stemInfo_.getChild("LogLength", ns).getValue());
+                           logdiameterMid = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                           logdiameterEnd = Double.parseDouble(stemInfo_.getChildren("LogDiameter", ns).get(0).getValue());
+                       }
                        currentHeight += loglength / 2.0 / 100.0;
                        stemCurveX.add(currentHeight);
                        stemCurveY.add(logdiameterEnd / 10.0);
@@ -2183,25 +2230,34 @@ public class Stanford2010 {
 
         treeLocationEstimator estimator = new treeLocationEstimator(aR);
 
-        if(aR.aux_file != null){
-            estimator.setAuxiliaryDataFile(aR.aux_file);
-            estimator.readRaster();
-
-        }
-
         estimator.setTrees(trees);
         estimator.setStandBoundaries(bufferedHulls);
 
-        if(aR.noEstimation)
+        if(aR.ref.size() > 0){
+            estimator.setRasters(this.rasters);
+        }
+
+        if(aR.aux_file != null){
+
+            estimator.setAuxiliaryDataFile(aR.aux_file);
+            estimator.readRasters();
+
+        }
+
+        rasters.printCurrentSelectionFileNames();
+
+        if(aR.noEstimation || (aR.estimationWithCHM && estimator.noAuxDataAvailable))
             estimator.noEstimation();
         else if(aR.simpleEstimation)
             estimator.simpleEstimation(10, 270, 2);
         else if(aR.simpleEstimationWithProb)
-            estimator.simpleEstimationWithProbabilities(11, 270, 2, new double[]{0.1, 0.2, 0.5, 0.2}, new double[]{2.0, 6.0, 8.0, 10.0});
+            estimator.simpleEstimationWithProbabilities(10, 270, 2, new double[]{0.1, 0.2, 0.5, 0.2}, new double[]{2.0, 6.0, 8.0, 10.0});
         else if(aR.estimationWithCHM)
-            estimator.estimationWithAuxiliaryData(10, 180, 2,
+            estimator.estimationWithAuxiliaryData(10, 270, 2,
                             new double[]{0.1, 0.2, 0.5, 0.2}, new double[]{2.0, 6.0, 8.0, 10.0}, 15.0);
 
+
+        rasters.closeCurrentSelection();
         //
 
         //estimator.estimationWithAuxiliaryData(10, 180, 2,
@@ -2612,7 +2668,7 @@ public class Stanford2010 {
 
             while(!pointCloud.index_read_terminated){
 
-                int p = pointCloud.fastReadFromQuery(tempPoint2);
+                long p = pointCloud.fastReadFromQuery(tempPoint2);
                             /* Reading, so ask if this point is ok, or if
                             it should be modified.
                              */

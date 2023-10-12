@@ -1336,7 +1336,7 @@ public class MKid4pointsLAS{
 
                             if(asd.indexContainsStuff()) {
 
-                                        int p = 0;
+                                        long p = 0;
 
                                         while(!asd.index_read_terminated){
 
