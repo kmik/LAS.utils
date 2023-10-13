@@ -83,7 +83,9 @@ public class lasClipMetricOfile {
 
         try {
 
-            echo_class_files.add(aR.fo.createNewFileWithNewExtension(in, "_metrics_a.txt"));
+            //echo_class_files.add(aR.fo.createNewFileWithNewExtension(in, "_metrics_a.txt"));
+            echo_class_files.add(aR.createOutputFile(in, "_metrics_a.txt"));
+
             echo_class_FileWriter.add(new FileWriter(echo_class_files.get(echo_class_files.size()-1)));
 
 
@@ -99,7 +101,11 @@ public class lasClipMetricOfile {
 
         try {
 
-            echo_class_files.add(aR.fo.createNewFileWithNewExtension(in, ext));
+            //echo_class_files.add(aR.fo.createNewFileWithNewExtension(in, ext));
+            echo_class_files.add(aR.createOutputFile(in, ext));
+
+
+
             echo_class_FileWriter.add(new FileWriter(echo_class_files.get(echo_class_files.size()-1)));
 
 

@@ -493,10 +493,18 @@ public class treeLocationEstimator {
                     }
 
                     //max(1, 2.5 - (highest * 0.5) - (deltaH * 0.1))
-                    //if(counter > 0 && (distanceToNearestTree >  ( Math.max(1, 2.5 - (highest * 0.5) - (deltah * 0.1)) - lowerDistanceBy_))){
-                    if(distanceToNearestTree > minDistanceBetweenTrees){
+                    if((distanceToNearestTree > ( Math.max(1, 2.5 - (highest * 0.5) - (deltah * 0.1)) - lowerDistanceBy_))){
+                    //if(distanceToNearestTree > minDistanceBetweenTrees){
                         distanceCondition = true;
                     }
+
+                    if(floatArray[0] > maxDistanceToCHM){
+                        numberOfTries_CHM++;
+
+                    }
+
+                    if(!distanceCondition || !insideStand)
+                        numberOfTries_other++;
 
                     //System.out.println("raster value: " + floatArray[0] + " tree height: " + treeHeight + " distanceToNearest " + distanceToNearestTree);
                     if(nTries % nTriesBeforeLowerStandards == 0){
@@ -508,7 +516,7 @@ public class treeLocationEstimator {
                             maxBoomAngle += 25;
                             minDistanceBetweenTrees -= lowerDistanceBy;
 
-                            //lowerDistanceBy_ += lowerDistanceBy;
+                            lowerDistanceBy_ += lowerDistanceBy;
                         }
                         //maxBoomDistance += 0.5;
 
@@ -517,13 +525,7 @@ public class treeLocationEstimator {
 
                     }
 
-                    if(floatArray[0] > maxDistanceToCHM){
-                        numberOfTries_CHM++;
 
-                    }
-
-                    if(!distanceCondition || !insideStand)
-                        numberOfTries_other++;
 
                 }
 

@@ -17,6 +17,7 @@ public class fileOperations {
 
     public File createNewFileWithNewExtension(File file, String extension){
 
+
         return new File(file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(".")) + extension);
 
 

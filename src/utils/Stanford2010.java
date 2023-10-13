@@ -51,7 +51,7 @@ public class Stanford2010 {
     double plotRadius = 9;
     int runningId = 0;
 
-    int concave_hull_k = 75;
+    int concave_hull_k = 35;
     ArrayList<String> failedFiles = new ArrayList<>();
     ArrayList<int[]> failedFilesProps = new ArrayList<>();
     File xml_file;
@@ -624,7 +624,7 @@ public class Stanford2010 {
 
                 Feature tempF = shapeFileLayer.GetFeature(i);
 
-                int id = (int)tempF.GetFieldAsDouble("MT_KORJU_4");
+                int id = (int)tempF.GetFieldAsDouble("MT_KORJUUT");
 
                 if(usedStandids.containsKey(id)){
                     usedStandids.put(id, usedStandids.get(id) + 1);
@@ -972,7 +972,7 @@ public class Stanford2010 {
 
             for(Tree tree : treesInStand){
 
-                KdTree.XYZPoint point = new KdTree.XYZPoint(tree.getX_coordinate_machine(), tree.getY_coordinate_machine(), 0, tree.id);
+                KdTree.XYZPoint point = new KdTree.XYZPoint(tree.getX_coordinate_estimated(), tree.getY_coordinate_estimated(), 0, tree.id);
 
                 tmpTree.add(point);
 

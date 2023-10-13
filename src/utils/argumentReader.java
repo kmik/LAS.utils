@@ -3429,6 +3429,7 @@ public class argumentReader {
         }
 
         String extensionHere = tempFile.getName().substring(tempFile.getName().lastIndexOf("."));
+
         if(tempFile.exists()){
             tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
         }
@@ -3442,6 +3443,42 @@ public class argumentReader {
         return tempFile;
 
     }
+
+    public File createOutputFile(File in, String extension) throws IOException {
+
+        //File tempFile = null;
+        //String tempPath = this.output;
+
+        File tempFile = new File(in.getAbsolutePath().substring(0, in.getAbsolutePath().lastIndexOf(".")) + extension);
+
+        //if(this.output.equals("asd"))
+       //     tempFile = in;
+        //else
+        //    tempFile = new File(this.output);
+
+        if(!odir.equals("asd")) {
+
+            File diri = new File(odir);
+
+            tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
+        }
+
+        String extensionHere = tempFile.getName().substring(tempFile.getName().lastIndexOf("."));
+
+        if(tempFile.exists()){
+            tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
+        }
+
+        if(tempFile.exists())
+            tempFile.delete();
+
+
+        tempFile.createNewFile();
+
+        return tempFile;
+
+    }
+
 
     public File createOutputFile(LASReader in) throws IOException {
 
