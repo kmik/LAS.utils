@@ -594,6 +594,9 @@ public class lasRasterTools {
             rasterWidthHeight_[0] = raster.GetRasterXSize();
             rasterWidthHeight_[1] = raster.GetRasterYSize();
 
+            rasterWidthHeight.add(rasterWidthHeight_);
+
+
             rasterBoundingBoxes.add(new double[]{rasterExtent[0], rasterExtent[3] + rasterExtent[5] * rasterWidthHeight_[1],rasterExtent[0] + rasterExtent[1] * rasterWidthHeight_[0],  rasterExtent[3]});
 
             rasterBands.add(raster.GetRasterBand(1));
