@@ -346,7 +346,13 @@ public class lasRasterTools {
 
     public void rasterize(LASReader pointCloud, double resolution){
 
+        String outputFileNameMask = "notAssigned";
+
         String outputFileName = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster.tif").getAbsolutePath();
+
+        if(aR.outputMask){
+            outputFileNameMask = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_mask.tif").getAbsolutePath();
+        }
 
         double pointCloudMinX = pointCloud.getMinX() - aR.res/2.0;
         double pointCloudMinY = pointCloud.getMinY() - aR.res/2.0;
@@ -381,10 +387,15 @@ public class lasRasterTools {
         Dataset cehoam;
         String compressionOptions = "COMPRESS=LZW";
 
+        Dataset mask = null;
         try {
             cehoam = driver.Create(outputFileName, rasterWidth, rasterHeight, 1, gdalconst.GDT_Float32);
             //cehoam.SetMetadataItem("COMPRESSION", compressionOptions);
 
+            if(aR.outputMask){
+                mask = driver.Create(outputFileNameMask, rasterWidth, rasterHeight, 1, gdalconst.GDT_Byte);
+                //mask.SetMetadataItem("COMPRESSION", compressionOptions);
+            }
 
         }catch (Exception e){
             System.out.println("Not enough points! Are you using remove_buffer and ALL points in this .las file are part of the buffer?");
@@ -392,6 +403,13 @@ public class lasRasterTools {
         }
         //cehoam.SetMetadataItem("test", "leaf-off");
         Band band = cehoam.GetRasterBand(1);
+
+        Band maskBand = null;
+
+        if(aR.outputMask){
+            maskBand = mask.GetRasterBand(1);
+
+        }
 
         band.SetNoDataValue(Float.NaN);
 
@@ -402,7 +420,13 @@ public class lasRasterTools {
         cehoam.SetProjection(sr.ExportToWkt());
         cehoam.SetGeoTransform(geoTransform);
 
+        if(aR.outputMask){
+            mask.SetProjection(sr.ExportToWkt());
+            mask.SetGeoTransform(geoTransform);
+        }
+
         double[][] chm_array = new double[rasterWidth][rasterHeight];
+        boolean[][] mask_array = new boolean[rasterWidth][rasterHeight];
 
         double minx = pointCloud.getMinX();
         double miny = pointCloud.getMinY();
@@ -448,12 +472,17 @@ public class lasRasterTools {
                     else{
 
                     }
+
+                    if(tempPoint.synthetic){
+                        mask_array[x][y] = true;
+                    }
                 }
 
             }
         }
 
         copyRasterContents(chm_array, band);
+        copyRasterContents(mask_array, maskBand);
 
         //String[] options = new String[]{"COMPRESS=LZW"};
 
@@ -499,6 +528,30 @@ public class lasRasterTools {
             for(int x_ = 0; x_ < from.length; x_++){
 
                 read[counter++] = (float)from[x_][y_];
+
+            }
+        }
+
+        to.WriteRaster(0, 0, x, y, read);
+
+    }
+
+    public static void copyRasterContents(boolean[][] from, Band to){
+
+        int x = to.getXSize();
+        int y = to.getYSize();
+
+        float[] read = new float[x*y];
+
+        int counter = 0;
+
+        for(int y_ = 0; y_ < from[0].length; y_++){
+            for(int x_ = 0; x_ < from.length; x_++){
+
+                if(from[x_][y_])
+                    read[counter++] = 1;
+                else
+                    read[counter++] = 0;
 
             }
         }
@@ -590,11 +643,17 @@ public class lasRasterTools {
                 for(int x = extentInPixelCoordinates[0]; x <= extentInPixelCoordinates[2]; x++){
                     for(int y = extentInPixelCoordinates[1]; y <= extentInPixelCoordinates[3]; y++){
 
+                        if(x < 0 || y < 0 || x >= rasterWidthHeight.get(j)[0] || y >= rasterWidthHeight.get(j)[1]){
+                            continue;
+                        }
+
                         double[] realCoordinates = new double[2];
                         realCoordinates[0] = rasterExtents.get(j)[0] + x * rasterExtents.get(j)[1] + rasterExtents.get(j)[1] / 2;
                         realCoordinates[1] = rasterExtents.get(j)[3] + y * rasterExtents.get(j)[5] + rasterExtents.get(j)[5] / 2;
 
                         boolean pointInPolygon = pointInPolygon(realCoordinates, polygon, polygonHoles, polyIds.get(i));
+
+
 
                         if(pointInPolygon) {
                             band.ReadRaster(x, y, 1, 1, readValue);

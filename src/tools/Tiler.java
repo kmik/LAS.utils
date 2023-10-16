@@ -273,7 +273,6 @@ public class Tiler{
                 if(!aR.MML_klj)
                     tileName = "";
 
-
                 if(aR.buffer > 0) {
                     temp = aR.createOutputFileWithExtension(pointClouds.get(0), "_tile_" + (int) i + "_" + (int) j + "_" + (int) aR.step + "m_buf_" + (int) aR.buffer + "_" + tileName + ".las");
                 }else {

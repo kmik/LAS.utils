@@ -29,6 +29,7 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public boolean outputMask = false;
     public String metadatafile = null;
     public boolean mapSheetExtent = false;
     public boolean noLasUtilsInput = false;
@@ -1205,6 +1206,13 @@ public class argumentReader {
                 .required(false)
                 .build());
 
+        options.addOption(Option.builder()
+                .longOpt("export_mask")
+                .hasArg(false)
+                .desc("name of the file to be saved")
+                .required(false)
+                .build());
+
         options.addOption(Option.builder("c")
                 .longOpt("cores")
                 .hasArg(true)
@@ -2326,6 +2334,12 @@ public class argumentReader {
 
             }
 
+
+            if (cmd.hasOption("export_mask")) {
+
+                this.outputMask = true;
+
+            }
 
             if (cmd.hasOption("extra_byte")) {
 
