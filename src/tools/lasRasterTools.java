@@ -510,6 +510,22 @@ public class lasRasterTools {
 
         }
 
+        if(aR.outputMask){
+            Dataset outputDatasetMask = gdal.GetDriverByName("GTiff").CreateCopy(outputFileNameMask, mask, 0, options);
+
+            if(this.metadata.size() > 0){
+
+                for(int i = 0; i < this.metadata.size(); i++){
+
+                    outputDatasetMask.SetMetadataItem(this.metadata.get(i).getKey(), this.metadata.get(i).getValue());
+
+                }
+
+            }
+
+            outputDatasetMask.FlushCache();
+        }
+
 
         outputDataset.FlushCache();
 
@@ -655,8 +671,6 @@ public class lasRasterTools {
                         realCoordinates[1] = rasterExtents.get(j)[3] + y * rasterExtents.get(j)[5] + rasterExtents.get(j)[5] / 2;
 
                         boolean pointInPolygon = pointInPolygon(realCoordinates, polygon, polygonHoles, polyIds.get(i));
-
-
 
                         if(pointInPolygon) {
                             band.ReadRaster(x, y, 1, 1, readValue);

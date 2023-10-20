@@ -16,6 +16,8 @@ import com.vividsolutions.jts.index.strtree.STRtree;
 
 public class treeLocationEstimator {
 
+    HashMap<Integer, Polygon> standPolygons = null;
+    Random random = new Random();
     rasterCollection rasters = new rasterCollection();
     float[][] auxData = null;
 
@@ -49,6 +51,12 @@ public class treeLocationEstimator {
 
     }
 
+    public void setSeed(int seed){
+
+        random.setSeed(seed);
+
+    }
+
     public void setTrees(ArrayList<Tree> trees){
         this.trees = trees;
     }
@@ -63,6 +71,12 @@ public class treeLocationEstimator {
         for(int i = 0; i < trees_.length; i++){
             trees_sorted.add(trees_[i]);
         }
+    }
+
+    public void setStandPolygons(HashMap<Integer, Polygon> standPolygons){
+
+        this.standPolygons = standPolygons;
+
     }
 
 
@@ -129,13 +143,24 @@ public class treeLocationEstimator {
         boolean notFirst = false;
 
         int nTriesBeforeLowerStandards = 100;
+        boolean imposibleHole = false;
+
+
+        double lowerDistanceBy = 0.25;
+        double lowerDistanceBy_ = 0.0;
+
+        boolean distanceCondition = false;
+        int counter = 0;
+        double deltah = 0.5;
+        double highest = 0;
 
         for(int i = 0; i < trees.size(); i++){
 
 
+
             maxBoomAngle = maxBoomAngleOriginal;
             minDistanceBetweenTrees = minDistanceBetweenTreesOriginal;
-
+            lowerDistanceBy_ = 0.0;
 
             if(!trees.get(i).trulyInStand)
                 continue;
@@ -156,9 +181,12 @@ public class treeLocationEstimator {
 
             if(notFirst){
 
+                distanceCondition = false;
                 int nTries = 0;
+                int nFailedBecauseImpossibleHole = 0;
 
-                while(distanceToNearestTree <= minDistanceBetweenTrees || !insideStand){
+                //while(distanceToNearestTree <= minDistanceBetweenTrees || !insideStand){
+                while(!distanceCondition || !insideStand){
 
                     distance = randomDouble(3, maxBoomDistance);
                     angle = trees.get(i).getMachineBearing() + randomDouble(-maxBoomAngle/2.0, maxBoomAngle/2.0);
@@ -175,14 +203,53 @@ public class treeLocationEstimator {
 
                     insideStand = pointInPolygon(standBoundaries_.get(standId), translatedCoordinates);
 
+                    boolean insideHole = false;
+
+                    if(!imposibleHole)
+                        if(standPolygons.get(standId).hasHole()){
+                            for(int i_ = 0; i_ < standPolygons.get(standId).holes.size(); i_++){
+
+                                if(standPolygons.get(standId).pointInPolygon(standPolygons.get(standId).holes.get(i_), translatedCoordinates)){
+                                    insideStand = false;
+                                    insideHole = true;
+                                    nFailedBecauseImpossibleHole++;
+                                    break;
+                                }
+                            }
+                        }
+
+                    //nearest = (List< KdTree.XYZPoint>) kdTree.nearestNeighbourSearch(1, point);
+
                     nearest = (List< KdTree.XYZPoint>) kdTree.nearestNeighbourSearch(1, point);
 
-                    distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
+                    if(counter > 0) {
+                        nearest = (List<KdTree.XYZPoint>) kdTree.nearestNeighbourSearch(1, point);
 
+                        distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
+
+                        deltah = Math.abs(trees.get(i).getHeight() - trees.get(nearest.get(0).getIndex()).getHeight());
+                        highest = Math.max(trees.get(i).getHeight(), trees.get(nearest.get(0).getIndex()).getHeight());
+
+
+                    }else{
+                        distanceCondition = true;
+                    }
+
+                    //distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
+                    if((distanceToNearestTree > (( Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))){
+                        //if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
+                        distanceCondition = true;
+                    }
                     nTries++;
 
                     if(nTries % nTriesBeforeLowerStandards == 0){
+
+                        if((double)nFailedBecauseImpossibleHole / (double)nTriesBeforeLowerStandards > 0.75) {
+                            imposibleHole = true;
+                        }
+                        nFailedBecauseImpossibleHole = 0;
                         maxBoomAngle += 50;
+                        lowerDistanceBy_ += lowerDistanceBy;
                         //maxBoomDistance += 0.5;
                         minDistanceBetweenTrees -= 0.25;
                     }
@@ -208,8 +275,9 @@ public class treeLocationEstimator {
                     kdTree.add(trees.get(i).toXYZPoint_estimatedCoords());
             }
 
-            System.out.println(i);
+            //System.out.println(i);
             notFirst = true;
+            counter++;
         }
     }
 
@@ -248,11 +316,21 @@ public class treeLocationEstimator {
 
         double maxBoomAngleOriginal = maxBoomAngle;
         double minDistanceBetweenTreesOriginal = minDistanceBetweenTrees;
+        boolean imposibleHole = false;
+
+        double lowerDistanceBy = 0.25;
+        double lowerDistanceBy_ = 0.0;
+
+        boolean distanceCondition = false;
+
+        double deltah = 0.5;
+        double highest = 0;
 
         for(int i = 0; i < trees.size(); i++){
 
             maxBoomAngle = maxBoomAngleOriginal;
             minDistanceBetweenTrees = minDistanceBetweenTreesOriginal;
+            lowerDistanceBy_ = 0.0;
 
             if(!trees.get(i).trulyInStand)
                 continue;
@@ -275,10 +353,14 @@ public class treeLocationEstimator {
 
                 int nTries = 0;
 
+                int nFailedBecauseImpossibleHole = 0;
+
+                distanceCondition = false;
+
                 if(trees.get(i).id == 811){
                     //System.out.println("debug " + trees.get(i).boomAngle);
                 }
-                while(distanceToNearestTree <= minDistanceBetweenTrees || !insideStand){
+                while(!distanceCondition || !insideStand){
 
                     distance = generateRandomDistance(boomDistanceProbabilities, boomDistanceRanges);
                     angle = trees.get(i).getMachineBearing() + randomDouble(-maxBoomAngle/2.0, maxBoomAngle/2.0);
@@ -290,15 +372,54 @@ public class treeLocationEstimator {
 
                     insideStand = pointInPolygon(standBoundaries_.get(standId), translatedCoordinates);
 
+                    if(!imposibleHole)
+                    if(standPolygons.get(standId).hasHole()){
+                        for(int i_ = 0; i_ < standPolygons.get(standId).holes.size(); i_++){
+
+                            if(standPolygons.get(standId).pointInPolygon(standPolygons.get(standId).holes.get(i_), translatedCoordinates)){
+                                insideStand = false;
+                                nFailedBecauseImpossibleHole++;
+                                break;
+                            }
+                        }
+                    }
+
                     nearest = (List< KdTree.XYZPoint>) kdTree.nearestNeighbourSearch(1, point);
 
-                    distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
+                    if(counter > 0) {
+                        nearest = (List<KdTree.XYZPoint>) kdTree.nearestNeighbourSearch(1, point);
+
+                        distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
+
+                        deltah = Math.abs(trees.get(i).getHeight() - trees.get(nearest.get(0).getIndex()).getHeight());
+                        highest = Math.max(trees.get(i).getHeight(), trees.get(nearest.get(0).getIndex()).getHeight());
+
+
+                    }else{
+                        distanceCondition = true;
+                    }
+
+                    //distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
+
+
+                    if((distanceToNearestTree > (( Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))){
+                        //if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
+                        distanceCondition = true;
+                    }
 
                     nTries++;
 
                     if(nTries % nTriesBeforeLowerStandards == 0){
+
+                        if((double)nFailedBecauseImpossibleHole / (double)nTriesBeforeLowerStandards > 0.75) {
+                            imposibleHole = true;
+                        }
+
+                        nFailedBecauseImpossibleHole = 0;
+
                         maxBoomAngle += 50;
                         minDistanceBetweenTrees -= 0.25;
+                        lowerDistanceBy_ += lowerDistanceBy;
                         //maxBoomDistance += 0.5;
                         startPrinting = true;
                     }
@@ -375,7 +496,7 @@ public class treeLocationEstimator {
         KdTree.XYZPoint point = new KdTree.XYZPoint(0,0,0);
         List<KdTree.XYZPoint> nearest = new ArrayList<KdTree.XYZPoint>();
         int counter = 0;
-        int nTriesBeforeLowerStandards = 100;
+        int nTriesBeforeLowerStandards = 500;
 
         double lowerDistanceBy = 0.25;
         double lowerDistanceBy_ = 0.0;
@@ -387,6 +508,9 @@ public class treeLocationEstimator {
 
         this.sortTreesByHeight();
 
+        boolean imposibleHole = false;
+
+        int treeSize = 0;
 
         for(int i = 0; i < trees_sorted.size(); i++){
 
@@ -401,6 +525,8 @@ public class treeLocationEstimator {
             double distance = randomDouble(0, maxBoomDistance);
             double angle = randomDouble(-maxBoomAngle/2.0, maxBoomAngle/2.0);
 
+            if(trees_sorted.get(i).getX_coordinate_machine() <= 10 || trees_sorted.get(i).getY_coordinate_machine() <= 10)
+                continue;
             //double[] debug = translatePoint(0,0, 1.414214, 45);
 
             //System.out.println(Arrays.toString(debug));
@@ -437,6 +563,8 @@ public class treeLocationEstimator {
                 int nTries = 0;
 
                 floatArray[0] = 0;
+
+                int nFailedBecauseImpossibleHole = 0;
 
                 while(!distanceCondition || !insideStand || floatArray[0] > maxDistanceToCHM){
 
@@ -475,6 +603,23 @@ public class treeLocationEstimator {
                     point.setY(translatedCoordinates[1]);
 
                     insideStand = pointInPolygon(standBoundaries_.get(standId), translatedCoordinates);
+                    boolean insideHole = false;
+
+                    if(!imposibleHole)
+                    if(standPolygons.get(standId).hasHole()){
+                        for(int i_ = 0; i_ < standPolygons.get(standId).holes.size(); i_++){
+
+                            if(standPolygons.get(standId).pointInPolygon(standPolygons.get(standId).holes.get(i_), translatedCoordinates)){
+                                insideStand = false;
+                                insideHole = true;
+                                nFailedBecauseImpossibleHole++;
+                                break;
+                            }
+                        }
+                    }
+
+                    //if(counter == 52)
+                    //    System.out.println("prog: " + nFailedBecauseImpossibleHole);
 
                     double deltah = 0;
                     double highest = 0;
@@ -493,8 +638,10 @@ public class treeLocationEstimator {
                     }
 
                     //max(1, 2.5 - (highest * 0.5) - (deltaH * 0.1))
-                    if((distanceToNearestTree > ( Math.max(1, 2.5 - (highest * 0.5) - (deltah * 0.1)) - lowerDistanceBy_))){
-                    //if(distanceToNearestTree > minDistanceBetweenTrees){
+                    //if((distanceToNearestTree > ( Math.max(1, 2.5 - (highest * 0.5) - (deltah * 0.1)) - lowerDistanceBy_))){
+                    //System.out.println(deltah + " " + highest + " " + distanceToNearestTree + " " + ( Math.max(0.75, highest * 0.1 - deltah * 0.1)) + " " + i);
+                    if((distanceToNearestTree > (( Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))){
+                    //if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
                         distanceCondition = true;
                     }
 
@@ -506,19 +653,48 @@ public class treeLocationEstimator {
                     if(!distanceCondition || !insideStand)
                         numberOfTries_other++;
 
+                    nTries++;
                     //System.out.println("raster value: " + floatArray[0] + " tree height: " + treeHeight + " distanceToNearest " + distanceToNearestTree);
                     if(nTries % nTriesBeforeLowerStandards == 0){
 
-                        if(numberOfTries_CHM > numberOfTries_other){
+                       // System.out.println((double)nFailedBecauseImpossibleHole / (double)nTriesBeforeLowerStandards);
+
+                        if((double)nFailedBecauseImpossibleHole / (double)nTriesBeforeLowerStandards > 0.75) {
+                            //System.out.println("IMPOSSIBLE HOLE");
+                            //System.exit(1);
+                            imposibleHole = true;
+                        }
+
+
+                        //System.out.println("HERE! " + nFailedBecauseImpossibleHole + " " + nTriesBeforeLowerStandards + " " + imposibleHole + " " + counter);
+                        if(insideHole){
+                            System.out.println("HERE! " + nFailedBecauseImpossibleHole + " " + nTriesBeforeLowerStandards + " " + imposibleHole + " " + counter);
+                            //System.out.println(trees_sorted.get(i).getX_coordinate_machine() + " " + trees_sorted.get(i).getY_coordinate_machine());
+                            maxDistanceToCHM += lowerDistanceToCHMBy;
+                            maxBoomAngle += 25;
+                            minDistanceBetweenTrees -= lowerDistanceBy;
+                            lowerDistanceBy_ += lowerDistanceBy;
+                            //System.exit(1);
+                        }
+                        else if(numberOfTries_CHM > numberOfTries_other){
+                            maxDistanceToCHM += lowerDistanceToCHMBy;
+                        }
+                        else if(maxBoomAngle >= 360 && lowerDistanceBy_ < 0.5){
                             maxDistanceToCHM += lowerDistanceToCHMBy;
                         }
                         else {
                             maxBoomAngle += 25;
                             minDistanceBetweenTrees -= lowerDistanceBy;
-
-                            lowerDistanceBy_ += lowerDistanceBy;
+                            //lowerDistanceBy_ += lowerDistanceBy;
                         }
+
+                        if(nTries > (3 * nTriesBeforeLowerStandards))
+                            lowerDistanceBy_ += lowerDistanceBy;
+
+                        nFailedBecauseImpossibleHole = 0;
                         //maxBoomDistance += 0.5;
+
+                        //System.out.println(maxBoomAngle + " " + maxDistanceToCHM + " " + minDistanceBetweenTrees + " " + lowerDistanceBy_ + " " + lowerDistanceToCHMBy + " " + i);
 
                         if( Math.abs(treeHeight - maxDistanceToCHM) < 5)
                             switchToAbsoluteValueInChm = true;
@@ -538,7 +714,7 @@ public class treeLocationEstimator {
                 trees_sorted.get(i).setBoomExtension(distance);
 
                 kdTree.add(trees_sorted.get(i).toXYZPoint_estimatedCoords(i));
-
+                //System.out.println("tree size: " + treeSize++);
                 if(treeOutsideCHM){
                     System.out.println("tree outside CHM");
                     for(int i_ = 0; i_ < trees_sorted.size(); i_++){
@@ -560,6 +736,10 @@ public class treeLocationEstimator {
 
             counter++;
         }
+
+        kdTree = null;
+        System.gc();
+        System.gc();
 
     }
 
@@ -590,6 +770,12 @@ public class treeLocationEstimator {
         lm.optimize(residFunctionPREMOTOR, param);
 
          */
+
+
+
+    }
+
+    public void releaseMemory(){
 
 
 
@@ -647,7 +833,8 @@ public class treeLocationEstimator {
 
 
     public double randomDouble(double min, double max){
-        return min + (max - min) * Math.random();
+        return min + (max - min) * random.nextDouble();
+        //return min + (max - min) * Math.random();
     }
 
     public double[] translatePoint(double initialX, double initialY, double distance, double angleInDegrees) {

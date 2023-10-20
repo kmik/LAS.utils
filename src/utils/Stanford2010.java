@@ -34,6 +34,9 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 import static java.io.File.pathSeparator;
@@ -41,6 +44,9 @@ import static tools.Boundary.angleBetween;
 import static tools.ConcaveHull.calculateConcaveHull;
 
 public class Stanford2010 {
+
+    String LIDAR_ACQUISITION_DATE = "2020-06-22T20:57:36+02:00";
+    String LIDAR_ACQUISITION_DEBUG = "2021-03-26T20:57:36+02:00";
 
     rasterCollection rasters = null;
 
@@ -59,7 +65,12 @@ public class Stanford2010 {
 
     public double maxDistanceFromStandBorder = 25;
     HashMap<Integer, double[][]> standBounds = new HashMap<>();
+
+    HashMap<Integer, double[][]> standHoles = new HashMap<>();
     HashMap<Integer, double[]> standCentroids = new HashMap<>();
+
+    HashMap<Integer, Polygon> standPolygons = new HashMap<>();
+
 
     KdTree centroids = new KdTree();
 
@@ -132,7 +143,15 @@ public class Stanford2010 {
         String pathSeparator = System.getProperty("file.separator");
         File output_directory = new File(aR.odir + pathSeparator);
         logFile = new File(output_directory.getAbsolutePath() + pathSeparator + "log.txt");
+        if(logFile.exists()){
+            logFile.delete();
+        }
 
+        try{
+            logFile.createNewFile();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         try {
             logWriter = new BufferedWriter(new FileWriter(logFile));
         }catch (Exception e){
@@ -618,6 +637,10 @@ public class Stanford2010 {
         HashSet<Integer> usedIds = new HashSet<>();
         HashMap<Integer, Integer> usedStandids = new HashMap<>();
 
+        boolean debugPrint = false;
+
+
+
         for(long i = 0; i < shapeFileLayer.GetFeatureCount(); i++ ) {
 
             if(true) {
@@ -625,6 +648,9 @@ public class Stanford2010 {
                 Feature tempF = shapeFileLayer.GetFeature(i);
 
                 int id = (int)tempF.GetFieldAsDouble("MT_KORJUUT");
+
+                if(id == 1000230805)
+                    debugPrint = true;
 
                 if(usedStandids.containsKey(id)){
                     usedStandids.put(id, usedStandids.get(id) + 1);
@@ -647,43 +673,71 @@ public class Stanford2010 {
                 Geometry tempG = tempF.GetGeometryRef();
 
 
-                //System.out.println(tempG.GetGeometryName());
+                System.out.println(tempG.GetGeometryName());
 // check if geometry is a MultiPolygon
                 if (tempG.GetGeometryName().equals("MULTIPOLYGON")) {
                     //System.out.println("here1 " + tempF.GetFieldAsInteger(0));
+
+                    System.out.println("MULTIPOLYGON");
+
                     int numGeom = tempG.GetGeometryCount();
 
                     for (int j = 0; j < numGeom; j++) {
 
+                        int numGeom2 = tempG.GetGeometryRef(j).GetGeometryCount();
+
                         shapeId++;
-                        Geometry tempG2 = tempG.GetGeometryRef(j).GetGeometryRef(0);
 
-                        //System
-                        //System.out.println(tempG2.GetGeometryName());
+                        for(int j_ = 0; j_ < numGeom2; j_++){
 
-                        if (tempG2.GetGeometryName().equals("LINEARRING")) {
+                            Geometry tempG2 = tempG.GetGeometryRef(j).GetGeometryRef(j_);
 
-                            if (tempG2 == null || tempG2.GetPoints() == null) {
-                                continue;
+                            //System
+                            //System.out.println(tempG2.GetGeometryName());
+
+                            if (tempG2.GetGeometryName().equals("LINEARRING")) {
+
+                                if (tempG2 == null || tempG2.GetPoints() == null) {
+                                    continue;
+                                }
+
+                                if(j_ == 0) {
+
+                                    Polygon tempP = new Polygon();
+
+                                    double[] centroid = tempG.GetGeometryRef(j).Centroid().GetPoint(0);
+                                    //System.out.println("here3 " + tempF.GetFieldAsInteger(0));
+                                    standBounds.put(shapeId, clone2DArray(tempG2.GetPoints()));
+                                    //System.out.println("here4 " + tempF.GetFieldAsInteger(0));
+                                    standCentroids.put(shapeId, new double[]{centroid[0], centroid[1]});
+
+                                    //System.out.println("here5 " + tempF.GetFieldAsInteger(0));
+                                    centroids.add(new KdTree.XYZPoint(centroid[0], centroid[1], 0, shapeId));
+
+                                    tempP.addOuterRing(clone2DArray(tempG2.GetPoints()));
+                                    tempP.setId(shapeId);
+                                    standPolygons.put(shapeId, tempP);
+
+
+                                    standPolygons.put(shapeId, new Polygon());
+
+                                    if (usedIds.contains(shapeId)) {
+                                        System.out.println("duplicate id: " + shapeId);
+                                        System.exit(1);
+                                    }
+                                    usedIds.add(shapeId);
+
+                                }else{
+                                    standHoles.put(shapeId, clone2DArray(tempG2.GetPoints()));
+
+                                    standPolygons.get(shapeId).addHole(clone2DArray(tempG2.GetPoints()));
+
+                                }
+
+
+                                //System.out.println("centroid: " + centroid[0] + " " + centroid[1] + " " + shapeId);
+                                //System.out.println("here6 " + tempF.GetFieldAsInteger(0));
                             }
-
-
-                            double[] centroid = tempG.GetGeometryRef(j).Centroid().GetPoint(0);
-                            //System.out.println("here3 " + tempF.GetFieldAsInteger(0));
-                            standBounds.put(shapeId, clone2DArray(tempG2.GetPoints()));
-                            //System.out.println("here4 " + tempF.GetFieldAsInteger(0));
-                            standCentroids.put(shapeId, new double[]{centroid[0], centroid[1]});
-                            //System.out.println("here5 " + tempF.GetFieldAsInteger(0));
-                            centroids.add(new KdTree.XYZPoint(centroid[0], centroid[1], 0, shapeId));
-
-                            if(usedIds.contains(shapeId)){
-                                System.out.println("duplicate id: " + shapeId);
-                                System.exit(1);
-                            }
-                            usedIds.add(shapeId);
-
-                            System.out.println("centroid: " + centroid[0] + " " + centroid[1] + " " + shapeId);
-                            //System.out.println("here6 " + tempF.GetFieldAsInteger(0));
                         }
                     }
                 } else if (tempG.GetGeometryName().equals("POLYGON")) {
@@ -694,23 +748,58 @@ public class Stanford2010 {
                     //System.out.println(tempG2.GetPointCount() + " " + tempG2.GetGeometryName().equals("LINEARRING"));
                     shapeId++;
 
+                    int numGeom = tempG.GetGeometryCount();
+
+                    System.out.println("numGeom: " + numGeom);
+
                     if (tempG2.GetGeometryName().equals("LINEARRING")) {
 
 
-                        if (tempG2 == null || tempG2.GetPoints() == null) {
-                            continue;
-                        }
-                        double[] centroid = tempG.Centroid().GetPoint(0);
-                        standBounds.put(shapeId, clone2DArray(tempG2.GetPoints()));
-                        standCentroids.put(shapeId, new double[]{centroid[0], centroid[1]});
-                        centroids.add(new KdTree.XYZPoint(centroid[0], centroid[1], 0, shapeId));
+                        for(int j = 0; j < numGeom; j++) {
 
-                        if(usedIds.contains(shapeId)){
-                            System.out.println("duplicate id: " + shapeId);
-                            System.exit(1);
-                        }
-                        usedIds.add(shapeId);
+                            Geometry tempG3 = tempG.GetGeometryRef(j);
 
+
+                            System.out.println("POINTS: " + tempG3.GetPointCount());
+
+                            if (tempG3 == null || tempG3.GetPoints() == null) {
+                                continue;
+                            }
+
+
+                            if (j == 0){
+
+                                Polygon tempP = new Polygon();
+
+                                double[] centroid = tempG.GetGeometryRef(j).Centroid().GetPoint(0);
+                                //System.out.println("here3 " + tempF.GetFieldAsInteger(0));
+                                standBounds.put(shapeId, clone2DArray(tempG3.GetPoints()));
+                                //System.out.println("here4 " + tempF.GetFieldAsInteger(0));
+                                standCentroids.put(shapeId, new double[]{centroid[0], centroid[1]});
+
+                                //System.out.println("here5 " + tempF.GetFieldAsInteger(0));
+                                centroids.add(new KdTree.XYZPoint(centroid[0], centroid[1], 0, shapeId));
+
+                                tempP.addOuterRing(clone2DArray(tempG3.GetPoints()));
+                                tempP.setId(shapeId);
+                                standPolygons.put(shapeId, tempP);
+
+
+                                standPolygons.put(shapeId, new Polygon());
+
+                                if (usedIds.contains(shapeId)) {
+                                    System.out.println("duplicate id: " + shapeId);
+                                    System.exit(1);
+                                }
+                                usedIds.add(shapeId);
+
+                            }else{
+
+                                standHoles.put(shapeId, clone2DArray(tempG3.GetPoints()));
+                                standPolygons.get(shapeId).addHole(clone2DArray(tempG3.GetPoints()));
+
+                            }
+                        }
                         //System.out.println("centroid: " + centroid[0] + " " + centroid[1] + " " + shapeId);
                     }
                 } else {
@@ -722,22 +811,24 @@ public class Stanford2010 {
                 //}
 
             }
-        }
 
-        for(int id : usedStandids.keySet()){
-                System.out.println("stand id: " + id + " used " + usedStandids.get(id) + " times");
-
-        }
-
-        for(int id : usedIds){
-
+            if(debugPrint) {
+                //System.out.println("shapeId: " + shapeId);
+                //System.exit(1);
+            }
+            debugPrint = false;
 
         }
 
         System.out.println(standBounds.size() + " stand bounds read.");
         System.out.println(standCentroids.size() + " stand centroids read.");
         System.out.println(nExcluded + " stands rejected");
+        System.out.println("holes: " + standHoles.size());
 
+        if(false)
+        for(int i : standHoles.keySet()){
+            System.out.println("stand: " + i + " holes: " + standHoles.get(i).length);
+        }
         //System.exit(1);
     }
 
@@ -810,6 +901,8 @@ public class Stanford2010 {
         return minDistance;
     }
 
+
+
     private static double distanceToSegment(double pointX, double pointY, double segmentStartX, double segmentStartY,
                                             double segmentEndX, double segmentEndY) {
         double segmentLength = distance(segmentStartX, segmentStartY, segmentEndX, segmentEndY);
@@ -864,7 +957,8 @@ public class Stanford2010 {
     }
 
     public double[] randomPointInPolygon(ArrayList<ConcaveHull.Point> vertices, double minX, double maxX, double minY, double maxY,
-                                         double distanceToBorder, double distanceToAnotherPlot, KdTree tmpTreePlots, boolean treeEmpty){
+                                         double distanceToBorder, double distanceToAnotherPlot, KdTree tmpTreePlots, boolean treeEmpty, Random rand,
+                                         int standId){
 
         boolean pointInPolygon = false;
         boolean tooCloseToBorder = true;
@@ -879,13 +973,37 @@ public class Stanford2010 {
             if(numberOfAttempts++ > 1000)
                 return new double[]{0,0};
 
-            xy[0] = Math.random() * (maxX - minX) + minX;
-            xy[1] = Math.random() * (maxY - minY) + minY;
+            xy[0] = rand.nextDouble() * (maxX - minX) + minX;
+            xy[1] = rand.nextDouble() * (maxY - minY) + minY;
             point.x = xy[0];
             point.y = xy[1];
 
             pointInPolygon = pointInPolygon(vertices, xy);
             tooCloseToBorder = distanceToPolygonBorder(xy[0], xy[1], vertices) < distanceToBorder;
+
+            boolean tooCloseToHole = false;
+
+            double distanceToHole = 0.0;
+
+            if(this.standPolygons.get(standId).hasHole()){
+
+                for(int i = 0; i < this.standPolygons.get(standId).holes.size(); i++){
+
+                    distanceToHole = this.standPolygons.get(standId).pointDistanceToHole(i, xy[0], xy[1]) ;
+                    tooCloseToHole = distanceToHole < distanceToBorder;
+
+                    if(this.standPolygons.get(standId).pointInPolygon(this.standPolygons.get(standId).getHole(i), xy)){
+                        tooCloseToHole = true;
+                    }
+
+                    if(tooCloseToHole)
+                        break;
+                }
+
+            }
+
+            if(tooCloseToHole)
+                tooCloseToBorder = true;
 
             if(!treeEmpty) {
                 List<KdTree.XYZPoint> nearestNeighbour = (List<KdTree.XYZPoint>) tmpTreePlots.nearestNeighbourSearch(1, point);
@@ -893,8 +1011,15 @@ public class Stanford2010 {
             }else{
                 tooCloseToAnotherPlot = false;
             }
-            if(pointInPolygon && !tooCloseToBorder && !tooCloseToAnotherPlot)
+            if(pointInPolygon && !tooCloseToBorder && !tooCloseToAnotherPlot) {
+
+                if(true)
+                if(standId == 115){
+                    System.out.println("DiSANCE TO HOLE " + distanceToHole + " " + this.runningPlotId);
+
+                }
                 return xy;
+            }
 
         }
 
@@ -929,7 +1054,7 @@ public class Stanford2010 {
     }
 
 
-    public void createPlots(HashMap<Integer, Tree> trees, HashMap<Integer, ArrayList<ConcaveHull.Point>> hulls){
+    public void createPlots(HashMap<Integer, Tree> trees, HashMap<Integer, ArrayList<ConcaveHull.Point>> hulls, Random rand){
 
         double plotAreaSquaremeters = Math.PI * Math.pow(plotRadius, 2);
 
@@ -961,7 +1086,6 @@ public class Stanford2010 {
 
             int numberOfPlots = (int)((polygonArea / plotAreaSquaremeters) * numberOfPlotsPerStand);
 
-
             ArrayList<Tree> treesInStand = treesPerStand.get(standid);
 
             double currentX = treesInStand.get(0).getX_coordinate_machine();
@@ -969,6 +1093,7 @@ public class Stanford2010 {
 
             KdTree tmpTree = new KdTree();
             KdTree tmpTreePlots = new KdTree();
+
 
             for(Tree tree : treesInStand){
 
@@ -987,9 +1112,10 @@ public class Stanford2010 {
             if(!aR.noEstimation){
                 while(simulatedPlots < numberOfPlots){
 
+                    //System.out.println("1");
                     double[] randomPoint = randomPointInPolygon(hulls.get(standid), polygonBoundingBox[0], polygonBoundingBox[1],
-                            polygonBoundingBox[2], polygonBoundingBox[3], 11.33, this.plotRadius * 1.25, tmpTreePlots, treeEmpty);
-
+                            polygonBoundingBox[2], polygonBoundingBox[3], 11.33, this.plotRadius * 1.25, tmpTreePlots, treeEmpty, rand, standid);
+                    //System.out.println("2");
                     if(randomPoint[0] == 0 && randomPoint[1] == 0) {
                         simulatedPlots++;
                         continue;
@@ -1008,6 +1134,7 @@ public class Stanford2010 {
 
                     List<KdTree.XYZPoint> nearestNeighbour = (List<KdTree.XYZPoint>) tmpTree.nearestNeighbourSearch(50, tmpPoint);
 
+                    //System.out.println("3");
                     double sum_v_log_pine = 0;
                     double sum_v_log_pine_squarePlot = 0;
                     double sum_v_log_spruce = 0;
@@ -1079,7 +1206,7 @@ public class Stanford2010 {
 
                     }
 
-                    addPlotToShapefile(currentX, currentY, this.plotRadius, this.runningPlotId++, standid,
+                    addPlotToShapefile(currentX, currentY, this.plotRadius, this.runningPlotId, standid,
                             sum_v_log_pine/plotAreaHectares, sum_v_log_spruce/plotAreaHectares, sum_v_log_birch/plotAreaHectares,
                             sum_v_pulp_pine/plotAreaHectares, sum_v_pulp_spruce/plotAreaHectares, sum_v_pulp_birch/plotAreaHectares,
                             sum_v_energy_pine/plotAreaHectares, sum_v_energy_spruce/plotAreaHectares, sum_v_energy_birch/plotAreaHectares);
@@ -1103,6 +1230,23 @@ public class Stanford2010 {
                 double distanceToPreviousPlot = euclideanDistance(tree.getX_coordinate_machine(), tree.getY_coordinate_machine(), currentX, currentY);
                 double distanceToBoundary = distanceToPolygonBorder(tree.getX_coordinate_machine(), tree.getY_coordinate_machine(), hulls.get(standid));
 
+                boolean reject = false;
+
+                if(standPolygons.get(standid).hasHole()){
+
+                    for(int i = 0; i < standPolygons.get(standid).holes.size(); i++){
+
+                        double distance = standPolygons.get(standid).pointDistanceToHole(i, tree.getX_coordinate_machine(), tree.getY_coordinate_machine());
+                        boolean inside = standPolygons.get(standid).pointInPolygon(standPolygons.get(standid).getHole(i), tree.getX_coordinate_machine(), tree.getY_coordinate_machine());
+
+                        if(distance < 11.33 || inside)
+                            reject = true;
+
+                    }
+
+                }
+
+                if(!reject)
                 if(distanceToPreviousPlot > (this.plotRadius * 1.25) && distanceToBoundary > 11.33){
 
 
@@ -1188,7 +1332,7 @@ public class Stanford2010 {
 
                     }
 
-                    addPlotToShapefile(currentX, currentY, this.plotRadius, this.runningPlotId++, standid,
+                    addPlotToShapefile(currentX, currentY, this.plotRadius, this.runningPlotId, standid,
                             sum_v_log_pine/plotAreaHectares, sum_v_log_spruce/plotAreaHectares, sum_v_log_birch/plotAreaHectares,
                             sum_v_pulp_pine/plotAreaHectares, sum_v_pulp_spruce/plotAreaHectares, sum_v_pulp_birch/plotAreaHectares,
                             sum_v_energy_pine/plotAreaHectares, sum_v_energy_spruce/plotAreaHectares, sum_v_energy_birch/plotAreaHectares);
@@ -1216,6 +1360,25 @@ public class Stanford2010 {
         }
 
         return -1;
+    }
+
+    public OffsetDateTime parseDate(String dateString) throws DateTimeParseException {
+        DateTimeFormatter[] formatters = {
+                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSXXX"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSXXX"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+        };
+
+        for (DateTimeFormatter formatter : formatters) {
+            try {
+                return OffsetDateTime.parse(dateString, formatter);
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+        writeLineToLogfile("Unable to parse the given date: " + dateString);
+        throw new DateTimeParseException("Unable to parse the given date", dateString, 0);
+
     }
 
     public void parse() throws IOException{
@@ -1258,7 +1421,26 @@ public class Stanford2010 {
         List<Element> lista =  root.getChildren();
 
         List<Element> machines = root.getChildren("Machine", ns);
+        Element dates = root.getChild("HarvestedProductionHeader", ns);
 
+        String date = dates.getChild("CreationDate", ns).getValue();
+        System.out.println(date);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+        //OffsetDateTime offsetDateTime = OffsetDateTime.parse(date, formatter);
+        OffsetDateTime offsetDateTime = parseDate(date);
+
+        //OffsetDateTime offsetDateTime_lidar = OffsetDateTime.parse(LIDAR_ACQUISITION_DATE, formatter);
+        OffsetDateTime offsetDateTime_lidar = parseDate(LIDAR_ACQUISITION_DATE);
+
+
+        if (offsetDateTime.isBefore(offsetDateTime_lidar)) {
+            System.out.println("LIDAR IS AFTER THE HARVESTING.");
+            writeLineToLogfile("LIDAR IS AFTER THE HARVESTING ; " + this.xml_file.getName());
+            return;
+        }else{
+            System.out.println("LIDAR IS BEFORE THE HARVESTING.");
+        }
 
         SpatialReference src = new SpatialReference();
         SpatialReference dst = new SpatialReference();
@@ -2218,8 +2400,8 @@ public class Stanford2010 {
         }
 
         for(int i : standTreeLocations.keySet()){
-            System.out.println("standid: " + i + " " + standTreeLocations.get(i).size());
-            this.writeLineToLogfile("standid: " + i + " " + standTreeLocations.get(i).size());
+            //System.out.println("standid: " + i + " " + standTreeLocations.get(i).size());
+            //this.writeLineToLogfile("standid: " + i + " " + standTreeLocations.get(i).size());
         }
 
         //System.out.println(trees2.size() + " " + trees.size());
@@ -2230,8 +2412,10 @@ public class Stanford2010 {
 
         treeLocationEstimator estimator = new treeLocationEstimator(aR);
 
+
         estimator.setTrees(trees);
         estimator.setStandBoundaries(bufferedHulls);
+        estimator.setStandPolygons(standPolygons);
 
         if(aR.ref.size() > 0){
             estimator.setRasters(this.rasters);
@@ -2284,6 +2468,7 @@ public class Stanford2010 {
 
         List<Set<Integer>> clusters = dbscan.performDBSCAN(points);
 
+        //List<Set<Integer>> clusters = new ArrayList<>();
         System.out.println(clusters.size());
 
         for(int i = 0; i < trees.size(); i++){
@@ -2327,11 +2512,15 @@ public class Stanford2010 {
 
 */
 
-        this.createPlots(allTrees, hulls);
+        Random rand = new Random(12345);
+
+        System.out.println("starting to create plots");
+        this.createPlots(allTrees, hulls, rand);
 
         ofile = new File(output_directory.getAbsolutePath() + pathSeparator + "trees_filtered.txt");
         //ofile = new File("/home/koomikko/Documents/customer_work/metsahallitus/trees_filtered.txt");
 
+        System.out.println("created plots");
 
         try {
             ofile.createNewFile();
