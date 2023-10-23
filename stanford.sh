@@ -9,7 +9,13 @@ GDAL_DATA_PATH=$(sed '6q;d' $file_p)
 export LD_LIBRARY_PATH=$GDAL_PATH:$GDAL_DATA_PATH:$GDAL_JAVA_PATH:$LIBGDAL_PATH:$LD_LIBRARY_PATH
 export GDAL_DATA=$GDAL_DATA_PATH
 
-java -Xss1g -Xmx32g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" test_stanford $@ 2> $curDir/errorLog_stanford.txt
+# Get the current date and time
+current_datetime=$(date +"%Y-%m-%d_%H-%M-%S")
+
+# Get the directory from which the script was called
+callDir="$PWD"
+
+java -Xss1g -Xmx32g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" test_stanford $@ 2> $callDir/test_stanford_$current_datetime.log
 
 set +f
 

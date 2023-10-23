@@ -31,6 +31,11 @@ public class test_stanford {
             e.printStackTrace();
         }
 
+        System.out.println("HERE!!");
+        if(true) {
+            throw new RuntimeException("This is a test exception");
+        }
+
         //System.exit(1);
 
         Stanford2010 stanford = new Stanford2010(aR);

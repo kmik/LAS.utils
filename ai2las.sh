@@ -9,7 +9,14 @@ GDAL_DATA_PATH=$(sed '6q;d' $file_p)
 export LD_LIBRARY_PATH=$GDAL_PATH:$GDAL_DATA_PATH:$GDAL_JAVA_PATH:$LIBGDAL_PATH:$LD_LIBRARY_PATH
 export GDAL_DATA=$GDAL_DATA_PATH
 
-java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" runners.ai2las 12345 $@
+# Get the current date and time
+current_datetime=$(date +"%Y-%m-%d_%H-%M-%S")
+
+# Get the directory from which the script was called
+script_directory="$PWD"
+
+
+java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" runners.ai2las 12345 $@ 2> $script_directory/ai2las_$current_datetime.log
 
 set +f
 
