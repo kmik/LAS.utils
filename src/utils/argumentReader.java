@@ -29,6 +29,7 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public boolean PREMOTO_ADAPTIVEDISTANCE = false;
     public boolean outputMask = false;
     public String metadatafile = null;
     public boolean mapSheetExtent = false;
@@ -1126,6 +1127,13 @@ public class argumentReader {
                 .longOpt("sa")
                 .hasArg(false)
                 .desc("output only stemalign input")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("premoto_adaptiveDistance")
+                .hasArg(false)
+                .desc("PREMOTOSTUFF")
                 .required(false)
                 .build());
 
@@ -2438,6 +2446,10 @@ public class argumentReader {
 
                 this.noEstimation = false;
                 this.estimationWithCHM = true;
+            }
+
+            if (cmd.hasOption(("premoto_adaptiveDistance"))){
+                this.PREMOTO_ADAPTIVEDISTANCE = true;
             }
 
 

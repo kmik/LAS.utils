@@ -482,7 +482,9 @@ public class lasRasterTools {
         }
 
         copyRasterContents(chm_array, band);
-        copyRasterContents(mask_array, maskBand);
+
+        if(aR.outputMask)
+            copyRasterContents(mask_array, maskBand);
 
         //String[] options = new String[]{"COMPRESS=LZW"};
 

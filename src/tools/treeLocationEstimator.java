@@ -236,10 +236,18 @@ public class treeLocationEstimator {
                     }
 
                     //distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
-                    if((distanceToNearestTree > (( Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))){
-                        //if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
-                        distanceCondition = true;
+                    if(aR.PREMOTO_ADAPTIVEDISTANCE) {
+                        if ((distanceToNearestTree > ((Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))) {
+                            //if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
+                            distanceCondition = true;
+                        }
+                    }else{
+                        //if ((distanceToNearestTree > ((Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))) {
+                        if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
+                            distanceCondition = true;
+                        }
                     }
+
                     nTries++;
 
                     if(nTries % nTriesBeforeLowerStandards == 0){
@@ -402,9 +410,16 @@ public class treeLocationEstimator {
                     //distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
 
 
-                    if((distanceToNearestTree > (( Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))){
-                        //if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
-                        distanceCondition = true;
+                    if(aR.PREMOTO_ADAPTIVEDISTANCE) {
+                        if ((distanceToNearestTree > ((Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))) {
+                            //if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
+                            distanceCondition = true;
+                        }
+                    }else{
+                        //if ((distanceToNearestTree > ((Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))) {
+                        if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
+                            distanceCondition = true;
+                        }
                     }
 
                     nTries++;
@@ -640,9 +655,17 @@ public class treeLocationEstimator {
                     //max(1, 2.5 - (highest * 0.5) - (deltaH * 0.1))
                     //if((distanceToNearestTree > ( Math.max(1, 2.5 - (highest * 0.5) - (deltah * 0.1)) - lowerDistanceBy_))){
                     //System.out.println(deltah + " " + highest + " " + distanceToNearestTree + " " + ( Math.max(0.75, highest * 0.1 - deltah * 0.1)) + " " + i);
-                    if((distanceToNearestTree > (( Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))){
-                    //if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
-                        distanceCondition = true;
+
+                    if(aR.PREMOTO_ADAPTIVEDISTANCE) {
+                        if ((distanceToNearestTree > ((Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))) {
+                            //if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
+                            distanceCondition = true;
+                        }
+                    }else{
+                        //if ((distanceToNearestTree > ((Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))) {
+                        if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
+                            distanceCondition = true;
+                        }
                     }
 
                     if(floatArray[0] > maxDistanceToCHM){
