@@ -9,6 +9,6 @@ GDAL_DATA_PATH=$(sed '6q;d' $file_p)
 export LD_LIBRARY_PATH=$GDAL_PATH:$GDAL_DATA_PATH:$GDAL_JAVA_PATH:$LIBGDAL_PATH:$LD_LIBRARY_PATH
 export GDAL_DATA=$GDAL_DATA_PATH
 
-java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" las2shp $@
+java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" las2shp $@ 2> $curDir/errorLog_las2shp.txt
 
 set +f
