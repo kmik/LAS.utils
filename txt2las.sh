@@ -14,7 +14,7 @@ current_datetime=$(date +"%Y-%m-%d_%H-%M-%S")
 
 # Get the directory from which the script was called
 callDir="$PWD"
-java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" txt2las $@ 2> $callDir/txt2las_$current_datetime.log
+java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" txt2las $@ 2> $callDir/txt2las_$current_datetime.log || [ ! -s $callDir/txt2las_$current_datetime.log ] && rm $callDir/txt2las_$current_datetime.log
 
 set +f
 

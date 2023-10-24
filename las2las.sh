@@ -13,7 +13,7 @@ export GDAL_DATA=$GDAL_DATA_PATH
 current_datetime=$(date +"%Y-%m-%d_%H-%M-%S")
 # Get the directory from which the script was called
 callDir="$PWD"
-java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" las2las $@ 2> $callDir/las2las_$current_datetime.log
+java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" las2las $@ 2> $callDir/las2las_$current_datetime.log || [ ! -s $callDir/las2las_$current_datetime.log ] && rm $callDir/las2las_$current_datetime.log
 
 set +f
 
