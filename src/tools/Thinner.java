@@ -229,6 +229,9 @@ public class Thinner{
                 x_index = Math.max(0, x_index);
                 y_index = Math.max(0, y_index);
 
+                x_index = Math.min((int)numberOfPixelsX - 1, x_index);
+                y_index = Math.min((int)numberOfPixelsY - 1, y_index);
+
                 if(aR.lowest) {
                     if (tempPoint.z < min_z[x_index][y_index]) {
 
