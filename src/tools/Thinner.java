@@ -226,6 +226,10 @@ public class Thinner{
                 x_index = (int)Math.floor((tempPoint.x - minX) / step);
                 y_index = (int)Math.floor((maxY - tempPoint.y) / step);
 
+                if(x_index < 0 || y_index < 0 || x_index >= numberOfPixelsX || y_index >= numberOfPixelsY){
+                    continue;
+                }
+
                 x_index = Math.max(0, x_index);
                 y_index = Math.max(0, y_index);
 
@@ -356,10 +360,17 @@ public class Thinner{
                     x_index = (int)Math.floor((tempPoint.x - minX) / step);
                     y_index = (int)Math.floor((maxY - tempPoint.y) / step);
 
+                    if(x_index < 0 || y_index < 0 || x_index >= numberOfPixelsX || y_index >= numberOfPixelsY){
+                        continue;
+                    }
+
                     x_index = Math.max(0, x_index);
                     y_index = Math.max(0, y_index);
                     //int x = (int)(pixelIndexes.get(rollingNumber) % numberOfPixelsX);
                     //int y = (int)(pixelIndexes.get(rollingNumber) / numberOfPixelsX);
+
+                    x_index = Math.min((int)numberOfPixelsX - 1, x_index);
+                    y_index = Math.min((int)numberOfPixelsY - 1, y_index);
 
                     try {
 
@@ -474,6 +485,10 @@ public class Thinner{
 
                                 int x_ = (int) Math.round((genericPoint.x - geoTransform[0]) / geoTransform[1]);
                                 int y_ = (int) Math.round((genericPoint.y - geoTransform[3]) / geoTransform[5]);
+
+                                if(x_ < 0 || y_ < 0 || x_ >= numberOfPixelsX || y_ >= numberOfPixelsY){
+                                    continue;
+                                }
 
                                 if(x_ < 0 || x_ >= mask.length || y_ < 0 || y_ >= mask[0].length){
                                     genericPoint.z = min_z[x][y];
