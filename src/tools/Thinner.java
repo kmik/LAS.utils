@@ -486,9 +486,6 @@ public class Thinner{
                                 int x_ = (int) Math.round((genericPoint.x - geoTransform[0]) / geoTransform[1]);
                                 int y_ = (int) Math.round((genericPoint.y - geoTransform[3]) / geoTransform[5]);
 
-                                if(x_ < 0 || y_ < 0 || x_ >= numberOfPixelsX || y_ >= numberOfPixelsY){
-                                    continue;
-                                }
 
                                 if(x_ < 0 || x_ >= mask.length || y_ < 0 || y_ >= mask[0].length){
                                     genericPoint.z = min_z[x][y];
@@ -526,7 +523,7 @@ public class Thinner{
 
         aR.pfac.closeThread(thread_n);
 
-        aR.p_update.updateProgressThin();
+        //aR.p_update.updateProgressThin();
 
     }
 
