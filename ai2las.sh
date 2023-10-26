@@ -16,7 +16,7 @@ current_datetime=$(date +"%Y-%m-%d_%H-%M-%S")
 script_directory="$PWD"
 
 
-java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" runners.ai2las 12345 $@ 2> $script_directory/ai2las_$current_datetime.log || [ ! -s $callDir/ai2las_$current_datetime.log ] && rm $callDir/ai2las_$current_datetime.log
+java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" runners.ai2las 12345 $@ 2>&1 | tee $script_directory/ai2las_$current_datetime.log || [ ! -s $callDir/ai2las_$current_datetime.log ] && rm $callDir/ai2las_$current_datetime.log
 
 set +f
 

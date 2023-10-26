@@ -31,7 +31,9 @@ public class las2raster {
 
                 lasRasterTools tool = new lasRasterTools(aR);
 
-                tool.readMetadata(aR.metadatafile);
+                if(aR.metadatafile != null)
+                    tool.readMetadata(aR.metadatafile);
+
                 LASReader temp = new LASReader(aR.inputFiles.get(i));
 
                 tool.rasterize(temp, aR.res);

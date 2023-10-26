@@ -48,6 +48,11 @@ public class Thinner{
 
     boolean thin3d = false;
 
+    double pointCloudMinX;
+    double pointCloudMaxX;
+    double pointCloudMinY;
+    double pointCloudMaxY;
+
     public Thinner(){
 
 
@@ -133,6 +138,12 @@ public class Thinner{
         double maxX = pointCloud.getMaxX();
         double minY = pointCloud.getMinY();
         double maxY = pointCloud.getMaxY();
+        double pointCloudMinZ = pointCloud.getMinZ();
+
+        this.pointCloudMinX = minX;
+        this.pointCloudMaxX = maxX;
+        this.pointCloudMinY = minY;
+        this.pointCloudMaxY = maxY;
 
         if(aR.mapSheetExtent){
 
@@ -144,16 +155,19 @@ public class Thinner{
                 e.printStackTrace();
             }
 
-            //System.out.println("before: " + minX + " " + maxX + " " + minY + " " + maxY);
+            double midCoordinatePointCloudX = (minX + maxX) / 2;
+            double midCoordinatePointCloudY = (minY + maxY) / 2;
 
-            minX = Math.floor((minX - klj.minX) / 6000) * 6000 + klj.minX;
-            maxY = klj.maxY - (Math.ceil( (klj.maxY - maxY) / 6000) * 6000);
+            minX = Math.floor((midCoordinatePointCloudX - klj.minX) / 6000) * 6000 + klj.minX;
+            maxY = klj.maxY - (Math.floor( (klj.maxY - midCoordinatePointCloudY) / 6000) * 6000);
+
+            //minX = Math.floor((minX - klj.minX) / 6000) * 6000 + klj.minX;
+            //maxY = klj.maxY - (Math.floor( (klj.maxY - minY) / 6000) * 6000);
 
             maxX = minX + 6000;
             minY = maxY - 6000;
 
-            //System.out.println("after: " + minX + " " + maxX + " " + minY + " " + maxY);
-            //System.exit(1);
+
         }
         //double numberOfPixelsX = (int)Math.ceil((maxX - minX) / step) + 1;
         double numberOfPixelsX = (int)Math.ceil((maxX - minX) / step);
@@ -285,12 +299,6 @@ public class Thinner{
         ArrayList<Integer> pointIndexes = null;
         ArrayList<Long> pixelIndexes = null;
 
-            //pixelIndexes = new ArrayList<Long>(map.values());
-            //pointIndexes = new ArrayList<Integer>(map.keySet());
-
-
-
-
         aR.p_update.updateProgressThin();
 
         if(outputFile.exists())
@@ -349,11 +357,6 @@ public class Thinner{
                         e.printStackTrace();
                     }
 
-
-                //if(rollingNumber >= pointIndexes.size())
-                 //   break;
-
-                //if((j+i) == pointIndexes.get(rollingNumber)){
                 if(allyouneed.contains((long)i+(long)j)) {
 
 
@@ -435,14 +438,35 @@ public class Thinner{
                         e.printStackTrace();
                         System.exit(1);
                     }
-
-
                 }
                 aR.p_update.threadEnd[coreNumber-1]++;
 
                 if(aR.p_update.threadEnd[coreNumber-1] % 10000 == 0){
                     aR.p_update.updateProgressThin();
                 }
+
+            }
+        }
+
+        for(int x = 0; x < numberOfPixelsX; x++){
+            for(int y = 0; y < numberOfPixelsY; y++) {
+
+                if( (x * step + minX + step) < pointCloudMinX ){
+                    min_z[x][y] = -2.0f;
+                }
+
+                if( ( maxY - y * step - step) > pointCloudMaxY ){
+                    min_z[x][y] = -2.0f;
+                }
+
+                if( (x * step + minX) > pointCloudMaxX ){
+                    min_z[x][y] = -2.0f;
+                }
+
+                if( ( maxY - y * step) < pointCloudMinY ){
+                    min_z[x][y] = -2.0f;
+                }
+
 
             }
         }
@@ -455,7 +479,7 @@ public class Thinner{
 
             System.out.println("CountNanBefore: " + countNanBefore);
 
-            boolean[][] interpolated = interpolate2dArrayMedian(min_z, -1.0f);
+            boolean[][] interpolated = interpolate2dArrayMedian(min_z, -1.0f, -2.0f);
 
             int countNanAfter = countNanvalues(min_z, -1.0f);
 
@@ -494,14 +518,26 @@ public class Thinner{
                                 else if(this.mask[x_][y_] != false){
                                     genericPoint.z = 0;
                                 }else{
-                                    genericPoint.z = (double)min_z[x][y];
+
+                                    if(min_z[x][y] == -2.0f)
+                                        genericPoint.z = pointCloudMinZ;
+                                    else if(min_z[x][y] == -1.0f)
+                                        genericPoint.z = pointCloudMinZ;
+                                    else
+                                        genericPoint.z = (double)min_z[x][y];
                                 }
 
                                 aR.pfac.writePoint(genericPoint, -1, thread_n);
 
                             }else {
 
-                                genericPoint.z = min_z[x][y];
+                                if(min_z[x][y] == -2.0f)
+                                    genericPoint.z = pointCloudMinZ;
+                                else if(min_z[x][y] == -1.0f)
+                                    genericPoint.z = pointCloudMinZ;
+                                else
+                                    genericPoint.z = (double)min_z[x][y];
+
                                 aR.pfac.writePoint(genericPoint, -1, thread_n);
                             }
 
@@ -526,6 +562,8 @@ public class Thinner{
         //aR.p_update.updateProgressThin();
 
     }
+
+
 
     public static <K, V> Map<V, K> swapKeysAndValues(Map<K, V> originalMap) {
         Map<V, K> swappedMap = new HashMap<>();
@@ -647,7 +685,7 @@ public class Thinner{
         return clone;
     }
 
-    public boolean[][] interpolate2dArrayMedian(float[][] array, float nanvalue){
+    public boolean[][] interpolate2dArrayMedian(float[][] array, float nanvalue, float ignorevalue){
 
         float[][] tmpArray = clone2DArray(array);
 
@@ -666,6 +704,11 @@ public class Thinner{
 
                 if(array[i][j] == nanvalue){
                     nanvalues.add((long)j * ncols + i);
+                }
+
+                if(array[i][j] == ignorevalue){
+                    changed[i][j] = true;
+
                 }
             }
         }
@@ -728,7 +771,7 @@ public class Thinner{
                 int y = (int)(index / ncols);
 
                 //float mean = getMeanFromNeighbors(tmpArray, x, y, nanvalue);
-                float mean = getMedianFromNeighbors(tmpArray, x, y, nanvalue);
+                float mean = getMedianFromNeighbors(tmpArray, x, y, nanvalue, ignorevalue);
 
                 if(mean != nanvalue){
                     //array[x][y] = mean;
@@ -849,7 +892,7 @@ public class Thinner{
 
     }
 
-    public float getMedianFromNeighbors(float[][] array, int x, int y, float nanvalue) {
+    public float getMedianFromNeighbors(float[][] array, int x, int y, float nanvalue, float ignorevalue){
         int numRows = array.length;
         int numCols = array[0].length;
 
@@ -865,7 +908,7 @@ public class Thinner{
                     float neighborValue = array[newX][newY];
 
                     // Ignore neighbors with nanvalue
-                    if (neighborValue != nanvalue) {
+                    if (neighborValue != nanvalue && neighborValue != ignorevalue){
                         neighbors.add(neighborValue);
                     }
                 }
