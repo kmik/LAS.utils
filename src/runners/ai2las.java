@@ -1380,6 +1380,9 @@ class ai2las{
 			System.exit(1);
 
 */
+
+			System.out.println("DATA TYPE: " + data_type);
+			System.exit(1);
 			int[] val1 = new int[n_bands];
 
 			for(int i = 0; i < image.GetRasterCount(); i++){
