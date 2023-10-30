@@ -1419,6 +1419,9 @@ class ai2las{
 
 				//int value = getUnsignedShort(bb);
 				channelMeans[i] += value;
+
+				System.out.println("value: " + value);
+
 				//channelMeans_obstructed[i] += value;
 				//val1[i] = value;
 
