@@ -1381,8 +1381,7 @@ class ai2las{
 
 */
 
-			System.out.println("DATA TYPE: " + data_type);
-			System.exit(1);
+
 			int[] val1 = new int[n_bands];
 
 			for(int i = 0; i < image.GetRasterCount(); i++){
@@ -1393,7 +1392,8 @@ class ai2las{
 				switch(data_type){
 
 					case 1:
-						value = bb.get();
+						//value = bb.get();
+						value = getUnsignedByte(bb);
 						break;
 
 					case 2:
@@ -1612,6 +1612,15 @@ class ai2las{
 			return rtn;
 		}
 
+		public static int getUnsignedByte(ByteBuffer buffer) {
+
+			int pos = buffer.position();
+			int rtn = getUnsignedByte(buffer, pos);
+			buffer.position(pos + 1);
+			return rtn;
+
+		}
+
 		/**
 		 * Read an unsigned short from a buffer
 		 * @param buffer Buffer containing the short
@@ -1622,11 +1631,21 @@ class ai2las{
 			return asUnsignedShort(buffer.getShort(offset));
 		}
 
+		public static int getUnsignedByte(ByteBuffer buffer, int offset) {
+			return asUnsignedByte(buffer.get(offset));
+		}
+
 		/**
 		 * @return the short value converted to an unsigned int value
 		 */
 		public static int asUnsignedShort(short s) {
 			return s & 0xFFFF;
+		}
+
+		public static int asUnsignedByte(byte s) {
+
+			return s & 0xFF;
+
 		}
 
 		public synchronized void addObservation_from_array(Dataset image, float[] data, int imageId){
