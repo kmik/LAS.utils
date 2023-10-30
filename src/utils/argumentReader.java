@@ -29,6 +29,7 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public double adjustKappa = 0.0;
     public boolean PREMOTO_ADAPTIVEDISTANCE = false;
     public boolean outputMask = false;
     public String metadatafile = null;
@@ -1600,6 +1601,13 @@ public class argumentReader {
                 .required(false)
                 .build());
 
+        options.addOption(Option.builder()
+                .longOpt("adjustKappa")
+                .hasArg(true)
+                .desc("Add this value to kappa")
+                .required(false)
+                .build());
+
 
         options.addOption(Option.builder()
                 .longOpt("few")
@@ -3071,6 +3079,11 @@ public class argumentReader {
                 this.inclusionRule.translate_i(Integer.parseInt(cmd.getOptionValue("translate_i")));
 
             }
+            if (cmd.hasOption("adjustKappa")) {
+                this.adjustKappa = Double.parseDouble(cmd.getOptionValue("adjustKappa"));
+
+            }
+
 
             if (cmd.hasOption("scale_i")) {
                 this.noModify = false;

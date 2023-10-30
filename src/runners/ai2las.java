@@ -318,6 +318,9 @@ class ai2las{
 					eoTemp[5] = (Double.parseDouble(tokens[7]));
 				}
 
+				if(aR.adjustKappa != 0.0)
+					eoTemp[5] = eoTemp[5] + Math.toRadians(aR.adjustKappa);
+
 				double flyingHeight = eoTemp[2] - minZ;
 
 				if(aR.altitude != 0.0)
@@ -2777,9 +2780,9 @@ class ai2las{
 
 			int n_shadow = 0, n_bright = 0;
 
-			for (long p = 0; p < asd2.getNumberOfPointRecords(); p += 10000) {
+			for (long p = 0; p < asd2.getNumberOfPointRecords(); p += 20000) {
 
-				int maxi = (int) Math.min(10000, Math.abs(asd2.getNumberOfPointRecords() - (p)));
+				int maxi = (int) Math.min(20000, Math.abs(asd2.getNumberOfPointRecords() - (p)));
 
 				try {
 					asd2.readRecord_noRAF(p, tempPoint, maxi);
@@ -2801,6 +2804,13 @@ class ai2las{
 						lEndTime = System.nanoTime();
 						System.out.print("\033[2K"); // Erase line content
 						System.out.print((j + p) + "|" + n + " Time remaining: " + timeRemaining((int) n, j + p, (lEndTime - lStartTime)) + " ms/point: " + roundAvoid(((double) lEndTime - (double) lStartTime) / 1000000.0 / (double) (j + p), 2) + " o: " + outsidePoint + " " + gdal.GetCacheUsed() + "\r");
+					}
+
+					if (j + p % 1000000 == 0) {
+						System.gc();
+						System.gc();
+						System.gc();
+						System.gc();
 					}
 
 					tempP.prepare();
