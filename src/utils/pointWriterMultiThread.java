@@ -88,6 +88,11 @@ public class pointWriterMultiThread {
             this.pointDataRecordLength = 67;
         }
 
+        if(tempReader1.nExtraBytes > 0){
+            this.pointDataRecordLength += tempReader1.nExtraBytes;
+
+        }
+
         if(aR.change_version_minor != -999){
             this.version_minor_destination = aR.change_version_minor;
         }else
@@ -104,7 +109,9 @@ public class pointWriterMultiThread {
         }
 
         LASwrite.writeHeader(outputFile, softwareName, tempReader, aR);
+
         this.pointDataRecordLength = outputFile.pointDataRecordLength;
+
 
     }
 

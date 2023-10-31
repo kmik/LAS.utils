@@ -75,25 +75,9 @@ public class process_las2las {
 
                 in.readFromBuffer(tempPoint);
 
-                if(false)
-                if(tempPoint.z < 80){
-                    System.out.println("HAT!");
-                    System.exit(1);
-                }
-                //double x1 = tempPoint.x;
-
-                //in.readRecord(i+j, tempPoint);
-                //in.readRecord(i, tempPoint);
-
-                //if(tempPoint.pointSourceId == 111)
-                //    System.out.println(tempPoint.pointSourceId);
-                //System.out.println(tempPoint);
 
                 counter++;
-                //double x2 = tempPoint.x;
 
-                //System.out.println(x1 + " == " + x2);
-                //System.out.println(tempPoint.x + " " + tempPoint.y);
                 if (!aR.inclusionRule.ask(tempPoint, i+j, true)) {
                     continue;
                 }
@@ -119,9 +103,6 @@ public class process_las2las {
                     }
 
                 }
-
-                //tempPoint.setExtraByteINT(i, aR.create_extra_byte_vlr_n_bytes.get(0), 0);
-                //tempPoint.setExtraByteINT(tempPoint.scanAngleRank, aR.create_extra_byte_vlr_n_bytes.get(1), 1);
 
                 if (aR.setNegativeZero) {
 

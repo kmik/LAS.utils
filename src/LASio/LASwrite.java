@@ -1678,8 +1678,10 @@ public class LASwrite {
 
 		if(aR.change_point_type == -999)
 			to.pointDataRecordFormat = from.pointDataRecordFormat;
-		else
+		else {
 			to.pointDataRecordFormat = aR.change_point_type;
+
+		}
 
 		to.xScaleFactor = from.xScaleFactor;
 		to.yScaleFactor = from.yScaleFactor;
@@ -1832,6 +1834,11 @@ public class LASwrite {
 				add_bytes += aR.create_extra_byte_vlr_n_bytes.get(i);
 		}
 
+		if(from.nExtraBytes > 0){
+			add_bytes += from.nExtraBytes;
+
+		}
+
 		/* Point data record length */
 		if(aR.change_point_type == -999) {
 			to.writeUnsignedShort((short) from.pointDataRecordLength + add_bytes);// = braf.readUnsignedShort();
@@ -1874,6 +1881,9 @@ public class LASwrite {
 				to.pointDataRecordLength = 67 + add_bytes;
 			}
 		}
+
+
+
 
 		/* Number of point records */
 		to.writeUnsignedInt(0);// = braf.readUnsignedInt();

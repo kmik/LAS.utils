@@ -134,6 +134,8 @@ public class LASReader {
   public int pointsRead = 0;
   fileOperations fo = new fileOperations();
 
+  public int nExtraBytes = 0;
+
   public boolean errorCode1 = false;
 
   public LASReader(File path) throws IOException {
@@ -1412,6 +1414,13 @@ public class LASReader {
       loadGeoTiffSpecification();  //NOPMD
 
     }
+
+    if(this.extraBytesInPoint.size() > 0){
+      for(int i = 0; i < this.extraBytesInPoint.size(); i++){
+        this.nExtraBytes += this.extraBytesInPoint.get(i);
+      }
+    }
+
   }
 
   public double[] readHeaderOnlyExtent() throws IOException {
