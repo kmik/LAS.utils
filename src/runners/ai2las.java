@@ -2738,8 +2738,9 @@ class ai2las{
 
 			outputFile = aR.createOutputFile(asd2);
 			pw = new pointWriterMultiThread(outputFile, asd2, "ai2las", aR);
+			buf = new LasPointBufferCreator(1, pw);
 			aR.pfac.addWriteThread(thread_n, pw, buf);
-			//buf = new LasPointBufferCreator(1, pw);
+			//
 
 		}
 
