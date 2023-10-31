@@ -1834,7 +1834,7 @@ public class LASwrite {
 				add_bytes += aR.create_extra_byte_vlr_n_bytes.get(i);
 		}
 
-		if(from.nExtraBytes > 0){
+		if(from.nExtraBytes > 0 && aR.change_point_type != -999){
 			add_bytes += from.nExtraBytes;
 
 		}
