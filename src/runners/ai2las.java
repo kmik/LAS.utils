@@ -2927,6 +2927,11 @@ class ai2las{
 								tempPoint.R = (int) tempP.channelMeans[aR.sequence[0]];
 								tempPoint.G = (int) tempP.channelMeans[aR.sequence[1]];
 								tempPoint.B = (int) tempP.channelMeans[aR.sequence[2]];
+							} else if (aR.sequence.length < 5) {
+								tempPoint.R = (int) tempP.channelMeans[aR.sequence[0]];
+								tempPoint.G = (int) tempP.channelMeans[aR.sequence[1]];
+								tempPoint.B = (int) tempP.channelMeans[aR.sequence[2]];
+								tempPoint.N = (int) tempP.channelMeans[aR.sequence[3]];
 							}
 
 							if(tempPoint.R == 0 && tempPoint.G == 0 && tempPoint.B == 0)
