@@ -60,6 +60,7 @@ public class LasPointBufferCreator {
         this.bufferId = bufferId;
 
         this.bufferSize = this.pointLengthInBytes * 22500;
+
         allArray2 = new byte[this.bufferSize];
         this.pwrite = pwrite;
 

@@ -2174,6 +2174,7 @@ public class argumentReader {
 
                 if(change_version_minor > 4 || change_version_minor < 1)
                     throw new argumentException("Incomprehensible version minor (-change_version_minor). Great Scott!!");
+
             }
 
             if (cmd.hasOption("label_index")) {
