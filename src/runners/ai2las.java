@@ -2795,6 +2795,15 @@ class ai2las{
 
 		CoordinateTransformation ct = new CoordinateTransformation(src, dst);
 
+		/* Define the variables that we need */
+		int origZ_id = -1;
+		try {
+			origZ_id = asd2.extraBytes_names.get("originalZ");
+		}catch (Exception e){
+			System.out.println("No originalZ in file");
+		}
+
+		double origZ = 0.0;
 
 		try {
 
@@ -2819,6 +2828,11 @@ class ai2las{
 				for (int j = 0; j < maxi; j++) {
 
 					asd2.readFromBuffer(tempPoint);
+
+					if(origZ_id != -1){
+						origZ = tempPoint.z;
+						tempPoint.z = tempPoint.getExtraByteInt(origZ_id);
+					}
 
 					if(!aR.inclusionRule.ask(tempPoint, p+j, true)){
 						continue;
@@ -2910,6 +2924,8 @@ class ai2las{
 					tempPoint.N = 0;
 
 
+					tempPoint.z = origZ;
+
 					if (aR.olas) {
 
 						/* If less than half of the views are in shadow */
@@ -2937,7 +2953,6 @@ class ai2las{
 							if(tempPoint.R == 0 && tempPoint.G == 0 && tempPoint.B == 0)
 								tempPoint.pointSourceId = 3;
 
-							//buf.writePoint(tempPoint, aR.inclusionRule, (j + p));
 							aR.pfac.writePoint(tempPoint, (j + p), thread_n);
 
 					}

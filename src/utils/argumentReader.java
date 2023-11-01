@@ -29,6 +29,8 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public float extraByteFloat = 0;
+    public ArrayList<String> extraByteNames = new ArrayList<>();
     public double adjustKappa = 0.0;
     public boolean PREMOTO_ADAPTIVEDISTANCE = false;
     public boolean outputMask = false;
@@ -577,6 +579,14 @@ public class argumentReader {
                 .build());
 
         options.addOption( Option.builder()
+                .longOpt("extraBytes")
+                .hasArg(true)
+                .desc("Extra byte names for txt2las")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .required(false)
+                .build());
+
+        options.addOption( Option.builder()
                 .longOpt("ground")
                 .hasArg(true)
                 .desc("Ground las files")
@@ -723,6 +733,7 @@ public class argumentReader {
                 .desc("Drop noise (class 7)")
                 .required(false)
                 .build());
+
         options.addOption(Option.builder()
                 .longOpt("ray_trace")
                 .hasArg(false)
@@ -1972,6 +1983,27 @@ public class argumentReader {
 
             }
 
+            if( cmd.hasOption("extraBytes")){
+
+                String extraBytes = cmd.getOptionValue("extraBytes");
+
+                if(extraBytes.contains(";")) {
+
+                    String[] extraBytesArray = extraBytes.split(";");
+
+                    for (int i = 0; i < extraBytesArray.length; i++) {
+
+                        this.extraByteNames.add(extraBytesArray[i]);
+
+                    }
+                }else{
+
+                        this.extraByteNames.add(extraBytes);
+
+                }
+
+            }
+
             if(cmd.hasOption("ref")){
 
                 ref_ = cmd.getOptionValues("ref");
@@ -2226,6 +2258,7 @@ public class argumentReader {
             if (cmd.hasOption("iparse")) {
 
                 this.iparse = cmd.getOptionValue("iparse");
+
             }
 
             if (cmd.hasOption("EPSG")) {

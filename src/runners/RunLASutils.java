@@ -1183,6 +1183,7 @@ public class RunLASutils {
 
     @NotNull
     public static ArrayList<String> getFileListAsString(argumentReader aR, boolean lasFormat, boolean txtFormat, ArrayList<String> filesList, ArrayList<File> inputFiles) {
+
         if (lasFormat && !aR.noLas) {
 
 
@@ -1195,6 +1196,7 @@ public class RunLASutils {
 
             }
         }
+
         else if (txtFormat && !aR.noLas) {
 
             System.out.println("converting txt to las");
@@ -1380,6 +1382,7 @@ public class RunLASutils {
                     toFile.createNewFile();
 
                     from.add(fromFile);
+
 
                     //to.add(new LASraf(toFile));
                     LASraf tmp = new LASraf(toFile);

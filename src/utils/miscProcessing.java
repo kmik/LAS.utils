@@ -36,6 +36,7 @@ public class miscProcessing {
         if (!System.getProperty("os.name").equals("Linux"))
             pathSep = "\\" + pathSep;
         boolean lasFormat, txtFormat;
+
         String[] lasToken = new File(aR.files[0]).getName().split("\\.");
         lasFormat = lasToken[lasToken.length-1].equals("las");
         txtFormat = lasToken[lasToken.length-1].equals("txt");

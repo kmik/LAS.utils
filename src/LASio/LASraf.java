@@ -773,7 +773,36 @@ public class LASraf implements Closeable {
       return buffer.getInt();
   }
 
+  public void writeByteArray_reord(byte[] in, int pointDataRecordLength_) throws IOException{
 
+    if(allArray2Index + in.length >= allArray2.length) {
+
+      for(int i = 0; i < in.length; i++) {
+
+        //
+
+        allArray2[allArray2Index] = in[i];
+        allArray2Index++;
+      }
+      this.write(allArray2, pointDataRecordLength_);
+      allArray2Index = 0;
+
+      return;
+
+    }
+
+
+
+    for(int i = 0; i < in.length; i++) {
+
+      //
+
+      allArray2[allArray2Index] = in[i];
+      allArray2Index++;
+
+    }
+
+  }
 
   public synchronized void writeInt(int in) throws IOException {
 
@@ -943,6 +972,7 @@ public class LASraf implements Closeable {
     floatArray[1] = (byte)((bits >> 8) & 0xff);
     floatArray[2] = (byte)((bits >> 16) & 0xff);
     floatArray[3] = (byte)((bits >> 24) & 0xff);
+
 
     if(allArray2Index + floatArray.length >= allArray2.length) {
       writeBuffer3(floatArray);

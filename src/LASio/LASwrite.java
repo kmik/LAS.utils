@@ -14,6 +14,8 @@ public class LASwrite {
 
 	private static final int POW10[] = {1, 10, 100, 1000, 10000, 100000, 1000000};
 
+	public float extraByteFloat = 0;
+
 	public static Byte myByte = new Byte("00000000");
 	public static Byte myByte2 = new Byte("0000000000000000");
 	public static byte myBitti = myByte.byteValue();
@@ -596,7 +598,7 @@ public class LASwrite {
 					minimumFormat.get(minimumFormat.size() - 1).add(10);
 					break;
 				default:
-					throw new argumentException("-iparse command " + charArray[i] + " not recognized");
+					//throw new argumentException("-iparse command " + charArray[i] + " not recognized");
 
 			}
 
@@ -707,12 +709,11 @@ public class LASwrite {
 					/* SKIP */
 					break;
 				default:
-					throw new argumentException("-iparse command " + charArray[i] + " not recognized");
 			}
 		}
 	}
 
-	public static void String2LASpoint__(LasPoint point, String in, char[] charArray , String sep, int n_elements){
+	public static void String2LASpoint__(LasPoint point, String in, char[] charArray , String sep, int n_elements, argumentReader aR, float[] extraBytes){
 
 		//String[] tokens = in.split(sep);
 		String[] tokens = new String[n_elements];
@@ -787,7 +788,61 @@ public class LASwrite {
 					/* SKIP */
 					break;
 				default:
-					throw new argumentException("-iparse command " + charArray[i] + " not recognized");
+
+					//System.out.println(Character.isDigit(charArray[i]));
+
+					if(Character.isDigit(charArray[i])){
+
+						/*
+						if(c - '0' == 1){
+							aR.add_extra_bytes(6, aR.extraByteNames.get(0), "blank");
+						}
+						if(c - '0' == 2){
+							aR.add_extra_bytes(6, aR.extraByteNames.get(1), "blank");
+						}
+
+						if(c - '0' == 3){
+							aR.add_extra_bytes(6, aR.extraByteNames.get(2), "blank");
+						}
+
+						if(c - '0' == 4){
+							aR.add_extra_bytes(6, aR.extraByteNames.get(3), "blank");
+						}
+
+						if(c - '0' == 5){
+							aR.add_extra_bytes(6, aR.extraByteNames.get(4), "blank");
+						}
+
+						if(c - '0' == 6){
+							aR.add_extra_bytes(6, aR.extraByteNames.get(5), "blank");
+						}
+
+						if(c - '0' == 7){
+							aR.add_extra_bytes(6, aR.extraByteNames.get(6), "blank");
+						}
+						*/
+
+						//System.out.println(charArray[i] - '0');
+
+						switch(charArray[i] - '0')
+						{
+							case 1:
+								//point.setExtraByteFLOAT((float)fastParseDouble(tokens[i]), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
+								extraBytes[0] = (float)fastParseDouble(tokens[i]);
+								break;
+							case 2:
+								point.setExtraByteINT(0, aR.create_extra_byte_vlr_n_bytes.get(1), 0);
+								break;
+
+							default:
+								throw new argumentException("-iparse command " + charArray[i] + " not recognized2");
+						}
+
+					}else {
+
+
+						throw new argumentException("-iparse command " + charArray[i] + " not recognized");
+					}
 			}
 		}
 	}
@@ -882,7 +937,45 @@ public class LASwrite {
 			with the information inferred from the point records.
 		 */
 
+
+		int add_bytes_as_vlr = 0;
+
 		char[] charArray = parse.toCharArray();
+
+		int numberOfExtraBytes = 0;
+
+
+
+		for(char c : charArray){
+			if(c - '0' == 1){
+				aR.add_extra_bytes(9, aR.extraByteNames.get(0), "blank");
+			}
+			if(c - '0' == 2){
+				aR.add_extra_bytes(6, aR.extraByteNames.get(1), "blank");
+			}
+
+			if(c - '0' == 3){
+				aR.add_extra_bytes(6, aR.extraByteNames.get(2), "blank");
+			}
+
+			if(c - '0' == 4){
+				aR.add_extra_bytes(6, aR.extraByteNames.get(3), "blank");
+			}
+
+			if(c - '0' == 5){
+				aR.add_extra_bytes(6, aR.extraByteNames.get(4), "blank");
+			}
+
+			if(c - '0' == 6){
+				aR.add_extra_bytes(6, aR.extraByteNames.get(5), "blank");
+			}
+
+			if(c - '0' == 7){
+				aR.add_extra_bytes(6, aR.extraByteNames.get(6), "blank");
+			}
+		}
+
+
 
 		byte myBitti = myByte.byteValue();
 
@@ -897,6 +990,9 @@ public class LASwrite {
 		}else{
 			minimum_version = 4;
 		}
+
+		if(aR.create_extra_byte_vlr_n_bytes.size() > 0)
+			minimum_version = 4;
 
 		String line = "";
 		LasPoint tempPoint = new LasPoint();
@@ -931,6 +1027,7 @@ public class LASwrite {
 			e.printStackTrace();
 		}
 
+
 		to.writeAscii(4, "LASF");
 	    to.writeUnsignedShort((short)2); // = braf.readUnsignedShort();
 	    to.writeUnsignedShort((short)1); // = braf.readUnsignedShort();
@@ -953,22 +1050,48 @@ public class LASwrite {
 	    to.writeUnsignedShort((short)dayOfYear);// = braf.readUnsignedShort();
 	    to.writeUnsignedShort((short)(year));// = braf.readUnsignedShort();
 
+		/* Offset to point data */
+		int add_bytes_as_vlr_ = 0;
+
+		if(aR.create_extra_byte_vlr_n_bytes.size() > 0) {
+
+			add_bytes_as_vlr_ = 192  * aR.create_extra_byte_vlr_n_bytes.size()  + 54;
+
+		}
+
+		int add_bytes = 0;
+
+		if(aR.create_extra_byte_vlr_n_bytes.size() > 0) {
+			for(int i = 0; i < aR.create_extra_byte_vlr_n_bytes.size(); i++)
+				add_bytes += aR.create_extra_byte_vlr_n_bytes.get(i);
+		}
+
 		if(minimum_version == 2){
 			to.writeUnsignedShort((short)227);// = braf.readUnsignedShort();
-			to.writeUnsignedInt(227);
+			to.writeUnsignedInt(227 + add_bytes_as_vlr_);
 		}
 		else if(minimum_version == 3){
 			to.writeUnsignedShort((short)335);// = braf.readUnsignedShort();
-			to.writeUnsignedInt(335);
+			to.writeUnsignedInt(335 + add_bytes_as_vlr_);
 
 		}else if(minimum_version == 4){
 			to.writeUnsignedShort((short)375);// = braf.readUnsignedShort();
-			to.writeUnsignedInt(375);
+			to.writeUnsignedInt(375 + add_bytes_as_vlr_);
 		}
 
-	    to.writeUnsignedInt(0);// = braf.readUnsignedInt();
+		if(aR.create_extra_byte_vlr_n_bytes.size() == 0)
+	    	to.writeUnsignedInt(0);// = braf.readUnsignedInt();
+		else{
+			to.writeUnsignedInt(1);// = braf.readUnsignedInt();
+		}
 	    to.writeUnsignedByte((byte)minimum_point_format);// = braf.readUnsignedByte();
-	    to.writeUnsignedShort((short)getPointDataRecordLength(minimum_point_format));// = braf.readUnsignedShort();
+
+		short pointDataRecordLength = (short)getPointDataRecordLength(minimum_point_format);
+
+		if(aR.create_extra_byte_vlr_n_bytes.size() > 0)
+			pointDataRecordLength += add_bytes;
+
+	    to.writeUnsignedShort(pointDataRecordLength);// = braf.readUnsignedShort();
 	    to.writeUnsignedInt(0);// = braf.readUnsignedInt();
 	   	to.writeUnsignedInt(0);
 	   	to.writeUnsignedInt(0);
@@ -993,7 +1116,8 @@ public class LASwrite {
 	    to.writeDouble(0);// = braf.readDouble();
 	    to.writeDouble(0);// = braf.readDouble();
 	    to.writeDouble(0);// = braf.readDouble();
-		System.out.println(minimum_version);
+		//System.out.println(minimum_version);
+
 		if(minimum_version == 3){
 			to.writeDouble(0);
 		}
@@ -1009,6 +1133,82 @@ public class LASwrite {
 			to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);
 			to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);to.writeUnsignedInt(0);
 		}
+
+
+		int n_added_bytes = 0;
+
+		/* If the tool requires to save data for each point
+		 * and no extra byte VLR exists */
+		if(aR.create_extra_byte_vlr.size() > 0){
+
+			int from_bytes = to.allArray2Index;
+
+			/* UNUSED */
+			to.writeUnsignedByte((byte)0);
+			to.writeUnsignedByte((byte)0);
+
+			String userId = "LASF_Spec";
+			to.writeAscii(16, userId);
+			/* Predefined id for extrabytes */
+			to.writeUnsignedShort(4);
+			/* Record length */
+			to.writeUnsignedShort(aR.create_extra_byte_vlr.size() * 192);
+			String description = "LASutils_extrabytes";
+			to.writeAscii(32, description);
+
+			{
+				for(int i_ = 0; i_ < aR.create_extra_byte_vlr.size(); i_++) {
+					/* UNUSED */
+					to.writeUnsignedByte((byte) 0);
+					to.writeUnsignedByte((byte) 0);
+
+					/* DATA TYPE */
+					to.writeUnsignedByte(aR.create_extra_byte_vlr.get(i_).byteValue());
+
+					/* OPTIONS */
+
+					to.writeUnsignedByte((byte) 0);
+
+					/* NAME */
+					to.writeAscii(32, aR.create_extra_byte_vlr_name.get(i_));
+
+					/* UNUSED */
+					to.writeInt(0);
+
+					/* no_data[3] */
+					to.writeDouble(0);
+					to.writeDouble(0);
+					to.writeDouble(0);
+					/* min[3]; */
+					to.writeDouble(0);
+					to.writeDouble(0);
+					to.writeDouble(0);
+					/* max[3]*/
+					to.writeDouble(0);
+					to.writeDouble(0);
+					to.writeDouble(0);
+					/* scale[3]; */
+					to.writeDouble(0);
+					to.writeDouble(0);
+					to.writeDouble(0);
+					/* offset[3];*/
+					to.writeDouble(0);
+					to.writeDouble(0);
+					to.writeDouble(0);
+
+					/* description[32]; */
+					to.writeAscii(32, aR.create_extra_byte_vlr_description.get(i_));
+				}
+			}
+
+			to.extra_bytes.add(add_bytes);
+
+			n_added_bytes += to.allArray2Index - from_bytes;
+		}
+
+		//while(to.allArray2Index < from.offsetToPointData + n_added_bytes){
+		//	to.writeUnsignedByte((byte)0);
+		//}
 
 	    to.writeBuffer2();
 	    long n = 0;//from.getNumberOfPointRecords();
@@ -1044,14 +1244,14 @@ public class LASwrite {
 
 		double[][] points = new double[bufferSize][n_elements];
 		int counter = 0;
-
+		float[] extraBytes = new float[aR.create_extra_byte_vlr.size()];
 		try {
 	        FileInputStream fis = new FileInputStream(from);
 	        BufferedReader in = new BufferedReader(new InputStreamReader(fis));
 
 	        while((line = in.readLine())!= null){
 
-	        	String2LASpoint__(tempPoint, line, charArray, sep, n_elements);
+	        	String2LASpoint__(tempPoint, line, charArray, sep, n_elements, aR, extraBytes);
 
 
 				if(!aR.inclusionRule.ask(tempPoint, 1, true)){
@@ -1231,6 +1431,9 @@ public class LASwrite {
 							to.writeFloat(tempPoint.y_t);
 							to.writeFloat(tempPoint.z_t);
 						}
+
+
+
 					}else {
 
 						/* Write scaled and offset x, y and z */
@@ -1335,7 +1538,19 @@ public class LASwrite {
 							to.writeFloat(tempPoint.z_t);
 
 						}
+
+
 					}
+
+					if(extraBytes.length > 0){
+
+						for(float f : extraBytes){
+							//System.out.println(f);
+							to.writeFloat(f);
+						}
+
+					}
+
 				}
 				count++;
 	        }

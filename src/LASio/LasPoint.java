@@ -86,6 +86,7 @@ public class LasPoint implements Cloneable {
     /* We should only define the extra bytes that we are actually using
 
      */
+    ByteBuffer buffer4 = ByteBuffer.allocateDirect(4).order(ByteOrder.LITTLE_ENDIAN);
     ByteBuffer buffer = ByteBuffer.allocateDirect(4);
 
 
@@ -128,6 +129,7 @@ public class LasPoint implements Cloneable {
         //System.out.println(extra_bytes_custom.size());
 
         extra_bytes_custom.set(whichOne,ByteBuffer.allocate(bytes).order(ByteOrder.LITTLE_ENDIAN).putInt(in).array());
+        //extra_bytes_custom.set(whichOne,buffer4.putInt(in).array());
         //System.out.println(ByteBuffer.wrap(extra_bytes_custom.get(0)).getInt());
 
     }
@@ -171,13 +173,19 @@ public class LasPoint implements Cloneable {
 
     }
 
-    public void setExtraByteFLOAT(float in, int bytes){
+    public void setExtraByteFLOAT(float in, int bytes, int whichOne){
 
-        if(extra_bytes_custom.size() == 0){
-            extra_bytes_custom.add(new byte[0]);
+
+
+        if(extra_bytes_custom.size() <= whichOne){
+            while(extra_bytes_custom.size() <= whichOne)
+                extra_bytes_custom.add(new byte[0]);
         }
 
-        extra_bytes_custom.set(0,buffer.allocate(bytes).putFloat(in).array());
+
+        byte[] temp = ByteBuffer.allocate(bytes).order(ByteOrder.LITTLE_ENDIAN).putFloat(in).array();
+
+        extra_bytes_custom.set(whichOne,temp);
         //System.out.println(ByteBuffer.wrap(extra_bytes_custom.get(0)).getInt());
 
     }
