@@ -61,6 +61,7 @@ public class process_las2las {
         }
 */
 
+
         int counter = 0;
 
         for(long i = 0; i < in.getNumberOfPointRecords(); i += 20000) {
@@ -74,7 +75,6 @@ public class process_las2las {
             for (int j = 0; j < maxi; j++) {
 
                 in.readFromBuffer(tempPoint);
-
 
                 counter++;
 

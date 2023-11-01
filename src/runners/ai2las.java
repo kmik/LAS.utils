@@ -2831,7 +2831,8 @@ class ai2las{
 
 					if(origZ_id != -1){
 						origZ = tempPoint.z;
-						tempPoint.z = tempPoint.getExtraByteInt(origZ_id);
+						tempPoint.z = tempPoint.getExtraByteFloat(origZ_id);
+
 					}
 
 					if(!aR.inclusionRule.ask(tempPoint, p+j, true)){

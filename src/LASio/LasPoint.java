@@ -191,8 +191,10 @@ public class LasPoint implements Cloneable {
     }
 
     public int getExtraByteInt(int whichOne){
-
-        return ByteBuffer.wrap(extra_bytes.get(whichOne)).order(ByteOrder.LITTLE_ENDIAN).getInt();
+        buffer4.clear();
+        buffer4.put(extra_bytes.get(whichOne));
+        return buffer4.getInt(0);
+        //return ByteBuffer.wrap(extra_bytes.get(whichOne)).order(ByteOrder.LITTLE_ENDIAN).getInt();
 
     }
 
@@ -209,8 +211,11 @@ public class LasPoint implements Cloneable {
     }
 
     public float getExtraByteFloat(int whichOne){
+        buffer4.clear();
+        buffer4.put(extra_bytes.get(whichOne));
+        return buffer4.getFloat(0);
 
-        return ByteBuffer.wrap(extra_bytes.get(whichOne)).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+        //return ByteBuffer.wrap(extra_bytes.get(whichOne)).order(ByteOrder.LITTLE_ENDIAN).getFloat();
 
     }
 
