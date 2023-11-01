@@ -310,6 +310,9 @@ class ai2las{
 
 				if(tokens.length == 12){
 
+					images.add(tempDataset);
+					imageNames.add("/" + tokens[0]);
+
 					double[] eoTemp = new double[10];
 
 					eoTemp[0] = Double.parseDouble(tokens[2]);
