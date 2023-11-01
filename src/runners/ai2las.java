@@ -38,7 +38,7 @@ class ai2las{
 	public static listOfFiles tiedostoLista = new listOfFiles();
 	public static ThreadProgressBar proge = new ThreadProgressBar();
 
-
+	public boolean interiorInExteriorFile = false;
 
 	Vector3d line_quick = new Vector3d(0,0,0);
 	Vector3d point_quick = new Vector3d(0,0,0);
@@ -278,9 +278,19 @@ class ai2las{
 				//System.out.println("Address: " + tokens[0]);
 				Dataset tempDataset = null;
 
+
+				if(tokens.length < 8){
+					throw new toolException("ERROR!! EO file does not have enough columns!!");
+				}
+
+				// This means that we have interior orientation information in the EO file.
+				// Means that we probably have different cameras.
+
+
 				try {
 					if (System.getProperty("os.name").equals("Linux"))
 						tempDataset = gdal.Open("/" + tokens[0]);
+						//tempDataset.GetMetadataItem()
 					else
 						tempDataset = gdal.Open(tokens[0]);
 				}catch (Exception e){
@@ -296,64 +306,136 @@ class ai2las{
 					continue;
 				}
 				System.out.print(count++ + " Images read\r");
-				double sensorSize = interior[1] * (double)tempDataset.GetRasterXSize();
-				double focalLength_millimeters = interior[0];
 
-				images.add(tempDataset);
-				imageNames.add("/" + tokens[0]);
-				double[] eoTemp = new double[6];
 
-				eoTemp[0] = Double.parseDouble(tokens[2]);
-				eoTemp[1] = Double.parseDouble(tokens[3]);
-				eoTemp[2] = Double.parseDouble(tokens[4]);
+				if(tokens.length == 12){
 
-				if(!aR.input_in_radians) {
-					eoTemp[3] = Math.toRadians(Double.parseDouble(tokens[5]));
-					eoTemp[4] = Math.toRadians(Double.parseDouble(tokens[6]));
-					eoTemp[5] = Math.toRadians(Double.parseDouble(tokens[7]));
+					double[] eoTemp = new double[10];
+
+					eoTemp[0] = Double.parseDouble(tokens[2]);
+					eoTemp[1] = Double.parseDouble(tokens[3]);
+					eoTemp[2] = Double.parseDouble(tokens[4]);
+
+					if(!aR.input_in_radians) {
+						eoTemp[3] = Math.toRadians(Double.parseDouble(tokens[5]));
+						eoTemp[4] = Math.toRadians(Double.parseDouble(tokens[6]));
+						eoTemp[5] = Math.toRadians(Double.parseDouble(tokens[7]));
+					}
+					else{
+						eoTemp[3] = (Double.parseDouble(tokens[5]));
+						eoTemp[4] =	(Double.parseDouble(tokens[6]));
+						eoTemp[5] = (Double.parseDouble(tokens[7]));
+					}
+
+					double ps = Double.parseDouble(tokens[9]);
+					double focalLength_millimeters = Double.parseDouble(tokens[8]);
+					double sensorSize = ps * (double)tempDataset.GetRasterXSize();
+
+					eoTemp[6] = focalLength_millimeters;
+					eoTemp[7] = ps;
+					eoTemp[8] = Double.parseDouble(tokens[10]);
+					eoTemp[9] = Double.parseDouble(tokens[11]);
+
+					if(aR.adjustKappa != 0.0)
+						eoTemp[5] = eoTemp[5] + Math.toRadians(aR.adjustKappa);
+
+					double flyingHeight = eoTemp[2] - minZ;
+
+					if(aR.altitude != 0.0)
+						flyingHeight = aR.altitude;
+
+					double gsd = ((sensorSize / 1000.0 * flyingHeight) / (focalLength_millimeters / 1000.0 * (double)tempDataset.GetRasterXSize())) * 100.0;
+					double gsd_m = gsd / 100.0;
+
+					System.out.println("img altitude: " + flyingHeight + " gsd: " + gsd + " cm");
+					System.out.println(sensorSize + " " + focalLength_millimeters + " " + (double)tempDataset.GetRasterXSize());
+
+					tempPoint.x = eoTemp[0];
+					tempPoint.y = eoTemp[1];
+					tempPoint.z = minZ; //DOES NOT
+
+					eos.add(eoTemp);
+					imageID.add(Integer.parseInt(tokens[1]));
+
+					double[] extentsThis = new double[4];
+					double x_s = tempDataset.getRasterXSize();
+					double y_s = tempDataset.getRasterYSize();
+					double[] temp = collinearStuff(tempPoint, interior, eoTemp, rotationMatrix, x_s, y_s);
+
+					Math.max((double)tempDataset.GetRasterXSize() / 2.0, temp[0]);
+
+
+					extentsThis[0] = eoTemp[0] - ((double) tempDataset.GetRasterXSize() * gsd_m);
+					extentsThis[1] = eoTemp[0] + ((double) tempDataset.GetRasterXSize() * gsd_m);
+
+					extentsThis[2] = eoTemp[1] - ((double) tempDataset.GetRasterYSize() * gsd_m);
+					extentsThis[3] = eoTemp[1] + ((double) tempDataset.GetRasterYSize() * gsd_m);
+
+					extents.add(extentsThis.clone());
+
+				}else{
+					double sensorSize = interior[1] * (double)tempDataset.GetRasterXSize();
+					double focalLength_millimeters = interior[0];
+
+					images.add(tempDataset);
+					imageNames.add("/" + tokens[0]);
+					double[] eoTemp = new double[6];
+
+					eoTemp[0] = Double.parseDouble(tokens[2]);
+					eoTemp[1] = Double.parseDouble(tokens[3]);
+					eoTemp[2] = Double.parseDouble(tokens[4]);
+
+					if(!aR.input_in_radians) {
+						eoTemp[3] = Math.toRadians(Double.parseDouble(tokens[5]));
+						eoTemp[4] = Math.toRadians(Double.parseDouble(tokens[6]));
+						eoTemp[5] = Math.toRadians(Double.parseDouble(tokens[7]));
+					}
+					else{
+						eoTemp[3] = (Double.parseDouble(tokens[5]));
+						eoTemp[4] =	(Double.parseDouble(tokens[6]));
+						eoTemp[5] = (Double.parseDouble(tokens[7]));
+					}
+
+					if(aR.adjustKappa != 0.0)
+						eoTemp[5] = eoTemp[5] + Math.toRadians(aR.adjustKappa);
+
+					double flyingHeight = eoTemp[2] - minZ;
+
+					if(aR.altitude != 0.0)
+						flyingHeight = aR.altitude;
+
+					double gsd = ((sensorSize / 1000.0 * flyingHeight) / (focalLength_millimeters / 1000.0 * (double)tempDataset.GetRasterXSize())) * 100.0;
+					double gsd_m = gsd / 100.0;
+
+					System.out.println("img altitude: " + flyingHeight + " gsd: " + gsd + " cm");
+					System.out.println(sensorSize + " " + focalLength_millimeters + " " + (double)tempDataset.GetRasterXSize());
+
+					tempPoint.x = eoTemp[0];
+					tempPoint.y = eoTemp[1];
+					tempPoint.z = minZ; //DOES NOT
+
+					eos.add(eoTemp);
+					imageID.add(Integer.parseInt(tokens[1]));
+
+					double[] extentsThis = new double[4];
+					double x_s = tempDataset.getRasterXSize();
+					double y_s = tempDataset.getRasterYSize();
+					double[] temp = collinearStuff(tempPoint, interior, eoTemp, rotationMatrix, x_s, y_s);
+
+					Math.max((double)tempDataset.GetRasterXSize() / 2.0, temp[0]);
+
+
+					extentsThis[0] = eoTemp[0] - ((double) tempDataset.GetRasterXSize() * gsd_m);
+					extentsThis[1] = eoTemp[0] + ((double) tempDataset.GetRasterXSize() * gsd_m);
+
+					extentsThis[2] = eoTemp[1] - ((double) tempDataset.GetRasterYSize() * gsd_m);
+					extentsThis[3] = eoTemp[1] + ((double) tempDataset.GetRasterYSize() * gsd_m);
+
+					extents.add(extentsThis.clone());
 				}
-				else{
-					eoTemp[3] = (Double.parseDouble(tokens[5]));
-					eoTemp[4] =	(Double.parseDouble(tokens[6]));
-					eoTemp[5] = (Double.parseDouble(tokens[7]));
-				}
-
-				if(aR.adjustKappa != 0.0)
-					eoTemp[5] = eoTemp[5] + Math.toRadians(aR.adjustKappa);
-
-				double flyingHeight = eoTemp[2] - minZ;
-
-				if(aR.altitude != 0.0)
-					flyingHeight = aR.altitude;
-
-				double gsd = ((sensorSize / 1000.0 * flyingHeight) / (focalLength_millimeters / 1000.0 * (double)tempDataset.GetRasterXSize())) * 100.0;
-				double gsd_m = gsd / 100.0;
-
-				System.out.println("img altitude: " + flyingHeight + " gsd: " + gsd + " cm");
-				System.out.println(sensorSize + " " + focalLength_millimeters + " " + (double)tempDataset.GetRasterXSize());
-
-				tempPoint.x = eoTemp[0];
-				tempPoint.y = eoTemp[1];
-				tempPoint.z = minZ; //DOES NOT
-
-				eos.add(eoTemp);
-				imageID.add(Integer.parseInt(tokens[1]));
-
-				double[] extentsThis = new double[4];
-				double x_s = tempDataset.getRasterXSize();
-				double y_s = tempDataset.getRasterYSize();
-				double[] temp = collinearStuff(tempPoint, interior, eoTemp, rotationMatrix, x_s, y_s);
-
-				Math.max((double)tempDataset.GetRasterXSize() / 2.0, temp[0]);
 
 
-				extentsThis[0] = eoTemp[0] - ((double) tempDataset.GetRasterXSize() * gsd_m);
-				extentsThis[1] = eoTemp[0] + ((double) tempDataset.GetRasterXSize() * gsd_m);
 
-				extentsThis[2] = eoTemp[1] - ((double) tempDataset.GetRasterYSize() * gsd_m);
-				extentsThis[3] = eoTemp[1] + ((double) tempDataset.GetRasterYSize() * gsd_m);
-
-				extents.add(extentsThis.clone());
 
 			}
 
@@ -508,7 +590,10 @@ class ai2las{
 
 		double cc = io[0];
 
+
 		double ps = io[1]; //12.0 / 1000000.0;
+
+
 
 		double nc = x_s;
 		double nr = y_s;
@@ -516,6 +601,12 @@ class ai2las{
 		double ppx = io[2];
 		double ppy = io[3];
 
+		if(eo.length == 12){
+			cc = eo[7 + 1];
+			ps = eo[7 + 2];
+			ppx = eo[7 + 3];
+			ppy = eo[7 + 4];
+		}
 		double xx0;
 		double yy0;
 

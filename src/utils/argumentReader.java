@@ -29,6 +29,8 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public int nBands = 3;
+    public boolean rasterizeColor = false;
     public float extraByteFloat = 0;
     public ArrayList<String> extraByteNames = new ArrayList<>();
     public double adjustKappa = 0.0;
@@ -1205,6 +1207,8 @@ public class argumentReader {
                 .required(false)
                 .build());
 
+
+
         options.addOption(Option.builder()
                 .longOpt("dist")
                 .hasArg(true)
@@ -1230,6 +1234,13 @@ public class argumentReader {
                 .longOpt("export_mask")
                 .hasArg(false)
                 .desc("name of the file to be saved")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("export_color")
+                .hasArg(false)
+                .desc("las2raster export color")
                 .required(false)
                 .build());
 
@@ -1912,6 +1923,12 @@ public class argumentReader {
                 .required(false)
                 .build());
 
+        options.addOption(Option.builder()
+                .longOpt("nBands")
+                .hasArg(true)
+                .desc("Number of output/input bands")
+                .required(false)
+                .build());
 
     }
 
@@ -2388,6 +2405,12 @@ public class argumentReader {
             if (cmd.hasOption("export_mask")) {
 
                 this.outputMask = true;
+
+            }
+
+            if (cmd.hasOption("export_color")) {
+
+                this.rasterizeColor = true;
 
             }
 
@@ -3000,7 +3023,11 @@ public class argumentReader {
                 this.inclusionRule.dropSynthetic();
 
             }
+            if (cmd.hasOption("nBands")) {
 
+                this.nBands = Integer.parseInt(cmd.getOptionValue("nBands"));
+
+            }
 
             if (cmd.hasOption("traj")) {
 
@@ -3010,6 +3037,7 @@ public class argumentReader {
                     throw new argumentException("-traj does not exist!");
 
             }
+
 
             if (cmd.hasOption("idir")) {
 

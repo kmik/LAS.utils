@@ -347,11 +347,15 @@ public class lasRasterTools {
     public void rasterize(LASReader pointCloud, double resolution){
 
         String outputFileNameMask = "notAssigned";
+        String outputFileNameColor = "notAssigned";
 
         String outputFileName = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster.tif").getAbsolutePath();
 
         if(aR.outputMask){
             outputFileNameMask = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_mask.tif").getAbsolutePath();
+        }
+        if(aR.rasterizeColor){
+            outputFileNameColor = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_color.tif").getAbsolutePath();
         }
 
         double pointCloudMinX = pointCloud.getMinX() - aR.res/2.0;
@@ -388,6 +392,7 @@ public class lasRasterTools {
         String compressionOptions = "COMPRESS=LZW";
 
         Dataset mask = null;
+        Dataset color = null;
         try {
             cehoam = driver.Create(outputFileName, rasterWidth, rasterHeight, 1, gdalconst.GDT_Float32);
             //cehoam.SetMetadataItem("COMPRESSION", compressionOptions);
@@ -397,7 +402,13 @@ public class lasRasterTools {
                 //mask.SetMetadataItem("COMPRESSION", compressionOptions);
             }
 
-        }catch (Exception e){
+            if(aR.rasterizeColor){
+                color = driver.Create(outputFileNameColor, rasterWidth, rasterHeight, aR.nBands, gdalconst.GDT_Byte);
+                //color.SetMetadataItem("COMPRESSION", compressionOptions);
+            }
+
+
+            }catch (Exception e){
             System.out.println("Not enough points! Are you using remove_buffer and ALL points in this .las file are part of the buffer?");
             return;
         }
@@ -405,10 +416,17 @@ public class lasRasterTools {
         Band band = cehoam.GetRasterBand(1);
 
         Band maskBand = null;
+        ArrayList<Band> colorBands = new ArrayList<Band>(aR.nBands);
 
         if(aR.outputMask){
             maskBand = mask.GetRasterBand(1);
 
+        }
+
+        if(aR.rasterizeColor) {
+            for(int i = 0; i < aR.nBands; i++){
+                colorBands.add(color.GetRasterBand(i+1));
+            }
         }
 
         band.SetNoDataValue(Float.NaN);
@@ -425,6 +443,11 @@ public class lasRasterTools {
             mask.SetGeoTransform(geoTransform);
         }
 
+        if(aR.rasterizeColor){
+            color.SetProjection(sr.ExportToWkt());
+            color.SetGeoTransform(geoTransform);
+        }
+
         double[][] chm_array = new double[rasterWidth][rasterHeight];
         boolean[][] mask_array = new boolean[rasterWidth][rasterHeight];
 
@@ -436,6 +459,8 @@ public class lasRasterTools {
         long n = pointCloud.getNumberOfPointRecords();
 
         int thread_n = aR.pfac.addReadThread(pointCloud);
+
+        byte[] colorValue = new byte[1];
 
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
 
@@ -451,7 +476,6 @@ public class lasRasterTools {
             for (int j = 0; j < maxi; j++) {
 
                 pointCloud.readFromBuffer(tempPoint);
-
 
                 if(tempPoint.x < minx)
                     minx = tempPoint.x;
@@ -475,6 +499,46 @@ public class lasRasterTools {
 
                     if(tempPoint.synthetic){
                         mask_array[x][y] = true;
+                    }
+
+                    if(aR.rasterizeColor){
+
+                        if(aR.nBands == 3){
+                            // write tempPoint.R to raster
+                            colorValue[0] = (byte)tempPoint.R;
+                            colorBands.get(0).WriteRaster(x, y, 1, 1, colorValue);
+
+                            // write tempPoint.G to raster
+                            colorValue[0] = (byte)tempPoint.G;
+                            colorBands.get(1).WriteRaster(x, y, 1, 1, colorValue);
+
+                            // write tempPoint.B to raster
+                            colorValue[0] = (byte)tempPoint.B;
+                            colorBands.get(2).WriteRaster(x, y, 1, 1, colorValue);
+
+
+
+                        }
+                        if(aR.nBands == 4){
+
+                            // write tempPoint.R to raster
+                            colorValue[0] = (byte)tempPoint.R;
+                            colorBands.get(0).WriteRaster(x, y, 1, 1, colorValue);
+
+                            // write tempPoint.G to raster
+                            colorValue[0] = (byte)tempPoint.G;
+                            colorBands.get(1).WriteRaster(x, y, 1, 1, colorValue);
+
+                            // write tempPoint.B to raster
+                            colorValue[0] = (byte)tempPoint.B;
+                            colorBands.get(2).WriteRaster(x, y, 1, 1, colorValue);
+
+                            // write tempPoint.N to raster
+                            colorValue[0] = (byte)tempPoint.N;
+                            colorBands.get(3).WriteRaster(x, y, 1, 1, colorValue);
+
+                        }
+
                     }
                 }
 
@@ -500,6 +564,7 @@ public class lasRasterTools {
         cehoam.FlushCache();
         band.FlushCache();
 
+
         Dataset outputDataset = gdal.GetDriverByName("GTiff").CreateCopy(outputFileName, cehoam, 0, options);
 
         if(this.metadata.size() > 0){
@@ -513,6 +578,7 @@ public class lasRasterTools {
         }
 
         if(aR.outputMask){
+
             Dataset outputDatasetMask = gdal.GetDriverByName("GTiff").CreateCopy(outputFileNameMask, mask, 0, options);
 
             if(this.metadata.size() > 0){
@@ -526,6 +592,23 @@ public class lasRasterTools {
             }
 
             outputDatasetMask.FlushCache();
+        }
+
+        if(aR.rasterizeColor){
+
+            Dataset outputDatasetColor = gdal.GetDriverByName("GTiff").CreateCopy(outputFileNameColor, color, 0, options);
+
+            if(this.metadata.size() > 0){
+
+                for(int i = 0; i < this.metadata.size(); i++){
+
+                    outputDatasetColor.SetMetadataItem(this.metadata.get(i).getKey(), this.metadata.get(i).getValue());
+
+                }
+
+            }
+
+            outputDatasetColor.FlushCache();
         }
 
 
