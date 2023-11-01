@@ -604,7 +604,7 @@ class ai2las{
 		double ppx = io[2];
 		double ppy = io[3];
 
-		if(eo.length == 12){
+		if(eo.length == 10){
 			cc = eo[7 + 1];
 			ps = eo[7 + 2];
 			ppx = eo[7 + 3];
