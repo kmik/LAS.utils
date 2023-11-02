@@ -605,10 +605,10 @@ class ai2las{
 		double ppy = io[3];
 
 		if(eo.length == 10){
-			cc = eo[7 + 1];
-			ps = eo[7 + 2];
-			ppx = eo[7 + 3];
-			ppy = eo[7 + 4];
+			cc = eo[5 + 1];
+			ps = eo[5 + 2];
+			ppx = eo[5 + 3];
+			ppy = eo[5 + 4];
 		}
 		double xx0;
 		double yy0;
