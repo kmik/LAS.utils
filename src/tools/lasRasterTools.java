@@ -667,11 +667,13 @@ public class lasRasterTools {
         String polyWKT = readShapefile(aR.poly);
         ArrayList<Integer> polyIds = new ArrayList<>();
 
+        int nBands = 0;
 
         ArrayList<double[][]> polygons = readPolygonsFromWKT(polyWKT, polyIds);
         HashMap<Integer, ArrayList<double[][]>> polygonHoles = readPolygonHolesFromWKT(polyWKT, polyIds);
 
         ArrayList<Dataset> rasters = new ArrayList<Dataset>();
+        ArrayList<Dataset> rastersSpectral = new ArrayList<Dataset>();
 
         for(File raster : aR.inputFiles){
             rasters.add(gdal.Open(raster.getAbsolutePath(), gdalconst.GA_ReadOnly));
@@ -681,6 +683,11 @@ public class lasRasterTools {
         ArrayList<double[]> rasterWidthHeight = new ArrayList<double[]>();
         ArrayList<double[]> rasterBoundingBoxes = new ArrayList<double[]>();
         ArrayList<Band> rasterBands = new ArrayList<Band>();
+
+        ArrayList<double[]> rasterExtents_spectral = new ArrayList<double[]>();
+        ArrayList<double[]> rasterWidthHeight_spectral = new ArrayList<double[]>();
+        ArrayList<double[]> rasterBoundingBoxes_spectral = new ArrayList<double[]>();
+        ArrayList<ArrayList<Band>> rasterBands_spectral = new ArrayList<>();
 
         aR.lCMO.prepZonal(aR.inputFiles.get(0));
 
@@ -697,13 +704,52 @@ public class lasRasterTools {
 
             rasterWidthHeight.add(rasterWidthHeight_);
 
-
             rasterBoundingBoxes.add(new double[]{rasterExtent[0], rasterExtent[3] + rasterExtent[5] * rasterWidthHeight_[1],rasterExtent[0] + rasterExtent[1] * rasterWidthHeight_[0],  rasterExtent[3]});
 
             rasterBands.add(raster.GetRasterBand(1));
+
+        }
+
+        if(aR.inputFilesSpectral.size() > 0){
+
+            for(File raster : aR.inputFilesSpectral){
+                rastersSpectral.add(gdal.Open(raster.getAbsolutePath(), gdalconst.GA_ReadOnly));
+            }
+
+            for(Dataset raster : rastersSpectral){
+
+                double[] rasterExtent = new double[6];
+                raster.GetGeoTransform(rasterExtent);
+
+                rasterExtents_spectral.add(rasterExtent);
+
+                double[] rasterWidthHeight_ = new double[2];
+                rasterWidthHeight_[0] = raster.GetRasterXSize();
+                rasterWidthHeight_[1] = raster.GetRasterYSize();
+
+                rasterWidthHeight_spectral.add(rasterWidthHeight_);
+
+                rasterBoundingBoxes_spectral.add(new double[]{rasterExtent[0], rasterExtent[3] + rasterExtent[5] * rasterWidthHeight_[1],rasterExtent[0] + rasterExtent[1] * rasterWidthHeight_[0],  rasterExtent[3]});
+
+                nBands = raster.GetRasterCount();
+
+                ArrayList<Band> bands = new ArrayList<>();
+
+                for(int i = 0; i < nBands; i++){
+
+                    bands.add(raster.GetRasterBand(i + 1));
+
+                }
+
+                rasterBands_spectral.add(bands);
+
+            }
+
+
         }
 
         pointCloudMetrics pCM = new pointCloudMetrics(aR);
+
 
 
         for(int i = 0; i < polygons.size(); i++){
@@ -711,6 +757,7 @@ public class lasRasterTools {
             float[] readValue = new float[1];
 
             ArrayList<Double> gridPoints_z_a = new ArrayList<>();
+            ArrayList<int[]> gridPoints_RGB_f = new ArrayList<>();
             double sum_z_a = 0.0;
             ArrayList<String> colnames_a = new ArrayList<>();
             double[] polygonExtent = getPolygonExtent(polygons.get(i));
@@ -759,6 +806,8 @@ public class lasRasterTools {
 
                         if(pointInPolygon) {
                             band.ReadRaster(x, y, 1, 1, readValue);
+
+
                             gridPoints_z_a.add((double)readValue[0]);
                             sum_z_a += readValue[0];
                         }
@@ -767,8 +816,79 @@ public class lasRasterTools {
                 }
             }
 
+            if(nBands > 0){
 
-            ArrayList<Double> metrics_a = pCM.calcZonal(gridPoints_z_a, sum_z_a, "_a", colnames_a);
+                for(int j = 0; j < rasterExtents_spectral.size(); j++) {
+
+                    HashSet<Integer> usedCells = new HashSet<Integer>();
+
+                    //System.out.println(Arrays.toString(polygonExtent));
+                    //System.out.println(Arrays.toString(rasterExtents.get(j)));
+                    //System.out.println(Arrays.toString(rasterBoundingBoxes.get(j)));
+                    //Check if polygon overlaps with raster
+
+                    if (polygonExtent[0] > rasterBoundingBoxes_spectral.get(j)[2] || polygonExtent[2] < rasterBoundingBoxes_spectral.get(j)[0] || polygonExtent[1] > rasterBoundingBoxes_spectral.get(j)[3] || polygonExtent[3] < rasterBoundingBoxes_spectral.get(j)[1]) {
+                        //System.out.println("Polygon does not overlap with raster");
+                        continue;
+                    }
+
+                    ArrayList<Band> band = rasterBands_spectral.get(j);
+
+                    double[][] polygon = polygons.get(i);
+
+                    ArrayList<double[][]> polygonHoles_ = polygonHoles.get(polyIds.get(i));
+
+                    int[] extentInPixelCoordinates = new int[4];
+
+                    extentInPixelCoordinates[0] = (int)Math.floor((polygonExtent[0] - rasterBoundingBoxes_spectral.get(j)[0]) / rasterExtents_spectral.get(j)[1]);
+                    extentInPixelCoordinates[3] = (int)Math.floor((rasterBoundingBoxes_spectral.get(j)[3] - polygonExtent[1] ) / rasterExtents_spectral.get(j)[1]);
+                    extentInPixelCoordinates[2] = (int)Math.floor((polygonExtent[2] - rasterBoundingBoxes_spectral.get(j)[0]) / rasterExtents_spectral.get(j)[1]);
+                    extentInPixelCoordinates[1] = (int)Math.floor((rasterBoundingBoxes_spectral.get(j)[3] - polygonExtent[3] ) / rasterExtents_spectral.get(j)[1]);
+
+                    //System.out.println("extentinpixelcoordinates: " + Arrays.toString(extentInPixelCoordinates));
+
+                    for(int x = extentInPixelCoordinates[0]; x <= extentInPixelCoordinates[2]; x++){
+                        for(int y = extentInPixelCoordinates[1]; y <= extentInPixelCoordinates[3]; y++){
+
+                            if(x < 0 || y < 0 || x >= rasterWidthHeight_spectral.get(j)[0] || y >= rasterWidthHeight_spectral.get(j)[1]){
+                                continue;
+                            }
+
+                            double[] realCoordinates = new double[2];
+                            realCoordinates[0] = rasterExtents_spectral.get(j)[0] + x * rasterExtents_spectral.get(j)[1] + rasterExtents_spectral.get(j)[1] / 2;
+                            realCoordinates[1] = rasterExtents_spectral.get(j)[3] + y * rasterExtents_spectral.get(j)[5] + rasterExtents_spectral.get(j)[5] / 2;
+
+                            boolean pointInPolygon = pointInPolygon(realCoordinates, polygon, polygonHoles, polyIds.get(i));
+
+                            if(pointInPolygon) {
+
+                                int[] value = new int[nBands];
+
+                                for(int i_ = 0; i_ < nBands; i_++) {
+                                    rasterBands_spectral.get(j).get(i_).ReadRaster(x, y, 1, 1, readValue);
+                                    value[i_] = (int)readValue[0];
+                                }
+
+                                gridPoints_RGB_f.add(value);
+
+                            }
+                        }
+
+                    }
+                }
+
+            }
+
+
+            ArrayList<Double> metrics_a = new ArrayList<>();
+
+            if(nBands == 0)
+                metrics_a = pCM.calcZonal(gridPoints_z_a, sum_z_a, "_a", colnames_a);
+            else{
+                metrics_a = pCM.calc_with_RGB_zonal(gridPoints_z_a, sum_z_a, "_a", colnames_a, gridPoints_RGB_f);
+            }
+
+
             //System.out.println(Arrays.toString(gridPoints_z_a.toArray()));
             //System.out.println("HERE");
             aR.lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i));

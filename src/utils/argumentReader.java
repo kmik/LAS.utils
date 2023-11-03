@@ -29,6 +29,7 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public ArrayList<File> inputFilesSpectral = new ArrayList<>();
     public int nBands = 3;
     public boolean rasterizeColor = false;
     public float extraByteFloat = 0;
@@ -576,6 +577,14 @@ public class argumentReader {
                 .longOpt("input")
                 .hasArg(true)
                 .desc("Input data")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .required(false)
+                .build());
+
+        options.addOption( Option.builder()
+                .longOpt("inputSpectral")
+                .hasArg(true)
+                .desc("Input data Spectral")
                 .numberOfArgs(Option.UNLIMITED_VALUES)
                 .required(false)
                 .build());
@@ -2061,6 +2070,21 @@ public class argumentReader {
                 System.out.println("SETTING REF!! " + this.ref.size());
                 System.out.println(cmd.getOptionValues("ref"));
 
+            }
+
+            if(cmd.hasOption("inputSpectral")){
+
+                ref_ = cmd.getOptionValues("inputSpectral");
+
+                if(ref_[0].split(";").length > 1){
+                    ref_ = ref_[0].split(";");
+                }
+
+                for(String s : ref_){
+
+                    this.inputFilesSpectral.add(new File(s));
+
+                }
             }
 
             if(cmd.hasOption("tar")){
