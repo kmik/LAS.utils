@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
 
+import static org.gdal.gdalconst.gdalconstConstants.GCI_GrayIndex;
 import static tools.createCHM.fo;
 
 
@@ -449,6 +450,7 @@ public class lasRasterTools {
         }
 
         double[][] chm_array = new double[rasterWidth][rasterHeight];
+        ArrayList<int[][]> color_array = new ArrayList<int[][]>(aR.nBands);
         boolean[][] mask_array = new boolean[rasterWidth][rasterHeight];
 
         double minx = pointCloud.getMinX();
@@ -461,6 +463,13 @@ public class lasRasterTools {
         int thread_n = aR.pfac.addReadThread(pointCloud);
 
         byte[] colorValue = new byte[1];
+
+        if(aR.rasterizeColor){
+            for(int i = 0; i < aR.nBands; i++){
+                color_array.add(new int[rasterWidth][rasterHeight]);
+            }
+        }
+
 
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
 
@@ -504,6 +513,13 @@ public class lasRasterTools {
                     if(aR.rasterizeColor){
 
                         if(aR.nBands == 3){
+
+                            color_array.get(0)[x][y] = tempPoint.R;
+                            color_array.get(1)[x][y] = tempPoint.G;
+                            color_array.get(2)[x][y] = tempPoint.B;
+                            //color_array[x][y][0] = tempPoint.R;
+
+                            /*
                             // write tempPoint.R to raster
                             colorValue[0] = (byte)tempPoint.R;
                             colorBands.get(0).WriteRaster(x, y, 1, 1, colorValue);
@@ -515,12 +531,17 @@ public class lasRasterTools {
                             // write tempPoint.B to raster
                             colorValue[0] = (byte)tempPoint.B;
                             colorBands.get(2).WriteRaster(x, y, 1, 1, colorValue);
-
+*/
 
 
                         }
                         if(aR.nBands == 4){
 
+                            color_array.get(0)[x][y] = tempPoint.R;
+                            color_array.get(1)[x][y] = tempPoint.G;
+                            color_array.get(2)[x][y] = tempPoint.B;
+                            color_array.get(3)[x][y] = tempPoint.N;
+                            /*
                             // write tempPoint.R to raster
                             colorValue[0] = (byte)tempPoint.R;
                             colorBands.get(0).WriteRaster(x, y, 1, 1, colorValue);
@@ -537,6 +558,8 @@ public class lasRasterTools {
                             colorValue[0] = (byte)tempPoint.N;
                             colorBands.get(3).WriteRaster(x, y, 1, 1, colorValue);
 
+
+                             */
                         }
 
                     }
@@ -549,6 +572,16 @@ public class lasRasterTools {
 
         if(aR.outputMask)
             copyRasterContents(mask_array, maskBand);
+
+        if(aR.rasterizeColor) {
+
+            if(aR.nBands == 4)
+                colorBands.get(3).SetColorInterpretation(GCI_GrayIndex);
+            for (int i = 0; i < aR.nBands; i++) {
+                copyRasterContents(color_array.get(i), colorBands.get(i));
+                //colorBands.get(i).SetColorInterpretation(GCI_GrayIndex);
+            }
+        }
 
         //String[] options = new String[]{"COMPRESS=LZW"};
 
@@ -596,6 +629,7 @@ public class lasRasterTools {
 
         if(aR.rasterizeColor){
 
+
             Dataset outputDatasetColor = gdal.GetDriverByName("GTiff").CreateCopy(outputFileNameColor, color, 0, options);
 
             if(this.metadata.size() > 0){
@@ -613,6 +647,27 @@ public class lasRasterTools {
 
 
         outputDataset.FlushCache();
+
+    }
+
+    public static void copyRasterContents(int[][] from, Band to){
+
+        int x = to.getXSize();
+        int y = to.getYSize();
+
+        float[] read = new float[x*y];
+
+        int counter = 0;
+
+        for(int y_ = 0; y_ < from[0].length; y_++){
+            for(int x_ = 0; x_ < from.length; x_++){
+
+                read[counter++] = (float)from[x_][y_];
+
+            }
+        }
+
+        to.WriteRaster(0, 0, x, y, read);
 
     }
 
@@ -636,6 +691,7 @@ public class lasRasterTools {
         to.WriteRaster(0, 0, x, y, read);
 
     }
+
 
     public static void copyRasterContents(boolean[][] from, Band to){
 
