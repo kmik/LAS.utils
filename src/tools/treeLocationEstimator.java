@@ -18,7 +18,7 @@ public class treeLocationEstimator {
 
     HashMap<Integer, Polygon> standPolygons = null;
     Random random = new Random();
-    rasterCollection rasters = new rasterCollection();
+    rasterCollection rasters = new rasterCollection(1);
     float[][] auxData = null;
 
     double[] extent = null;

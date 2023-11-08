@@ -29,6 +29,8 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public int origCores = 1;
+    public ArrayList<String> metadataitems = new ArrayList<>();
     public ArrayList<File> inputFilesSpectral = new ArrayList<>();
     public int nBands = 3;
     public boolean rasterizeColor = false;
@@ -588,6 +590,15 @@ public class argumentReader {
                 .numberOfArgs(Option.UNLIMITED_VALUES)
                 .required(false)
                 .build());
+
+        options.addOption( Option.builder()
+                .longOpt("metadataItems")
+                .hasArg(true)
+                .desc("Metadata items to consider")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .required(false)
+                .build());
+
 
         options.addOption( Option.builder()
                 .longOpt("extraBytes")
@@ -2087,6 +2098,20 @@ public class argumentReader {
                 }
             }
 
+
+            if(cmd.hasOption("metadataItems")){
+                ref_ = cmd.getOptionValues("metadataItems");
+
+                if(ref_[0].split(";").length > 1){
+                    ref_ = ref_[0].split(";");
+                }
+
+                for(String s : ref_){
+                    this.metadataitems.add(s);
+                }
+
+            }
+
             if(cmd.hasOption("tar")){
 
                 tar_ = cmd.getOptionValues("tar");
@@ -2222,6 +2247,7 @@ public class argumentReader {
             if (cmd.hasOption("c")) {
 
                 this.cores = Integer.parseInt(cmd.getOptionValue("c"));
+                this.origCores = this.cores;
             }
 
             if (cmd.hasOption("set_seed")) {

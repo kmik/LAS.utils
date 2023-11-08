@@ -31,29 +31,36 @@ public class lasGridStats {
 
         if(aR.inputFiles.get(0).getName().contains(".tif")){
 
+            aR.cores = aR.origCores;
+
             try{
                 tools.lasGridStats lGS = new tools.lasGridStats(aR, 1);
             }catch (Exception e){
                 e.printStackTrace();
             }
-            System.exit(1);
 
-        }
 
-        if(aR.cores > 1){
-            threadTool(aR, fD);
-        }else{
-            for (int i = 0; i < inputFiles.size(); i++) {
-                LASReader temp = new LASReader(aR.inputFiles.get(i));
-                try {
-                    tools.lasGridStats lGS = new tools.lasGridStats(temp, aR, 1);
-                } catch (Exception e) {
-                    e.printStackTrace();
+
+        }else {
+
+            if (aR.cores > 1) {
+                threadTool(aR, fD);
+            } else {
+                for (int i = 0; i < inputFiles.size(); i++) {
+                    LASReader temp = new LASReader(aR.inputFiles.get(i));
+                    try {
+                        tools.lasGridStats lGS = new tools.lasGridStats(temp, aR, 1);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    aR.prog.fileDone();
                 }
-                aR.prog.fileDone();
             }
         }
+
         printProcessingTime();
+
+
     }
 
     private static void threadTool(argumentReader aR, fileDistributor fD) {

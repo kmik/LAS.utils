@@ -43,7 +43,7 @@ public class test_stanford {
         stanford.declareLogFile();
         stanford.readShapeFiles(aR.poly);
 
-        rasterCollection rasters = new rasterCollection();
+        rasterCollection rasters = new rasterCollection(aR.cores);
 
         if(aR.ref.size() > 0){
 
