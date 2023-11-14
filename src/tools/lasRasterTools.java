@@ -1115,6 +1115,7 @@ public class lasRasterTools {
             rasters.add(gdal.Open(raster.getAbsolutePath(), gdalconst.GA_ReadOnly));
         }
 
+        /*
         ArrayList<double[]> rasterExtents = new ArrayList<double[]>();
         ArrayList<double[]> rasterWidthHeight = new ArrayList<double[]>();
         ArrayList<double[]> rasterBoundingBoxes = new ArrayList<double[]>();
@@ -1124,26 +1125,29 @@ public class lasRasterTools {
         ArrayList<double[]> rasterWidthHeight_spectral = new ArrayList<double[]>();
         ArrayList<double[]> rasterBoundingBoxes_spectral = new ArrayList<double[]>();
         ArrayList<ArrayList<Band>> rasterBands_spectral = new ArrayList<>();
-
+*/
         aR.lCMO.prepZonal(aR.inputFiles.get(0));
 
         int n_metadataItems = 0;
         int counter = 0;
 
-        for(Dataset raster : rasters){
+        //for(Dataset raster : rasters){
+        for(File file : aR.inputFiles){
+
+            Dataset raster = gdal.Open(file.getAbsolutePath(), gdalconst.GA_ReadOnly);
 
             double[] rasterExtent = new double[6];
             raster.GetGeoTransform(rasterExtent);
             //System.out.println(Arrays.toString(rasterExtent));
-            rasterExtents.add(rasterExtent);
+            //rasterExtents.add(rasterExtent);
 
             double[] rasterWidthHeight_ = new double[2];
             rasterWidthHeight_[0] = raster.GetRasterXSize();
             rasterWidthHeight_[1] = raster.GetRasterYSize();
 
-            rasterWidthHeight.add(rasterWidthHeight_);
+            //rasterWidthHeight.add(rasterWidthHeight_);
 
-            rasterBoundingBoxes.add(new double[]{rasterExtent[0], rasterExtent[3] + rasterExtent[5] * rasterWidthHeight_[1],rasterExtent[0] + rasterExtent[1] * rasterWidthHeight_[0],  rasterExtent[3]});
+            //rasterBoundingBoxes.add(new double[]{rasterExtent[0], rasterExtent[3] + rasterExtent[5] * rasterWidthHeight_[1],rasterExtent[0] + rasterExtent[1] * rasterWidthHeight_[0],  rasterExtent[3]});
 
             if(aR.metadataitems.size() == 0)
                 rasterBank.addRaster(new gdalRaster(raster.GetDescription(), counter++));
@@ -1152,10 +1156,10 @@ public class lasRasterTools {
                 n_metadataItems = aR.metadataitems.size();
             }
 
-            rasterBands.add(raster.GetRasterBand(1));
+            //rasterBands.add(raster.GetRasterBand(1));
 
         }
-
+/*
         if(aR.inputFilesSpectral.size() > 0){
 
             for(File raster : aR.inputFilesSpectral){
@@ -1194,6 +1198,8 @@ public class lasRasterTools {
 
         }
 
+
+ */
         pointCloudMetrics pCM = new pointCloudMetrics(aR);
 
 
@@ -1204,7 +1210,6 @@ public class lasRasterTools {
 
             int nNoData = 0;
             int nValid = 0;
-
 
             ArrayList<String[]> metadataItems = new ArrayList<>();
 
@@ -1228,8 +1233,6 @@ public class lasRasterTools {
             double minx, double maxx, double miny, double maxy
              */
             ArrayList<Integer> selection = rasterBank.findOverlappingRastersThreadSafe(polygonExtent[0], polygonExtent[2], polygonExtent[1], polygonExtent[3]);
-
-
 
             //for(int j = 0; j < rasterExtents.size(); j++) {
             for(int j = 0; j < selection.size(); j++) {
@@ -1311,7 +1314,7 @@ public class lasRasterTools {
 
                 ras.setProcessingInProgress(false);
             }
-
+/*
             if(nBands > 0){
 
                 for(int j = 0; j < rasterExtents_spectral.size(); j++) {
@@ -1374,7 +1377,7 @@ public class lasRasterTools {
                 }
 
             }
-
+*/
             ArrayList<Double> metrics_a = new ArrayList<>();
 
             if(nBands == 0)
