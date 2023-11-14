@@ -1111,9 +1111,9 @@ public class lasRasterTools {
         ArrayList<Dataset> rasters = new ArrayList<Dataset>();
         ArrayList<Dataset> rastersSpectral = new ArrayList<Dataset>();
 
-        for(File raster : aR.inputFiles){
-            rasters.add(gdal.Open(raster.getAbsolutePath(), gdalconst.GA_ReadOnly));
-        }
+        //for(File raster : aR.inputFiles){
+        //    rasters.add(gdal.Open(raster.getAbsolutePath(), gdalconst.GA_ReadOnly));
+       // }
 
         /*
         ArrayList<double[]> rasterExtents = new ArrayList<double[]>();
