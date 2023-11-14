@@ -926,6 +926,7 @@ public class RunId4pointsLAS{
 
         String indeksi_pathi_all = "";//pathi.split(pathSep)[pathi.split(pathSep).length - 2] + pathSep + "all.lasxALL";
 
+
         indeksi_pathi_all = aR.inputFiles.get(0).getAbsoluteFile().getParent();
 
         String workingDir = indeksi_pathi_all;
