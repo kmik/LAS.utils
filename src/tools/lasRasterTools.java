@@ -1130,6 +1130,7 @@ public class lasRasterTools {
 
         int n_metadataItems = 0;
         int counter = 0;
+        int counter_ = 0;
 
         //for(Dataset raster : rasters){
         for(File file : aR.inputFiles){
@@ -1156,6 +1157,8 @@ public class lasRasterTools {
                 n_metadataItems = aR.metadataitems.size();
             }
 
+            raster.delete();
+            System.out.println(counter_++);
             //rasterBands.add(raster.GetRasterBand(1));
 
         }

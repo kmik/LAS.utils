@@ -2195,7 +2195,7 @@ public class argumentReader {
                         String line;
 
                         while ((line = br.readLine()) != null) {
-                            System.out.println(line);
+                            //System.out.println(line);
                             files_.add(line);
                         }
 
@@ -2206,7 +2206,7 @@ public class argumentReader {
                         }
 
                         for (int i = 0; i < files.length; i++) {
-                            System.out.println(files[i]);
+                            //System.out.println(files[i]);
                         }
                     }
                 }
