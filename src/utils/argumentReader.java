@@ -2178,27 +2178,36 @@ public class argumentReader {
 
                 ArrayList<String> files_ = new ArrayList<>();
 
-                if(files.length == 1 && files[0].equals("files.txt")){
+                // get the filename without path of files[0]
 
-                    //files = Files.readAllLines(Paths.get(files[0])).toArray(new String[0]);
 
-                    // read the file line by line
+                if(files.length == 1){
 
-                    BufferedReader br = new BufferedReader(new FileReader(files[0]));
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        System.out.println(line);
-                        files_.add(line);
-                    }
+                    String filenameWithoutPath = files[0].substring(files[0].lastIndexOf(this.pathSep) + 1);
 
-                    files = new String[files_.size()];
+                    if(filenameWithoutPath.equals("files.txt")) {
 
-                    for(int i = 0; i < files_.size(); i++){
-                        files[i] = files_.get(i);
-                    }
+                        //files = Files.readAllLines(Paths.get(files[0])).toArray(new String[0]);
 
-                    for(int i = 0; i < files.length; i++) {
-                        System.out.println(files[i]);
+                        // read the file line by line
+
+                        BufferedReader br = new BufferedReader(new FileReader(files[0]));
+                        String line;
+
+                        while ((line = br.readLine()) != null) {
+                            System.out.println(line);
+                            files_.add(line);
+                        }
+
+                        files = new String[files_.size()];
+
+                        for (int i = 0; i < files_.size(); i++) {
+                            files[i] = files_.get(i);
+                        }
+
+                        for (int i = 0; i < files.length; i++) {
+                            System.out.println(files[i]);
+                        }
                     }
                 }
 
