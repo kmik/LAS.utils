@@ -4,6 +4,7 @@ import LASio.*;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -207,7 +208,6 @@ public class argumentReader {
     public File train_2 = null;
     public File test_2 = null;
     public File validation_2 = null;
-
 
     public File train = null;
     public File validation = null;
@@ -2174,6 +2174,14 @@ public class argumentReader {
             if (cmd.hasOption("i")) {
 
                 files = cmd.getOptionValues("i");
+                System.out.println("FILES: " + files.length + " " + files[0]);
+
+                if(files.length == 1 && files[0].equals("files.txt")){
+                    files = Files.readAllLines(Paths.get(files[0])).toArray(new String[0]);
+                    for(int i = 0; i < files.length; i++) {
+                        System.out.println(files[i]);
+                    }
+                }
 
                 if(files[0].split(";").length > 1){
                     files = files[0].split(";");
