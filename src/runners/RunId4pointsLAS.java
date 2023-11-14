@@ -1180,11 +1180,27 @@ public class RunId4pointsLAS{
 
         lasRasterTools lRT = new lasRasterTools();
 
+        // start time
+        long startTime = System.currentTimeMillis();
+
         try {
             lRT.zonalStatistics2(aR, new lasClipMetricOfile(aR));
         }catch (Exception e){
             e.printStackTrace();
         }
+
+        // end time
+        long endTime = System.currentTimeMillis();
+
+        // total time in hours, minutes, seconds
+        long totalTime = endTime - startTime;
+        long totalTimeSec = totalTime / 1000;
+        long totalTimeMin = totalTimeSec / 60;
+        long totalTimeHour = totalTimeMin / 60;
+        totalTimeSec = totalTimeSec % 60;
+        totalTimeMin = totalTimeMin % 60;
+
+        System.out.println("Total time: " + totalTimeHour + " hours " + totalTimeMin + " minutes " + totalTimeSec + " seconds");
     }
 
 
