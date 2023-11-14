@@ -471,6 +471,195 @@ public class treeLocationEstimator {
 
     }
 
+    public void simpleEstimationWithProbabilitiesOnlyBoomAngle(double maxBoomDistance, double maxBoomAngle, double minDistanceBetweenTrees,
+                                                 double angleThreshold, double angleprobability ){
+
+        KdTree kdTree = new KdTree();
+
+        KdTree.XYZPoint point = new KdTree.XYZPoint(0,0,0);
+        List<KdTree.XYZPoint> nearest = new ArrayList<KdTree.XYZPoint>();
+        int counter = 0;
+        int nTriesBeforeLowerStandards = 100;
+
+        double maxBoomAngleOriginal = maxBoomAngle;
+        double minDistanceBetweenTreesOriginal = minDistanceBetweenTrees;
+        boolean imposibleHole = false;
+
+        double lowerDistanceBy = 0.25;
+        double lowerDistanceBy_ = 0.0;
+
+        boolean distanceCondition = false;
+
+        double deltah = 0.5;
+        double highest = 0;
+
+        for(int i = 0; i < trees.size(); i++){
+
+            maxBoomAngle = maxBoomAngleOriginal;
+            minDistanceBetweenTrees = minDistanceBetweenTreesOriginal;
+            lowerDistanceBy_ = 0.0;
+
+            if(!trees.get(i).trulyInStand)
+                continue;
+
+            int standId = trees.get(i).standId;
+            double distance = randomDouble(0, maxBoomDistance);
+
+            double randomValue = random.nextDouble();
+            double angle = 0;
+
+            if(randomValue < angleprobability) {
+                angle = randomDouble(-angleThreshold/2.0, angleThreshold/2.0);
+            }else{
+                angle = randomDouble(-maxBoomAngle/2.0, maxBoomAngle/2.0);
+            }
+
+            double randomAngle = randomDouble(0, 360);
+
+            //double[] debug = translatePoint(0,0, 1.414214, 45);
+
+            //System.out.println(Arrays.toString(debug));
+            //System.exit(1);
+            double[] translatedCoordinates = translatePoint(trees.get(i).getX_coordinate_machine(), trees.get(i).getY_coordinate_machine(), distance, angle);
+
+            double distanceToNearestTree = Double.NEGATIVE_INFINITY;
+            boolean insideStand = false;
+            boolean startPrinting = false;
+
+            if(counter > 0){
+
+                int nTries = 0;
+
+                int nFailedBecauseImpossibleHole = 0;
+
+                distanceCondition = false;
+
+                if(trees.get(i).id == 811){
+                    //System.out.println("debug " + trees.get(i).boomAngle);
+                }
+                while(!distanceCondition || !insideStand){
+
+                    distance = randomDouble(3, maxBoomDistance);
+                    randomValue = random.nextDouble();
+                   //System.out.println("RANDOMVALUE: " + randomValue);
+
+                    double distanceThresholdHere = minDistanceBetweenTrees;
+
+                    if(randomValue < angleprobability) {
+                        randomAngle = randomDouble(-angleThreshold/2.0, angleThreshold/2.0);
+                        if(minDistanceBetweenTrees >= 1.0)
+                            minDistanceBetweenTrees = 1.0;
+                    }else{
+                        randomAngle = randomDouble(-maxBoomAngle/2.0, maxBoomAngle/2.0);
+                    }
+
+                   // System.out.println("RANDOMANGLE: " + randomAngle);
+
+                    angle = trees.get(i).getMachineBearing() + randomAngle;
+
+                    translatedCoordinates = translatePoint(trees.get(i).getX_coordinate_machine(), trees.get(i).getY_coordinate_machine(), distance, angle);
+
+                    point.setX(translatedCoordinates[0]);
+                    point.setY(translatedCoordinates[1]);
+
+                    insideStand = pointInPolygon(standBoundaries_.get(standId), translatedCoordinates);
+
+                    if(!imposibleHole)
+                        if(standPolygons.get(standId).hasHole()){
+                            for(int i_ = 0; i_ < standPolygons.get(standId).holes.size(); i_++){
+
+                                if(standPolygons.get(standId).pointInPolygon(standPolygons.get(standId).holes.get(i_), translatedCoordinates)){
+                                    insideStand = false;
+                                    nFailedBecauseImpossibleHole++;
+                                    break;
+                                }
+                            }
+                        }
+
+                    nearest = (List< KdTree.XYZPoint>) kdTree.nearestNeighbourSearch(1, point);
+
+                    if(counter > 0) {
+                        nearest = (List<KdTree.XYZPoint>) kdTree.nearestNeighbourSearch(1, point);
+
+                        distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
+
+                        deltah = Math.abs(trees.get(i).getHeight() - trees.get(nearest.get(0).getIndex()).getHeight());
+                        highest = Math.max(trees.get(i).getHeight(), trees.get(nearest.get(0).getIndex()).getHeight());
+
+
+                    }else{
+                        distanceCondition = true;
+                    }
+
+                    //distanceToNearestTree = euclideanDistance2d(translatedCoordinates[0], translatedCoordinates[1], nearest.get(0).getX(), nearest.get(0).getY());
+
+
+                    if(aR.PREMOTO_ADAPTIVEDISTANCE) {
+                        if ((distanceToNearestTree > ((Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))) {
+                            //if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
+                            distanceCondition = true;
+                        }
+                    }else{
+                        //if ((distanceToNearestTree > ((Math.max(0.75, highest * 0.1 - deltah * 0.1)) - lowerDistanceBy_))) {
+                        if(distanceToNearestTree > (minDistanceBetweenTrees - lowerDistanceBy_)){
+                            distanceCondition = true;
+                        }
+                    }
+
+                    if(randomValue < angleprobability) {
+
+                        minDistanceBetweenTrees = distanceThresholdHere;
+                    }
+
+                    nTries++;
+
+                    if(nTries % nTriesBeforeLowerStandards == 0){
+
+                        if((double)nFailedBecauseImpossibleHole / (double)nTriesBeforeLowerStandards > 0.75) {
+                            imposibleHole = true;
+                        }
+
+                        nFailedBecauseImpossibleHole = 0;
+
+                        maxBoomAngle += 50;
+                        minDistanceBetweenTrees -= 0.25;
+                        lowerDistanceBy_ += lowerDistanceBy;
+                        //maxBoomDistance += 0.5;
+                        startPrinting = true;
+                    }
+
+                    if(startPrinting){
+                        //System.out.println("nTries: " + nTries + " isinside: " + insideStand + " distanceToNearest " + distanceToNearestTree);
+                    }
+
+                }
+
+                System.out.println(distance + " " + insideStand);
+
+                trees.get(i).setX_coordinate_estimated(translatedCoordinates[0]);
+                trees.get(i).setY_coordinate_estimated(translatedCoordinates[1]);
+                trees.get(i).setZ_coordinate_estimated(trees.get(i).getZ_coordinate_machine());
+                trees.get(i).setBoomAngle(angle);
+                trees.get(i).setBoomExtension(distance);
+
+                kdTree.add(trees.get(i).toXYZPoint_estimatedCoords());
+
+            }else{
+
+                trees.get(i).setX_coordinate_estimated(translatedCoordinates[0]);
+                trees.get(i).setY_coordinate_estimated(translatedCoordinates[1]);
+                trees.get(i).setZ_coordinate_estimated(trees.get(i).getZ_coordinate_machine());
+                trees.get(i).setBoomAngle(angle);
+                trees.get(i).setBoomExtension(distance);
+
+                kdTree.add(trees.get(i).toXYZPoint_estimatedCoords());
+            }
+
+            counter++;
+        }
+
+    }
+
     public double generateRandomDistance(double[] DISTANCE_WEIGHTS, double[] DISTANCE_RANGES) {
         //Random random = new Random();
 

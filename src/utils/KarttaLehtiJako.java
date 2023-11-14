@@ -1,7 +1,9 @@
 package utils;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class KarttaLehtiJako {
     double sideLength = 6000;
@@ -10,10 +12,13 @@ public class KarttaLehtiJako {
     public double maxX = 0;
     public double maxY = 0;
 
+    public HashSet<String> mapSheetNames = new HashSet<String>();
     int xDim = 0;
     int yDim = 0;
 
-
+    HashSet<String> configMapSheets = new HashSet<String>();
+    public ArrayList<double[]> configMapSheetExtents = new ArrayList<double[]>();
+    public ArrayList<String> configMapSheetNames = new ArrayList<String>();
     public HashMap<Integer, String> index_to_map_name = new HashMap<Integer, String>();
     public KarttaLehtiJako(){
 
@@ -58,6 +63,7 @@ public class KarttaLehtiJako {
             double x_max = Double.parseDouble(lineArray[3]);
             double y = Double.parseDouble(lineArray[4]);
             double y_max = Double.parseDouble(lineArray[5]);
+            mapSheetNames.add(lineArray[6]);
 
             if (x < minX)
                 minX = x;
@@ -132,6 +138,48 @@ public class KarttaLehtiJako {
 
 
     }
+
+    public void readFromFile(File inputFile, HashSet<String> mapSheetsToConsider) throws Exception {
+
+        InputStream in = this.getClass().getClassLoader()
+                .getResourceAsStream("ETRS89_TM35FIN_karttalehtijako.txt");
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+
+
+        String line = "";
+        String cvsSplitBy = "\t";
+        String [] lineArray;
+        line = br.readLine();
+        lineArray = line.split(cvsSplitBy);
+
+        while((line = br.readLine()) != null){
+
+            lineArray = line.split(cvsSplitBy);
+
+            String mapSheetName = lineArray[6];
+
+            if(mapSheetsToConsider.contains(mapSheetName)){
+
+                configMapSheetExtents.add(new double[]{Double.parseDouble(lineArray[2]), Double.parseDouble(lineArray[3]), Double.parseDouble(lineArray[4]), Double.parseDouble(lineArray[5])});
+                configMapSheetNames.add(mapSheetName);
+
+            }
+        }
+
+
+    }
+
+    public boolean isGarbageName(String name){
+
+        if(mapSheetNames.contains(name))
+            return true;
+        else
+            return false;
+    }
+
+
+
 
    public void readFromObject(File objectFile){
 

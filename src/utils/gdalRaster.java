@@ -11,7 +11,7 @@ import java.util.Arrays;
 
 public class gdalRaster {
 
-    boolean dontcareformemory = false;
+    boolean dontcareformemory = true;
     float[][] rasterArray = new float[1][1];
     boolean lock_1 = false;
     int id;
@@ -209,11 +209,11 @@ public class gdalRaster {
         int number_of_pix_x = this.raster.getRasterXSize();
         int number_of_pix_y = this.raster.getRasterYSize();
 
-        System.out.println(number_of_pix_x + " " + number_of_pix_y);
+        //System.out.println(number_of_pix_x + " " + number_of_pix_y);
         float[] floatArray = new float[number_of_pix_x];
         float[][] output = new float[number_of_pix_x][number_of_pix_y];
 
-        System.out.println("Reading raster line by line");
+        //System.out.println("Reading raster line by line");
 
 
         for(int y = 0; y < number_of_pix_y; y++) {
@@ -261,8 +261,8 @@ public class gdalRaster {
     public synchronized float readValue(int x, int y){
 
 
-        if(!this.isOpen)
-            this.open();
+        //if(!this.isOpen)
+        //    this.open();
 
         if(dontcareformemory){
             return rasterArray[x][y];
@@ -276,6 +276,12 @@ public class gdalRaster {
 
             return value[0];
         }
+
+    }
+
+    public void readAreaToBuffer(){
+
+
 
     }
 

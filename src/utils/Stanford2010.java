@@ -1132,7 +1132,7 @@ public class Stanford2010 {
                     tmpPoint.y = currentY;
                     tmpPoint.z = 0;
 
-                    List<KdTree.XYZPoint> nearestNeighbour = (List<KdTree.XYZPoint>) tmpTree.nearestNeighbourSearch(50, tmpPoint);
+                    List<KdTree.XYZPoint> nearestNeighbour = (List<KdTree.XYZPoint>) tmpTree.nearestNeighbourSearch(100, tmpPoint);
 
                     //System.out.println("3");
                     double sum_v_log_pine = 0;
@@ -1260,7 +1260,7 @@ public class Stanford2010 {
                     tmpPoint.y = tree.getY_coordinate_machine();
                     tmpPoint.z = 0;
 
-                    List<KdTree.XYZPoint> nearestNeighbour = (List<KdTree.XYZPoint>) tmpTree.nearestNeighbourSearch(50, tmpPoint);
+                    List<KdTree.XYZPoint> nearestNeighbour = (List<KdTree.XYZPoint>) tmpTree.nearestNeighbourSearch(100, tmpPoint);
 
                     double sum_v_log_pine = 0;
                     double sum_v_log_pine_squarePlot = 0;
@@ -2439,6 +2439,9 @@ public class Stanford2010 {
         else if(aR.estimationWithCHM)
             estimator.estimationWithAuxiliaryData(10, 270, 2,
                             new double[]{0.1, 0.2, 0.5, 0.2}, new double[]{2.0, 6.0, 8.0, 10.0}, 15.0);
+        else if(aR.estimationSpecialThinning)
+            estimator.simpleEstimationWithProbabilitiesOnlyBoomAngle(10, 270, 2, 25, 0.66);
+
 
 
         rasters.closeCurrentSelection();

@@ -1774,6 +1774,7 @@ public class MKid4pointsLAS{
                 aR.p_update.fileProgress++;
 
                 System.out.println(j + " / " + kountti);
+
             }
         }
 

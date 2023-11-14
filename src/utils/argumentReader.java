@@ -29,6 +29,8 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public File configFile2 = null;
+    public File configFile = null;
     public int origCores = 1;
     public ArrayList<String> metadataitems = new ArrayList<>();
     public ArrayList<File> inputFilesSpectral = new ArrayList<>();
@@ -369,6 +371,8 @@ public class argumentReader {
     boolean simpleEstimation = false;
     boolean simpleEstimationWithProb = false;
     boolean estimationWithCHM = false;
+
+    boolean estimationSpecialThinning = false;
 
     /**
      * A sort of a "thread-safe" gc. Avoid calling GC multiple
@@ -722,6 +726,20 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("config")
+                .hasArg(true)
+                .desc("Configuration file (usage depends on the tool)")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("config2")
+                .hasArg(true)
+                .desc("Second configuration file (usage depends on the tool)")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("turn_hexagon")
                 .hasArg(false)
                 .desc("Rotate points from hexagon to upright pos")
@@ -744,6 +762,13 @@ public class argumentReader {
 
         options.addOption(Option.builder()
                 .longOpt("estimationWithCHM")
+                .hasArg(false)
+                .desc("PREMOTO - estimationWithCHM")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("estimationSpecialThinning")
                 .hasArg(false)
                 .desc("PREMOTO - estimationWithCHM")
                 .required(false)
@@ -2470,6 +2495,20 @@ public class argumentReader {
 
             }
 
+            if( cmd.hasOption("config")) {
+                this.configFile = new File(cmd.getOptionValue("config"));
+
+                if(!this.configFile.exists())
+                    throw new argumentException("-config does not exist!");
+            }
+
+            if( cmd.hasOption("config2")) {
+                this.configFile2 = new File(cmd.getOptionValue("config2"));
+
+                if(!this.configFile.exists())
+                    throw new argumentException("-config does not exist!");
+            }
+
             if(cmd.hasOption("exclude")){
                 this.exclude = cmd.getOptionValue("exclude");
             }
@@ -2551,6 +2590,11 @@ public class argumentReader {
 
                 this.noEstimation = false;
                 this.simpleEstimationWithProb = true;
+            }
+
+            if (cmd.hasOption("estimationSpecialThinning")){
+                this.noEstimation = false;
+                this.estimationSpecialThinning = true;
             }
 
             if( cmd.hasOption("mapSheetExtent")){
@@ -3630,6 +3674,63 @@ public class argumentReader {
 
     }
 
+    public File _createOutputFile_(String fileName){
+
+        File outputFile = null;
+
+        if(this.inputFiles.size() == 0){
+            throw new IllegalArgumentException("No input files");
+        }
+
+        File tempFile = null;
+
+        if(this.odir.equals("asd")) {
+            outputFile = new File(inputFiles.get(0).getParent() + pathSep + fileName);
+        }else{
+
+            outputFile = new File(this.odir + pathSep + fileName);
+        }
+
+
+
+        return outputFile;
+    }
+
+    public File createOutputFileReplace(File in, String fullName) throws IOException {
+
+        //File tempFile = null;
+        //String tempPath = this.output;
+
+        //File tempFile = new File(in.getAbsolutePath().substring(0, in.getAbsolutePath().lastIndexOf(".")) + extension);
+        File tempFile = new File(in.getParent() + pathSep + fullName);
+
+        //if(this.output.equals("asd"))
+        //     tempFile = in;
+        //else
+        //    tempFile = new File(this.output);
+
+        if(!odir.equals("asd")) {
+
+            File diri = new File(odir);
+
+            tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
+        }
+
+        String extensionHere = tempFile.getName().substring(tempFile.getName().lastIndexOf("."));
+
+        if(tempFile.exists()){
+            tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extensionHere);
+        }
+
+        if(tempFile.exists())
+            tempFile.delete();
+
+
+        tempFile.createNewFile();
+
+        return tempFile;
+
+    }
 
     public File createOutputFile(LASReader in) throws IOException {
 

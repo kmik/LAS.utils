@@ -19,6 +19,7 @@ import LASio.*;
 import tools.lasRasterTools;
 import utils.argumentReader;
 import utils.fileOperations;
+import utils.lasClipMetricOfile;
 import utils.pointWriterMultiThread;
 
 import static runners.MKid4pointsLAS.pointInPolygon;
@@ -1179,7 +1180,7 @@ public class RunId4pointsLAS{
         lasRasterTools lRT = new lasRasterTools();
 
         try {
-            lRT.zonalStatistics(aR);
+            lRT.zonalStatistics2(aR, new lasClipMetricOfile(aR));
         }catch (Exception e){
             e.printStackTrace();
         }

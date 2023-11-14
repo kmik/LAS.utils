@@ -114,6 +114,24 @@ public class lasClipMetricOfile {
         }
 
     }
+
+    public void prepZonal_(File in, String outputname){
+
+        try {
+
+            //echo_class_files.add(aR.fo.createNewFileWithNewExtension(in, ext));
+            echo_class_files.add(aR._createOutputFile_(outputname));
+
+            //System.out.println("output file: " + echo_class_files.get(echo_class_files.size()-1).getAbsolutePath());
+
+            echo_class_FileWriter.add(new FileWriter(echo_class_files.get(echo_class_files.size()-1)));
+
+
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+    }
     public synchronized void writeColumnNames_convo(ArrayList<String> colnames_convo){
 
         if(colnamesWritten)
@@ -350,6 +368,63 @@ public class lasClipMetricOfile {
             for (int i = 0; i < metrics_a.size(); i++) {
 
                 echo_class_FileWriter.get(0).write(metrics_a.get(i) + "\t");
+
+            }
+
+            echo_class_FileWriter.get(0).write("\n");
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public synchronized void writeLineZonal(ArrayList<Double> metrics_a,
+                                            ArrayList<String> colnames_a, double poly_id, ArrayList<String[]> metadata, int nMetadata){
+
+
+        for(int i = 0; i < nMetadata; i++)
+            colnames_a.add(metadata.get(i)[0]);
+
+        if(!colnamesWritten) {
+
+            this.writeColumnNamesZonal(colnames_a);
+
+        }
+
+        try {
+
+            echo_class_FileWriter.get(0).write(poly_id + "\t");
+
+            for (int i = 0; i < metrics_a.size(); i++) {
+
+                echo_class_FileWriter.get(0).write(metrics_a.get(i) + "\t");
+
+            }
+
+            if(metadata.size() == nMetadata)
+                for(int i = 0; i < metadata.size(); i++)
+                    echo_class_FileWriter.get(0).write(metadata.get(i)[1] + "\t");
+            else{
+
+                int howMany = metadata.size() / nMetadata;
+
+                for(int k = 0; k < nMetadata; k++) {
+
+                    for (int i = k; i < metadata.size(); i += nMetadata) {
+
+                        echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
+                        if (i + nMetadata < metadata.size())
+                            echo_class_FileWriter.get(0).write(";");
+
+                    }
+
+                    echo_class_FileWriter.get(0).write("\t");
+                }
+
+                // remove the last ;
+
+
 
             }
 
