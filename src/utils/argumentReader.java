@@ -2176,8 +2176,27 @@ public class argumentReader {
                 files = cmd.getOptionValues("i");
                 System.out.println("FILES: " + files.length + " " + files[0]);
 
+                ArrayList<String> files_ = new ArrayList<>();
+
                 if(files.length == 1 && files[0].equals("files.txt")){
-                    files = Files.readAllLines(Paths.get(files[0])).toArray(new String[0]);
+
+                    //files = Files.readAllLines(Paths.get(files[0])).toArray(new String[0]);
+
+                    // read the file line by line
+
+                    BufferedReader br = new BufferedReader(new FileReader(files[0]));
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        System.out.println(line);
+                        files_.add(line);
+                    }
+
+                    files = new String[files_.size()];
+
+                    for(int i = 0; i < files_.size(); i++){
+                        files[i] = files_.get(i);
+                    }
+
                     for(int i = 0; i < files.length; i++) {
                         System.out.println(files[i]);
                     }
