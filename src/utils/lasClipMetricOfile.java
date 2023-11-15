@@ -436,6 +436,70 @@ public class lasClipMetricOfile {
 
     }
 
+    public synchronized void writeLineZonal(ArrayList<Double> metrics_a,
+                                            ArrayList<String> colnames_a, double poly_id, ArrayList<String[]> metadata, int nMetadata, int mostPixels){
+
+
+        for(int i = 0; i < nMetadata; i++)
+            colnames_a.add(metadata.get(i)[0]);
+
+        if(!colnamesWritten) {
+
+            this.writeColumnNamesZonal(colnames_a);
+
+        }
+
+        try {
+
+            echo_class_FileWriter.get(0).write(poly_id + "\t");
+
+            for (int i = 0; i < metrics_a.size(); i++) {
+
+                echo_class_FileWriter.get(0).write(metrics_a.get(i) + "\t");
+
+            }
+
+            System.out.println(mostPixels);
+
+            if(metadata.size() == nMetadata)
+                for(int i = 0; i < metadata.size(); i++)
+                    echo_class_FileWriter.get(0).write(metadata.get(i)[1] + "\t");
+            else{
+
+                int howMany = metadata.size() / nMetadata;
+
+                for(int k = 0; k < nMetadata; k++) {
+                    int counter = 0;
+                    for (int i = k; i < metadata.size(); i += nMetadata) {
+
+
+
+                        if(counter++ == mostPixels) {
+                            echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
+                            //if (i + nMetadata < metadata.size())
+                            //    echo_class_FileWriter.get(0).write(";");
+                        }
+
+                    }
+
+                    echo_class_FileWriter.get(0).write("\t");
+                }
+
+                // remove the last ;
+
+
+
+            }
+
+            echo_class_FileWriter.get(0).write("\n");
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+
     public synchronized void writeLineZonalGrid(ArrayList<Double> metrics_a,
                                             ArrayList<String> colnames_a, double poly_id, double x_coord, double y_coord){
 

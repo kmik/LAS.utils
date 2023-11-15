@@ -1262,8 +1262,11 @@ public class lasRasterTools {
 
             if(selection.size() == 0){
 
-                throw new toolException("No raster found for polygon " + polyIds.get(i) + " with extent " + Arrays.toString(polygonExtent));
+                System.out.println("No raster found for polygon " + polyIds.get(i) + " with extent " + Arrays.toString(polygonExtent));
+                continue;
             }
+
+            int[] nPixelsPerSelection = new int[selection.size()];
 
             //for(int j = 0; j < rasterExtents.size(); j++) {
             for(int j = 0; j < selection.size(); j++) {
@@ -1323,6 +1326,7 @@ public class lasRasterTools {
 
                         if(pointInPolygon) {
 
+
                             float value = ras.readValue(x, y);
 
 
@@ -1340,6 +1344,7 @@ public class lasRasterTools {
 
                             gridPoints_z_a.add((double) value);
                             sum_z_a += value;
+                            nPixelsPerSelection[j]++;
                         }
                     }
 
@@ -1424,11 +1429,13 @@ public class lasRasterTools {
             metrics_a.add(0, proportionNoData);
             colnames_a.add(0,"proportionNoData");
 
+            int mostPixels = indexOfHighestValue(nPixelsPerSelection);
 
             if(aR.metadataitems.size() == 0)
                 lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i));
-            else
-                lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i), metadataItems, aR.metadataitems.size());
+            else {
+                lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i), metadataItems, aR.metadataitems.size(), mostPixels);
+            }
 
             // print progress
             if(i % 1000 == 0){
@@ -1439,6 +1446,34 @@ public class lasRasterTools {
 
         lCMO.closeFilesZonal();
         new File(polyWKT).delete();
+    }
+
+    public static int highestValueInArray(int[] array) {
+        if (array == null || array.length == 0) {
+            throw new IllegalArgumentException("Array must not be null or empty");
+        }
+
+        int highestValue = array[0];
+        for (int i = 1; i < array.length; i++) {
+            if (array[i] > highestValue) {
+                highestValue = array[i];
+            }
+        }
+        return highestValue;
+    }
+
+    public static int indexOfHighestValue(int[] array) {
+        if (array == null || array.length == 0) {
+            throw new IllegalArgumentException("Array must not be null or empty");
+        }
+
+        int highestValueIndex = 0;
+        for (int i = 1; i < array.length; i++) {
+            if (array[i] > array[highestValueIndex]) {
+                highestValueIndex = i;
+            }
+        }
+        return highestValueIndex;
     }
     public static boolean pointInPolygon(double[] point, double[][] poly, HashMap<Integer, ArrayList<double[][]>> holes, int poly_id) {
 
