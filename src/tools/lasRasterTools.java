@@ -1260,6 +1260,11 @@ public class lasRasterTools {
             ArrayList<Integer> selection = rasterBank.findOverlappingRastersThreadSafe(polygonExtent[0], polygonExtent[2], polygonExtent[1], polygonExtent[3]);
             int[] numberOfPixelsPerSelection = new int[selection.size()];
 
+            if(selection.size() == 0){
+
+                throw new toolException("No raster found for polygon " + polyIds.get(i) + " with extent " + Arrays.toString(polygonExtent));
+            }
+
             //for(int j = 0; j < rasterExtents.size(); j++) {
             for(int j = 0; j < selection.size(); j++) {
 
