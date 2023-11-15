@@ -15,7 +15,7 @@ public class rasterCollection {
     HashSet<Integer> previousSelection = new HashSet<Integer>();
 
     int cores = 1;
-    int keepRastersInBufferFor = 10000;
+    int keepRastersInBufferFor = 100;
     int currentCount = 0;
 
     int[] _currentCount_ = new int[1];

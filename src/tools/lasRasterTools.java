@@ -1088,6 +1088,12 @@ public class lasRasterTools {
             //System.out.println(Arrays.toString(gridPoints_z_a.toArray()));
             //System.out.println("HERE");
             aR.lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i));
+
+            // print progress
+            if(i % 1000 == 0){
+                System.out.println("Progress: " + i + " / " + polygons.size());
+            }
+
         }
 
         aR.lCMO.closeFilesZonal();
@@ -1132,6 +1138,9 @@ public class lasRasterTools {
         int counter = 0;
         int counter_ = 0;
 
+        // current time
+        long start = System.currentTimeMillis();
+
         //for(Dataset raster : rasters){
         for(File file : aR.inputFiles){
 
@@ -1158,10 +1167,21 @@ public class lasRasterTools {
             }
 
             raster.delete();
-            System.out.println(counter_++);
+            //System.out.println(counter_++);
             //rasterBands.add(raster.GetRasterBand(1));
 
         }
+
+        // end time
+        long end = System.currentTimeMillis();
+
+        // elapsed time in minutes and seconds
+        long elapsedTime = end - start;
+        double elapsedTimeMin = elapsedTime / (60.0 * 1000.0);
+        double elapsedTimeSec = (elapsedTimeMin - Math.floor(elapsedTimeMin)) * 60.0;
+
+        // print elapsed time
+        System.out.println("Elapsed time for opening and closing rasters: " + (int) elapsedTimeMin + " min " + (int) elapsedTimeSec + " sec");
 /*
         if(aR.inputFilesSpectral.size() > 0){
 
@@ -1399,6 +1419,11 @@ public class lasRasterTools {
                 lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i));
             else
                 lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i), metadataItems, aR.metadataitems.size());
+
+            // print progress
+            if(i % 1000 == 0){
+                System.out.println("Progress: " + i + " / " + polygons.size());
+            }
 
         }
 
