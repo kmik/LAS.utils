@@ -589,6 +589,70 @@ public class lasClipMetricOfile {
 
     }
 
+    public synchronized void writeLineZonalGrid(ArrayList<Double> metrics_a,
+                                                ArrayList<String> colnames_a, double poly_id, double x_coord, double y_coord, ArrayList<String[]> metadata, int nMetadata, int mostPixels){
+
+
+
+        for(int i = 0; i < nMetadata; i++)
+            colnames_a.add(metadata.get(i)[0]);
+
+        if(!colnamesWritten) {
+
+            this.writeColumnNamesZonalGrid(colnames_a);
+
+        }
+
+        try {
+
+            echo_class_FileWriter.get(0).write(poly_id + "\t");
+            echo_class_FileWriter.get(0).write(x_coord + "\t");
+            echo_class_FileWriter.get(0).write(y_coord + "\t");
+
+            for (int i = 0; i < metrics_a.size(); i++) {
+
+                echo_class_FileWriter.get(0).write(metrics_a.get(i) + "\t");
+
+            }
+
+            if(metadata.size() == nMetadata)
+                for(int i = 0; i < metadata.size(); i++)
+                    echo_class_FileWriter.get(0).write(metadata.get(i)[1] + "\t");
+            else{
+
+                int howMany = metadata.size() / nMetadata;
+
+                //System.out.println("howMany: " + howMany);
+                //System.exit(1);
+
+                for(int k = 0; k < nMetadata; k++) {
+                    int counter = 0;
+
+                    for (int i = k; i < metadata.size(); i += nMetadata) {
+
+                        if(counter++ == mostPixels)
+                            echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
+
+
+                    }
+
+                    echo_class_FileWriter.get(0).write("\t");
+                }
+
+                // remove the last ;
+
+
+
+            }
+
+            echo_class_FileWriter.get(0).write("\n");
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
     public void closeFiles(){
 
         System.out.println("Closing output metric files");

@@ -261,6 +261,36 @@ public class lasGridStats {
 
     }
 
+    public void findExtentRaster(rasterCollection rC){
+
+        minX = Double.POSITIVE_INFINITY;
+        maxX = Double.NEGATIVE_INFINITY;
+        minY = Double.POSITIVE_INFINITY;
+        maxY = Double.NEGATIVE_INFINITY;
+
+        for(int i = 0; i < rC.rasters.size(); i++){
+
+
+            if(rC.rasters.get(i).rasterExtent[0] < minX){
+                minX = rC.rasters.get(i).rasterExtent[0];
+            }
+
+            if(rC.rasters.get(i).rasterExtent[3] > maxY){
+                maxY = rC.rasters.get(i).rasterExtent[3];
+            }
+
+            if(rC.rasters.get(i).rasterExtent[2] > maxX){
+                maxX = rC.rasters.get(i).rasterExtent[2];
+            }
+
+            if(rC.rasters.get(i).rasterExtent[1] < minY){
+                minY = rC.rasters.get(i).rasterExtent[1];
+            }
+
+
+        }
+    }
+
     public void start() throws Exception{
 
 
@@ -4434,9 +4464,9 @@ public class lasGridStats {
         int nBands = 0;
         lasRasterTools lRT = new lasRasterTools(aR);
 
-        ArrayList<Dataset> rasters = lRT.readMultipleRasters(aR, extent, rasterBank);
+        lRT.readMultipleRasters(aR, extent, rasterBank);
 
-
+/*
         ArrayList<double[]> rasterExtents = new ArrayList<double[]>();
         ArrayList<double[]> rasterWidthHeight = new ArrayList<double[]>();
         ArrayList<double[]> rasterBoundingBoxes = new ArrayList<double[]>();
@@ -4446,31 +4476,35 @@ public class lasGridStats {
         ArrayList<double[]> rasterWidthHeight_spectral = new ArrayList<double[]>();
         ArrayList<double[]> rasterBoundingBoxes_spectral = new ArrayList<double[]>();
         ArrayList<ArrayList<Band>> rasterBands_spectral = new ArrayList<>();
-
+*/
         ArrayList<Dataset> rastersSpectral = new ArrayList<Dataset>();
 
         ArrayList<String> newColnames = new ArrayList<String>();
 
         int n_metadataItems = 0;
         int counter = 0;
-        for(Dataset raster : rasters){
+        if(false)
+        for(File file : aR.inputFiles){
+
+            Dataset raster = gdal.Open(file.getAbsolutePath(), gdalconst.GA_ReadOnly);
+
 
             double[] rasterExtent = new double[6];
             raster.GetGeoTransform(rasterExtent);
             //System.out.println(Arrays.toString(rasterExtent));
-            rasterExtents.add(rasterExtent);
+            //rasterExtents.add(rasterExtent);
 
             double[] rasterWidthHeight_ = new double[2];
             rasterWidthHeight_[0] = raster.GetRasterXSize();
             rasterWidthHeight_[1] = raster.GetRasterYSize();
 
-            rasterWidthHeight.add(rasterWidthHeight_);
+            //rasterWidthHeight.add(rasterWidthHeight_);
 
-            rasterBoundingBoxes.add(new double[]{rasterExtent[0], rasterExtent[3] + rasterExtent[5] * rasterWidthHeight_[1],rasterExtent[0] + rasterExtent[1] * rasterWidthHeight_[0],  rasterExtent[3]});
+            //rasterBoundingBoxes.add(new double[]{rasterExtent[0], rasterExtent[3] + rasterExtent[5] * rasterWidthHeight_[1],rasterExtent[0] + rasterExtent[1] * rasterWidthHeight_[0],  rasterExtent[3]});
 
-            System.out.println(Arrays.toString(rasterBoundingBoxes.get(rasterBoundingBoxes.size() - 1)));
+            //System.out.println(Arrays.toString(rasterBoundingBoxes.get(rasterBoundingBoxes.size() - 1)));
             //System.exit(1);
-            rasterBands.add(raster.GetRasterBand(1));
+            //rasterBands.add(raster.GetRasterBand(1));
 
             if(aR.metadataitems.size() == 0)
                 rasterBank.addRaster(new gdalRaster(raster.GetDescription(), counter++));
@@ -4479,10 +4513,12 @@ public class lasGridStats {
                 n_metadataItems = aR.metadataitems.size();
             }
 
+            raster.delete();
+
         }
 
 
-
+/*
         if(aR.inputFilesSpectral.size() > 0){
 
             for(File raster : aR.inputFilesSpectral){
@@ -4521,19 +4557,22 @@ public class lasGridStats {
 
         }
 
+ */
+
         if(aR.orig_x == -1 || aR.orig_y == -1){
 
             this.orig_x = Double.POSITIVE_INFINITY;
             this.orig_y = Double.NEGATIVE_INFINITY;
 
-            for(int i = 0; i < rasterExtents.size(); i++){
+            for(int i = 0; i < rasterBank.rasters.size(); i++){
 
-                if(rasterExtents.get(i)[0] < this.orig_x){
-                    this.orig_x = rasterExtents.get(i)[0];
+                //if(rasterExtents.get(i)[0] < this.orig_x){
+                if(rasterBank.rasters.get(i).rasterExtent[0] < this.orig_x){
+                    this.orig_x = rasterBank.rasters.get(i).rasterExtent[0];
                 }
 
-                if(rasterExtents.get(i)[3] > this.orig_y){
-                    this.orig_y = rasterExtents.get(i)[3];
+                if(rasterBank.rasters.get(i).rasterExtent[3] > this.orig_y){
+                    this.orig_y = rasterBank.rasters.get(i).rasterExtent[3];
                 }
             }
 
@@ -4543,7 +4582,7 @@ public class lasGridStats {
 
         }
 
-        findExtentRaster(rasterBoundingBoxes);
+        findExtentRaster(rasterBank);
 
         if(aR.MML_klj){
             this.resolution = cellSizeVMI;
@@ -4592,7 +4631,10 @@ public class lasGridStats {
                     double cellMinY = cellMaxY - this.resolution;
 
                     ArrayList<Integer> selection = rasterBank.findOverlappingRastersThreadSafe(cellMinX, cellMaxX, cellMinY, cellMaxY);
+                    int[] nPixelsPerSelection = new int[selection.size()];
 
+                    if(selection.size() == 0)
+                        continue;
                     //System.out.println("GOT HERE: " + x_);
                     ArrayList<String[]> metadataItems = new ArrayList<>();
 
@@ -4656,6 +4698,7 @@ public class lasGridStats {
 
                                         gridPoints_z_a.add((double) value);
                                         sum_z_a += value;
+                                        nPixelsPerSelection[j]++;
 
                                     }
 
@@ -4664,7 +4707,7 @@ public class lasGridStats {
                             ras.setProcessingInProgress(false);
                         }
                     }
-
+/*
                     if (false)
                         for (int j = 0; j < rasterExtents.size(); j++) {
 
@@ -4705,7 +4748,7 @@ public class lasGridStats {
                                 }
                             }
                         }
-
+*/
 
                     ArrayList<Double> metrics_a = new ArrayList<>();
                     metrics_a = pCM.calcZonal(gridPoints_z_a, sum_z_a, "_a", colnames_a);
@@ -4720,6 +4763,8 @@ public class lasGridStats {
 
                     double proportionNoData = (double) nNoData / (double) (nNoData + nValid);
 
+                    int mostPixels = indexOfHighestValue(nPixelsPerSelection);
+
                     metrics_a.add(0, proportionNoData);
                     colnames_a.add(0,"proportionNoData");
 
@@ -4728,7 +4773,7 @@ public class lasGridStats {
                     else {
 
 
-                        this.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, metadataItems, aR.metadataitems.size());
+                        this.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, metadataItems, aR.metadataitems.size(), mostPixels);
 
                     }
 
@@ -4754,6 +4799,34 @@ public class lasGridStats {
 */
         this.lCMO.closeFilesZonal();
 
+    }
+
+    public static int highestValueInArray(int[] array) {
+        if (array == null || array.length == 0) {
+            throw new IllegalArgumentException("Array must not be null or empty");
+        }
+
+        int highestValue = array[0];
+        for (int i = 1; i < array.length; i++) {
+            if (array[i] > highestValue) {
+                highestValue = array[i];
+            }
+        }
+        return highestValue;
+    }
+
+    public static int indexOfHighestValue(int[] array) {
+        if (array == null || array.length == 0) {
+            throw new IllegalArgumentException("Array must not be null or empty");
+        }
+
+        int highestValueIndex = 0;
+        for (int i = 1; i < array.length; i++) {
+            if (array[i] > array[highestValueIndex]) {
+                highestValueIndex = i;
+            }
+        }
+        return highestValueIndex;
     }
     public boolean pointInsideRectangle(double x, double y, double rectangleminX, double rectangleminY, double rectanglemaxX, double rectanglemaxY){
 

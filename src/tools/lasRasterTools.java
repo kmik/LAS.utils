@@ -138,9 +138,9 @@ public class lasRasterTools {
 
     }
 
-    public ArrayList<Dataset> readMultipleRasters(argumentReader aR, double[] areaOfInterest, rasterCollection rasterBank){
+    public void readMultipleRasters(argumentReader aR, double[] areaOfInterest, rasterCollection rasterBank){
 
-        ArrayList<Dataset> rasters = new ArrayList<Dataset>();
+        //ArrayList<Dataset> rasters = new ArrayList<Dataset>();
 
         int counter = 0;
 
@@ -169,7 +169,7 @@ public class lasRasterTools {
 
 
                 if (isOverlapping(areaOfInterest[0], areaOfInterest[1], areaOfInterest[2], areaOfInterest[3], rasterExtent)) {
-                    rasters.add(tmp);
+                    //rasters.add(tmp);
                     if(aR.metadataitems.size() == 0)
                         rasterBank.addRaster(new gdalRaster(tmp.GetDescription(), counter++));
                     else{
@@ -179,10 +179,12 @@ public class lasRasterTools {
 
             }
 
+                tmp.delete();
+
         }
 
 
-        return rasters;
+        //return rasters;
 
     }
 
@@ -1334,6 +1336,7 @@ public class lasRasterTools {
                                 nNoData++;
                                 continue;
                             }
+
                             // This is a no data value
                             if (value < -5000f) {
                                 nNoData++;
