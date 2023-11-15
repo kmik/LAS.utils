@@ -1,6 +1,5 @@
 import LASio.LASReader;
 import err.toolException;
-import javafx.util.Pair;
 import org.gdal.ogr.ogr;
 import tools.ToShp;
 import utils.*;
@@ -70,11 +69,11 @@ public class lasGridStats {
 
                 System.out.println("Starting lasGridStats with " + aR.cores + " cores.");
 
-                ArrayList<Pair<String, double[]>> mapSheetNamesAndExtents = new ArrayList<>();
+                //ArrayList<Pair<String, double[]>> mapSheetNamesAndExtents = new ArrayList<>();
                 ArrayList<Integer> dat = new ArrayList<>();
                 for(int i = 0; i < klj.configMapSheetExtents.size(); i++){
                     dat.add(i);
-                    mapSheetNamesAndExtents.add(new Pair<>(klj.configMapSheetNames.get(i), klj.configMapSheetExtents.get(i)));
+                    //mapSheetNamesAndExtents.add(new Pair<>(klj.configMapSheetNames.get(i), klj.configMapSheetExtents.get(i)));
                 }
 
                 dataDistributor dD = new dataDistributor(dat);
