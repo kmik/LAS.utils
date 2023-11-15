@@ -459,7 +459,7 @@ public class lasClipMetricOfile {
 
             }
 
-            System.out.println(mostPixels);
+            //System.out.println(mostPixels);
 
             if(metadata.size() == nMetadata)
                 for(int i = 0; i < metadata.size(); i++)
@@ -483,11 +483,8 @@ public class lasClipMetricOfile {
                     }
 
                     echo_class_FileWriter.get(0).write("\t");
+
                 }
-
-                // remove the last ;
-
-
 
             }
 
