@@ -251,7 +251,7 @@ public class lasGridStats {
     /**
      * Just a class to divide workers for multithreaded tools.
      */
-    static class multiThreadTool implements Runnable {
+    public static class multiThreadTool implements Runnable {
 
         argumentReader aR;
         int nCores;
@@ -292,7 +292,7 @@ public class lasGridStats {
         }
     }
 
-    static class multiThreadTool2 implements Runnable {
+    public static class multiThreadTool2 implements Runnable {
 
         argumentReader aR;
         int nCores;
