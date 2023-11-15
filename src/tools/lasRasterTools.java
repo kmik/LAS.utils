@@ -1164,6 +1164,7 @@ public class lasRasterTools {
             else{
                 rasterBank.addRaster(new gdalRaster(raster.GetDescription(), counter++), aR);
                 n_metadataItems = aR.metadataitems.size();
+
             }
 
             raster.delete();
@@ -1236,6 +1237,7 @@ public class lasRasterTools {
 
             ArrayList<String[]> metadataItems = new ArrayList<>();
 
+
             float[] readValue = new float[1];
 
             ArrayList<Double> gridPoints_z_a = new ArrayList<>();
@@ -1256,6 +1258,7 @@ public class lasRasterTools {
             double minx, double maxx, double miny, double maxy
              */
             ArrayList<Integer> selection = rasterBank.findOverlappingRastersThreadSafe(polygonExtent[0], polygonExtent[2], polygonExtent[1], polygonExtent[3]);
+            int[] numberOfPixelsPerSelection = new int[selection.size()];
 
             //for(int j = 0; j < rasterExtents.size(); j++) {
             for(int j = 0; j < selection.size(); j++) {
@@ -1304,6 +1307,8 @@ public class lasRasterTools {
                         if (x < 0 || y < 0 || x >= ras.number_of_pix_x || y >= ras.number_of_pix_y) {
                             continue;
                         }
+
+                        numberOfPixelsPerSelection[j]++;
 
                         double[] realCoordinates = new double[2];
                         realCoordinates[0] = geotransform[0] + x * geotransform[1] + geotransform[1] / 2;

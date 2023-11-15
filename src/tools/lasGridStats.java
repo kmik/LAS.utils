@@ -4726,6 +4726,8 @@ public class lasGridStats {
                     if (aR.metadataitems.size() == 0)
                         this.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord);
                     else {
+
+
                         this.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, metadataItems, aR.metadataitems.size());
 
                     }

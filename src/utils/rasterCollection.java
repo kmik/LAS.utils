@@ -49,6 +49,10 @@ public class rasterCollection {
         }else{
             throw new IllegalArgumentException("No metadata items specified");
         }
+
+        if(raster.metadatas.size() < aR.metadataitems.size()){
+            throw new IllegalArgumentException("Not all metadata items were added for raster: " + raster.filename);
+        }
         raster.close();
 
     }
