@@ -302,7 +302,6 @@ public class lasGridStats {
 
         for(int i = 0; i < rC.rasters.size(); i++){
 
-
             if(rC.rasters.get(i).rasterExtent[0] < minX){
                 minX = rC.rasters.get(i).rasterExtent[0];
             }
@@ -318,7 +317,6 @@ public class lasGridStats {
             if(rC.rasters.get(i).rasterExtent[1] < minY){
                 minY = rC.rasters.get(i).rasterExtent[1];
             }
-
 
         }
     }
@@ -4613,36 +4611,49 @@ public class lasGridStats {
 
  */
 
-        if(aR.orig_x == -1 || aR.orig_y == -1){
+        if(false)
+            if(aR.orig_x == -1 || aR.orig_y == -1){
 
-            this.orig_x = Double.POSITIVE_INFINITY;
-            this.orig_y = Double.NEGATIVE_INFINITY;
+                this.orig_x = Double.POSITIVE_INFINITY;
+                this.orig_y = Double.NEGATIVE_INFINITY;
 
-            for(int i = 0; i < rasterBank.rasters.size(); i++){
+                for(int i = 0; i < rasterBank.rasters.size(); i++){
 
-                //if(rasterExtents.get(i)[0] < this.orig_x){
-                if(rasterBank.rasters.get(i).rasterExtent[0] < this.orig_x){
-                    this.orig_x = rasterBank.rasters.get(i).rasterExtent[0];
+                    //if(rasterExtents.get(i)[0] < this.orig_x){
+                    if(rasterBank.rasters.get(i).rasterExtent[0] < this.orig_x){
+                        this.orig_x = rasterBank.rasters.get(i).rasterExtent[0];
+                    }
+
+                    if(rasterBank.rasters.get(i).rasterExtent[3] > this.orig_y){
+                        this.orig_y = rasterBank.rasters.get(i).rasterExtent[3];
+                    }
                 }
 
-                if(rasterBank.rasters.get(i).rasterExtent[3] > this.orig_y){
-                    this.orig_y = rasterBank.rasters.get(i).rasterExtent[3];
-                }
+            }else{
+                this.orig_x = aR.orig_x;
+                this.orig_y = aR.orig_y;
+
             }
 
-        }else{
-            this.orig_x = aR.orig_x;
-            this.orig_y = aR.orig_y;
+        System.out.println(Arrays.toString(extent));
 
-        }
 
-        findExtentRaster(rasterBank);
+        //findExtentRaster(rasterBank);
 
+        this.minX = extent[0];
+        this.maxX = extent[1];
+        this.minY = extent[2];
+        this.maxY = extent[3];
+
+        this.orig_x = this.minX;
+        this.orig_y = this.maxY;
 
         if(aR.MML_klj){
             this.resolution = cellSizeVMI;
             this.prepareMML();
         }
+
+
 
         int nCellsX = (int)Math.ceil((this.maxX  - this.minX) / this.resolution);
         int nCellsY = (int)Math.ceil((this.maxY  - this.minY) / this.resolution);
@@ -4814,6 +4825,7 @@ public class lasGridStats {
                     ArrayList<Double> metrics_a = new ArrayList<>();
                     metrics_a = pCM.calcZonal(gridPoints_z_a, sum_z_a, "_a", colnames_a);
 
+
                     if(false)
                         if(nNoData == 0){
                             metrics_a = new ArrayList<>();
@@ -4842,7 +4854,6 @@ public class lasGridStats {
                         this.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, metadataItems, aR.metadataitems.size(), mostPixels, mapSheetNameWithoutExtension);
 
                     }
-
                 }
 
             })).get();

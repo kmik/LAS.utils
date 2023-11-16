@@ -612,8 +612,10 @@ public class lasClipMetricOfile {
 
         colnames_a.add("MapSheetName");
 
+
         for(int i = 0; i < nMetadata; i++)
-            colnames_a.add(metadata.get(i)[0]);
+            //colnames_a.add(metadata.get(i)[0]);
+            colnames_a.add(aR.metadataitems.get(i));
 
         if(!colnamesWritten) {
 
