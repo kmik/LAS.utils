@@ -4500,7 +4500,9 @@ public class lasGridStats {
             lRT.readMultipleRasters(aR, extent, rasterBank);
         }
 
-        if(rasterBank.rasters.size() == 0){
+        this.rasterBank = rasterBank;
+
+        if(this.rasterBank.rasters.size() == 0){
 
             aR.writeLineToLogFile("No rasters found for map sheet " + mapsheetname);
             return;
@@ -4603,15 +4605,15 @@ public class lasGridStats {
             this.orig_x = Double.POSITIVE_INFINITY;
             this.orig_y = Double.NEGATIVE_INFINITY;
 
-            for(int i = 0; i < rasterBank.rasters.size(); i++){
+            for(int i = 0; i < this.rasterBank.rasters.size(); i++){
 
                 //if(rasterExtents.get(i)[0] < this.orig_x){
-                if(rasterBank.rasters.get(i).rasterExtent[0] < this.orig_x){
-                    this.orig_x = rasterBank.rasters.get(i).rasterExtent[0];
+                if(this.rasterBank.rasters.get(i).rasterExtent[0] < this.orig_x){
+                    this.orig_x = this.rasterBank.rasters.get(i).rasterExtent[0];
                 }
 
-                if(rasterBank.rasters.get(i).rasterExtent[3] > this.orig_y){
-                    this.orig_y = rasterBank.rasters.get(i).rasterExtent[3];
+                if(this.rasterBank.rasters.get(i).rasterExtent[3] > this.orig_y){
+                    this.orig_y = this.rasterBank.rasters.get(i).rasterExtent[3];
                 }
             }
 
@@ -4621,7 +4623,7 @@ public class lasGridStats {
 
         }
 
-        findExtentRaster(rasterBank);
+        findExtentRaster(this.rasterBank);
 
         if(aR.MML_klj){
             this.resolution = cellSizeVMI;
@@ -4669,7 +4671,7 @@ public class lasGridStats {
                     double cellMaxX = cellMinX + this.resolution;
                     double cellMinY = cellMaxY - this.resolution;
 
-                    ArrayList<Integer> selection = rasterBank.findOverlappingRastersThreadSafe(cellMinX, cellMaxX, cellMinY, cellMaxY);
+                    ArrayList<Integer> selection = this.rasterBank.findOverlappingRastersThreadSafe(cellMinX, cellMaxX, cellMinY, cellMaxY);
                     int[] nPixelsPerSelection = new int[selection.size()];
 
                     if(selection.size() == 0)
@@ -4681,7 +4683,7 @@ public class lasGridStats {
 
                         for (int j = 0; j < selection.size(); j++) {
 
-                            gdalRaster ras = rasterBank.getRaster(selection.get(j));
+                            gdalRaster ras = this.rasterBank.getRaster(selection.get(j));
                             ras.setProcessingInProgress(true);
                             int[] extentInPixelCoordinates = new int[4];
                             double[] bbox = ras.rasterExtent;
