@@ -213,16 +213,19 @@ public class lasGridStats {
         // read the config file line by line
 
         try {
+
             BufferedReader br = new BufferedReader(new FileReader(config));
             String line = br.readLine();
+
             while (line != null) {
 
                 this.mapSheetsToConsider.add(line);
-
                 line = br.readLine();
+
             }
 
             br.close();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -4635,6 +4638,7 @@ public class lasGridStats {
 
         findExtentRaster(rasterBank);
 
+
         if(aR.MML_klj){
             this.resolution = cellSizeVMI;
             this.prepareMML();
@@ -4645,6 +4649,7 @@ public class lasGridStats {
 
         System.out.println("nCellsX: " + nCellsX);
         System.out.println("nCellsY: " + nCellsY);
+        System.out.println("nRasters: " + rasterBank.rasters.size());
 
         pointCloudMetrics pCM = new pointCloudMetrics(aR);
 

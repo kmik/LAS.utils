@@ -656,10 +656,7 @@ public class lasClipMetricOfile {
                             if (counter++ == mostPixels) {
                                 echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
                             }
-
-
                         }
-
                         echo_class_FileWriter.get(0).write("\t");
                     }
                 }
