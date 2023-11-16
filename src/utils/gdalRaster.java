@@ -21,7 +21,7 @@ public class gdalRaster {
     Double[] nanValue;
     float[] value = new float[1];
 
-    String filename = null;
+    public String filename = null;
 
     Dataset raster;
 

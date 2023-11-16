@@ -26,6 +26,7 @@ import static tools.cellStats.polygonArea;
 
 public class lasGridStats {
 
+    rasterCollection rasterBank = null;
     lasClipMetricOfile lCMO = null;
     public HashSet<String> mapSheetsToConsider = new HashSet<>();
     double cellSizeVMI = 16.0;
@@ -150,7 +151,7 @@ public class lasGridStats {
 
     }
 
-    public lasGridStats(argumentReader aR, int coreNumber, double[] extent, String mapsheetname, lasClipMetricOfile lCMO ) throws Exception{
+    public lasGridStats(argumentReader aR, int coreNumber, double[] extent, String mapsheetname, lasClipMetricOfile lCMO) throws Exception{
 
         this.lCMO = lCMO;
         this.coreNumber = coreNumber;
@@ -160,6 +161,34 @@ public class lasGridStats {
         this.z_cutoff = aR.z_cutoff;
 
         this.aR = aR;
+
+        //this.outputMetricFile_a = this.aR.createOutputFileWithExtension(aR.inputFiles.get(0), "_gridStats_all_echoes.txt");
+
+        //bin_a = new gridRAF(this.aR.createOutputFileWithExtension(aR.inputFiles.get(0), "_temp_a.bin"));
+
+        //this.start_2_raster();
+
+
+        if(aR.configFile != null){
+            this.start_2_raster_multithread_specificSheets(extent, mapsheetname);
+
+        }
+
+        aR.p_update.fileProgress++;
+
+    }
+
+    public lasGridStats(argumentReader aR, int coreNumber, double[] extent, String mapsheetname, lasClipMetricOfile lCMO, rasterCollection rasterBank) throws Exception{
+
+        this.lCMO = lCMO;
+        this.coreNumber = coreNumber;
+
+        this.resolution = aR.res;
+
+        this.z_cutoff = aR.z_cutoff;
+
+        this.aR = aR;
+        this.rasterBank = rasterBank;
 
         //this.outputMetricFile_a = this.aR.createOutputFileWithExtension(aR.inputFiles.get(0), "_gridStats_all_echoes.txt");
 
@@ -4461,11 +4490,21 @@ public class lasGridStats {
 
         rasterCollection rasterBank = new rasterCollection(aR.cores);
 
+
         int nBands = 0;
         lasRasterTools lRT = new lasRasterTools(aR);
 
-        lRT.readMultipleRasters(aR, extent, rasterBank);
+        if(this.rasterBank != null) {
+            lRT.readMultipleRasters(aR, extent, rasterBank, this.rasterBank);
+        }else{
+            lRT.readMultipleRasters(aR, extent, rasterBank);
+        }
 
+        if(rasterBank.rasters.size() == 0){
+
+            aR.writeLineToLogFile("No rasters found for map sheet " + mapsheetname);
+            return;
+        }
 /*
         ArrayList<double[]> rasterExtents = new ArrayList<double[]>();
         ArrayList<double[]> rasterWidthHeight = new ArrayList<double[]>();

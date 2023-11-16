@@ -188,6 +188,53 @@ public class lasRasterTools {
 
     }
 
+    public void readMultipleRasters(argumentReader aR, double[] areaOfInterest, rasterCollection rasterBank, rasterCollection rasterBank2){
+
+        //ArrayList<Dataset> rasters = new ArrayList<Dataset>();
+
+        int counter = 0;
+
+        for(gdalRaster raster : rasterBank2.rasters){
+/*
+            Dataset tmp = gdal.Open(raster.getAbsolutePath(), gdalconst.GA_ReadOnly);
+
+            double[] rasterExtent = new double[6];
+            tmp.GetGeoTransform(rasterExtent);
+
+
+            //tmp.GetGeoTransform(geoTransform);
+
+            double[] rasterWidthHeight_ = new double[2];
+            rasterWidthHeight_[0] = tmp.GetRasterXSize();
+            rasterWidthHeight_[1] = tmp.GetRasterYSize();
+
+            double resolution = rasterExtent[1];
+
+            int number_of_pix_x = (int) rasterWidthHeight_[0];
+            int number_of_pix_y = (int) rasterWidthHeight_[1];
+
+*/
+
+            double[] rasterExtent = raster.rasterExtent;
+
+            if (isOverlapping(areaOfInterest[0], areaOfInterest[1], areaOfInterest[2], areaOfInterest[3], rasterExtent)) {
+                //rasters.add(tmp);
+                if(aR.metadataitems.size() == 0)
+                    rasterBank.addRaster(new gdalRaster(raster.filename, counter++));
+                else{
+                    rasterBank.addRaster(new gdalRaster(raster.filename, counter++), aR);
+                    //n_metadataItems = aR.metadataitems.size();
+                }
+
+            }
+
+        }
+
+
+        //return rasters;
+
+    }
+
     public boolean isOverlapping(double minx, double maxx, double miny, double maxy, double[] rasterExtent){
 
         if (minx > rasterExtent[1] || maxx < rasterExtent[0] || miny > rasterExtent[3] || maxy < rasterExtent[2]){

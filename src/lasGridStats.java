@@ -1,5 +1,8 @@
 import LASio.LASReader;
 import err.toolException;
+import org.gdal.gdal.Dataset;
+import org.gdal.gdal.gdal;
+import org.gdal.gdalconst.gdalconst;
 import org.gdal.ogr.ogr;
 import tools.ToShp;
 import utils.*;
@@ -65,7 +68,7 @@ public class lasGridStats {
 
                 System.out.println(klj.configMapSheetExtents.size());
 
-                ForkJoinPool customThreadPool = new ForkJoinPool(aR.cores);
+                //ForkJoinPool customThreadPool = new ForkJoinPool(aR.cores);
 
                 System.out.println("Starting lasGridStats with " + aR.cores + " cores.");
 
@@ -76,10 +79,53 @@ public class lasGridStats {
                     //mapSheetNamesAndExtents.add(new Pair<>(klj.configMapSheetNames.get(i), klj.configMapSheetExtents.get(i)));
                 }
 
+                rasterCollection rasterBank = new rasterCollection(aR.cores);
+
+                int counter = 0;
+                int n_metadataItems = 0;
+
+                for(File file : aR.inputFiles){
+
+                    Dataset raster = gdal.Open(file.getAbsolutePath(), gdalconst.GA_ReadOnly);
+
+                    double[] rasterExtent = new double[6];
+                    raster.GetGeoTransform(rasterExtent);
+                    //System.out.println(Arrays.toString(rasterExtent));
+                    //rasterExtents.add(rasterExtent);
+
+                    double[] rasterWidthHeight_ = new double[2];
+                    rasterWidthHeight_[0] = raster.GetRasterXSize();
+                    rasterWidthHeight_[1] = raster.GetRasterYSize();
+
+                    //rasterWidthHeight.add(rasterWidthHeight_);
+
+                    //rasterBoundingBoxes.add(new double[]{rasterExtent[0], rasterExtent[3] + rasterExtent[5] * rasterWidthHeight_[1],rasterExtent[0] + rasterExtent[1] * rasterWidthHeight_[0],  rasterExtent[3]});
+
+                    if(aR.metadataitems.size() == 0)
+                        rasterBank.addRaster(new gdalRaster(raster.GetDescription(), counter++));
+                    else{
+                        rasterBank.addRaster(new gdalRaster(raster.GetDescription(), counter++), aR);
+                        n_metadataItems = aR.metadataitems.size();
+
+                    }
+
+                    raster.delete();
+                    //System.out.println(counter_++);
+                    //rasterBands.add(raster.GetRasterBand(1));
+
+                }
+
                 dataDistributor dD = new dataDistributor(dat);
 
+                aR.logFile = new File("lasGridStats_log.txt");
+
+                if(aR.logFile.exists()){
+                    aR.logFile.delete();
+                    aR.logFile.createNewFile();
+                }
+
                 if(aR.cores > 1){
-                    threadTool2(aR, dD, klj);
+                    threadTool2(aR, dD, klj, rasterBank);
                 }
                 else{
                     for(int i = 0; i < klj.configMapSheetExtents.size(); i++) {
@@ -87,15 +133,19 @@ public class lasGridStats {
 
 
                         lasClipMetricOfile lCMO = new lasClipMetricOfile(aR);
+
                         double[] temp = klj.configMapSheetExtents.get(i);
                         String outputName = klj.configMapSheetNames.get(i) + ".txt";
+
                         try {
-                            tools.lasGridStats lGS = new tools.lasGridStats(aR, 1, temp, outputName, lCMO);
+                            tools.lasGridStats lGS = new tools.lasGridStats(aR, 1, temp, outputName, lCMO, rasterBank);
+                            //tools.lasGridStats lGS = new tools.lasGridStats(aR, 1, temp, outputName, lCMO);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
                 }
+/*
                 if(false)
                 try {
 
@@ -116,7 +166,7 @@ public class lasGridStats {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
+*/
             }else {
 
                 try {
@@ -219,7 +269,7 @@ public class lasGridStats {
 
     }
 
-    private static void threadTool2(argumentReader aR, dataDistributor fD, KarttaLehtiJako klj) {
+    private static void threadTool2(argumentReader aR, dataDistributor fD, KarttaLehtiJako klj, rasterCollection rasterBank) {
 
         proge.setEnd(aR.inputFiles.size());
 
@@ -231,7 +281,7 @@ public class lasGridStats {
         for (int ii = 1; ii <= aR.cores; ii++) {
 
             proge.addThread();
-            Thread temp = new Thread(new multiThreadTool2(aR, aR.cores, ii, fD, klj));
+            Thread temp = new Thread(new multiThreadTool2(aR, aR.cores, ii, fD, klj, rasterBank));
             threadList.add(temp);
             temp.start();
 
@@ -299,15 +349,17 @@ public class lasGridStats {
         int nCore;
         dataDistributor fD;
 
+        rasterCollection rasterBank;
         KarttaLehtiJako klj;
 
-        public multiThreadTool2(argumentReader aR, int nCores, int nCore, dataDistributor fD, KarttaLehtiJako klj) {
+        public multiThreadTool2(argumentReader aR, int nCores, int nCore, dataDistributor fD, KarttaLehtiJako klj, rasterCollection rasterBank){
 
             this.aR = aR;
             this.nCores = nCores;
             this.nCore = nCore;
             this.fD = fD;
             this.klj = klj;
+            this.rasterBank = rasterBank;
 
         }
 
@@ -327,7 +379,7 @@ public class lasGridStats {
                 String outputName = klj.configMapSheetNames.get(data) + ".txt";
 
                 try {
-                    tools.lasGridStats lGS = new tools.lasGridStats(aR, 1, temp, outputName, lCMO);
+                    tools.lasGridStats lGS = new tools.lasGridStats(aR, 1, temp, outputName, lCMO, rasterBank);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
