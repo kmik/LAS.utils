@@ -1475,9 +1475,13 @@ public class lasRasterTools {
             metrics_a.add(0, proportionNoData);
             colnames_a.add(0,"proportionNoData");
 
-            int mostPixels = indexOfHighestValue(nPixelsPerSelection);
 
+            int mostPixels = 0;
 
+            if(selection.size() != 0)
+                mostPixels = indexOfHighestValue(nPixelsPerSelection);
+            else
+                mostPixels = 0;
 
             if(aR.metadataitems.size() == 0)
                 lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i));

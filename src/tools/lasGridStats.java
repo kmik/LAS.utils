@@ -4824,7 +4824,12 @@ public class lasGridStats {
 
                     double proportionNoData = (double) nNoData / (double) (nNoData + nValid);
 
-                    int mostPixels = indexOfHighestValue(nPixelsPerSelection);
+                    int mostPixels = 0;
+
+                    if(selection.size() != 0)
+                        mostPixels = indexOfHighestValue(nPixelsPerSelection);
+                    else
+                        mostPixels = 0;
 
                     metrics_a.add(0, proportionNoData);
                     colnames_a.add(0,"proportionNoData");
