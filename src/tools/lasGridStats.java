@@ -4488,8 +4488,16 @@ public class lasGridStats {
 
     public void start_2_raster_multithread_specificSheets(double[] extent, String mapsheetname){
 
-        rasterCollection rasterBank = new rasterCollection(aR.cores);
 
+        KarttaLehtiJako klj = new KarttaLehtiJako();
+
+        try {
+            klj.readFromFile(new File(""));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        rasterCollection rasterBank = new rasterCollection(aR.cores);
 
         int nBands = 0;
         lasRasterTools lRT = new lasRasterTools(aR);
@@ -4522,6 +4530,8 @@ public class lasGridStats {
 
         ArrayList<String> newColnames = new ArrayList<String>();
 
+        String mapSheetNameWithoutExtension = mapsheetname.substring(0, mapsheetname.length() - 4);
+
         int n_metadataItems = 0;
         int counter = 0;
         if(false)
@@ -4529,8 +4539,8 @@ public class lasGridStats {
 
             Dataset raster = gdal.Open(file.getAbsolutePath(), gdalconst.GA_ReadOnly);
 
-
             double[] rasterExtent = new double[6];
+
             raster.GetGeoTransform(rasterExtent);
             //System.out.println(Arrays.toString(rasterExtent));
             //rasterExtents.add(rasterExtent);
@@ -4674,11 +4684,11 @@ public class lasGridStats {
                     ArrayList<Integer> selection = rasterBank.findOverlappingRastersThreadSafe(cellMinX, cellMaxX, cellMinY, cellMaxY);
                     int[] nPixelsPerSelection = new int[selection.size()];
 
-                    if(selection.size() == 0)
-                        continue;
+
+
                     //System.out.println("GOT HERE: " + x_);
                     ArrayList<String[]> metadataItems = new ArrayList<>();
-
+                    if(selection.size() != 0)
                     if (true) {
 
                         for (int j = 0; j < selection.size(); j++) {
@@ -4747,6 +4757,11 @@ public class lasGridStats {
                             }
                             ras.setProcessingInProgress(false);
                         }
+                    }else{
+
+                        nValid = 1;
+                        nNoData = 1;
+
                     }
 /*
                     if (false)
@@ -4814,7 +4829,7 @@ public class lasGridStats {
                     else {
 
 
-                        this.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, metadataItems, aR.metadataitems.size(), mostPixels);
+                        this.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, metadataItems, aR.metadataitems.size(), mostPixels, mapSheetNameWithoutExtension);
 
                     }
 

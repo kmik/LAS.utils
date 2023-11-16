@@ -104,10 +104,7 @@ public class gdalRaster {
         this.number_of_pix_x = (int) rasterWidthHeight_[0];
         this.number_of_pix_y = (int) rasterWidthHeight_[1];
 
-
-
         this.rasterExtent = new double[]{rasterExtent[0], rasterExtent[3] + rasterExtent[5] * rasterWidthHeight_[1],rasterExtent[0] + rasterExtent[1] * rasterWidthHeight_[0],  rasterExtent[3]};
-
 
         return this.rasterExtent;
 

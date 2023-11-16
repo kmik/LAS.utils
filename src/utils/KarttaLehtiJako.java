@@ -13,6 +13,9 @@ public class KarttaLehtiJako {
     public double maxY = 0;
 
     public HashSet<String> mapSheetNames = new HashSet<String>();
+
+    public HashMap<String, double[]> mapSheetExtents = new HashMap<String, double[]>();
+
     int xDim = 0;
     int yDim = 0;
 
@@ -64,6 +67,14 @@ public class KarttaLehtiJako {
             double y = Double.parseDouble(lineArray[4]);
             double y_max = Double.parseDouble(lineArray[5]);
             mapSheetNames.add(lineArray[6]);
+
+            double[] extent = new double[4];
+            extent[0] = x;
+            extent[1] = x_max;
+            extent[2] = y;
+            extent[3] = y_max;
+
+            mapSheetExtents.put(lineArray[6], extent);
 
             if (x < minX)
                 minX = x;
@@ -136,6 +147,31 @@ public class KarttaLehtiJako {
 
         // read inputFile line by line
 
+
+    }
+
+    public String getMapSheetNameByCoordinates(double x, double y){
+
+        //System.out.println("x: " + x + " y: " + y);
+
+        for(String s : mapSheetExtents.keySet()){
+
+            double[] extent = mapSheetExtents.get(s);
+
+            if(pointInRectangle(x, y, extent))
+                return s;
+
+        }
+
+        return "null";
+    }
+
+    public boolean pointInRectangle(double x, double y, double[] extent){
+
+        if(x >= extent[0] && x <= extent[1] && y >= extent[2] && y <= extent[3])
+            return true;
+
+        return false;
 
     }
 

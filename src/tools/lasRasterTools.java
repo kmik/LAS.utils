@@ -1136,6 +1136,9 @@ public class lasRasterTools {
 
     public void zonalStatistics2(argumentReader aR, lasClipMetricOfile lCMO ) throws Exception{
 
+        KarttaLehtiJako klj = new KarttaLehtiJako();
+        klj.readFromFile(new File(""));
+
         rasterCollection rasterBank = new rasterCollection(aR.cores);
 
 
@@ -1202,7 +1205,6 @@ public class lasRasterTools {
                 n_metadataItems = aR.metadataitems.size();
 
             }
-
             raster.delete();
             //System.out.println(counter_++);
             //rasterBands.add(raster.GetRasterBand(1));
@@ -1262,9 +1264,7 @@ public class lasRasterTools {
  */
         pointCloudMetrics pCM = new pointCloudMetrics(aR);
 
-
         lCMO.prepZonal(aR.inputFiles.get(0));
-
 
         for(int i = 0; i < polygons.size(); i++){
 
@@ -1293,18 +1293,24 @@ public class lasRasterTools {
             /*
             double minx, double maxx, double miny, double maxy
              */
+
+            //System.out.println(Arrays.toString(polygonExtent));
+            String mapSheetName = klj.getMapSheetNameByCoordinates((polygonExtent[2] + polygonExtent[0]) / 2.0, (polygonExtent[3] + polygonExtent[1]) / 2.0);
+
             ArrayList<Integer> selection = rasterBank.findOverlappingRastersThreadSafe(polygonExtent[0], polygonExtent[2], polygonExtent[1], polygonExtent[3]);
             int[] numberOfPixelsPerSelection = new int[selection.size()];
 
             if(selection.size() == 0){
 
-                System.out.println("No raster found for polygon " + polyIds.get(i) + " with extent " + Arrays.toString(polygonExtent));
-                continue;
+                //System.out.println("No raster found for polygon " + polyIds.get(i) + " with extent " + Arrays.toString(polygonExtent));
+                //continue;
+
             }
 
             int[] nPixelsPerSelection = new int[selection.size()];
 
             //for(int j = 0; j < rasterExtents.size(); j++) {
+            if(selection.size() != 0)
             for(int j = 0; j < selection.size(); j++) {
 
                 HashSet<Integer> usedCells = new HashSet<Integer>();
@@ -1388,6 +1394,9 @@ public class lasRasterTools {
                 }
 
                 ras.setProcessingInProgress(false);
+            }else{
+                nNoData = 1;
+                nValid = 1;
             }
 /*
             if(nBands > 0){
@@ -1468,10 +1477,12 @@ public class lasRasterTools {
 
             int mostPixels = indexOfHighestValue(nPixelsPerSelection);
 
+
+
             if(aR.metadataitems.size() == 0)
                 lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i));
             else {
-                lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i), metadataItems, aR.metadataitems.size(), mostPixels);
+                lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i), metadataItems, aR.metadataitems.size(), mostPixels, mapSheetName);
             }
 
             // print progress

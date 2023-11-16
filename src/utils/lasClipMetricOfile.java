@@ -437,8 +437,10 @@ public class lasClipMetricOfile {
     }
 
     public synchronized <T> void writeLineZonal(ArrayList<Double> metrics_a,
-                                            ArrayList<String> colnames_a, T poly_id, ArrayList<String[]> metadata, int nMetadata, int mostPixels){
+                                            ArrayList<String> colnames_a, T poly_id, ArrayList<String[]> metadata, int nMetadata, int mostPixels,
+                                                String mapSheetName){
 
+        colnames_a.add("MapSheetName");
 
         for(int i = 0; i < nMetadata; i++)
             colnames_a.add(metadata.get(i)[0]);
@@ -459,6 +461,10 @@ public class lasClipMetricOfile {
 
             }
 
+            echo_class_FileWriter.get(0).write(mapSheetName + "\t");
+
+
+
             //System.out.println(mostPixels);
 
             if(metadata.size() == nMetadata)
@@ -468,24 +474,33 @@ public class lasClipMetricOfile {
 
                 int howMany = metadata.size() / nMetadata;
 
-                for(int k = 0; k < nMetadata; k++) {
-                    int counter = 0;
-                    for (int i = k; i < metadata.size(); i += nMetadata) {
+                if(metadata.size() != 0) {
+                    for (int k = 0; k < nMetadata; k++) {
+                        int counter = 0;
+                        for (int i = k; i < metadata.size(); i += nMetadata) {
 
-                        if(counter++ == mostPixels) {
+                            if (counter++ == mostPixels) {
 
-                            if(metadata.get(i)[1] == null)
-                                echo_class_FileWriter.get(0).write("null");
-                            else
-                                echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
-                            //if (i + nMetadata < metadata.size())
-                            //    echo_class_FileWriter.get(0).write(";");
+                                if (metadata.get(i)[1] == null)
+                                    echo_class_FileWriter.get(0).write("null");
+                                else
+                                    echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
+                                //if (i + nMetadata < metadata.size())
+                                //    echo_class_FileWriter.get(0).write(";");
+                            }
+
                         }
 
+                        echo_class_FileWriter.get(0).write("\t");
+
                     }
+                }else{
 
-                    echo_class_FileWriter.get(0).write("\t");
+                        for (int k = 0; k < nMetadata; k++) {
 
+                            echo_class_FileWriter.get(0).write("null\t");
+
+                        }
                 }
 
             }
@@ -592,9 +607,10 @@ public class lasClipMetricOfile {
     }
 
     public synchronized void writeLineZonalGrid(ArrayList<Double> metrics_a,
-                                                ArrayList<String> colnames_a, double poly_id, double x_coord, double y_coord, ArrayList<String[]> metadata, int nMetadata, int mostPixels){
+                                                ArrayList<String> colnames_a, double poly_id, double x_coord, double y_coord, ArrayList<String[]> metadata, int nMetadata, int mostPixels,
+                                                String mapSheetName){
 
-
+        colnames_a.add("MapSheetName");
 
         for(int i = 0; i < nMetadata; i++)
             colnames_a.add(metadata.get(i)[0]);
@@ -617,6 +633,8 @@ public class lasClipMetricOfile {
 
             }
 
+            echo_class_FileWriter.get(0).write(mapSheetName + "\t");
+
             if(metadata.size() == nMetadata)
                 for(int i = 0; i < metadata.size(); i++)
                     echo_class_FileWriter.get(0).write(metadata.get(i)[1] + "\t");
@@ -627,20 +645,30 @@ public class lasClipMetricOfile {
                 //System.out.println("howMany: " + howMany);
                 //System.exit(1);
 
-                for(int k = 0; k < nMetadata; k++) {
-                    int counter = 0;
+                if(metadata.size() != 0) {
+                    for (int k = 0; k < nMetadata; k++) {
 
-                    for (int i = k; i < metadata.size(); i += nMetadata) {
 
-                        if(counter++ == mostPixels) {
-                            echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
+                        int counter = 0;
+
+                        for (int i = k; i < metadata.size(); i += nMetadata) {
+
+                            if (counter++ == mostPixels) {
+                                echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
+                            }
+
+
                         }
 
-
+                        echo_class_FileWriter.get(0).write("\t");
                     }
-
-                    echo_class_FileWriter.get(0).write("\t");
                 }
+                else{
+                    for (int k = 0; k < nMetadata; k++) {
+                        echo_class_FileWriter.get(0).write("null" + "\t");
+                    }
+                }
+
 
                 // remove the last ;
 
