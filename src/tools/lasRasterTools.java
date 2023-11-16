@@ -1156,12 +1156,14 @@ public class lasRasterTools {
 
         this.aR = aR;
         String polyWKT = readShapefile(aR.poly);
-        ArrayList<Integer> polyIds = new ArrayList<>();
+        ArrayList<String> polyIds = new ArrayList<>();
 
         int nBands = 0;
 
-        ArrayList<double[][]> polygons = readPolygonsFromWKT(polyWKT, polyIds);
-        HashMap<Integer, ArrayList<double[][]>> polygonHoles = readPolygonHolesFromWKT(polyWKT, polyIds);
+        ArrayList<double[][]> polygons = readPolygonsFromWKT_string(polyWKT, polyIds);
+
+        HashMap<String, ArrayList<double[][]>> polygonHoles = readPolygonHolesFromWKT_string(polyWKT, polyIds);
+
 
         ArrayList<Dataset> rasters = new ArrayList<Dataset>();
         ArrayList<Dataset> rastersSpectral = new ArrayList<Dataset>();
@@ -1371,7 +1373,7 @@ public class lasRasterTools {
                         realCoordinates[0] = geotransform[0] + x * geotransform[1] + geotransform[1] / 2;
                         realCoordinates[1] = geotransform[3] + y * geotransform[5] + geotransform[5] / 2;
 
-                        boolean pointInPolygon = pointInPolygon(realCoordinates, polygon, polygonHoles, polyIds.get(i));
+                        boolean pointInPolygon = pointInPolygon_(realCoordinates, polygon, polygonHoles, polyIds.get(i));
 
                         if(pointInPolygon) {
 
@@ -1579,6 +1581,59 @@ public class lasRasterTools {
         return isInside;
     }
 
+    public static boolean pointInPolygon_(double[] point, double[][] poly, HashMap<String, ArrayList<double[][]>> holes, String poly_id) {
+
+        int numPolyCorners = poly.length;
+        int j = numPolyCorners - 1;
+        boolean isInside = false;
+
+        for (int i = 0; i < numPolyCorners; i++) {
+            if (poly[i][1] < point[1] && poly[j][1] >= point[1] || poly[j][1] < point[1] && poly[i][1] >= point[1]) {
+                if (poly[i][0] + (point[1] - poly[i][1]) / (poly[j][1] - poly[i][1]) * (poly[j][0] - poly[i][0]) < point[0]) {
+                    isInside = !isInside;
+                }
+            }
+            j = i;
+        }
+
+        if(holes.containsKey(poly_id)){
+
+            ArrayList<double[][]> holet = holes.get(poly_id);
+            double[][] polyHole = null;
+
+            for(int i_ = 0; i_ < holet.size(); i_++){
+
+                numPolyCorners = holet.get(i_).length;
+
+                //System.out.println(holet.get(i_)[0][0] + " == " + holet.get(i_)[holet.get(i_).length-1][0]);
+                //System.out.println(holet.get(i_)[0][1] + " == " + holet.get(i_)[holet.get(i_).length-1][1]);
+                j = numPolyCorners - 1;
+                boolean is_inside_hole = false;
+                polyHole = holet.get(i_);
+
+                for (int i = 0; i < numPolyCorners; i++) {
+
+                    //System.out.println(polyHole[i][0] + " " + polyHole[i][1]);
+
+                    if (polyHole[i][1] < point[1] && polyHole[j][1] >= point[1] || polyHole[j][1] < point[1] && polyHole[i][1] >= point[1]) {
+                        if (polyHole[i][0] + (point[1] - polyHole[i][1]) / (polyHole[j][1] - polyHole[i][1]) * (polyHole[j][0] - polyHole[i][0]) < point[0]) {
+                            is_inside_hole = !is_inside_hole;
+                        }
+                    }
+                    j = i;
+                }
+
+                //System.out.println("-------------------------");
+                if(is_inside_hole) {
+
+                    //System.out.println("YES YES YES!");
+                    return false;
+                }
+            }
+        }
+
+        return isInside;
+    }
     public double[] getPolygonExtent(double[][] polygon){
 
         double[] extent = new double[4];
@@ -1661,8 +1716,103 @@ public class lasRasterTools {
 
                 }
 
-                //System.out.println(plotID1.get(plotID1.size()-1));
+                double[][] tempPoly = new double[tokens.length - 1][2];
+                int n = (tokens.length) - 2;
+                int counteri = 0;
 
+                tempPoly[counteri][0] = Double.parseDouble(tokens[0].split("\\(\\(")[1].split(" ")[0]);
+                tempPoly[counteri][1] = Double.parseDouble(tokens[0].split("\\(\\(")[1].split(" ")[1]);
+
+                counteri++;
+
+                boolean breikki = false;
+
+                for(int i = 1; i < n; i++){
+
+                    if(tokens[i].split(" ")[0].contains(")") || tokens[i].split(" ")[1].contains(")")){
+                        plotID1.remove(plotID1.size() - 1);
+                        breikki = true;
+                        break;
+                    }
+
+                    tempPoly[counteri][0] = Double.parseDouble(tokens[i].split(" ")[0]);
+                    tempPoly[counteri][1] = Double.parseDouble(tokens[i].split(" ")[1]);
+                    counteri++;
+                }
+
+                //System.out.println(Arrays.toString(tokens[tokens.length - 2].split("\\)\\)")[0].split(" ")));
+                tempPoly[counteri][0] = Double.parseDouble(tokens[tokens.length - 2].split("\\)\\)")[0].split(" ")[0]);
+                tempPoly[counteri][1] = Double.parseDouble(tokens[tokens.length - 2].split("\\)\\)")[0].split(" ")[1]);
+
+                if(!breikki)
+                    output.add(tempPoly);
+                //}
+
+            }
+
+
+        }catch( IOException ioException ) {
+            //ioException.printStackTrace();
+        }
+
+        return output;
+    }
+
+    public static ArrayList<double[][]> readPolygonsFromWKT_string(String fileName, ArrayList<String> plotID1) throws Exception{
+
+        ArrayList<double[][]> output = new ArrayList<>();
+        String line1;
+        int id_number = 1;
+
+        try{
+            BufferedReader sc = new BufferedReader( new FileReader(new File(fileName)));
+            sc.readLine();
+            while((line1 = sc.readLine())!= null){
+
+                String[] tokens =  line1.split(",");
+                String[] tokens2 =  line1.split("\\),\\(");
+                //System.out.println(Arrays.toString(tokens));
+                //if(tokens[tokens.length - 1] != -999){
+                boolean holes = false;
+
+                if(tokens2.length > 1){
+                    holes = true;
+                }
+
+                if(holes) {
+                    tokens = line1.split(",\\(");
+                    tokens[0] += ")";
+                    tokens = tokens[0].split(",");
+                    //System.out.println(tokens[0]);
+                    //System.exit(1);
+                }
+
+                String[] iidee_ = line1.split("\",");
+                String id = iidee_[iidee_.length-1];
+
+                //System.out.println(Integer.parseInt(tokens[tokens.length - 1]) + " " + tokens2.length);
+
+                try {
+                    //plotID1.add(Integer.parseInt(tokens[tokens.length - 1]));
+                    plotID1.add((id));
+
+                }catch (NumberFormatException e){
+
+                    //Not directly comvertable to a number
+
+                    String str = id.replaceAll("\\D+","");
+
+                    try {
+                        plotID1.add((str));
+                    }catch (Exception ee){
+
+                        //Still no numbers, let's make our own then I guess
+
+                        //plotID1.add(id_number++);
+
+                    }
+
+                }
 
                 double[][] tempPoly = new double[tokens.length - 1][2];
                 int n = (tokens.length) - 2;
@@ -1794,6 +1944,93 @@ public class lasRasterTools {
         return output;
     }
 
+    public static HashMap<String, ArrayList<double[][]>> readPolygonHolesFromWKT_string(String fileName, ArrayList<String> plotID1) throws Exception{
+
+        HashMap<String, ArrayList<double[][]>> output = new HashMap<String, ArrayList<double[][]>>();
+
+        String line1;
+        int id_number = 1;
+
+        try{
+            BufferedReader sc = new BufferedReader( new FileReader(new File(fileName)));
+            sc.readLine();
+            while((line1 = sc.readLine())!= null){
+
+                String[] tokens =  line1.split(",");
+                String[] tokens2 =  line1.split("\\),\\(");
+
+                if(tokens2.length <= 1){
+                    continue;
+                }
+
+                String plot_id = "";
+
+                try {
+                    plot_id = (tokens[tokens.length - 1]);
+                }catch (NumberFormatException e){
+
+                    //Not directly comvertable to a number
+
+                    String str = tokens[tokens.length - 1].replaceAll("\\D+","");
+
+                    try {
+                        plot_id = (str);
+                    }catch (Exception ee){
+
+                        //Still no numbers, let's make our own then I guess
+                        //plot_id = id_number++;
+
+                    }
+
+                }
+
+                //System.out.println(tokens2[0]);
+
+                String string_here = null;
+
+                output.put(plot_id, new ArrayList<>());
+
+
+                for(int i = 1; i < tokens2.length; i++){
+
+                    string_here = tokens2[i];
+
+                    if(i == tokens2.length-1){
+
+                        String[] tokens_here = string_here.split("\\)\\)");
+                        //String[] coords = tokens_here[0].split()
+                        //System.out.println(tokens_here[0]);
+                        string_here = tokens_here[0];
+
+                    }else{
+                        string_here = tokens2[i];
+                    }
+
+                    String[] toks = string_here.split(",");
+
+                    double[][] tempPoly = new double[toks.length][2];
+                    int n = toks.length;
+                    int counteri = 0;
+
+                    for(int i_ = 0; i_ < n; i_++){
+
+                        tempPoly[counteri][0] = Double.parseDouble(toks[i_].split(" ")[0]);
+                        tempPoly[counteri][1] = Double.parseDouble(toks[i_].split(" ")[1]);
+                        counteri++;
+                    }
+
+                    output.get(plot_id).add(tempPoly);
+                }
+
+            }
+
+
+        }catch( IOException ioException ) {
+            //ioException.printStackTrace();
+        }
+
+        return output;
+    }
 
     public String readShapefile(String polyPath){
 
@@ -1826,6 +2063,8 @@ public class lasRasterTools {
                     bw.write("WKT,plot_id");
                     bw.newLine();
 
+                    int backUpId = 1;
+
                     for (long i = 0; i < layeri.GetFeatureCount(); i++) {
 
                         Feature tempF = layeri.GetFeature(i);
@@ -1840,6 +2079,9 @@ public class lasRasterTools {
                             id = tempF.GetFieldAsString(aR.field);
                         else
                             id = String.valueOf(i);
+
+                        if(id.equals(""))
+                            id = "lasutilsID_" + backUpId++;
 
                         String out = "\"" + tempG.ExportToWkt() + "\"," + id;
 

@@ -352,8 +352,8 @@ public class lasClipMetricOfile {
 
     }
 
-    public synchronized void writeLineZonal(ArrayList<Double> metrics_a,
-                                       ArrayList<String> colnames_a, double poly_id){
+    public synchronized <T> void writeLineZonal(ArrayList<Double> metrics_a,
+                                       ArrayList<String> colnames_a, T poly_id){
 
         if(!colnamesWritten) {
 
@@ -436,8 +436,8 @@ public class lasClipMetricOfile {
 
     }
 
-    public synchronized void writeLineZonal(ArrayList<Double> metrics_a,
-                                            ArrayList<String> colnames_a, double poly_id, ArrayList<String[]> metadata, int nMetadata, int mostPixels){
+    public synchronized <T> void writeLineZonal(ArrayList<Double> metrics_a,
+                                            ArrayList<String> colnames_a, T poly_id, ArrayList<String[]> metadata, int nMetadata, int mostPixels){
 
 
         for(int i = 0; i < nMetadata; i++)
