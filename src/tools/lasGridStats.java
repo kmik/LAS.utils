@@ -4662,6 +4662,10 @@ public class lasGridStats {
         System.out.println("nCellsY: " + nCellsY);
         System.out.println("nRasters: " + rasterBank.rasters.size());
 
+        for(int i = 0; i < rasterBank.rasters.size(); i++){
+            System.out.println(rasterBank.rasters.get(i).filename);
+        }
+
         pointCloudMetrics pCM = new pointCloudMetrics(aR);
 
         this.lCMO = new lasClipMetricOfile(aR);
