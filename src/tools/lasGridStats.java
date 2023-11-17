@@ -4667,8 +4667,7 @@ public class lasGridStats {
         this.lCMO = new lasClipMetricOfile(aR);
 
         //aR.lCMO.prepZonal(aR.inputFiles.get(0));
-        this.lCMO.prepZonal_(aR.inputFiles.get(0), mapsheetname);
-
+        this.lCMO.prepZonal_(mapsheetname);
 
         ForkJoinPool customThreadPool = new ForkJoinPool(2);
 

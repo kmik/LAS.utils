@@ -115,7 +115,7 @@ public class lasClipMetricOfile {
 
     }
 
-    public void prepZonal_(File in, String outputname){
+    public void prepZonal_(String outputname){
 
         try {
 
@@ -125,7 +125,6 @@ public class lasClipMetricOfile {
             //System.out.println("output file: " + echo_class_files.get(echo_class_files.size()-1).getAbsolutePath());
 
             echo_class_FileWriter.add(new FileWriter(echo_class_files.get(echo_class_files.size()-1)));
-
 
         }catch (IOException e){
             e.printStackTrace();
@@ -649,10 +648,7 @@ public class lasClipMetricOfile {
 
                 if(metadata.size() != 0) {
                     for (int k = 0; k < nMetadata; k++) {
-
-
                         int counter = 0;
-
                         for (int i = k; i < metadata.size(); i += nMetadata) {
 
                             if (counter++ == mostPixels) {

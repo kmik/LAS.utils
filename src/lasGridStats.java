@@ -375,6 +375,7 @@ public class lasGridStats {
                 //for(int i = 0; i < klj.configMapSheetExtents.size(); i++){
 
                 lasClipMetricOfile lCMO = new lasClipMetricOfile(aR);
+
                 double[] temp = klj.configMapSheetExtents.get(data);
                 String outputName = klj.configMapSheetNames.get(data) + ".txt";
 
