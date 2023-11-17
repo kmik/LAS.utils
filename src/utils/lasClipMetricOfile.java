@@ -480,10 +480,11 @@ public class lasClipMetricOfile {
 
                             if (counter++ == mostPixels) {
 
-                                if (metadata.get(i)[1] == null)
-                                    echo_class_FileWriter.get(0).write("null");
-                                else
+                                if(metadata.size() > i){
                                     echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
+                                }else{
+                                    echo_class_FileWriter.get(0).write("null");
+                                }
                                 //if (i + nMetadata < metadata.size())
                                 //    echo_class_FileWriter.get(0).write(";");
                             }
@@ -652,7 +653,12 @@ public class lasClipMetricOfile {
                         for (int i = k; i < metadata.size(); i += nMetadata) {
 
                             if (counter++ == mostPixels) {
-                                echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
+                                if(metadata.size() > i){
+                                    echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
+                                }else{
+                                    echo_class_FileWriter.get(0).write("null");
+                                }
+
                             }
                         }
                         echo_class_FileWriter.get(0).write("\t");
