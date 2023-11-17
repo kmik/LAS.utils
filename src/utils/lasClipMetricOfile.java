@@ -654,8 +654,15 @@ public class lasClipMetricOfile {
 
                             if (counter++ == mostPixels) {
                                 if(metadata.size() > i){
-                                    String justTest = metadata.get(i)[1];
-                                    echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
+                                    //String justTest = metadata.get(i)[1];
+                                    try {
+                                        echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
+                                    }catch (Exception e){
+                                        System.out.println(metadata.get(i)[0]);
+                                        System.out.println(metadata.get(i)[1]);
+                                        e.printStackTrace();
+                                        System.exit(1);
+                                    }
                                 }else{
                                     echo_class_FileWriter.get(0).write("null");
                                 }
