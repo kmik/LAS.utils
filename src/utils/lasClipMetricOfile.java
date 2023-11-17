@@ -468,7 +468,10 @@ public class lasClipMetricOfile {
 
             if(metadata.size() == nMetadata)
                 for(int i = 0; i < metadata.size(); i++)
-                    echo_class_FileWriter.get(0).write(metadata.get(i)[1] + "\t");
+                    if(metadata.get(i)[1] != null)
+                        echo_class_FileWriter.get(0).write(metadata.get(i)[1] + "\t");
+                    else
+                        echo_class_FileWriter.get(0).write("null" + "\t");
             else{
 
                 int howMany = metadata.size() / nMetadata;
@@ -480,7 +483,7 @@ public class lasClipMetricOfile {
 
                             if (counter++ == mostPixels) {
 
-                                if(metadata.size() > i){
+                                if(metadata.get(i)[1] != null) {
                                     echo_class_FileWriter.get(0).write(metadata.get(i)[1]);
                                 }else{
                                     echo_class_FileWriter.get(0).write("null");
