@@ -6,6 +6,8 @@ import LASio.LASReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 
 public class lasClipMetricOfile {
@@ -634,7 +636,8 @@ public class lasClipMetricOfile {
 
             for (int i = 0; i < metrics_a.size(); i++) {
 
-                echo_class_FileWriter.get(0).write(metrics_a.get(i) + "\t");
+
+                echo_class_FileWriter.get(0).write(roundToNDecimals(metrics_a.get(i), 2) + "\t");
 
             }
 
@@ -699,6 +702,20 @@ public class lasClipMetricOfile {
 
     }
 
+    public static double roundToNDecimals(double value, int n) {
+        if (Double.isNaN(value) || Double.isInfinite(value)) {
+            return value; // Return the input value unchanged
+        }
+
+        if (n < 0) {
+            throw new IllegalArgumentException("Number of decimals must be non-negative");
+        }
+
+        BigDecimal bd = new BigDecimal(value);
+        bd = bd.setScale(n, RoundingMode.HALF_UP);
+        return bd.doubleValue();
+    }
+
     public void closeFiles(){
 
         System.out.println("Closing output metric files");
@@ -721,6 +738,8 @@ public class lasClipMetricOfile {
         try {
             echo_class_FileWriter.get(0).close();
 
+            if(aR.compress_output)
+                aR.compressFileToGzip(echo_class_files.get(0));
         }catch (Exception e){
             e.printStackTrace();
         }

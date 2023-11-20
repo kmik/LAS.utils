@@ -1187,6 +1187,7 @@ public class lasRasterTools {
 
             double[] rasterExtent = new double[6];
             raster.GetGeoTransform(rasterExtent);
+
             //System.out.println(Arrays.toString(rasterExtent));
             //rasterExtents.add(rasterExtent);
 

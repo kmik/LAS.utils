@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.zip.GZIPOutputStream;
 
 import err.argumentException;
 import err.lasFormatException;
@@ -30,6 +31,7 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public boolean compress_output = false;
     public File configFile2 = null;
     public File configFile = null;
     public int origCores = 1;
@@ -778,6 +780,13 @@ public class argumentReader {
                 .longOpt("drop_noise")
                 .hasArg(false)
                 .desc("Drop noise (class 7)")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("compress_output")
+                .hasArg(false)
+                .desc("Compress output?")
                 .required(false)
                 .build());
 
@@ -2363,6 +2372,12 @@ public class argumentReader {
             if (cmd.hasOption("keep_user_data")) {
                 this.noModify = false;
                 this.inclusionRule.keepUserData(Integer.parseInt(cmd.getOptionValue("keep_user_data")));
+
+            }
+
+            if (cmd.hasOption("compress_output")) {
+
+                this.compress_output = true;
 
             }
 
@@ -4030,6 +4045,59 @@ public class argumentReader {
 
     }
 
+
+
+
+    public static void compressFileToGzip(String filePath) {
+        try (
+                FileInputStream fis = new FileInputStream(filePath);
+                GZIPOutputStream gzipOS = new GZIPOutputStream(new FileOutputStream(filePath + ".gz"))
+        ) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                gzipOS.write(buffer, 0, bytesRead);
+            }
+            System.out.println("File compressed successfully.");
+
+            // Delete the original file after successful compression
+            File originalFile = new File(filePath);
+            if (originalFile.delete()) {
+                System.out.println("Original file deleted successfully.");
+            } else {
+                System.out.println("Failed to delete the original file.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void compressFileToGzip(File file) {
+        try (
+                FileInputStream fis = new FileInputStream(file);
+                GZIPOutputStream gzipOS = new GZIPOutputStream(new FileOutputStream(file.getAbsolutePath() + ".gz"))
+        ) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                gzipOS.write(buffer, 0, bytesRead);
+            }
+            System.out.println("File compressed successfully.");
+
+            // Delete the original file after successful compression
+            if (file.delete()) {
+                System.out.println("Original file deleted successfully.");
+            } else {
+                System.out.println("Failed to delete the original file.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
     public void convertLasToLaz() throws IOException{
 
         this.lazInput = true;
@@ -4275,7 +4343,6 @@ public class argumentReader {
         }
 
     }
-
 
 
 }
