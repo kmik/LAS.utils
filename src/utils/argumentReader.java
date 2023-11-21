@@ -31,11 +31,14 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public boolean convo = false;
+    public boolean subsetColumnNamesVMI = false;
     public boolean compress_output = false;
     public File configFile2 = null;
     public File configFile = null;
     public int origCores = 1;
     public ArrayList<String> metadataitems = new ArrayList<>();
+    public ArrayList<String> metadataitemsModNames = new ArrayList<>();
     public ArrayList<File> inputFilesSpectral = new ArrayList<>();
     public int nBands = 3;
     public boolean rasterizeColor = false;
@@ -680,6 +683,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("subsetColumns")
+                .hasArg(false)
+                .desc("VMI SPECIAL")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("mapSheetExtent")
                 .hasArg(false)
                 .desc("Use extent from MML map sheets (6km)")
@@ -771,6 +781,13 @@ public class argumentReader {
 
         options.addOption(Option.builder()
                 .longOpt("estimationSpecialThinning")
+                .hasArg(false)
+                .desc("PREMOTO - estimationWithCHM")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("convo")
                 .hasArg(false)
                 .desc("PREMOTO - estimationWithCHM")
                 .required(false)
@@ -2141,6 +2158,12 @@ public class argumentReader {
                 }
 
                 for(String s : ref_){
+
+                    if(s.equals("DATA_DATE"))
+                        this.metadataitemsModNames.add("DATE");
+                    else
+                        this.metadataitemsModNames.add(s);
+
                     this.metadataitems.add(s);
                 }
 
@@ -2396,6 +2419,10 @@ public class argumentReader {
 
                 this.eaba = true;
 
+            }
+
+            if(cmd.hasOption("convo")){
+                this.convo = true;
             }
 
             if (cmd.hasOption("iparse")) {
@@ -2854,6 +2881,9 @@ public class argumentReader {
                 this.splitBy = cmd.getOptionValue("splitBy");
 
             }
+
+            if( cmd.hasOption("subsetColumns"))
+                this.subsetColumnNamesVMI = true;
 
             if (cmd.hasOption("set_point_source_id")){
                 this.noModify = false;

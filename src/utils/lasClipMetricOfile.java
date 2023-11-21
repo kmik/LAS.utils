@@ -3,16 +3,20 @@ package utils;
 import LASio.LASReader;
 //import org.bytedeco.libfreenect._freenect_context;
 
+import java.io.PrintWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Scanner;
+import java.util.Set;
 
 public class lasClipMetricOfile {
 
-    ArrayList<File> echo_class_files = new ArrayList<>();
+    public ArrayList<File> echo_class_files = new ArrayList<>();
     ArrayList<File> convolution_files = new ArrayList<>();
     ArrayList<FileWriter> echo_class_FileWriter = new ArrayList<>();
     ArrayList<FileWriter> convolution_FileWriter = new ArrayList<>();
@@ -90,6 +94,10 @@ public class lasClipMetricOfile {
 
             echo_class_FileWriter.add(new FileWriter(echo_class_files.get(echo_class_files.size()-1)));
 
+            if(aR.convo){
+                convolution_files.add(aR.createOutputFileWithExtension(in, "_convo_a.txt"));
+                convolution_FileWriter.add(new FileWriter(convolution_files.get(convolution_files.size()-1)));
+            }
 
         }catch (IOException e){
             e.printStackTrace();
@@ -233,7 +241,7 @@ public class lasClipMetricOfile {
 
         try {
 
-            echo_class_FileWriter.get(0).write("poly_id\tx\ty\t");
+            echo_class_FileWriter.get(0).write("poly_id\tcenter_x\tcenter_y\t");
 
 
             for (int i = 0; i < colnames_a.size(); i++) {
@@ -254,6 +262,37 @@ public class lasClipMetricOfile {
 
     }
     public synchronized void writeLine_convo(ArrayList<ArrayList<Double>> metrics, ArrayList<String> colnames, double poly_id){
+
+        if(!colnamesWritten) {
+
+
+            this.writeColumnNames_convo(colnames);
+
+        }
+
+        try {
+
+            for(int i_ = 0; i_ < metrics.size(); i_++) {
+
+                convolution_FileWriter.get(0).write(poly_id + "\t");
+
+                for (int i = 0; i < metrics.get(i_).size(); i++) {
+
+                    convolution_FileWriter.get(0).write(metrics.get(i_).get(i) + "\t");
+
+
+                }
+
+
+                convolution_FileWriter.get(0).write("\n");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public synchronized void writeLine_convo_raster(ArrayList<ArrayList<Double>> metrics, ArrayList<String> colnames, String poly_id){
 
         if(!colnamesWritten) {
 
@@ -444,7 +483,7 @@ public class lasClipMetricOfile {
         colnames_a.add("MapSheetName");
 
         for(int i = 0; i < nMetadata; i++)
-            colnames_a.add(aR.metadataitems.get(i));
+            colnames_a.add(aR.metadataitemsModNames.get(i));
 
         if(!colnamesWritten) {
 
@@ -620,7 +659,7 @@ public class lasClipMetricOfile {
 
         for(int i = 0; i < nMetadata; i++)
             //colnames_a.add(metadata.get(i)[0]);
-            colnames_a.add(aR.metadataitems.get(i));
+            colnames_a.add(aR.metadataitemsModNames.get(i));
 
         if(!colnamesWritten) {
 
@@ -732,6 +771,56 @@ public class lasClipMetricOfile {
 
     }
 
+    public void deleteColumnsFromFile(File inputFile, Set<String> columnNamesToDelete) {
+        try {
+            // Read the input file
+            Scanner scanner = new Scanner(inputFile);
+            StringBuilder outputContent = new StringBuilder();
+
+            String[] headers = null;
+
+            // Process the header line
+            if (scanner.hasNextLine()) {
+                String headerLine = scanner.nextLine();
+                headers = headerLine.split("\t");
+
+                // Create a list of indices to keep
+                for (int i = 0; i < headers.length; i++) {
+                    if (!columnNamesToDelete.contains(headers[i])) {
+                        outputContent.append(headers[i]).append("\t");
+                    }
+                }
+                if (outputContent.length() > 0) {
+                    outputContent.deleteCharAt(outputContent.length() - 1); // Remove the trailing comma
+                }
+                outputContent.append("\n");
+            }
+
+            // Process the rest of the lines
+            while (scanner.hasNextLine()) {
+                String dataLine = scanner.nextLine();
+                String[] values = dataLine.split("\t");
+                for (int i = 0; i < values.length; i++) {
+                    if (!columnNamesToDelete.contains(headers[i])) {
+                        outputContent.append(values[i]).append(",");
+                    }
+                }
+                if (outputContent.length() > 0) {
+                    outputContent.deleteCharAt(outputContent.length() - 1); // Remove the trailing comma
+                }
+                outputContent.append("\n");
+            }
+
+            // Write the modified content back to the file
+            try (PrintWriter writer = new PrintWriter(new FileWriter(inputFile))) {
+                writer.write(outputContent.toString());
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void closeFilesZonal(){
 
         System.out.println("Closing output metric files");
@@ -740,6 +829,7 @@ public class lasClipMetricOfile {
 
             if(aR.compress_output)
                 aR.compressFileToGzip(echo_class_files.get(0));
+
         }catch (Exception e){
             e.printStackTrace();
         }

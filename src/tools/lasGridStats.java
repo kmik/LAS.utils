@@ -4688,8 +4688,8 @@ public class lasGridStats {
 
                     double grid_cell_id = (y_ + VMI_maxIndexY) * grid_x_size_MML + (x_ + VMI_minIndexX);
 
-                    double x_coord = orig_x + resolution * x_;
-                    double y_coord = orig_y - resolution * y_;
+                    double x_coord = orig_x + resolution * x_ + resolution / 2.0;
+                    double y_coord = orig_y - resolution * y_ - resolution / 2.0;
 
                     ArrayList<Double> gridPoints_z_a = new ArrayList<>();
                     ArrayList<int[]> gridPoints_RGB_f = new ArrayList<>();
@@ -4849,10 +4849,11 @@ public class lasGridStats {
                     metrics_a.add(0, proportionNoData);
                     colnames_a.add(0, "proportionNoData");
 
+
+
                     if (aR.metadataitems.size() == 0)
                         this.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord);
                     else {
-
 
                         this.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, metadataItems, aR.metadataitems.size(), mostPixels, mapSheetNameWithoutExtension);
 
@@ -4864,6 +4865,8 @@ public class lasGridStats {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+
 
         if(false)
         try {
@@ -4878,8 +4881,8 @@ public class lasGridStats {
 
                     double grid_cell_id = (y_ + VMI_maxIndexY) * grid_x_size_MML + (x_ + VMI_minIndexX);
 
-                    double x_coord = orig_x + resolution * x_;
-                    double y_coord = orig_y - resolution * y_;
+                    double x_coord = orig_x + resolution * x_ + resolution / 2.0;
+                    double y_coord = orig_y - resolution * y_ - resolution / 2.0;
 
                     ArrayList<Double> gridPoints_z_a = new ArrayList<>();
                     ArrayList<int[]> gridPoints_RGB_f = new ArrayList<>();
@@ -5027,8 +5030,32 @@ public class lasGridStats {
 
 
 */
+        HashSet<String> ignoreTheseColumnNames = new HashSet<>();
+        ignoreTheseColumnNames.add("p_0.05_z_a");
+        ignoreTheseColumnNames.add("p_0.15_z_a");
+        ignoreTheseColumnNames.add("p_0.2_z_a");
+        ignoreTheseColumnNames.add("p_0.25_z_a");
+        ignoreTheseColumnNames.add("p_0.35_z_a");
+        ignoreTheseColumnNames.add("p_0.4_z_a");
+        ignoreTheseColumnNames.add("p_0.45_z_a");
+        ignoreTheseColumnNames.add("p_0.55_z_a");
+        ignoreTheseColumnNames.add("p_0.65_z_a");
+
+        ignoreTheseColumnNames.add("d_2.5_z_a");
+        ignoreTheseColumnNames.add("d_7.5_z_a");
+
+        if(aR.subsetColumnNamesVMI)
+            this.lCMO.deleteColumnsFromFile(this.lCMO.echo_class_files.get(0), ignoreTheseColumnNames);
         this.lCMO.closeFilesZonal();
 
+    }
+
+    public void removeThese(ArrayList<String> removeTheseColumnNames, ArrayList<Double> data, ArrayList<String> columnNames){
+        for(int i = 0; i < removeTheseColumnNames.size(); i++){
+            int index = columnNames.indexOf(removeTheseColumnNames.get(i));
+            data.remove(index);
+            columnNames.remove(index);
+        }
     }
 
     public static int highestValueInArray(int[] array) {

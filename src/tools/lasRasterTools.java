@@ -1277,6 +1277,7 @@ public class lasRasterTools {
 
             float[] readValue = new float[1];
 
+            ArrayList<double[]> gridPoints_xyz_a = new ArrayList<>();
             ArrayList<Double> gridPoints_z_a = new ArrayList<>();
             ArrayList<int[]> gridPoints_RGB_f = new ArrayList<>();
             double sum_z_a = 0.0;
@@ -1387,6 +1388,8 @@ public class lasRasterTools {
                             nValid++;
 
                             gridPoints_z_a.add((double) value);
+                            gridPoints_xyz_a.add(new double[]{realCoordinates[0], realCoordinates[1], value});
+
                             sum_z_a += value;
                             nPixelsPerSelection[j]++;
                         }
@@ -1464,12 +1467,26 @@ public class lasRasterTools {
             }
 */
             ArrayList<Double> metrics_a = new ArrayList<>();
+            ArrayList<ArrayList<Double>> metrics_convo = new ArrayList<>();
 
-            if(nBands == 0)
+            ArrayList<String> colnames_convo = new ArrayList<>();
+
+
+
+            if(nBands == 0) {
                 metrics_a = pCM.calcZonal(gridPoints_z_a, sum_z_a, "_a", colnames_a);
+                /*
+                double top_left_x, double top_left_y,
+                                                                     double bottom_right_x, double bottom_right_y
+                 */
+                if(aR.convo)
+                    metrics_convo = pCM.calc_nn_input_train_raster(gridPoints_xyz_a, "_a", colnames_convo, polygonExtent[0], polygonExtent[3],
+                        polygonExtent[2], polygonExtent[1]);
+            }
             else{
                 metrics_a = pCM.calc_with_RGB_zonal(gridPoints_z_a, sum_z_a, "_a", colnames_a, gridPoints_RGB_f);
             }
+
 
             double proportionNoData = (double) nNoData / (double) (nNoData + nValid);
 
@@ -1486,8 +1503,14 @@ public class lasRasterTools {
 
             if(aR.metadataitems.size() == 0)
                 lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i));
+            if(aR.convo)
+                lCMO.writeLine_convo_raster(metrics_convo, colnames_convo, polyIds.get(i));
             else {
                 lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i), metadataItems, aR.metadataitems.size(), mostPixels, mapSheetName);
+
+                if(aR.convo)
+                    lCMO.writeLine_convo_raster(metrics_convo, colnames_convo, polyIds.get(i));
+
             }
 
             // print progress
@@ -1496,6 +1519,23 @@ public class lasRasterTools {
             }
 
         }
+
+        HashSet<String> ignoreTheseColumnNames = new HashSet<>();
+        ignoreTheseColumnNames.add("p_0.05_z_a");
+        ignoreTheseColumnNames.add("p_0.15_z_a");
+        ignoreTheseColumnNames.add("p_0.2_z_a");
+        ignoreTheseColumnNames.add("p_0.25_z_a");
+        ignoreTheseColumnNames.add("p_0.35_z_a");
+        ignoreTheseColumnNames.add("p_0.4_z_a");
+        ignoreTheseColumnNames.add("p_0.45_z_a");
+        ignoreTheseColumnNames.add("p_0.55_z_a");
+        ignoreTheseColumnNames.add("p_0.65_z_a");
+
+        ignoreTheseColumnNames.add("d_2.5_z_a");
+        ignoreTheseColumnNames.add("d_7.5_z_a");
+
+        if(aR.subsetColumnNamesVMI)
+            lCMO.deleteColumnsFromFile(lCMO.echo_class_files.get(0), ignoreTheseColumnNames);
 
         lCMO.closeFilesZonal();
         new File(polyWKT).delete();
