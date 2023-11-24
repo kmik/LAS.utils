@@ -803,11 +803,16 @@ public class RunId4pointsLAS{
         MKid4pointsLAS homma = new MKid4pointsLAS();
 
         ArrayList<Integer> plotID1 = new ArrayList<>();
+        homma.readShapeFiles(aR.poly, aR);
+
 
         try {
 
             polyBank = homma.readPolygonsFromWKT(koealat, plotID1);
-            holes   =   readPolygonHolesFromWKT(koealat, plotID1);
+
+            polyBank = homma.readShapeFiles(aR.poly, aR);
+
+            //holes   =   readPolygonHolesFromWKT(koealat, plotID1);
 
         }catch (Exception e){
 

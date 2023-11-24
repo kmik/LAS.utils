@@ -12,6 +12,7 @@ import LASio.*;
 import err.toolException;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.set.hash.TIntHashSet;
+import org.gdal.ogr.*;
 import tools.*;
 
 import utils.*;
@@ -280,6 +281,356 @@ public class MKid4pointsLAS{
         return isInside;
     }
 
+    public static double[][] clone2DArray(double[][] original) {
+        int rows = original.length;
+        double[][] clone = new double[rows][];
+
+        for (int i = 0; i < rows; i++) {
+            int columns = original[i].length;
+            clone[i] = new double[columns];
+            System.arraycopy(original[i], 0, clone[i], 0, columns);
+        }
+
+        return clone;
+    }
+
+    public ArrayList<double[][]> readShapeFiles(String shapeFile, argumentReader aR) throws IOException {
+
+        DataSource ds = ogr.Open( shapeFile );
+        //DataSource ds2 = ogr.Open( shapeFile2 );
+
+        if( ds == null ) {
+            System.out.println( "Opening stand shapefile failed." );
+            System.exit( 1 );
+        }
+
+        Layer shapeFileLayer = ds.GetLayer(0);
+
+        int shapeIdRolling = 0;
+        int shapeId = 0;
+        int nExcluded = 0;
+
+        HashSet<Integer> usedIds = new HashSet<>();
+        HashMap<Integer, Integer> usedStandids = new HashMap<>();
+
+        ArrayList<double[][]> output = new ArrayList<>();
+        ArrayList<Integer> ids = new ArrayList<>();
+        HashMap<Integer, double[][]> outputHoles = new HashMap<>();
+
+
+        boolean debugPrint = false;
+
+
+
+        for(long i = 0; i < shapeFileLayer.GetFeatureCount(); i++ ) {
+
+            if(true) {
+
+                Feature tempF = shapeFileLayer.GetFeature(i);
+
+                String id = "";
+
+                if (tempF.GetFieldCount() > 0)
+                    id = tempF.GetFieldAsString(aR.field);
+                else
+                    id = String.valueOf(i);
+
+                //if(id == null){
+
+                //    System.out.println("null");
+                //    System.exit(1);
+                //}
+
+                //tempF.GetFiel
+                System.out.println("id: " + id + " " + tempF.GetFieldCount());
+                Geometry tempG = tempF.GetGeometryRef();
+
+
+                System.out.println(tempG.GetGeometryName());
+// check if geometry is a MultiPolygon
+                if (tempG.GetGeometryName().equals("MULTIPOLYGON")) {
+                    //System.out.println("here1 " + tempF.GetFieldAsInteger(0));
+
+                    System.out.println("MULTIPOLYGON");
+
+                    int numGeom = tempG.GetGeometryCount();
+
+                    for (int j = 0; j < 1; j++) {
+
+                        int numGeom2 = tempG.GetGeometryRef(j).GetGeometryCount();
+
+                        shapeId++;
+
+                        for(int j_ = 0; j_ < numGeom2; j_++){
+
+                            Geometry tempG2 = tempG.GetGeometryRef(j).GetGeometryRef(j_);
+
+                            //System
+                            //System.out.println(tempG2.GetGeometryName());
+
+                            if (tempG2.GetGeometryName().equals("LINEARRING")) {
+
+                                if (tempG2 == null || tempG2.GetPoints() == null) {
+                                    continue;
+                                }
+
+                                if(j_ == 0) {
+
+                                    Polygon tempP = new Polygon();
+
+                                    double[] centroid = tempG.GetGeometryRef(j).Centroid().GetPoint(0);
+                                    //System.out.println("here3 " + tempF.GetFieldAsInteger(0));
+                                    output.add(clone2DArray(tempG2.GetPoints()));
+                                    ids.add(Integer.parseInt(id));
+
+
+                                }else{
+
+                                    outputHoles.put(Integer.parseInt(id), clone2DArray(tempG2.GetPoints()));
+
+                                }
+
+                            }
+                        }
+                    }
+                } else if (tempG.GetGeometryName().equals("POLYGON")) {
+
+                    Geometry tempG2 = tempG.GetGeometryRef(0);
+
+
+                    //System.out.println(tempG2.GetPointCount() + " " + tempG2.GetGeometryName().equals("LINEARRING"));
+                    shapeId++;
+
+                    int numGeom = tempG.GetGeometryCount();
+
+                    System.out.println("numGeom: " + numGeom);
+
+                    if (tempG2.GetGeometryName().equals("LINEARRING")) {
+
+
+                        for(int j = 0; j < numGeom; j++) {
+
+                            Geometry tempG3 = tempG.GetGeometryRef(j);
+
+
+                            System.out.println("POINTS: " + tempG3.GetPointCount());
+
+                            if (tempG3 == null || tempG3.GetPoints() == null) {
+                                continue;
+                            }
+
+
+                            if (j == 0){
+
+                                Polygon tempP = new Polygon();
+
+                                double[] centroid = tempG.GetGeometryRef(j).Centroid().GetPoint(0);
+                                //System.out.println("here3 " + tempF.GetFieldAsInteger(0));
+                                output.add(clone2DArray(tempG2.GetPoints()));
+                                ids.add(Integer.parseInt(id));
+
+
+                            }else{
+
+                                outputHoles.put(Integer.parseInt(id), clone2DArray(tempG2.GetPoints()));
+
+                            }
+                        }
+                        //System.out.println("centroid: " + centroid[0] + " " + centroid[1] + " " + shapeId);
+                    }
+                } else {
+                    // handle other types of geometries if needed
+                }
+
+                //if(tempF.GetFieldAsInteger(0) == 199){
+                //    System.exit(1);
+                //}
+
+            }
+
+            if(debugPrint) {
+                //System.out.println("shapeId: " + shapeId);
+                //System.exit(1);
+            }
+            debugPrint = false;
+
+        }
+
+        System.out.println(output.size());
+
+
+        return output;
+        //System.exit(1);
+    }
+
+    public ArrayList<double[][]> readShapeFiles(String shapeFile, argumentReader aR, HashMap<Integer, double[][]> holes, ArrayList<Integer> ids) throws IOException {
+
+        DataSource ds = ogr.Open( shapeFile );
+        //DataSource ds2 = ogr.Open( shapeFile2 );
+
+        if( ds == null ) {
+            System.out.println( "Opening stand shapefile failed." );
+            System.exit( 1 );
+        }
+
+        Layer shapeFileLayer = ds.GetLayer(0);
+
+        int shapeIdRolling = 0;
+        int shapeId = 0;
+        int nExcluded = 0;
+
+        HashSet<Integer> usedIds = new HashSet<>();
+        HashMap<Integer, Integer> usedStandids = new HashMap<>();
+
+        ArrayList<double[][]> output = new ArrayList<>();
+        //ArrayList<Integer> ids = new ArrayList<>();
+        //HashMap<Integer, double[][]> outputHoles = new HashMap<>();
+
+
+        boolean debugPrint = false;
+
+
+
+        for(long i = 0; i < shapeFileLayer.GetFeatureCount(); i++ ) {
+
+            if(true) {
+
+                Feature tempF = shapeFileLayer.GetFeature(i);
+
+                String id = "";
+
+                if (tempF.GetFieldCount() > 0)
+                    id = tempF.GetFieldAsString(aR.field);
+                else
+                    id = String.valueOf(i);
+
+                //if(id == null){
+
+                //    System.out.println("null");
+                //    System.exit(1);
+                //}
+
+                //tempF.GetFiel
+                System.out.println("id: " + id + " " + tempF.GetFieldCount());
+                Geometry tempG = tempF.GetGeometryRef();
+
+
+                System.out.println(tempG.GetGeometryName());
+// check if geometry is a MultiPolygon
+                if (tempG.GetGeometryName().equals("MULTIPOLYGON")) {
+                    //System.out.println("here1 " + tempF.GetFieldAsInteger(0));
+
+                    System.out.println("MULTIPOLYGON");
+
+                    int numGeom = tempG.GetGeometryCount();
+
+                    for (int j = 0; j < 1; j++) {
+
+                        int numGeom2 = tempG.GetGeometryRef(j).GetGeometryCount();
+
+                        shapeId++;
+
+                        for(int j_ = 0; j_ < numGeom2; j_++){
+
+                            Geometry tempG2 = tempG.GetGeometryRef(j).GetGeometryRef(j_);
+
+                            //System
+                            //System.out.println(tempG2.GetGeometryName());
+
+                            if (tempG2.GetGeometryName().equals("LINEARRING")) {
+
+                                if (tempG2 == null || tempG2.GetPoints() == null) {
+                                    continue;
+                                }
+
+                                if(j_ == 0) {
+
+                                    Polygon tempP = new Polygon();
+
+                                    double[] centroid = tempG.GetGeometryRef(j).Centroid().GetPoint(0);
+                                    //System.out.println("here3 " + tempF.GetFieldAsInteger(0));
+                                    output.add(clone2DArray(tempG2.GetPoints()));
+                                    ids.add(Integer.parseInt(id));
+
+
+                                }else{
+
+                                    holes.put(Integer.parseInt(id), clone2DArray(tempG2.GetPoints()));
+
+                                }
+
+                            }
+                        }
+                    }
+                } else if (tempG.GetGeometryName().equals("POLYGON")) {
+
+                    Geometry tempG2 = tempG.GetGeometryRef(0);
+
+
+                    //System.out.println(tempG2.GetPointCount() + " " + tempG2.GetGeometryName().equals("LINEARRING"));
+                    shapeId++;
+
+                    int numGeom = tempG.GetGeometryCount();
+
+                    System.out.println("numGeom: " + numGeom);
+
+                    if (tempG2.GetGeometryName().equals("LINEARRING")) {
+
+
+                        for(int j = 0; j < numGeom; j++) {
+
+                            Geometry tempG3 = tempG.GetGeometryRef(j);
+
+
+                            System.out.println("POINTS: " + tempG3.GetPointCount());
+
+                            if (tempG3 == null || tempG3.GetPoints() == null) {
+                                continue;
+                            }
+
+
+                            if (j == 0){
+
+                                Polygon tempP = new Polygon();
+
+                                double[] centroid = tempG.GetGeometryRef(j).Centroid().GetPoint(0);
+                                //System.out.println("here3 " + tempF.GetFieldAsInteger(0));
+                                output.add(clone2DArray(tempG2.GetPoints()));
+                                ids.add(Integer.parseInt(id));
+
+
+                            }else{
+
+                                holes.put(Integer.parseInt(id), clone2DArray(tempG2.GetPoints()));
+
+                            }
+                        }
+                        //System.out.println("centroid: " + centroid[0] + " " + centroid[1] + " " + shapeId);
+                    }
+                } else {
+                    // handle other types of geometries if needed
+                }
+
+                //if(tempF.GetFieldAsInteger(0) == 199){
+                //    System.exit(1);
+                //}
+
+            }
+
+            if(debugPrint) {
+                //System.out.println("shapeId: " + shapeId);
+                //System.exit(1);
+            }
+            debugPrint = false;
+
+        }
+
+        System.out.println(output.size());
+
+
+        return output;
+        //System.exit(1);
+    }
 
     public static ArrayList<double[][]> readPolygonsFromWKT(String fileName, ArrayList<Integer> plotID1) throws Exception{
 
@@ -292,6 +643,7 @@ public class MKid4pointsLAS{
             sc.readLine();
             while((line1 = sc.readLine())!= null){
 
+                System.out.println(line1);
                 String[] tokens =  line1.split(",");
                 String[] tokens2 =  line1.split("\\),\\(");
                 //System.out.println(Arrays.toString(tokens));
@@ -343,6 +695,7 @@ public class MKid4pointsLAS{
                     double[][] tempPoly = new double[tokens.length - 1][2];
                     int n = (tokens.length) - 2;
                     int counteri = 0;
+
 
                     tempPoly[counteri][0] = Double.parseDouble(tokens[0].split("\\(\\(")[1].split(" ")[0]);
                     tempPoly[counteri][1] = Double.parseDouble(tokens[0].split("\\(\\(")[1].split(" ")[1]);
@@ -1045,6 +1398,7 @@ public class MKid4pointsLAS{
             HashMap<Integer, ArrayList<double[][]>> holes = new HashMap<>();
 
             polyBank1 = readPolygonsFromWKT(coords, plotID1);
+
             holes = readPolygonHolesFromWKT(coords, plotID1);
 
 

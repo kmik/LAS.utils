@@ -144,7 +144,7 @@ public class gdalRaster {
         }
     }
     public synchronized void open(String filename){
-        this.raster = (gdal.Open(filename, gdalconst.GA_Update));
+        this.raster = (gdal.Open(filename, gdalconst.GA_ReadOnly));
         this.band = this.raster.GetRasterBand(1);
     }
 
