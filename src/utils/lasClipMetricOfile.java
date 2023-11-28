@@ -709,7 +709,7 @@ public class lasClipMetricOfile {
                                         System.out.println(metadata.get(i)[0]);
                                         System.out.println(metadata.get(i)[1]);
                                         e.printStackTrace();
-                                        System.exit(1);
+                                       // System.exit(1);
                                     }
                                 }else{
                                     echo_class_FileWriter.get(0).write("null");
@@ -802,7 +802,7 @@ public class lasClipMetricOfile {
                 String[] values = dataLine.split("\t");
                 for (int i = 0; i < values.length; i++) {
                     if (!columnNamesToDelete.contains(headers[i])) {
-                        outputContent.append(values[i]).append(",");
+                        outputContent.append(values[i]).append("\t");
                     }
                 }
                 if (outputContent.length() > 0) {

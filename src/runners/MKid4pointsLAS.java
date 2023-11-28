@@ -511,25 +511,84 @@ public class MKid4pointsLAS{
                 //}
 
                 //tempF.GetFiel
-                System.out.println("id: " + id + " " + tempF.GetFieldCount());
+                //System.out.println("id: " + id + " " + tempF.GetFieldCount());
                 Geometry tempG = tempF.GetGeometryRef();
 
 
-                System.out.println(tempG.GetGeometryName());
+               // System.out.println(tempG.GetGeometryName());
 // check if geometry is a MultiPolygon
                 if (tempG.GetGeometryName().equals("MULTIPOLYGON")) {
-                    //System.out.println("here1 " + tempF.GetFieldAsInteger(0));
 
-                    System.out.println("MULTIPOLYGON");
+                    int largestOne = 0;
+                    double maxArea = Double.NEGATIVE_INFINITY;
 
                     int numGeom = tempG.GetGeometryCount();
 
-                    for (int j = 0; j < 1; j++) {
+                    for (int j = 0; j < numGeom; j++) {
+
+                        int numGeom2 = 1;
+
+                        for(int j_ = 0; j_ < numGeom2; j_++){
+                            Geometry tempG2 = tempG.GetGeometryRef(j).GetGeometryRef(j_);
+
+                            if (tempG2.GetGeometryName().equals("LINEARRING")) {
+                                if (tempG2 == null || tempG2.GetPoints() == null) {
+                                    continue;
+                                }
+                                if(j_ == 0) {
+
+                                    if(tempG2.GetArea() > maxArea) {
+                                        maxArea = tempG2.GetArea();
+                                        largestOne = j;
+                                        System.out.println(id + " " + tempG2.GetArea() + " " + numGeom2);
+                                    }
+
+                                }else{
+
+
+
+                                }
+                            }
+                        }
+
+                    }
+                    Geometry tempG2_ = tempG.GetGeometryRef(largestOne).GetGeometryRef(0);
+                    output.add(clone2DArray(tempG2_.GetPoints()));
+                    ids.add(Integer.parseInt(id));
+
+                    if(false)
+                    for (int j = 0; j < numGeom; j++) {
 
                         int numGeom2 = tempG.GetGeometryRef(j).GetGeometryCount();
 
                         shapeId++;
 
+                        for(int j_ = 0; j_ < numGeom2; j_++){
+                            Geometry tempG2 = tempG.GetGeometryRef(j).GetGeometryRef(j_);
+
+                            if (tempG2.GetGeometryName().equals("LINEARRING")) {
+                                if (tempG2 == null || tempG2.GetPoints() == null) {
+                                    continue;
+                                }
+                                if(j_ == 0) {
+
+                                    if(tempG2.GetArea() > maxArea) {
+                                        maxArea = tempG2.GetArea();
+                                        largestOne = j_;
+                                        System.out.println(id + " " + tempG2.GetArea() + " " + numGeom2);
+                                    }
+
+                                }else{
+
+
+
+                                }
+                            }
+                        }
+
+
+
+                        if(false)
                         for(int j_ = 0; j_ < numGeom2; j_++){
 
                             Geometry tempG2 = tempG.GetGeometryRef(j).GetGeometryRef(j_);
@@ -552,7 +611,6 @@ public class MKid4pointsLAS{
                                     output.add(clone2DArray(tempG2.GetPoints()));
                                     ids.add(Integer.parseInt(id));
 
-
                                 }else{
 
                                     holes.put(Integer.parseInt(id), clone2DArray(tempG2.GetPoints()));
@@ -572,7 +630,7 @@ public class MKid4pointsLAS{
 
                     int numGeom = tempG.GetGeometryCount();
 
-                    System.out.println("numGeom: " + numGeom);
+                    //System.out.println("numGeom: " + numGeom);
 
                     if (tempG2.GetGeometryName().equals("LINEARRING")) {
 
@@ -582,7 +640,7 @@ public class MKid4pointsLAS{
                             Geometry tempG3 = tempG.GetGeometryRef(j);
 
 
-                            System.out.println("POINTS: " + tempG3.GetPointCount());
+                            //System.out.println("POINTS: " + tempG3.GetPointCount());
 
                             if (tempG3 == null || tempG3.GetPoints() == null) {
                                 continue;
@@ -626,10 +684,10 @@ public class MKid4pointsLAS{
         }
 
         System.out.println(output.size());
-
+        //System.exit(1);
 
         return output;
-        //System.exit(1);
+
     }
 
     public static ArrayList<double[][]> readPolygonsFromWKT(String fileName, ArrayList<Integer> plotID1) throws Exception{
@@ -1396,10 +1454,15 @@ public class MKid4pointsLAS{
             ArrayList<double[][]> polyBank = new ArrayList<double[][]>();
             ArrayList<double[][]> polyBank_for_indexing = new ArrayList<double[][]>();
             HashMap<Integer, ArrayList<double[][]>> holes = new HashMap<>();
+            HashMap<Integer, double[][]> holes_wrong = new HashMap<>();
 
-            polyBank1 = readPolygonsFromWKT(coords, plotID1);
 
-            holes = readPolygonHolesFromWKT(coords, plotID1);
+
+            //polyBank1 = readPolygonsFromWKT(coords, plotID1);
+
+            polyBank1 = readShapeFiles(aR.poly, aR, holes_wrong, plotID1);
+
+            //holes = readPolygonHolesFromWKT(coords, plotID1);
 
 
             aR.p_update.totalFiles = plotID1.size();

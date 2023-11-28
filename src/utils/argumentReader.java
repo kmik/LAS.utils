@@ -2830,7 +2830,6 @@ public class argumentReader {
 
             if(cmd.hasOption("externalData")){
                 this.noLasUtilsInput = true;
-
             }
 
             if (cmd.hasOption("ray_trace")) {
