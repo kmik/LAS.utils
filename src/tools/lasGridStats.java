@@ -5044,8 +5044,11 @@ public class lasGridStats {
         ignoreTheseColumnNames.add("d_2.5_z_a");
         ignoreTheseColumnNames.add("d_7.5_z_a");
 
+        this.lCMO.closeFilesZonal2();
+
         if(aR.subsetColumnNamesVMI)
             this.lCMO.deleteColumnsFromFile(this.lCMO.echo_class_files.get(0), ignoreTheseColumnNames);
+
         this.lCMO.closeFilesZonal();
 
     }

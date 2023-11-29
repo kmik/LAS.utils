@@ -772,6 +772,7 @@ public class lasClipMetricOfile {
     }
 
     public void deleteColumnsFromFile(File inputFile, Set<String> columnNamesToDelete) {
+
         try {
             // Read the input file
             Scanner scanner = new Scanner(inputFile);
@@ -829,6 +830,21 @@ public class lasClipMetricOfile {
 
             if(aR.compress_output)
                 aR.compressFileToGzip(echo_class_files.get(0));
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public void closeFilesZonal2(){
+
+        System.out.println("Closing output metric files");
+        try {
+            echo_class_FileWriter.get(0).close();
+
+            //if(aR.compress_output)
+            //    aR.compressFileToGzip(echo_class_files.get(0));
 
         }catch (Exception e){
             e.printStackTrace();
