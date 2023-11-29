@@ -805,9 +805,9 @@ public class lasClipMetricOfile {
                         outputContent.append(values[i]).append("\t");
                     }
                 }
-                if (outputContent.length() > 0) {
-                    outputContent.deleteCharAt(outputContent.length() - 1); // Remove the trailing comma
-                }
+                //if (outputContent.length() > 0) {
+                //    outputContent.deleteCharAt(outputContent.length() - 1); // Remove the trailing comma
+                //}
                 outputContent.append("\n");
             }
 

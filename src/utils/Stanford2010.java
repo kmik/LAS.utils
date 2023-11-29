@@ -1169,16 +1169,19 @@ public class Stanford2010 {
                             if(currentTree.species == 1) {
                                 sum_v_energy_pine += currentTree.volume_energia;
                                 sum_v_log_pine += currentTree.volume_tukki;
+                                sum_v_pulp_pine += currentTree.volume_pikkutukki;
                                 sum_v_pulp_pine += currentTree.volume_kuitu;
                             }
                             if(currentTree.species == 2) {
                                 sum_v_energy_spruce += currentTree.volume_energia;
                                 sum_v_log_spruce += currentTree.volume_tukki;
+                                sum_v_pulp_spruce += currentTree.volume_pikkutukki;
                                 sum_v_pulp_spruce += currentTree.volume_kuitu;
                             }
                             if(currentTree.species == 3) {
                                 sum_v_energy_birch += currentTree.volume_energia;
                                 sum_v_log_birch += currentTree.volume_tukki;
+                                sum_v_pulp_birch += currentTree.volume_pikkutukki;
                                 sum_v_pulp_birch += currentTree.volume_kuitu;
                             }
 
@@ -1190,16 +1193,19 @@ public class Stanford2010 {
                             if(currentTree.species == 1) {
                                 sum_v_energy_pine_squarePlot += currentTree.volume_energia;
                                 sum_v_log_pine_squarePlot += currentTree.volume_tukki;
+                                sum_v_pulp_pine_squarePlot += currentTree.volume_pikkutukki;
                                 sum_v_pulp_pine_squarePlot += currentTree.volume_kuitu;
                             }
                             if(currentTree.species == 2) {
                                 sum_v_energy_spruce_squarePlot += currentTree.volume_energia;
                                 sum_v_log_spruce_squarePlot += currentTree.volume_tukki;
+                                sum_v_pulp_spruce_squarePlot += currentTree.volume_pikkutukki;
                                 sum_v_pulp_spruce_squarePlot += currentTree.volume_kuitu;
                             }
                             if(currentTree.species == 3) {
                                 sum_v_energy_birch_squarePlot += currentTree.volume_energia;
                                 sum_v_log_birch_squarePlot += currentTree.volume_tukki;
+                                sum_v_pulp_birch_squarePlot += currentTree.volume_pikkutukki;
                                 sum_v_pulp_birch_squarePlot += currentTree.volume_kuitu;
                             }
                         }
@@ -1296,16 +1302,19 @@ public class Stanford2010 {
                             if(currentTree.species == 1) {
                                 sum_v_energy_pine += currentTree.volume_energia;
                                 sum_v_log_pine += currentTree.volume_tukki;
+                                sum_v_pulp_pine += currentTree.volume_pikkutukki;
                                 sum_v_pulp_pine += currentTree.volume_kuitu;
                             }
                             if(currentTree.species == 2) {
                                 sum_v_energy_spruce += currentTree.volume_energia;
                                 sum_v_log_spruce += currentTree.volume_tukki;
+                                sum_v_pulp_spruce += currentTree.volume_pikkutukki;
                                 sum_v_pulp_spruce += currentTree.volume_kuitu;
                             }
                             if(currentTree.species == 3) {
                                 sum_v_energy_birch += currentTree.volume_energia;
                                 sum_v_log_birch += currentTree.volume_tukki;
+                                sum_v_pulp_birch += currentTree.volume_pikkutukki;
                                 sum_v_pulp_birch += currentTree.volume_kuitu;
                             }
 
@@ -1316,16 +1325,19 @@ public class Stanford2010 {
                             if(currentTree.species == 1) {
                                 sum_v_energy_pine_squarePlot += currentTree.volume_energia;
                                 sum_v_log_pine_squarePlot += currentTree.volume_tukki;
+                                sum_v_pulp_pine_squarePlot += currentTree.volume_pikkutukki;
                                 sum_v_pulp_pine_squarePlot += currentTree.volume_kuitu;
                             }
                             if(currentTree.species == 2) {
                                 sum_v_energy_spruce_squarePlot += currentTree.volume_energia;
                                 sum_v_log_spruce_squarePlot += currentTree.volume_tukki;
+                                sum_v_pulp_spruce_squarePlot += currentTree.volume_pikkutukki;
                                 sum_v_pulp_spruce_squarePlot += currentTree.volume_kuitu;
                             }
                             if(currentTree.species == 3) {
                                 sum_v_energy_birch_squarePlot += currentTree.volume_energia;
                                 sum_v_log_birch_squarePlot += currentTree.volume_tukki;
+                                sum_v_pulp_birch_squarePlot += currentTree.volume_pikkutukki;
                                 sum_v_pulp_birch_squarePlot += currentTree.volume_kuitu;
                             }
                         }
