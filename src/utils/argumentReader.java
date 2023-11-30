@@ -4200,6 +4200,13 @@ public class argumentReader {
 
             this.files[i] = outputLasFile;
 
+            try {
+                LASReader tmpLas = new LASReader(new File(this.files[i]));
+                tmpLas.index(10);
+            }catch (Exception e){
+                System.out.println("Error while reading file: " + this.files[i]);
+                System.exit(1);
+            }
         //}
         })).get();
 

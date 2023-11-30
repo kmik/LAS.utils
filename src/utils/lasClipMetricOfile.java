@@ -219,9 +219,10 @@ public class lasClipMetricOfile {
 
             for (int i = 0; i < colnames_a.size(); i++) {
 
-                echo_class_FileWriter.get(0).write(colnames_a.get(i) + "\t");
+                echo_class_FileWriter.get(0).write(colnames_a.get(i));
 
-
+                if(i < colnames_a.size()-1)
+                    echo_class_FileWriter.get(0).write("\t");
             }
 
             echo_class_FileWriter.get(0).write("\n");
@@ -246,10 +247,12 @@ public class lasClipMetricOfile {
 
             for (int i = 0; i < colnames_a.size(); i++) {
 
-                echo_class_FileWriter.get(0).write(colnames_a.get(i) + "\t");
+                echo_class_FileWriter.get(0).write(colnames_a.get(i));
 
-
+                if(i < colnames_a.size()-1)
+                    echo_class_FileWriter.get(0).write("\t");
             }
+
 
             echo_class_FileWriter.get(0).write("\n");
 
@@ -717,12 +720,16 @@ public class lasClipMetricOfile {
 
                             }
                         }
-                        echo_class_FileWriter.get(0).write("\t");
+
+                        if(k < nMetadata - 1)
+                            echo_class_FileWriter.get(0).write("\t");
                     }
                 }
                 else{
                     for (int k = 0; k < nMetadata; k++) {
-                        echo_class_FileWriter.get(0).write("null" + "\t");
+                        echo_class_FileWriter.get(0).write("null");
+                        if(k < nMetadata - 1)
+                            echo_class_FileWriter.get(0).write("\t");
                     }
                 }
 
@@ -809,6 +816,10 @@ public class lasClipMetricOfile {
                 //if (outputContent.length() > 0) {
                 //    outputContent.deleteCharAt(outputContent.length() - 1); // Remove the trailing comma
                 //}
+                if (outputContent.length() > 0) {
+                    outputContent.deleteCharAt(outputContent.length() - 1); // Remove the trailing comma
+                }
+
                 outputContent.append("\n");
             }
 

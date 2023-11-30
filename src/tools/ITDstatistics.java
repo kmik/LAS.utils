@@ -3591,7 +3591,8 @@ public class ITDstatistics{
                 pointCloud.readFromBuffer(tempPoint);
 
                 if(aR.noLasUtilsInput) {
-                    tempPoint.classification = 0;
+                    if(tempPoint.classification != 15)
+                        tempPoint.classification = 0;
                     tempPoint.pointSourceId = 0;
                 }
 
@@ -3687,7 +3688,8 @@ public class ITDstatistics{
                 }
 
                 /* Means the point is part of the treeTop x and y location */
-                if(tempPoint.classification == 15 || aR.noLasUtilsInput){
+                //if(tempPoint.classification == 15 || aR.noLasUtilsInput){
+                if(tempPoint.classification == 15){
 
                     //System.out.println(tempPoint.z);
                     if(mappi3.containsKey(treeId) && tempPoint.z > mappi3.get(treeId)[2]){

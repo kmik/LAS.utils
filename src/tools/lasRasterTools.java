@@ -1534,6 +1534,8 @@ public class lasRasterTools {
         ignoreTheseColumnNames.add("d_2.5_z_a");
         ignoreTheseColumnNames.add("d_7.5_z_a");
 
+        lCMO.closeFilesZonal2();
+
         if(aR.subsetColumnNamesVMI)
             lCMO.deleteColumnsFromFile(lCMO.echo_class_files.get(0), ignoreTheseColumnNames);
 

@@ -690,6 +690,236 @@ public class MKid4pointsLAS{
 
     }
 
+    public ArrayList<double[][]> readShapeFiles_emil(String shapeFile, argumentReader aR, HashMap<Integer, double[][]> holes, ArrayList<Integer> ids, ArrayList<double[]> treeTops) throws IOException {
+
+        DataSource ds = ogr.Open( shapeFile );
+        //DataSource ds2 = ogr.Open( shapeFile2 );
+
+        if( ds == null ) {
+            System.out.println( "Opening stand shapefile failed." );
+            System.exit( 1 );
+        }
+
+        Layer shapeFileLayer = ds.GetLayer(0);
+
+        int shapeIdRolling = 0;
+        int shapeId = 0;
+        int nExcluded = 0;
+
+        HashSet<Integer> usedIds = new HashSet<>();
+        HashMap<Integer, Integer> usedStandids = new HashMap<>();
+
+        ArrayList<double[][]> output = new ArrayList<>();
+        //ArrayList<Integer> ids = new ArrayList<>();
+        //HashMap<Integer, double[][]> outputHoles = new HashMap<>();
+
+
+        boolean debugPrint = false;
+
+
+
+        for(long i = 0; i < shapeFileLayer.GetFeatureCount(); i++ ) {
+
+            if(true) {
+
+                Feature tempF = shapeFileLayer.GetFeature(i);
+
+                String id = "";
+
+                if (tempF.GetFieldCount() > 0)
+                    id = tempF.GetFieldAsString(aR.field);
+                else
+                    id = String.valueOf(i);
+
+                double xCoordinate = tempF.GetFieldAsDouble("ETOP");
+                double yCoordinate = tempF.GetFieldAsDouble("NTOP");
+
+                //if(id == null){
+
+                //    System.out.println("null");
+                //    System.exit(1);
+                //}
+
+                //tempF.GetFiel
+                //System.out.println("id: " + id + " " + tempF.GetFieldCount());
+                Geometry tempG = tempF.GetGeometryRef();
+
+
+                // System.out.println(tempG.GetGeometryName());
+// check if geometry is a MultiPolygon
+                if (tempG.GetGeometryName().equals("MULTIPOLYGON")) {
+
+                    int largestOne = 0;
+                    double maxArea = Double.NEGATIVE_INFINITY;
+
+                    int numGeom = tempG.GetGeometryCount();
+
+                    for (int j = 0; j < numGeom; j++) {
+
+                        int numGeom2 = 1;
+
+                        for(int j_ = 0; j_ < numGeom2; j_++){
+                            Geometry tempG2 = tempG.GetGeometryRef(j).GetGeometryRef(j_);
+
+                            if (tempG2.GetGeometryName().equals("LINEARRING")) {
+                                if (tempG2 == null || tempG2.GetPoints() == null) {
+                                    continue;
+                                }
+                                if(j_ == 0) {
+
+                                    if(tempG2.GetArea() > maxArea) {
+                                        maxArea = tempG2.GetArea();
+                                        largestOne = j;
+                                        System.out.println(id + " " + tempG2.GetArea() + " " + numGeom2);
+                                    }
+
+                                }else{
+
+
+
+                                }
+                            }
+                        }
+
+                    }
+                    Geometry tempG2_ = tempG.GetGeometryRef(largestOne).GetGeometryRef(0);
+                    output.add(clone2DArray(tempG2_.GetPoints()));
+                    ids.add(Integer.parseInt(id));
+                    treeTops.add(new double[]{xCoordinate, yCoordinate});
+
+                    if(false)
+                        for (int j = 0; j < numGeom; j++) {
+
+                            int numGeom2 = tempG.GetGeometryRef(j).GetGeometryCount();
+
+                            shapeId++;
+
+                            for(int j_ = 0; j_ < numGeom2; j_++){
+                                Geometry tempG2 = tempG.GetGeometryRef(j).GetGeometryRef(j_);
+
+                                if (tempG2.GetGeometryName().equals("LINEARRING")) {
+                                    if (tempG2 == null || tempG2.GetPoints() == null) {
+                                        continue;
+                                    }
+                                    if(j_ == 0) {
+
+                                        if(tempG2.GetArea() > maxArea) {
+                                            maxArea = tempG2.GetArea();
+                                            largestOne = j_;
+                                            System.out.println(id + " " + tempG2.GetArea() + " " + numGeom2);
+                                        }
+
+                                    }else{
+
+
+
+                                    }
+                                }
+                            }
+
+
+
+                            if(false)
+                                for(int j_ = 0; j_ < numGeom2; j_++){
+
+                                    Geometry tempG2 = tempG.GetGeometryRef(j).GetGeometryRef(j_);
+
+                                    //System
+                                    //System.out.println(tempG2.GetGeometryName());
+
+                                    if (tempG2.GetGeometryName().equals("LINEARRING")) {
+
+                                        if (tempG2 == null || tempG2.GetPoints() == null) {
+                                            continue;
+                                        }
+
+                                        if(j_ == 0) {
+
+                                            Polygon tempP = new Polygon();
+
+                                            double[] centroid = tempG.GetGeometryRef(j).Centroid().GetPoint(0);
+                                            //System.out.println("here3 " + tempF.GetFieldAsInteger(0));
+                                            output.add(clone2DArray(tempG2.GetPoints()));
+                                            ids.add(Integer.parseInt(id));
+                                            treeTops.add(new double[]{xCoordinate, yCoordinate});
+                                        }else{
+
+                                            holes.put(Integer.parseInt(id), clone2DArray(tempG2.GetPoints()));
+
+                                        }
+
+                                    }
+                                }
+                        }
+                } else if (tempG.GetGeometryName().equals("POLYGON")) {
+
+                    Geometry tempG2 = tempG.GetGeometryRef(0);
+
+
+                    //System.out.println(tempG2.GetPointCount() + " " + tempG2.GetGeometryName().equals("LINEARRING"));
+                    shapeId++;
+
+                    int numGeom = tempG.GetGeometryCount();
+
+                    //System.out.println("numGeom: " + numGeom);
+
+                    if (tempG2.GetGeometryName().equals("LINEARRING")) {
+
+
+                        for(int j = 0; j < numGeom; j++) {
+
+                            Geometry tempG3 = tempG.GetGeometryRef(j);
+
+
+                            //System.out.println("POINTS: " + tempG3.GetPointCount());
+
+                            if (tempG3 == null || tempG3.GetPoints() == null) {
+                                continue;
+                            }
+
+
+                            if (j == 0){
+
+                                Polygon tempP = new Polygon();
+
+                                double[] centroid = tempG.GetGeometryRef(j).Centroid().GetPoint(0);
+                                //System.out.println("here3 " + tempF.GetFieldAsInteger(0));
+                                output.add(clone2DArray(tempG2.GetPoints()));
+                                ids.add(Integer.parseInt(id));
+                                treeTops.add(new double[]{xCoordinate, yCoordinate});
+
+                            }else{
+
+                                holes.put(Integer.parseInt(id), clone2DArray(tempG2.GetPoints()));
+
+                            }
+                        }
+                        //System.out.println("centroid: " + centroid[0] + " " + centroid[1] + " " + shapeId);
+                    }
+                } else {
+                    // handle other types of geometries if needed
+                }
+
+                //if(tempF.GetFieldAsInteger(0) == 199){
+                //    System.exit(1);
+                //}
+
+            }
+
+            if(debugPrint) {
+                //System.out.println("shapeId: " + shapeId);
+                //System.exit(1);
+            }
+            debugPrint = false;
+
+        }
+
+        System.out.println(output.size());
+        //System.exit(1);
+
+        return output;
+
+    }
     public static ArrayList<double[][]> readPolygonsFromWKT(String fileName, ArrayList<Integer> plotID1) throws Exception{
 
         ArrayList<double[][]> output = new ArrayList<>();
@@ -1456,11 +1686,12 @@ public class MKid4pointsLAS{
             HashMap<Integer, ArrayList<double[][]>> holes = new HashMap<>();
             HashMap<Integer, double[][]> holes_wrong = new HashMap<>();
 
+            ArrayList<double[]> treeTops = new ArrayList<double[]>();
 
 
             //polyBank1 = readPolygonsFromWKT(coords, plotID1);
 
-            polyBank1 = readShapeFiles(aR.poly, aR, holes_wrong, plotID1);
+            polyBank1 = readShapeFiles_emil(aR.poly, aR, holes_wrong, plotID1, treeTops);
 
             //holes = readPolygonHolesFromWKT(coords, plotID1);
 
@@ -1800,6 +2031,11 @@ public class MKid4pointsLAS{
                                                         (!aR.eaba && point_inside_polygon)) {                   // Basic without eaba
 
                                                 //if (pointInPolygon(haku, tempPolygon)) {
+                                                    double distance = euclideanDistance(tempPoint.x, tempPoint.y, treeTops.get(j)[0], treeTops.get(j)[1]);
+                                                    //System.out.println("Distance: " + distance);
+                                                    if(distance < 0.2){
+                                                        tempPoint.classification = 15;
+                                                    }
 
                                                     if (otype.equals("las")) {
 
@@ -2001,6 +2237,8 @@ public class MKid4pointsLAS{
                                                 (aR.eaba && tree_id_found_) ||                          // tree within extending outside
                                                 (!aR.eaba && point_inside_polygon)) {                   // Basic without eaba
                                         //if (pointInPolygon(haku, tempPolygon)) {
+
+
 
                                             if (otype.equals("las")) {
 
