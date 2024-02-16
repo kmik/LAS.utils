@@ -276,6 +276,9 @@ public class las2solar_photogrammetry {
                     int y = (int)((this_max_y - tempPoint.y) / aR.step);
                     int z = (int)((tempPoint.z - this_min_z) / aR.step);
 
+                    if(x < 0 || x >= this_x_size || y < 0 || y >= this_y_size || z < 0 || z >= this_z_size)
+                        continue;
+
                     vox_[x][y][z].addPoint(tempPoint.x, tempPoint.y, tempPoint.z, i+j);
 
                     if(tempPoint.classification == 4){

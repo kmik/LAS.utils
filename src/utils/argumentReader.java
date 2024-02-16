@@ -329,7 +329,7 @@ public class argumentReader {
 
     public String save_file = "bestModel_graph.bin";
 
-    public double concavity = 50.0;
+    public double concavity = 100.0;
 
     public double interval = 20.0;
 

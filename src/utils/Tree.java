@@ -14,6 +14,8 @@ public class Tree {
     public double distanceToStandBorder = -1;
     public int standId = -1;
     public boolean trulyInStand = true;
+
+    public boolean holeBorder = false;
     //
     public double boomAngle, boomPosition, boomExtension, machineBearing;
 
@@ -274,6 +276,12 @@ public class Tree {
                 ", boomPosition=" + boomPosition +
                 ", boomExtension=" + boomExtension +
                 ", machineBearing=" + machineBearing +
+                ", global_id=" + global_id +
+                ", volume=" + volume_tukki +
+                "; volume_kuitu=" + volume_kuitu +
+                "; volume_tukki=" + volume_tukki +
+                "; volume_pikkutukki=" + volume_pikkutukki +
+                "; volume_energia=" + volume_energia +
                 '}';
     }
 };

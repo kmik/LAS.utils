@@ -118,19 +118,22 @@ public class rasterCollection {
 
         currentCount++;
 
-        for(int i = 0; i < rasterExtents.size(); i++){
+        try {
+            for (int i = 0; i < rasterExtents.size(); i++) {
 
-            if (rasters.get(i).isOverlapping(minx, maxx, miny, maxy)){
+                if (rasters.get(i).isOverlapping(minx, maxx, miny, maxy)) {
 
-                //System.out.println("overlaps with: " + Arrays.toString(rasterExtents.get(i)));
+                    //System.out.println("overlaps with: " + Arrays.toString(rasterExtents.get(i)));
 
-                if(!rasters.get(i).isOpen())
-                    rasters.get(i).open();
+                    if (!rasters.get(i).isOpen())
+                        rasters.get(i).open();
 
-                currentlyToBeOpened.add(i);
+                    currentlyToBeOpened.add(i);
 
-                overlappingRasters.add(i);
-                this.currentSelection.add(i);
+
+
+                    overlappingRasters.add(i);
+                    this.currentSelection.add(i);
 
                 /*
                 overlappingRasters.add(i);
@@ -138,13 +141,18 @@ public class rasterCollection {
                 rasters.get(i).open();
 
                  */
-            }else{
-                currentlyToBeClosed.add(i);
-                if(rasters.get(i).isOpen())
-                    rasters.get(i).addQuery();
-            }
+                } else {
+                    currentlyToBeClosed.add(i);
+                    if (rasters.get(i).isOpen())
+                        rasters.get(i).addQuery();
+                }
 
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            System.exit(1);
         }
+
 
         //System.out.println(this.currentSelection.size());
         //System.exit(1);

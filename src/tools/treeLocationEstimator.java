@@ -33,12 +33,12 @@ public class treeLocationEstimator {
     double[] geoTransform = null;
     argumentReader aR;
 
-    ArrayList<Tree> trees = new ArrayList<Tree>();
+    List<Tree> trees = new ArrayList<Tree>();
     ArrayList<Tree> trees_sorted = new ArrayList<Tree>();
 
-    HashMap<Integer, ArrayList<ConcaveHull.Point>> standBoundaries = new HashMap<>();
+    HashMap<Integer, List<ConcaveHull.Point>> standBoundaries = new HashMap<>();
     HashMap<Integer, double[][]> standBoundaries_ = new HashMap<>();
-
+    HashMap<Integer, HashMap<Integer, List<ConcaveHull.Point>>> holeConcaveHulls = new HashMap<>();
     public boolean noAuxDataAvailable = false;
 
     public treeLocationEstimator(){
@@ -57,7 +57,7 @@ public class treeLocationEstimator {
 
     }
 
-    public void setTrees(ArrayList<Tree> trees){
+    public void setTrees(List<Tree> trees){
         this.trees = trees;
     }
 
@@ -79,9 +79,13 @@ public class treeLocationEstimator {
 
     }
 
+    public void setHoles(HashMap<Integer, HashMap<Integer, List<ConcaveHull.Point>>> holeConcaveHulls){
+        this.holeConcaveHulls = holeConcaveHulls;
+    }
 
 
-    public void setStandBoundaries(HashMap<Integer, ArrayList<ConcaveHull.Point>> standBoundaries){
+
+    public void setStandBoundaries(HashMap<Integer, List<ConcaveHull.Point>> standBoundaries){
 
         double minx = Double.POSITIVE_INFINITY;
         double maxx = Double.NEGATIVE_INFINITY;
@@ -89,7 +93,7 @@ public class treeLocationEstimator {
         double maxy = Double.NEGATIVE_INFINITY;
 
         for(int i : standBoundaries.keySet()){
-            ArrayList<ConcaveHull.Point> temp = standBoundaries.get(i);
+            List<ConcaveHull.Point> temp = standBoundaries.get(i);
             double[][] temp_ = new double[temp.size()][2];
 
 
@@ -120,9 +124,15 @@ public class treeLocationEstimator {
 
     public void noEstimation(){
         for(int i = 0; i < trees.size(); i++){
+
+            if(!trees.get(i).trulyInStand)
+                continue;
+
             trees.get(i).setX_coordinate_estimated(trees.get(i).getX_coordinate_machine());
             trees.get(i).setY_coordinate_estimated(trees.get(i).getY_coordinate_machine());
             trees.get(i).setZ_coordinate_estimated(trees.get(i).getZ_coordinate_machine());
+
+
         }
     }
 
@@ -206,10 +216,14 @@ public class treeLocationEstimator {
                     boolean insideHole = false;
 
                     if(!imposibleHole)
-                        if(standPolygons.get(standId).hasHole()){
-                            for(int i_ = 0; i_ < standPolygons.get(standId).holes.size(); i_++){
+                        //if(standPolygons.get(standId).hasHole()){
+                        if(this.holeConcaveHulls.containsKey(standId)){
 
-                                if(standPolygons.get(standId).pointInPolygon(standPolygons.get(standId).holes.get(i_), translatedCoordinates)){
+                            //for(int i_ = 0; i_ < standPolygons.get(standId).holes.size(); i_++){
+                            for(int i_ : this.holeConcaveHulls.get(standId).keySet()){
+
+                                //if(standPolygons.get(standId).pointInPolygon(standPolygons.get(standId).holes.get(i_), translatedCoordinates)){
+                                if(this.pointInPolygon(this.holeConcaveHulls.get(standId).get(i_), translatedCoordinates)){
                                     insideStand = false;
                                     insideHole = true;
                                     nFailedBecauseImpossibleHole++;
@@ -304,6 +318,21 @@ public class treeLocationEstimator {
         return result;
     }
 
+    public boolean pointInPolygon(List<ConcaveHull.Point> polygon, double[] point) {
+
+        int i;
+        int j;
+        boolean result = false;
+        for (i = 0, j = polygon.size() - 1; i < polygon.size(); j = i++) {
+            if ((polygon.get(i).getY() > point[1]) != (polygon.get(j).getY() > point[1]) &&
+                    (point[0] < (polygon.get(j).getX() - polygon.get(i).getX()) * (point[1] - polygon.get(i).getY()) / (polygon.get(j).getY() - polygon.get(i).getY()) + polygon.get(i).getX())) {
+                result = !result;
+            }
+        }
+
+        return result;
+    }
+
 
     public double euclideanDistance2d(double x1, double y1, double x2, double y2){
         return Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
@@ -381,16 +410,21 @@ public class treeLocationEstimator {
                     insideStand = pointInPolygon(standBoundaries_.get(standId), translatedCoordinates);
 
                     if(!imposibleHole)
-                    if(standPolygons.get(standId).hasHole()){
-                        for(int i_ = 0; i_ < standPolygons.get(standId).holes.size(); i_++){
+                        //if(standPolygons.get(standId).hasHole()){
+                        if(this.holeConcaveHulls.containsKey(standId)){
 
-                            if(standPolygons.get(standId).pointInPolygon(standPolygons.get(standId).holes.get(i_), translatedCoordinates)){
+                            //for(int i_ = 0; i_ < standPolygons.get(standId).holes.size(); i_++){
+                            for(int i_ : this.holeConcaveHulls.get(standId).keySet()){
+
+                                //if(standPolygons.get(standId).pointInPolygon(standPolygons.get(standId).holes.get(i_), translatedCoordinates)){
+                                if(this.pointInPolygon(this.holeConcaveHulls.get(standId).get(i_), translatedCoordinates)){
                                 insideStand = false;
                                 nFailedBecauseImpossibleHole++;
                                 break;
                             }
                         }
                     }
+
 
                     nearest = (List< KdTree.XYZPoint>) kdTree.nearestNeighbourSearch(1, point);
 
@@ -565,10 +599,14 @@ public class treeLocationEstimator {
                     insideStand = pointInPolygon(standBoundaries_.get(standId), translatedCoordinates);
 
                     if(!imposibleHole)
-                        if(standPolygons.get(standId).hasHole()){
-                            for(int i_ = 0; i_ < standPolygons.get(standId).holes.size(); i_++){
+                        //if(standPolygons.get(standId).hasHole()){
+                        if(this.holeConcaveHulls.containsKey(standId)){
 
-                                if(standPolygons.get(standId).pointInPolygon(standPolygons.get(standId).holes.get(i_), translatedCoordinates)){
+                            //for(int i_ = 0; i_ < standPolygons.get(standId).holes.size(); i_++){
+                            for(int i_ : this.holeConcaveHulls.get(standId).keySet()){
+
+                                //if(standPolygons.get(standId).pointInPolygon(standPolygons.get(standId).holes.get(i_), translatedCoordinates)){
+                                if(this.pointInPolygon(this.holeConcaveHulls.get(standId).get(i_), translatedCoordinates)){
                                     insideStand = false;
                                     nFailedBecauseImpossibleHole++;
                                     break;
@@ -716,6 +754,7 @@ public class treeLocationEstimator {
 
         int treeSize = 0;
 
+
         for(int i = 0; i < trees_sorted.size(); i++){
 
             if(!trees_sorted.get(i).trulyInStand)
@@ -810,10 +849,14 @@ public class treeLocationEstimator {
                     boolean insideHole = false;
 
                     if(!imposibleHole)
-                    if(standPolygons.get(standId).hasHole()){
-                        for(int i_ = 0; i_ < standPolygons.get(standId).holes.size(); i_++){
+                        //if(standPolygons.get(standId).hasHole()){
+                        if(this.holeConcaveHulls.containsKey(standId)){
 
-                            if(standPolygons.get(standId).pointInPolygon(standPolygons.get(standId).holes.get(i_), translatedCoordinates)){
+                            //for(int i_ = 0; i_ < standPolygons.get(standId).holes.size(); i_++){
+                            for(int i_ : this.holeConcaveHulls.get(standId).keySet()){
+
+                                //if(standPolygons.get(standId).pointInPolygon(standPolygons.get(standId).holes.get(i_), translatedCoordinates)){
+                                if(this.pointInPolygon(this.holeConcaveHulls.get(standId).get(i_), translatedCoordinates)){
                                 insideStand = false;
                                 insideHole = true;
                                 nFailedBecauseImpossibleHole++;
@@ -929,10 +972,17 @@ public class treeLocationEstimator {
                 //System.out.println("tree size: " + treeSize++);
                 if(treeOutsideCHM){
                     System.out.println("tree outside CHM");
-                    for(int i_ = 0; i_ < trees_sorted.size(); i_++){
-                        trees_sorted.get(i).trulyInStand = false;
-                    }
-                    break;
+
+                    trees_sorted.get(i).setX_coordinate_estimated(trees_sorted.get(i).getX_coordinate_machine());
+                    trees_sorted.get(i).setY_coordinate_estimated(trees_sorted.get(i).getY_coordinate_machine());
+                    trees_sorted.get(i).setZ_coordinate_estimated(trees_sorted.get(i).getZ_coordinate_machine());
+                    trees_sorted.get(i).setBoomAngle(angle);
+                    trees_sorted.get(i).setBoomExtension(distance);
+
+                    //for(int i_ = 0; i_ < trees_sorted.size(); i_++){
+                    //    trees_sorted.get(i).trulyInStand = false;
+                    //}
+                    //break;
                 }
 
             }else{
@@ -1105,6 +1155,7 @@ public class treeLocationEstimator {
         gdal.AllRegister();
 
         ArrayList<Integer> overlappin = this.rasters.findOverlappingRasters(this.extent[0], this.extent[1], this.extent[2], this.extent[3]);
+
 
         System.out.println("Number of overlapping rasters: " + overlappin.size());
 

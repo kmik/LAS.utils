@@ -378,7 +378,7 @@ public class lasGridStats {
 
 
 
-        ArrayList<ArrayList<Point>> points = new ArrayList<>();
+        ArrayList<ArrayList<ConcaveHull.Point>> points = new ArrayList<>();
 
 
 
@@ -686,7 +686,7 @@ public class lasGridStats {
                                     sum_z_a.set(order.get(stand_id), sum_z_a.get(order.get(stand_id)) + tempPoint.z);
                                     sum_i_a.set(order.get(stand_id), sum_i_a.get(order.get(stand_id)) + tempPoint.intensity);
 
-                                    points.get(order.get(stand_id)).add(new Point(tempPoint.x, tempPoint.y));
+                                    points.get(order.get(stand_id)).add(new ConcaveHull.Point(tempPoint.x, tempPoint.y));
 
                                     //System.out.println("intensity" + tempPoint.intensity);
 
@@ -786,7 +786,7 @@ public class lasGridStats {
 
                 for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
                     QuickHull qh = new QuickHull();
-                    ArrayList<Point> p = null;
+                    ArrayList<ConcaveHull.Point> p = null;
 
                     if (points.get(ii).size() > 3) {
                         p = qh.quickHull(points.get(ii));
@@ -1617,7 +1617,7 @@ public class lasGridStats {
         ArrayList<Double> sum_z_i = new ArrayList<>();
         ArrayList<Double> sum_i_i = new ArrayList<>();
 
-        ArrayList<ArrayList<Point>> points = new ArrayList<>();
+        ArrayList<ArrayList<ConcaveHull.Point>> points = new ArrayList<>();
 
         int raf_location_a = 0;
         int raf_location_f = 0;
@@ -2121,7 +2121,7 @@ public class lasGridStats {
                                     sum_z_a.set(order.get(stand_id), sum_z_a.get(order.get(stand_id)) + tempPoint.z);
                                     sum_i_a.set(order.get(stand_id), sum_i_a.get(order.get(stand_id)) + tempPoint.intensity);
 
-                                    points.get(order.get(stand_id)).add(new Point(tempPoint.x, tempPoint.y));
+                                    points.get(order.get(stand_id)).add(new ConcaveHull.Point(tempPoint.x, tempPoint.y));
 
                                     //System.out.println("intensity" + tempPoint.intensity);
 
@@ -2399,7 +2399,7 @@ public class lasGridStats {
                         if (false) {
                             for (int ii = 0; ii < gridPoints_z_a.size(); ii++) {
                                 QuickHull qh = new QuickHull();
-                                ArrayList<Point> p = null;
+                                ArrayList<ConcaveHull.Point> p = null;
 
                                 if (points.get(ii).size() > 3) {
                                     p = qh.quickHull(points.get(ii));
@@ -2880,7 +2880,7 @@ public class lasGridStats {
                                             sum_z_a.set(order.get(stand_id), sum_z_a.get(order.get(stand_id)) + tempPoint.z);
                                             sum_i_a.set(order.get(stand_id), sum_i_a.get(order.get(stand_id)) + tempPoint.intensity);
 
-                                            points.get(order.get(stand_id)).add(new Point(tempPoint.x, tempPoint.y));
+                                            points.get(order.get(stand_id)).add(new ConcaveHull.Point(tempPoint.x, tempPoint.y));
 
                                             if (tempPoint.returnNumber == 1) {
 
@@ -2997,7 +2997,7 @@ public class lasGridStats {
                                 sum_z_a.set(order.get(stand_id), sum_z_a.get(order.get(stand_id)) + tempPoint.z);
                                 sum_i_a.set(order.get(stand_id), sum_i_a.get(order.get(stand_id)) + tempPoint.intensity);
 
-                                points.get(order.get(stand_id)).add(new Point(tempPoint.x, tempPoint.y));
+                                points.get(order.get(stand_id)).add(new ConcaveHull.Point(tempPoint.x, tempPoint.y));
 
                                 if (tempPoint.returnNumber == 1) {
 
@@ -3086,7 +3086,7 @@ public class lasGridStats {
 
                     for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
                         QuickHull qh = new QuickHull();
-                        ArrayList<Point> p = null;
+                        ArrayList<ConcaveHull.Point> p = null;
 
                         if (points.get(ii).size() > 3) {
                             p = qh.quickHull(points.get(ii));

@@ -2127,7 +2127,7 @@ public class createCHM{
 
                     double disti = kernel_size_meters / aR.step;
 
-                    if((floatArray[0] >= altaat.get(output).zMiddle * 0.0 || floatArray[0] > 2.0) && distance < roundness){
+                    if((floatArray[0] >= altaat.get(output).zMiddle * 0.0 || floatArray[0] > 5.0) && distance < roundness){
 
                         //System.out.println("ATTACHED!");
                         image.attach(x, y, output);
@@ -2219,7 +2219,7 @@ public class createCHM{
         public void updateNeighbourhood_array(int x, int y, boolean giveLabel){
 
             long[] ids = new long[8];
-            double zThreshold = 2.0;
+            double zThreshold = 5.0;
             image.populateFloatArrays(x, y);
 
             int xIndex = 0;

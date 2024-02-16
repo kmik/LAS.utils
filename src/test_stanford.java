@@ -1,11 +1,13 @@
 import LASio.LASReader;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.ogr;
+import org.nd4j.common.loader.FileBatch;
 import utils.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static utils.miscProcessing.prepareData;
 
@@ -56,12 +58,19 @@ public class test_stanford {
 
         //System.exit(1);
 
+
+        HashMap<Integer, ArrayList<File>> files = stanford.getOverlappingHPRFiles(inputFiles);
+
+        stanford.createProcessingBatches(files);
+        stanford.parseBatches();
+
+        if(false)
         for (int i = 0; i < inputFiles.size(); i++) {
 
             //stanford.setXMLfile(new File("/home/koomikko/Documents/customer_work/metsahallitus/example.hpr"));
             stanford.setXMLfile((inputFiles.get(i)));
 
-            stanford.parse();
+            stanford.parseBatches();
 
             //System.exit(1);
             try {

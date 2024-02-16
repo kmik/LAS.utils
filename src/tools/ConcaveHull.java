@@ -2,10 +2,7 @@ package tools;
 
 import javafx.util.Pair;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
+import java.util.*;
 
 /**
  * ConcaveHull.java - 14/10/16
@@ -178,7 +175,7 @@ public class ConcaveHull {
 
     }
 
-    public static ArrayList<Point> calculateConcaveHull(ArrayList<Point> pointArrayList, Integer k) {
+    public static ArrayList<Point> calculateConcaveHull(List<Point> pointArrayList, Integer k) {
 
         // the resulting concave hull
         ArrayList<Point> concaveHull = new ArrayList<>();
@@ -217,6 +214,10 @@ public class ConcaveHull {
             // after 3 steps add first point to dataset, otherwise hull cannot be closed
             if (step == 5) {
                 pointArraySet.add(firstPoint);
+            }
+
+            if(k > 1000){
+                return new ArrayList<>();
             }
 
             // get k nearest neighbors of current point

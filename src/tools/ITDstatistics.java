@@ -1378,7 +1378,7 @@ public class ITDstatistics{
         double[] mu = new double[x_ * y_ * z_];
         double[] sum = new double[x_ * y_ * z_];
 
-        double minZ = maxZ * 0.25;  //Math.min(maxPointZ - minPointZ, 2.0);
+        double minZ = maxZ * 0.5;  //Math.min(maxPointZ - minPointZ, 2.0);
 
         ArrayList<WritableRaster> textureLayers = new ArrayList<>();
         ColorModel cm = null;

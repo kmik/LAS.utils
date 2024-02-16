@@ -255,7 +255,7 @@ class cellStats{
 
     ArrayList<ArrayList<int[]>> gridPoints_RGB_f = new ArrayList<>();
 
-    ArrayList<ArrayList<Point>> points = new ArrayList<>();
+    ArrayList<ArrayList<ConcaveHull.Point>> points = new ArrayList<>();
 
     HashMap<Short, Integer> order = new HashMap<>();
 
@@ -367,7 +367,7 @@ class cellStats{
 */
 
 
-        points.get(order.get(tempPoint.pointSourceId)).add(new Point(tempPoint.x, tempPoint.y));
+        points.get(order.get(tempPoint.pointSourceId)).add(new ConcaveHull.Point(tempPoint.x, tempPoint.y));
 
         gridPoints_z_a.get(order.get(tempPoint.pointSourceId)).add(tempPoint.z);
         gridPoints_i_a.get(order.get(tempPoint.pointSourceId)).add(tempPoint.intensity);
@@ -483,8 +483,8 @@ class cellStats{
 
         for(int ii = 0; ii < gridPoints_z_a.size(); ii++) {
 
-            QuickHull qh = new QuickHull();
-            ArrayList<Point> p = null;
+            tools.QuickHull qh = new tools.QuickHull();
+            ArrayList<ConcaveHull.Point> p = null;
 
             if(points.get(ii).size() > 3) {
                 p = qh.quickHull(points.get(ii));
@@ -549,7 +549,7 @@ class cellStats{
     }
 
     // (X[i], Y[i]) are coordinates of i'th point.
-    public static double polygonArea(ArrayList<Point> points)
+    public static double polygonArea(ArrayList<ConcaveHull.Point> points)
     {
         // Initialize area
         double area = 0.0;

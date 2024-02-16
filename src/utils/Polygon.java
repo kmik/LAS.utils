@@ -247,4 +247,19 @@ public class Polygon {
         return Math.sqrt(dx * dx + dy * dy);
     }
 
+    public ArrayList<tools.ConcaveHull.Point> toPoints(){
+
+        ArrayList<ConcaveHull.Point> output = new ArrayList<>();
+
+        for (int i = 0; i < this.outerRings.size(); i++) {
+
+            for(int j = 0; j < this.outerRings.get(i).length; j++){
+                output.add(new ConcaveHull.Point(this.outerRings.get(i)[j][0], this.outerRings.get(i)[j][1]));
+            }
+
+        }
+
+        return output;
+
+    }
 }

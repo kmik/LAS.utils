@@ -47,7 +47,7 @@ public class ResidFunctionPREMOTO implements LevenbergMarquardt.ResidualFunction
     double[] residuals = new double[0];
 
     float[][] chm = null;
-    ArrayList<Tree> trees = new ArrayList<>();
+    List<Tree> trees = new ArrayList<>();
     int numFunctions = 1;
 
     int numParamPerTree = 2;
@@ -775,7 +775,7 @@ public class ResidFunctionPREMOTO implements LevenbergMarquardt.ResidualFunction
 
     }
 
-    public void setTrees(ArrayList<Tree> trees){
+    public void setTrees(List<Tree> trees){
 
         this.trees = trees;
         this.numFunctions = trees.size();
