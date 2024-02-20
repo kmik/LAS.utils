@@ -531,15 +531,14 @@ public class printHelp {
                 " Natural Resources Institute Finland\n" +
                 "----------------------------------------------\n" +
                 "\n" +
-                "Checks that the contents of the .las file are \n" +
-                "coherent with the header information.\n" +
-                "\n" +
-                "Also does various other checks which are reported\n" +
-                "at the end of the run.\n" +
+                "Calculates the solar insolation per -step (m2) \n" +
+                "Stores the result in intensity and extra bytes.\n" +
                 "\n" +
                 "Usage:\n" +
                 "\n" +
-                "\t-i\t\tInput file(s)");
+                "\t-i\t\tInput file(s)\n" +
+                "\t-step\t\tResolution\n" +
+                "\t-mode_3d\tCurrently the only one implemented, voxels");
     }
 
 

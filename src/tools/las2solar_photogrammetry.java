@@ -89,7 +89,7 @@ public class las2solar_photogrammetry {
 
         this.pointCloud = pointCloud;
 
-        System.out.println(this.pointCloud.getMaxZ());
+        //System.out.println(this.pointCloud.getMaxZ());
 
         LasPoint tempPoint = new LasPoint();
 
@@ -250,7 +250,7 @@ public class las2solar_photogrammetry {
             }
         }
 
-        System.out.println("LOOP 1 COMPLETE!");
+        //System.out.println("LOOP 1 COMPLETE!");
 
         if(true)
             for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
@@ -314,10 +314,10 @@ public class las2solar_photogrammetry {
             }
 
 
-        System.out.println("ALL GOOD!");
+        //System.out.println("ALL GOOD!");
         ogr.RegisterAll(); //Registering all the formats..
         gdal.AllRegister();
-        System.out.println("max cache: " + gdal.GetCacheMax());
+        //System.out.println("max cache: " + gdal.GetCacheMax());
         //gdal.SetCacheMax(413375897 * 4);
         //gdal.SetCacheMax((int)(aR.gdal_cache_gb * 1073741824));
 
@@ -332,7 +332,7 @@ public class las2solar_photogrammetry {
         //dataset.SetGeoTransform(chm.GetGeoTransform());
         //dataset.SetProjection(chm.GetProjection());
 
-        System.out.println(chm.GetProjection());
+        //System.out.println(chm.GetProjection());
         //System.exit(1);
         //band2 = dataset.GetRasterBand(1);    // writable band
 
@@ -358,7 +358,7 @@ public class las2solar_photogrammetry {
         //GregorianCalendar time = new GregorianCalendar(new SimpleTimeZone(-7 * 60 * 60 * 1000, "LST"));
         GregorianCalendar time = new GregorianCalendar(TimeZone.getTimeZone("GMT+2"));
 
-        System.out.println(time.getTimeZone());
+        //System.out.println(time.getTimeZone());
 
         this.chm_values = chm.GetRasterBand(1);
 
@@ -414,7 +414,7 @@ public class las2solar_photogrammetry {
         }
 
 
-        Thread[] threads = new Thread[aR.cores];
+
         int n_funk_per_thread = (int)Math.ceil((double)y_size / (double)aR.cores);
 
         sunriseAndSunset.clear();
@@ -461,7 +461,7 @@ public class las2solar_photogrammetry {
             }
         });//);
 
-        System.out.println("PRECOMPUTATION COMPLETE!");
+        //System.out.println("PRECOMPUTATION COMPLETE!");
 
 
         long start = System.currentTimeMillis();
@@ -472,7 +472,10 @@ public class las2solar_photogrammetry {
             provideRow.add(Pair.of(y,chm_values_f_3d[y]));
 
 
-        for (int i = 0; i < aR.cores; i++) {
+        int cores = 4;
+        Thread[] threads = new Thread[cores];
+
+        for (int i = 0; i < cores; i++) {
 
             int mini = i * n_funk_per_thread;
             int maxi = Math.min(y_size, mini + n_funk_per_thread);
@@ -505,11 +508,11 @@ public class las2solar_photogrammetry {
             }
         }
 
-        System.out.println("LOOP 2 COMPLETE!");
+        //System.out.println("LOOP 2 COMPLETE!");
 
         //rM.get_sky_prop();
 
-        System.out.println("SKY PROP COMPLETE!");
+        //System.out.println("SKY PROP COMPLETE!");
         //ImagePlus imp = IJ.createImage("KansasCityShuffle", "32-bit", chm.getRasterXSize(), chm.getRasterYSize(), raster_z_size);
 
         //System.out.println(imp.getImageStack().getSize());
@@ -557,7 +560,7 @@ public class las2solar_photogrammetry {
 
         aR.pfac.addWriteThread(thread_n, pw, buf);
 
-        System.out.println("START WRITING!");
+        //System.out.println("START WRITING!");
 
         float min_angle = Float.MAX_VALUE;
         float min_flatness = Float.MAX_VALUE;
@@ -596,7 +599,7 @@ public class las2solar_photogrammetry {
 
                 float[] idw_value = rM.IDW(x__, y__, z__);
 
-                //System.out.println("iterpolated: " + idw_value + " orig: " + rM.getValue(x, y, z));
+                //System.out.println("iterpolated: " + Arrays.toString(idw_value) + " orig: " + rM.getValue(x, y, z));
                 //tempPoint.intensity =  (int)(rM.getValue(x, y, z) / solarradiation * 65535.0);
                 //tempPoint.intensity =  (int)(idw_value / solarradiation * 65535.0);
                 tempPoint.intensity =  (int)(idw_value[0] / solarradiation * 65535.0);
@@ -642,7 +645,7 @@ public class las2solar_photogrammetry {
             }
         }
 
-        System.out.println("FINISHED WRITING!");
+        //System.out.println("FINISHED WRITING!");
 
         System.out.println("min_angle: " + min_angle + " max_angle: " + max_angle);
         System.out.println("min_flatness: " + min_flatness + " max_flatness: " + max_flatness);
@@ -2325,7 +2328,7 @@ class solarParallel_3d extends Thread {
             });//);
 
             //System.out.println(row.getKey());
-            System.out.println(providerRow.size());
+            //System.out.println(providerRow.size());
             //System.out.println("n_blocked: " + blocked_n);
             //System.out.println(y + " / " + this.max );
         }
