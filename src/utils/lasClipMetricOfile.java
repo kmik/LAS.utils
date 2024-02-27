@@ -578,8 +578,11 @@ public class lasClipMetricOfile {
 
             for (int i = 0; i < metrics_a.size(); i++) {
 
-                echo_class_FileWriter.get(0).write(metrics_a.get(i) + "\t");
+                echo_class_FileWriter.get(0).write(metrics_a.get(i) + "");
 
+                // Write the separator if not the last element
+                if (i + 1 < metrics_a.size())
+                    echo_class_FileWriter.get(0).write("\t");
             }
 
             echo_class_FileWriter.get(0).write("\n");
@@ -636,7 +639,8 @@ public class lasClipMetricOfile {
 
                     }
 
-                    echo_class_FileWriter.get(0).write("\t");
+                    if(k + 1 < nMetadata)
+                        echo_class_FileWriter.get(0).write("\t");
                 }
 
                 // remove the last ;
@@ -734,7 +738,8 @@ public class lasClipMetricOfile {
                 }
 
 
-                // remove the last ;
+                // remove the last separator;
+
 
 
 

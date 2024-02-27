@@ -68,8 +68,6 @@ public class lasGridStats {
 
                 System.out.println(klj.configMapSheetExtents.size());
 
-                //ForkJoinPool customThreadPool = new ForkJoinPool(aR.cores);
-
                 System.out.println("Starting lasGridStats with " + aR.cores + " cores.");
 
                 //ArrayList<Pair<String, double[]>> mapSheetNamesAndExtents = new ArrayList<>();

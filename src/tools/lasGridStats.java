@@ -4828,7 +4828,6 @@ public class lasGridStats {
                     ArrayList<Double> metrics_a = new ArrayList<>();
                     metrics_a = pCM.calcZonal(gridPoints_z_a, sum_z_a, "_a", colnames_a);
 
-
                     if (false)
                         if (nNoData == 0) {
                             metrics_a = new ArrayList<>();
