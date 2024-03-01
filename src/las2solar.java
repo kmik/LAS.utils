@@ -25,6 +25,9 @@ public class las2solar {
         ArrayList<File> inputFiles = prepareData(aR, "las2solar");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
+        System.out.println("TOOL DISABLED DUE TO UPDATE. Contact Mikko Kukkonen (luke) for more information");
+        System.exit(1);
+
         if(aR.cores > 1){
             threadTool(aR, fD);
         }else{
