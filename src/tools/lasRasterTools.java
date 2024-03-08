@@ -1543,6 +1543,425 @@ public class lasRasterTools {
         new File(polyWKT).delete();
     }
 
+    public void zonalStatistics_exportSurface(argumentReader aR, lasClipMetricOfile lCMO ) throws Exception{
+
+        KarttaLehtiJako klj = new KarttaLehtiJako();
+        klj.readFromFile(new File(""));
+
+        rasterCollection rasterBank = new rasterCollection(aR.cores);
+
+        this.aR = aR;
+        System.out.println(aR.poly);
+        String polyWKT = readShapefile(aR.poly);
+        ArrayList<String> polyIds = new ArrayList<>();
+
+        int nBands = 0;
+
+        ArrayList<double[][]> polygons = readPolygonsFromWKT_string(polyWKT, polyIds);
+
+        HashMap<String, ArrayList<double[][]>> polygonHoles = readPolygonHolesFromWKT_string(polyWKT, polyIds);
+
+
+        ArrayList<Dataset> rasters = new ArrayList<Dataset>();
+        ArrayList<Dataset> rastersSpectral = new ArrayList<Dataset>();
+
+        //for(File raster : aR.inputFiles){
+        //    rasters.add(gdal.Open(raster.getAbsolutePath(), gdalconst.GA_ReadOnly));
+        // }
+
+        /*
+        ArrayList<double[]> rasterExtents = new ArrayList<double[]>();
+        ArrayList<double[]> rasterWidthHeight = new ArrayList<double[]>();
+        ArrayList<double[]> rasterBoundingBoxes = new ArrayList<double[]>();
+        ArrayList<Band> rasterBands = new ArrayList<Band>();
+
+        ArrayList<double[]> rasterExtents_spectral = new ArrayList<double[]>();
+        ArrayList<double[]> rasterWidthHeight_spectral = new ArrayList<double[]>();
+        ArrayList<double[]> rasterBoundingBoxes_spectral = new ArrayList<double[]>();
+        ArrayList<ArrayList<Band>> rasterBands_spectral = new ArrayList<>();
+*/
+        aR.lCMO.prepZonal(aR.inputFiles.get(0));
+
+        int n_metadataItems = 0;
+        int counter = 0;
+        int counter_ = 0;
+
+        // current time
+        long start = System.currentTimeMillis();
+
+        //for(Dataset raster : rasters){
+        for(File file : aR.inputFiles){
+
+            Dataset raster = gdal.Open(file.getAbsolutePath(), gdalconst.GA_ReadOnly);
+
+            double[] rasterExtent = new double[6];
+            raster.GetGeoTransform(rasterExtent);
+
+            //System.out.println(Arrays.toString(rasterExtent));
+            //rasterExtents.add(rasterExtent);
+
+            double[] rasterWidthHeight_ = new double[2];
+            rasterWidthHeight_[0] = raster.GetRasterXSize();
+            rasterWidthHeight_[1] = raster.GetRasterYSize();
+
+            //rasterWidthHeight.add(rasterWidthHeight_);
+
+            //rasterBoundingBoxes.add(new double[]{rasterExtent[0], rasterExtent[3] + rasterExtent[5] * rasterWidthHeight_[1],rasterExtent[0] + rasterExtent[1] * rasterWidthHeight_[0],  rasterExtent[3]});
+
+            if(aR.metadataitems.size() == 0)
+                rasterBank.addRaster(new gdalRaster(raster.GetDescription(), counter++));
+            else{
+                rasterBank.addRaster(new gdalRaster(raster.GetDescription(), counter++), aR);
+                n_metadataItems = aR.metadataitems.size();
+
+            }
+            raster.delete();
+            //System.out.println(counter_++);
+            //rasterBands.add(raster.GetRasterBand(1));
+
+        }
+
+        // end time
+        long end = System.currentTimeMillis();
+
+        // elapsed time in minutes and seconds
+        long elapsedTime = end - start;
+        double elapsedTimeMin = elapsedTime / (60.0 * 1000.0);
+        double elapsedTimeSec = (elapsedTimeMin - Math.floor(elapsedTimeMin)) * 60.0;
+
+        // print elapsed time
+        System.out.println("Elapsed time for opening and closing rasters: " + (int) elapsedTimeMin + " min " + (int) elapsedTimeSec + " sec");
+/*
+        if(aR.inputFilesSpectral.size() > 0){
+
+            for(File raster : aR.inputFilesSpectral){
+                rastersSpectral.add(gdal.Open(raster.getAbsolutePath(), gdalconst.GA_ReadOnly));
+            }
+
+            for(Dataset raster : rastersSpectral){
+
+                double[] rasterExtent = new double[6];
+                raster.GetGeoTransform(rasterExtent);
+
+                rasterExtents_spectral.add(rasterExtent);
+
+                double[] rasterWidthHeight_ = new double[2];
+                rasterWidthHeight_[0] = raster.GetRasterXSize();
+                rasterWidthHeight_[1] = raster.GetRasterYSize();
+
+                rasterWidthHeight_spectral.add(rasterWidthHeight_);
+
+                rasterBoundingBoxes_spectral.add(new double[]{rasterExtent[0], rasterExtent[3] + rasterExtent[5] * rasterWidthHeight_[1],rasterExtent[0] + rasterExtent[1] * rasterWidthHeight_[0],  rasterExtent[3]});
+
+                nBands = raster.GetRasterCount();
+
+                ArrayList<Band> bands = new ArrayList<>();
+
+                for(int i = 0; i < nBands; i++){
+
+                    bands.add(raster.GetRasterBand(i + 1));
+
+                }
+
+                rasterBands_spectral.add(bands);
+
+            }
+
+
+        }
+
+
+ */
+        pointCloudMetrics pCM = new pointCloudMetrics(aR);
+
+        lCMO.prepZonal(aR.inputFiles.get(0));
+
+        double res_ = aR.res;
+
+        for(int i = 0; i < polygons.size(); i++){
+
+            int nNoData = 0;
+            int nValid = 0;
+
+            ArrayList<String[]> metadataItems = new ArrayList<>();
+
+
+            float[] readValue = new float[1];
+
+            ArrayList<double[]> gridPoints_xyz_a = new ArrayList<>();
+            ArrayList<Double> gridPoints_z_a = new ArrayList<>();
+            ArrayList<int[]> gridPoints_RGB_f = new ArrayList<>();
+            double sum_z_a = 0.0;
+            ArrayList<String> colnames_a = new ArrayList<>();
+            double[] polygonExtent = getPolygonExtent(polygons.get(i));
+
+            System.out.println(Arrays.toString(polygonExtent));
+
+            double xLength = polygonExtent[2] - polygonExtent[0];
+            double yLength = polygonExtent[3] - polygonExtent[1];
+            //int numpixelsx
+
+           // double[][] output = new double[xLength][yLength];
+            System.exit(1);
+
+            /*
+            extent[0] = Double.MAX_VALUE;
+        extent[1] = Double.MAX_VALUE;
+        extent[2] = Double.MIN_VALUE;
+        extent[3] = Double.MIN_VALUE;
+
+             */
+
+            /*
+            double minx, double maxx, double miny, double maxy
+             */
+
+            //System.out.println(Arrays.toString(polygonExtent));
+            String mapSheetName = klj.getMapSheetNameByCoordinates((polygonExtent[2] + polygonExtent[0]) / 2.0, (polygonExtent[3] + polygonExtent[1]) / 2.0);
+
+            ArrayList<Integer> selection = rasterBank.findOverlappingRastersThreadSafe(polygonExtent[0], polygonExtent[2], polygonExtent[1], polygonExtent[3]);
+            int[] numberOfPixelsPerSelection = new int[selection.size()];
+
+            if(selection.size() == 0){
+
+                //System.out.println("No raster found for polygon " + polyIds.get(i) + " with extent " + Arrays.toString(polygonExtent));
+                //continue;
+
+            }
+
+            int[] nPixelsPerSelection = new int[selection.size()];
+
+            //for(int j = 0; j < rasterExtents.size(); j++) {
+            if(selection.size() != 0)
+                for(int j = 0; j < selection.size(); j++) {
+
+                    HashSet<Integer> usedCells = new HashSet<Integer>();
+                    gdalRaster ras = rasterBank.getRaster(selection.get(j));
+
+
+                    ras.setProcessingInProgress(true);
+                    int[] extentInPixelCoordinates = new int[4];
+                    double[] bbox = ras.rasterExtent;
+                    double resolution = ras.getResolution();
+                    double[] geotransform = ras.geoTransform;
+
+                    if (polygonExtent[0] > bbox[2] || polygonExtent[2] < bbox[0] || polygonExtent[1] > bbox[3] || polygonExtent[3] < bbox[1]) {
+                        //System.out.println("Polygon does not overlap with raster");
+                        ras.setProcessingInProgress(false);
+                        continue;
+                    }
+
+                    if (aR.metadataitems.size() > 0) {
+                        for (int i_ = 0; i_ < ras.metadatas.size(); i_++) {
+                            metadataItems.add(new String[]{ras.metadatas.get(i_), ras.metadatas_values.get(i_)});
+                        }
+                    }
+
+
+                    double[][] polygon = polygons.get(i);
+
+                    ArrayList<double[][]> polygonHoles_ = polygonHoles.get(polyIds.get(i));
+
+                /*
+                extentInPixelCoordinates[0] = (int) Math.floor((cellMinX - bbox[0]) / geotransform[1]);
+                            extentInPixelCoordinates[3] = (int) Math.floor((bbox[3] - cellMinY) / geotransform[1]);
+                            extentInPixelCoordinates[2] = (int) Math.floor((cellMaxX - bbox[0]) / geotransform[1]);
+                            extentInPixelCoordinates[1] = (int) Math.floor((bbox[3] - cellMaxY) / geotransform[1]);
+                 */
+                    extentInPixelCoordinates[0] = (int) Math.floor((polygonExtent[0] - bbox[0]) / geotransform[1]);
+                    extentInPixelCoordinates[3] = (int) Math.floor((bbox[3] - polygonExtent[1]) / geotransform[1]);
+                    extentInPixelCoordinates[2] = (int) Math.floor((polygonExtent[2] - bbox[0]) / geotransform[1]);
+                    extentInPixelCoordinates[1] = (int) Math.floor((bbox[3] - polygonExtent[3]) / geotransform[1]);
+
+                    for(int x = extentInPixelCoordinates[0]; x <= extentInPixelCoordinates[2]; x++){
+                        for(int y = extentInPixelCoordinates[1]; y <= extentInPixelCoordinates[3]; y++){
+
+                            if (x < 0 || y < 0 || x >= ras.number_of_pix_x || y >= ras.number_of_pix_y) {
+                                continue;
+                            }
+
+                            numberOfPixelsPerSelection[j]++;
+
+                            double[] realCoordinates = new double[2];
+                            realCoordinates[0] = geotransform[0] + x * geotransform[1] + geotransform[1] / 2;
+                            realCoordinates[1] = geotransform[3] + y * geotransform[5] + geotransform[5] / 2;
+
+                            boolean pointInPolygon = pointInPolygon_(realCoordinates, polygon, polygonHoles, polyIds.get(i));
+
+                            if(pointInPolygon) {
+
+
+                                float value = ras.readValue(x, y);
+
+
+                                if (value == Float.NaN) {
+                                    nNoData++;
+                                    continue;
+                                }
+
+                                // This is a no data value
+                                if (value < -5000f) {
+                                    nNoData++;
+                                    continue;
+                                }
+
+                                nValid++;
+
+                                gridPoints_z_a.add((double) value);
+                                gridPoints_xyz_a.add(new double[]{realCoordinates[0], realCoordinates[1], value});
+
+                                sum_z_a += value;
+                                nPixelsPerSelection[j]++;
+                            }
+                        }
+
+                    }
+
+                    ras.setProcessingInProgress(false);
+                }else{
+                nNoData = 1;
+                nValid = 1;
+            }
+/*
+            if(nBands > 0){
+
+                for(int j = 0; j < rasterExtents_spectral.size(); j++) {
+
+                    HashSet<Integer> usedCells = new HashSet<Integer>();
+
+                    //System.out.println(Arrays.toString(polygonExtent));
+                    //System.out.println(Arrays.toString(rasterExtents.get(j)));
+                    //System.out.println(Arrays.toString(rasterBoundingBoxes.get(j)));
+                    //Check if polygon overlaps with raster
+
+                    if (polygonExtent[0] > rasterBoundingBoxes_spectral.get(j)[2] || polygonExtent[2] < rasterBoundingBoxes_spectral.get(j)[0] || polygonExtent[1] > rasterBoundingBoxes_spectral.get(j)[3] || polygonExtent[3] < rasterBoundingBoxes_spectral.get(j)[1]) {
+                        //System.out.println("Polygon does not overlap with raster");
+                        continue;
+                    }
+
+                    ArrayList<Band> band = rasterBands_spectral.get(j);
+
+                    double[][] polygon = polygons.get(i);
+
+                    ArrayList<double[][]> polygonHoles_ = polygonHoles.get(polyIds.get(i));
+
+                    int[] extentInPixelCoordinates = new int[4];
+
+                    extentInPixelCoordinates[0] = (int)Math.floor((polygonExtent[0] - rasterBoundingBoxes_spectral.get(j)[0]) / rasterExtents_spectral.get(j)[1]);
+                    extentInPixelCoordinates[3] = (int)Math.floor((rasterBoundingBoxes_spectral.get(j)[3] - polygonExtent[1] ) / rasterExtents_spectral.get(j)[1]);
+                    extentInPixelCoordinates[2] = (int)Math.floor((polygonExtent[2] - rasterBoundingBoxes_spectral.get(j)[0]) / rasterExtents_spectral.get(j)[1]);
+                    extentInPixelCoordinates[1] = (int)Math.floor((rasterBoundingBoxes_spectral.get(j)[3] - polygonExtent[3] ) / rasterExtents_spectral.get(j)[1]);
+
+                    //System.out.println("extentinpixelcoordinates: " + Arrays.toString(extentInPixelCoordinates));
+
+                    for(int x = extentInPixelCoordinates[0]; x <= extentInPixelCoordinates[2]; x++){
+                        for(int y = extentInPixelCoordinates[1]; y <= extentInPixelCoordinates[3]; y++){
+
+                            if(x < 0 || y < 0 || x >= rasterWidthHeight_spectral.get(j)[0] || y >= rasterWidthHeight_spectral.get(j)[1]){
+                                continue;
+                            }
+
+                            double[] realCoordinates = new double[2];
+                            realCoordinates[0] = rasterExtents_spectral.get(j)[0] + x * rasterExtents_spectral.get(j)[1] + rasterExtents_spectral.get(j)[1] / 2;
+                            realCoordinates[1] = rasterExtents_spectral.get(j)[3] + y * rasterExtents_spectral.get(j)[5] + rasterExtents_spectral.get(j)[5] / 2;
+
+                            boolean pointInPolygon = pointInPolygon(realCoordinates, polygon, polygonHoles, polyIds.get(i));
+
+                            if(pointInPolygon) {
+
+                                int[] value = new int[nBands];
+
+                                for(int i_ = 0; i_ < nBands; i_++) {
+                                    rasterBands_spectral.get(j).get(i_).ReadRaster(x, y, 1, 1, readValue);
+                                    value[i_] = (int)readValue[0];
+                                }
+
+                                gridPoints_RGB_f.add(value);
+
+                            }
+                        }
+
+                    }
+                }
+
+            }
+*/
+            ArrayList<Double> metrics_a = new ArrayList<>();
+            ArrayList<ArrayList<Double>> metrics_convo = new ArrayList<>();
+
+            ArrayList<String> colnames_convo = new ArrayList<>();
+
+
+
+            if(nBands == 0) {
+                metrics_a = pCM.calcZonal(gridPoints_z_a, sum_z_a, "_a", colnames_a);
+                /*
+                double top_left_x, double top_left_y,
+                                                                     double bottom_right_x, double bottom_right_y
+                 */
+                if(aR.convo)
+                    metrics_convo = pCM.calc_nn_input_train_raster(gridPoints_xyz_a, "_a", colnames_convo, polygonExtent[0], polygonExtent[3],
+                            polygonExtent[2], polygonExtent[1]);
+            }
+            else{
+                metrics_a = pCM.calc_with_RGB_zonal(gridPoints_z_a, sum_z_a, "_a", colnames_a, gridPoints_RGB_f);
+            }
+
+
+            double proportionNoData = (double) nNoData / (double) (nNoData + nValid);
+
+            metrics_a.add(0, proportionNoData);
+            colnames_a.add(0,"proportionNoData");
+
+
+            int mostPixels = 0;
+
+            if(selection.size() != 0)
+                mostPixels = indexOfHighestValue(nPixelsPerSelection);
+            else
+                mostPixels = 0;
+
+            if(aR.metadataitems.size() == 0)
+                lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i));
+            if(aR.convo)
+                lCMO.writeLine_convo_raster(metrics_convo, colnames_convo, polyIds.get(i));
+            else {
+                lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i), metadataItems, aR.metadataitems.size(), mostPixels, mapSheetName);
+
+                if(aR.convo)
+                    lCMO.writeLine_convo_raster(metrics_convo, colnames_convo, polyIds.get(i));
+
+            }
+
+            // print progress
+            if(i % 1000 == 0){
+                System.out.println("Progress: " + i + " / " + polygons.size());
+            }
+
+        }
+
+        HashSet<String> ignoreTheseColumnNames = new HashSet<>();
+        ignoreTheseColumnNames.add("p_0.05_z_a");
+        ignoreTheseColumnNames.add("p_0.15_z_a");
+        ignoreTheseColumnNames.add("p_0.2_z_a");
+        ignoreTheseColumnNames.add("p_0.25_z_a");
+        ignoreTheseColumnNames.add("p_0.35_z_a");
+        ignoreTheseColumnNames.add("p_0.4_z_a");
+        ignoreTheseColumnNames.add("p_0.45_z_a");
+        ignoreTheseColumnNames.add("p_0.55_z_a");
+        ignoreTheseColumnNames.add("p_0.65_z_a");
+
+        ignoreTheseColumnNames.add("d_2.5_z_a");
+        ignoreTheseColumnNames.add("d_7.5_z_a");
+
+        lCMO.closeFilesZonal2();
+
+        if(aR.subsetColumnNamesVMI)
+            lCMO.deleteColumnsFromFile(lCMO.echo_class_files.get(0), ignoreTheseColumnNames);
+
+        lCMO.closeFilesZonal();
+        new File(polyWKT).delete();
+    }
     public static int highestValueInArray(int[] array) {
         if (array == null || array.length == 0) {
             throw new IllegalArgumentException("Array must not be null or empty");
