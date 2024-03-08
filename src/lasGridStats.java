@@ -40,7 +40,6 @@ public class lasGridStats {
 
             aR.cores = aR.origCores;
 
-
             if(aR.configFile != null){
 
 
@@ -168,6 +167,8 @@ public class lasGridStats {
                 }
 */
             }else {
+
+
 
                 try {
                     tools.lasGridStats lGS = new tools.lasGridStats(aR, 1);

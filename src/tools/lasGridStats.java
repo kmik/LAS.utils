@@ -196,7 +196,6 @@ public class lasGridStats {
 
         //this.start_2_raster();
 
-
         if(aR.configFile != null){
             this.start_2_raster_multithread_specificSheets(extent, mapsheetname);
 
@@ -4312,8 +4311,8 @@ public class lasGridStats {
 
                 double grid_cell_id = (y_ + VMI_maxIndexY) * grid_x_size_MML + (x_ + VMI_minIndexX);
 
-                double x_coord = orig_x + resolution * x_;
-                double y_coord = orig_y - resolution * y_;
+                double x_coord = orig_x + resolution * x_ + resolution / 2.0;
+                double y_coord = orig_y - resolution * y_ - resolution / 2.0;
 
                 ArrayList<Double> gridPoints_z_a = new ArrayList<>();
                 ArrayList<int[]> gridPoints_RGB_f = new ArrayList<>();
@@ -4847,7 +4846,6 @@ public class lasGridStats {
 
                     metrics_a.add(0, proportionNoData);
                     colnames_a.add(0, "proportionNoData");
-
 
 
                     if (aR.metadataitems.size() == 0)

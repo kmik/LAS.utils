@@ -37,6 +37,8 @@ public class argumentReader {
     public File configFile2 = null;
     public File configFile = null;
     public int origCores = 1;
+
+    public String userString1 = null;
     public ArrayList<String> metadataitems = new ArrayList<>();
     public ArrayList<String> metadataitemsModNames = new ArrayList<>();
     public ArrayList<File> inputFilesSpectral = new ArrayList<>();
@@ -155,7 +157,7 @@ public class argumentReader {
 
     public int drop_scan_angle_below = -1;
     public int drop_scan_angle_above = -1;
-
+    //public String pathSep = System.getProperty("file.separator");
     public String execDir;
     public File execDir_file;
     String firstDir = "null";
@@ -275,7 +277,7 @@ public class argumentReader {
 
     public boolean omet = false;
 
-    String pathSep;
+    public String pathSep;
 
     public boolean photogrammetry = false;
 
@@ -663,6 +665,13 @@ public class argumentReader {
 
         options.addOption(Option.builder()
                 .longOpt("image_height")
+                .hasArg(true)
+                .desc("")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("string1")
                 .hasArg(true)
                 .desc("")
                 .required(false)
@@ -2309,6 +2318,10 @@ public class argumentReader {
                     poly_2 = poly_2[0].split(";");
                 }
 
+            }
+
+            if(cmd.hasOption("string1")){
+                this.userString1 = cmd.getOptionValue("string1");
             }
 
             if (cmd.hasOption("poly3")) {

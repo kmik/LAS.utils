@@ -3,6 +3,7 @@ package tools;
 import LASio.LASReader;
 import LASio.LasPoint;
 import LASio.LasPointBufferCreator;
+import com.drew.metadata.Directory;
 import err.toolException;
 import javafx.util.Pair;
 import org.gdal.gdal.Band;
@@ -1680,6 +1681,29 @@ public class lasRasterTools {
 
         for(int i = 0; i < polygons.size(); i++){
 
+
+            String dir = "";
+
+            if(!aR.odir.equals("asd")){
+                dir = aR.odir;
+            }
+
+            File outDirectory = new File(dir + aR.pathSep + polyIds.get(i));
+
+            if(!outDirectory.exists())
+                outDirectory.mkdirs();
+
+            System.out.println(outDirectory.getAbsolutePath());
+            System.out.println(dir);
+            System.out.println(File.pathSeparator);
+
+            if(aR.userString1 != null){
+                outDirectory = new File(outDirectory.getAbsolutePath() + aR.pathSep + aR.userString1);
+                if(!outDirectory.exists())
+                    outDirectory.mkdirs();
+            }
+            //System.exit(1);
+
             int nNoData = 0;
             int nValid = 0;
 
@@ -1699,10 +1723,13 @@ public class lasRasterTools {
 
             double xLength = polygonExtent[2] - polygonExtent[0];
             double yLength = polygonExtent[3] - polygonExtent[1];
-            //int numpixelsx
 
+            int numPixelsX = (int)Math.ceil(xLength / res_);
+            int numPixelsY = (int)Math.ceil(xLength / res_);
+
+            double[][] surface = new double[numPixelsX][numPixelsY];
            // double[][] output = new double[xLength][yLength];
-            System.exit(1);
+
 
             /*
             extent[0] = Double.MAX_VALUE;
@@ -1786,8 +1813,19 @@ public class lasRasterTools {
                             realCoordinates[0] = geotransform[0] + x * geotransform[1] + geotransform[1] / 2;
                             realCoordinates[1] = geotransform[3] + y * geotransform[5] + geotransform[5] / 2;
 
+                            int surfaceCoordinateX = (int)((realCoordinates[0] - polygonExtent[0]) / res_);
+                            int surfaceCoordinateY = (int)((polygonExtent[3] - realCoordinates[1]) / res_);
+
+                            if(surfaceCoordinateX >= 0 && surfaceCoordinateX < numPixelsX && surfaceCoordinateY >= 0 && surfaceCoordinateY < numPixelsY){
+
+                                surface[surfaceCoordinateX][surfaceCoordinateY] = ras.readValue(x, y);
+                                System.out.println("HERE!!");
+
+                            }
+
                             boolean pointInPolygon = pointInPolygon_(realCoordinates, polygon, polygonHoles, polyIds.get(i));
 
+                            if(false)
                             if(pointInPolygon) {
 
 
@@ -1886,50 +1924,85 @@ public class lasRasterTools {
 
             }
 */
-            ArrayList<Double> metrics_a = new ArrayList<>();
-            ArrayList<ArrayList<Double>> metrics_convo = new ArrayList<>();
-
-            ArrayList<String> colnames_convo = new ArrayList<>();
 
 
+            File outputFile = new File(outDirectory + aR.pathSep + "surface.txt");
 
-            if(nBands == 0) {
-                metrics_a = pCM.calcZonal(gridPoints_z_a, sum_z_a, "_a", colnames_a);
+            if(outputFile.exists()){
+                outputFile.delete();
+                outputFile.createNewFile();
+            }else{
+                outputFile.createNewFile();
+            }
+
+            FileWriter fw = null;
+            BufferedWriter bw = null;//
+            PrintWriter out = null;
+
+            fw = new FileWriter(outputFile, false);
+            bw = new BufferedWriter(fw);
+
+            for(int y = 0; y < numPixelsY; y++){
+                for(int x = 0; x < numPixelsX; x++){
+
+                    bw.write(String.valueOf(surface[x][y]));
+
+                    if(x != (numPixelsX-1))
+                        bw.write("\t");
+
+                }
+                if(y != (numPixelsY-1))
+                    bw.write("\n");
+            }
+
+
+            bw.close();
+           if(false){
+
+                ArrayList<Double> metrics_a = new ArrayList<>();
+                ArrayList<ArrayList<Double>> metrics_convo = new ArrayList<>();
+
+                ArrayList<String> colnames_convo = new ArrayList<>();
+
+
+                if (nBands == 0) {
+                    metrics_a = pCM.calcZonal(gridPoints_z_a, sum_z_a, "_a", colnames_a);
                 /*
                 double top_left_x, double top_left_y,
                                                                      double bottom_right_x, double bottom_right_y
                  */
-                if(aR.convo)
-                    metrics_convo = pCM.calc_nn_input_train_raster(gridPoints_xyz_a, "_a", colnames_convo, polygonExtent[0], polygonExtent[3],
-                            polygonExtent[2], polygonExtent[1]);
-            }
-            else{
-                metrics_a = pCM.calc_with_RGB_zonal(gridPoints_z_a, sum_z_a, "_a", colnames_a, gridPoints_RGB_f);
-            }
+                    if (aR.convo)
+                        metrics_convo = pCM.calc_nn_input_train_raster(gridPoints_xyz_a, "_a", colnames_convo, polygonExtent[0], polygonExtent[3],
+                                polygonExtent[2], polygonExtent[1]);
+                } else {
+                    metrics_a = pCM.calc_with_RGB_zonal(gridPoints_z_a, sum_z_a, "_a", colnames_a, gridPoints_RGB_f);
+                }
 
 
-            double proportionNoData = (double) nNoData / (double) (nNoData + nValid);
+                double proportionNoData = (double) nNoData / (double) (nNoData + nValid);
 
-            metrics_a.add(0, proportionNoData);
-            colnames_a.add(0,"proportionNoData");
+                metrics_a.add(0, proportionNoData);
+                colnames_a.add(0, "proportionNoData");
 
 
-            int mostPixels = 0;
+                int mostPixels = 0;
 
-            if(selection.size() != 0)
-                mostPixels = indexOfHighestValue(nPixelsPerSelection);
-            else
-                mostPixels = 0;
+                if (selection.size() != 0)
+                    mostPixels = indexOfHighestValue(nPixelsPerSelection);
+                else
+                    mostPixels = 0;
 
-            if(aR.metadataitems.size() == 0)
-                lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i));
-            if(aR.convo)
-                lCMO.writeLine_convo_raster(metrics_convo, colnames_convo, polyIds.get(i));
-            else {
-                lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i), metadataItems, aR.metadataitems.size(), mostPixels, mapSheetName);
-
-                if(aR.convo)
+                if (aR.metadataitems.size() == 0)
+                    lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i));
+                if (aR.convo)
                     lCMO.writeLine_convo_raster(metrics_convo, colnames_convo, polyIds.get(i));
+                else {
+                    lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i), metadataItems, aR.metadataitems.size(), mostPixels, mapSheetName);
+
+                    if (aR.convo)
+                        lCMO.writeLine_convo_raster(metrics_convo, colnames_convo, polyIds.get(i));
+
+                }
 
             }
 
