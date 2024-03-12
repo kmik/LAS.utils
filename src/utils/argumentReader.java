@@ -2290,8 +2290,6 @@ public class argumentReader {
                                 this.inputFiles.add(new File(s));
 
                             } catch (Exception e) {
-                                //tempReader.close();
-                                //tempReader = null;
                             }
 
                         } else {
@@ -2647,29 +2645,6 @@ public class argumentReader {
                     throw new argumentException("-aux_file does not exist!");
 
             }
-
-            /*
-            options.addOption(Option.builder()
-                .longOpt("simpleEstimation")
-                .hasArg(false)
-                .desc("PREMOTO - simpleEstimation")
-                .required(false)
-                .build());
-
-        options.addOption(Option.builder()
-                .longOpt("simpleEstimationWithProb")
-                .hasArg(false)
-                .desc("PREMOTO - simpleEstimationWithProb")
-                .required(false)
-                .build());
-
-        options.addOption(Option.builder()
-                .longOpt("estimationWithCHM")
-                .hasArg(false)
-                .desc("PREMOTO - estimationWithCHM")
-                .required(false)
-                .build());
-             */
 
             if (cmd.hasOption("simpleEstimation")) {
 
@@ -3734,15 +3709,7 @@ public class argumentReader {
 
     public File createOutputFile(File in, String extension) throws IOException {
 
-        //File tempFile = null;
-        //String tempPath = this.output;
-
         File tempFile = new File(in.getAbsolutePath().substring(0, in.getAbsolutePath().lastIndexOf(".")) + extension);
-
-        //if(this.output.equals("asd"))
-       //     tempFile = in;
-        //else
-        //    tempFile = new File(this.output);
 
         if(!odir.equals("asd")) {
 
@@ -3791,16 +3758,7 @@ public class argumentReader {
 
     public File createOutputFileReplace(File in, String fullName) throws IOException {
 
-        //File tempFile = null;
-        //String tempPath = this.output;
-
-        //File tempFile = new File(in.getAbsolutePath().substring(0, in.getAbsolutePath().lastIndexOf(".")) + extension);
         File tempFile = new File(in.getParent() + pathSep + fullName);
-
-        //if(this.output.equals("asd"))
-        //     tempFile = in;
-        //else
-        //    tempFile = new File(this.output);
 
         if(!odir.equals("asd")) {
 
@@ -3996,14 +3954,6 @@ public class argumentReader {
                 tempFile = fo.transferDirectories(tempFile, this.inputFiles.get(0).getAbsoluteFile().getParent());
         }
 
-        //if(tempFile.exists()){
-
-        //tempFile = fo.createNewFileWithNewExtension(tempFile, extension);
-
-        //}
-
-        //System.out.println("tempFile: " + this.inputFiles.get(0).getAbsoluteFile().getParent());
-
         if(tempFile.exists())
             tempFile.delete();
 
@@ -4071,10 +4021,6 @@ public class argumentReader {
 
         if(tempFile.exists()){
 
-            //tempFile.delete();
-            //tempFile.createNewFile();
-            //System.out.println(tempFile.getAbsolutePath());
-            //System.out.println(in.getAbsolutePath());
             tempFile = fo.createNewFileWithNewExtension(tempFile, "_1" + extension);
         }
 
@@ -4149,9 +4095,6 @@ public class argumentReader {
             this.tmpDirectory = tmpDirectory.getAbsolutePath();
             tmpDirectory.mkdirs();
             this.odir = new File(tmpDirectory.getAbsolutePath()).getParent();
-            //System.out.println(tmpDirectory.getAbsolutePath());
-            //System.out.println(this.odir);
-            //System.exit(1);
         }
         else{
             File tmpDirectory = new File(this.odir + this.pathSep + "tmpLAS");
@@ -4208,10 +4151,7 @@ public class argumentReader {
                 e.printStackTrace();
             }
 
-            //System.out.println("Command output:\n" + output);
-            //System.out.println("Exit code: " + exitCode);
-
-            this.files[i] = outputLasFile;
+                        this.files[i] = outputLasFile;
 
             try {
                 LASReader tmpLas = new LASReader(new File(this.files[i]));

@@ -710,6 +710,8 @@ public class RunId4pointsLAS{
 
         File fout = null;
 
+        
+
         int checkShp = 0;
 
         try{

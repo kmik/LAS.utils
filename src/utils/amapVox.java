@@ -95,10 +95,7 @@ public class amapVox {
 
             // example.split("[;:-]");
             tokens = line.split("[: #]");
-            //tokens_2 = line.split(":");
 
-            //System.out.println(Arrays.toString(tokens));
-            //System.out.println(tokens[2]);
             this.resolution = Double.parseDouble(tokens[2]);
             //System.out.println(tokens[5]);
             this.n_subvoxel = Integer.parseInt(tokens[5]);

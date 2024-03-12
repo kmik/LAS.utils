@@ -71,6 +71,10 @@ public class lasGridStats {
 
                 //ArrayList<Pair<String, double[]>> mapSheetNamesAndExtents = new ArrayList<>();
                 ArrayList<Integer> dat = new ArrayList<>();
+
+                // crete a variable one
+
+
                 for(int i = 0; i < klj.configMapSheetExtents.size(); i++){
                     dat.add(i);
                     //mapSheetNamesAndExtents.add(new Pair<>(klj.configMapSheetNames.get(i), klj.configMapSheetExtents.get(i)));

@@ -1681,7 +1681,6 @@ public class lasRasterTools {
 
         for(int i = 0; i < polygons.size(); i++){
 
-
             String dir = "";
 
             if(!aR.odir.equals("asd")){
@@ -1720,6 +1719,9 @@ public class lasRasterTools {
             double[] polygonExtent = getPolygonExtent(polygons.get(i));
 
             System.out.println(Arrays.toString(polygonExtent));
+
+            double min_x = polygonExtent[0];
+            double max_y = polygonExtent[3];
 
             double xLength = polygonExtent[2] - polygonExtent[0];
             double yLength = polygonExtent[3] - polygonExtent[1];
@@ -1945,14 +1947,17 @@ public class lasRasterTools {
             for(int y = 0; y < numPixelsY; y++){
                 for(int x = 0; x < numPixelsX; x++){
 
-                    bw.write(String.valueOf(surface[x][y]));
+                    double real_x = min_x + res_ * x + res_ / 2.0;
+                    double real_y = max_y - res_ * y - res_ / 2.0;
 
-                    if(x != (numPixelsX-1))
-                        bw.write("\t");
+                    bw.write(String.valueOf(real_x) + "\t" + String.valueOf(real_y) + "\t" + String.valueOf(surface[x][y]) + "\n");
+
+                    //if(x != (numPixelsX-1))
+                    //    bw.write("\t");
 
                 }
-                if(y != (numPixelsY-1))
-                    bw.write("\n");
+                //if(y != (numPixelsY-1))
+                //    bw.write("\n");
             }
 
 

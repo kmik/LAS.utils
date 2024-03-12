@@ -283,8 +283,6 @@ public class Boundary extends tool{
                     if (isPointInPolygon(currentBorder, tempPoint.x, tempPoint.y) == Polyside.Result.Outside) {
 
                         tempV = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, 0.0);
-                        //perim.add(i);
-                        //tempV.setIndex(i);
                         tin.add(tempV);
                         currentBorder = tin.getPerimeter();
 
@@ -292,8 +290,6 @@ public class Boundary extends tool{
                     }
                 } else {
                     tempV = new org.tinfour.common.Vertex(tempPoint.x, tempPoint.y, 0.0);
-                    //perim.add(i);
-                    //tempV.setIndex(i);
                     tin.add(tempV);
                 }
 
@@ -573,31 +569,9 @@ public class Boundary extends tool{
 
                             if (p != prevIndex && dist < concavity && dist > 0.1) { //  && !path.contains(tempPoint2.x, tempPoint2.y)
 
-/*
-                                tempPoint1.x = 0;
-                                tempPoint1.y = 4;
-
-                                tempPoint3.x = 5;
-                                tempPoint3.y = 4;
-
-                                tempPoint2.x = 5;
-                                tempPoint2.y = 10;
-*/
-
-                                // tempPoint1 is the first point in line
+// tempPoint1 is the first point in line
                                 // tempPoint2 is the current point
                                 // tempPoint3 is the previous point
-/*
-                                // print point 1 x and y
-                                System.out.println("Point 1: " + tempPoint1.x + " " + tempPoint1.y);
-                                // print point 2 x and y
-                                System.out.println("Point 2: " + tempPoint2.x + " " + tempPoint2.y);
-                                // print point 3 x and y
-                                System.out.println("Point 3: " + tempPoint3.x + " " + tempPoint3.y);
-                                System.out.println("----------------------");
-
-
- */
                                 angle = angleBetween2(tempPoint1.x, tempPoint1.y, tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
                                 double angle3 = calculateAngleDeviation(tempPoint1.x, tempPoint1.y, tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
                                 double angle2 = angleBetween(tempPoint1.x, tempPoint1.y, tempPoint2.x, tempPoint2.y, tempPoint3.x, tempPoint3.y);
@@ -610,16 +584,9 @@ public class Boundary extends tool{
                                 //System.exit(1);
 
                                 // angle_test distance from 180 degrees
-                                //Math.abs(angle_test - 180.0);
 
-                                //System.out.println(angle_test);
-                                //System.exit(1);
-                                //System.out.println(angle + " " + angle2 + " " + angle3);
-                                //System.out.println("angle: " + angle + " angle2 " + angle2);
-                                 angle = angle_test;
+                                angle = angle_test;
                                  angle = angle4;
-                                //if (angle < 0.0)
-                                //    angle = 360 + angle;
 
                                 if (angle < smallestAngle && angle != 0.0) {
 
@@ -663,8 +630,6 @@ public class Boundary extends tool{
 
             System.out.println("smallestangle: " + smallestAngle + " " + minidisti + " " + angleIndex + " " + counter1 + " " + border.size());
 
-            //if(counteri == 10)
-            //System.exit(1);
             /* prevIndex always points to the previous vertex in the boundary. This guarantees that
               we don't trace back our steps in the bounday.
              */
@@ -1013,8 +978,6 @@ public class Boundary extends tool{
 
         }
 
-        //concave = ConcaveHull.calculateConcaveHull(concPoints, 50);
-        //closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(tempPoint.x, tempPoint.y, 0, 0);
         hullInput = Arrays.copyOfRange(hullInputTemp, 0, (hullCount - 1) );
 
         ConvexHull hulli = new ConvexHull(hullInput);

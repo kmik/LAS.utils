@@ -205,15 +205,6 @@ class ai2las{
 					File tempFile = new File(tiedostot.get(i));
 
 					File toFile = null;
-/*
-					if(odir.equals("asd"))
-
-						toFile = fo.createNewFileWithNewExtension(tempFile, ".las");
-
-					if(!odir.equals("asd"))
-
-						toFile = fo.createNewFileWithNewExtension(tempFile, odir, ".las");
-*/
 					toFile = aR.createOutputFile(tempFile);
 					File fromFile = new File(tiedostot.get(i));
 
@@ -671,9 +662,6 @@ class ai2las{
 		int top_y = (int)(-center_of_pixel_y + 1);
 		int bottom_y = (int)(center_of_pixel_x);
 
-		//System.out.println(center_of_pixel_x + " " + center_of_pixel_y + " " + center_of_pixel_z);
-		//System.out.println(x_offset + " " + y_offset + " " + z_offset);
-
 		if(slope > 0) {
 			step_z = 1;
 			outside_z = center_of_pixel_z + sin(90.0f - (float)zenith_angle) * 10000;
@@ -733,9 +721,6 @@ class ai2las{
 			//float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
 			float t_max_z = FastMath.abs(center_of_pixel_z - z_intersect[1]) / cosAngle2;
 
-			//System.out.println("DEG: " + FastMath.abs(center_of_pixel_z - z_intersect[1]));
-			//System.out.println("t_max_x: " + t_max_x + " t_max_z: " + t_max_z + " t_max_y: " + t_max_y + " " + direction_angle + " " + zenith_angle);
-
 			if(false)
 				if(direction_angle > 85f){
 
@@ -776,15 +761,8 @@ class ai2las{
 				counter++;
 
 
-				//if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
-				//	return false;
-				//}
-
 				if (current_x >= x_size || current_y >= y_size || current_x < 0 || current_y < 0 || current_z < 0 || current_z >= z_size)
 					return false;
-				//System.out.println(current_y + " " + current_x + " " + current_z);
-
-				//System.out.println("--------------------------------");
 
 				if(current_z != z_vox)
 					n_points_in_voxel = chm_3d[(int)current_y][(int)current_x][(int)current_z];
@@ -792,22 +770,12 @@ class ai2las{
 				if(n_points_in_voxel > (min_points)){
 					penetration_depth++;
 				}
-				//else
-				//	penetration_depth = 0;
 
 				if(n_points_in_voxel > (min_points) && penetration_depth > penetration_depth_threshold){
 
 					x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
 					y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
 					z_offset = (float)chm_values_mean_z[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
-
-					//System.out.println(x_offset + " " + y_offset + " " + z_offset);
-
-					//Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
-					// point.crossProduct(point);
-					//Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
-					//        (float)-current_y+y_offset-(-center_of_pixel_y),
-					//        (float)current_z+z_offset-center_of_pixel_z);
 
 					point_quick.set((float)current_x+x_offset-center_of_pixel_x,
 							(float)-current_y+y_offset-(-center_of_pixel_y),
@@ -817,9 +785,6 @@ class ai2las{
 
 					point_quick.cross(point_quick, line_quick);
 					float distance = (float)(point_quick.norm() / line_quick.norm());
-					//float distance = 0;
-					//System.out.println(distance + " == " + distance2);
-					//System.out.println(distance);
 					if(distance < distance_threshold){
 
 						return true;
@@ -901,11 +866,6 @@ class ai2las{
 				}
 
 
-				//if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
-				//	return false;
-				//}
-
-
 				if (current_x >= x_size || current_y >= y_size || current_x < 0 || current_y < 0 || current_z < 0 || current_z >= z_size)
 					return false;
 
@@ -915,24 +875,12 @@ class ai2las{
 				if(n_points_in_voxel > (min_points)){
 					penetration_depth++;
 				}
-				//else
-				//	penetration_depth = 0;
 
 				if(n_points_in_voxel > (min_points) && penetration_depth > penetration_depth_threshold){
 
 					x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
 					y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
 					z_offset = (float)chm_values_mean_z[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
-
-					//System.out.println(x_offset + " " + y_offset + " " + z_offset);
-
-					//Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
-					// point.crossProduct(point);
-					//Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
-					// point.crossProduct(point);
-					//Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
-					//        (float)-current_y+y_offset-(-center_of_pixel_y),
-					//        (float)current_z+z_offset-center_of_pixel_z);
 
 					point_quick.set((float)current_x+x_offset-center_of_pixel_x,
 							(float)-current_y+y_offset-(-center_of_pixel_y),
@@ -942,9 +890,6 @@ class ai2las{
 
 					point_quick.cross(point_quick, line_quick);
 					float distance = (float)(point_quick.norm() / line_quick.norm());
-					//float distance = 0;
-					//System.out.println(distance + " == " + distance2);
-					//float distance = 0;
 					if(distance < distance_threshold){
 
 						return true;
@@ -962,9 +907,6 @@ class ai2las{
 
 			step_x = -1;
 			step_y = 1;
-
-			//cosAngle = (float)Math.cos(Math.toRadians(270.0 - direction_angle));
-			//sinAngle = (float)Math.sin(Math.toRadians(270.0 - direction_angle));
 
 			cosAngle = cos((270.0f - direction_angle));
 			sinAngle = sin((270.0f - direction_angle));
@@ -994,9 +936,6 @@ class ai2las{
 			if(y_intersect == null || x_intersect == null)
 				return true;
 
-
-			//System.out.println(Arrays.toString(y_intersect));
-			//System.out.println(Arrays.toString(x_intersect));
 
 			float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
 			float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
@@ -1034,10 +973,6 @@ class ai2las{
 				}
 
 
-				//if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
-				//	return false;
-				//}
-
 				if (current_x >= x_size || current_y >= y_size || current_x < 0 || current_y < 0 || current_z < 0 || current_z >= z_size)
 					return false;
 
@@ -1048,24 +983,12 @@ class ai2las{
 				if(n_points_in_voxel > (min_points)){
 					penetration_depth++;
 				}
-				//else
-				//	penetration_depth = 0;
 
 				if(n_points_in_voxel > (min_points) && penetration_depth > penetration_depth_threshold){
 
 					x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
 					y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
 					z_offset = (float)chm_values_mean_z[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
-
-					//System.out.println(x_offset + " " + y_offset + " " + z_offset);
-
-					//Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
-					// point.crossProduct(point);
-					//Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
-					// point.crossProduct(point);
-					//Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
-					//        (float)-current_y+y_offset-(-center_of_pixel_y),
-					//        (float)current_z+z_offset-center_of_pixel_z);
 
 					point_quick.set((float)current_x+x_offset-center_of_pixel_x,
 							(float)-current_y+y_offset-(-center_of_pixel_y),
@@ -1075,10 +998,7 @@ class ai2las{
 
 					point_quick.cross(point_quick, line_quick);
 					float distance = (float)(point_quick.norm() / line_quick.norm());
-					//float distance = 0;
-					//System.out.println(distance + " == " + distance2);
 
-					//float distance = 0;
 					if(distance < distance_threshold){
 
 						return true;
@@ -1096,9 +1016,6 @@ class ai2las{
 
 			step_x = -1;
 			step_y = -1;
-
-			//cosAngle = (float)Math.cos(Math.toRadians(360.0 - direction_angle));
-			//sinAngle = (float)Math.sin(Math.toRadians(360.0 - direction_angle));
 
 			cosAngle = cos((360.0f - direction_angle));
 			sinAngle = sin((360.0f - direction_angle));
@@ -1132,10 +1049,6 @@ class ai2las{
 				z_intersect = lineIntersect(center_of_pixel_x, center_of_pixel_z, outside_x, outside_z, x - 10000, (int)(center_of_pixel_z), x + 10000,  (int)(center_of_pixel_z));
 
 
-			//System.out.println(Arrays.toString(y_intersect));
-			//System.out.println(Arrays.toString(x_intersect));
-
-
 			float t_max_x = euclideanDistance(x_intersect[0], x_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
 			float t_max_y = euclideanDistance(y_intersect[0], y_intersect[1], center_of_pixel_x, -center_of_pixel_y) / sinAngle2;
 			//float t_max_z = euclideanDistance(z_intersect[0], z_intersect[1], center_of_pixel_x, center_of_pixel_z) / sinAngle2;
@@ -1173,9 +1086,6 @@ class ai2las{
 				}
 
 
-				//if(this.p_cloud_min_z + current_z * resolution > this.rasterMaxValue){
-				//	return false;
-				//}
 				if (current_x >= x_size || current_y >= y_size || current_x < 0 || current_y < 0 || current_z < 0 || current_z >= z_size)
 					return false;
 
@@ -1186,24 +1096,12 @@ class ai2las{
 				if(n_points_in_voxel > (min_points)){
 					penetration_depth++;
 				}
-				//else
-				//	penetration_depth = 0;
 
 				if(n_points_in_voxel > (min_points) && penetration_depth > penetration_depth_threshold){
 
 					x_offset = (float)chm_values_mean_x[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
 					y_offset = (float)chm_values_mean_y[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
 					z_offset = (float)chm_values_mean_z[(int)current_y][(int)current_x][(int)current_z] / 1000.0f;
-
-					//System.out.println(x_offset + " " + y_offset + " " + z_offset);
-
-					//Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
-					// point.crossProduct(point);
-					//Vector3D point = new Vector3D((float)current_x + x_offset,(float)current_y + y_offset,(float)current_z + z_offset);
-					// point.crossProduct(point);
-					//Vector3D point = new Vector3D((float)current_x+x_offset-center_of_pixel_x,
-					//        (float)-current_y+y_offset-(-center_of_pixel_y),
-					//        (float)current_z+z_offset-center_of_pixel_z);
 
 					point_quick.set((float)current_x+x_offset-center_of_pixel_x,
 							(float)-current_y+y_offset-(-center_of_pixel_y),
@@ -1213,10 +1111,6 @@ class ai2las{
 
 					point_quick.cross(point_quick, line_quick);
 					float distance = (float)(point_quick.norm() / line_quick.norm());
-					//float distance = 0;
-					//System.out.println(distance + " == " + distance2);
-
-					//float distance = 0;
 
 					if(distance < distance_threshold){
 
@@ -1450,30 +1344,11 @@ class ai2las{
 		public synchronized void addObservation(Dataset image, int imageId, double x, double y){
 
 			imagesVisible.add(imageId);
-			//imagesVisible.add(imageId);
-			//imagesVisible_obstructed.add(imageId);
-			//imagesVisible_obstructed.add(imageId);
-			//imagesVisible.add(imageId);
 
 			bb = ByteBuffer.allocateDirect( n_bytes * n_bands );
 			bb.order(ByteOrder.nativeOrder());
 
-			//System.out.println(Arrays.toString(band_list));
-			//System.exit(1);
 			image.ReadRaster_Direct((int)x, (int)y, 1, 1, 1, 1, data_type, bb, band_list);
-
-
-	/*
-			System.out.println("this: " + temp1.GetRasterDataType());
-			System.out.println("byte: " + GDT_Byte);
-			System.out.println("int_16: " + GDT_Int16);
-			System.out.println("uint_16: " + GDT_UInt16);
-			System.out.println("float_32: " + GDT_Float32);
-			System.out.println("float_64: " + GDT_Float64);
-
-			System.exit(1);
-
-*/
 
 
 			int[] val1 = new int[n_bands];
@@ -1517,65 +1392,20 @@ class ai2las{
 				//int value = getUnsignedShort(bb);
 				channelMeans[i] += value;
 
-				//System.out.println("value: " + value);
-
-				//channelMeans_obstructed[i] += value;
-				//val1[i] = value;
-
 			}
-			/*
-
-			int[] val2 = new int[n_bands];
-
-			for(int i = 1; i <= image.GetRasterCount(); i++){
-
-				Band temp = image.GetRasterBand(i);
-
-				int a = temp.ReadRaster((int)x,
-						(int)y,
-						1,
-						1,
-						array1);
-
-				channelMeans[i - 1] += array1[0];
-				channelMeans_obstructed[i - 1] += array1[0];
-				val2[i-1] = array1[0];
-
-			}
-*/
-			//System.out.println(Arrays.toString(val1));
-			//System.out.println(Arrays.toString(val2));
-			//System.out.println("-------------");
 
 		}
 
 		public synchronized void addObservation_obstructed(Dataset image, int imageId, double x, double y){
 
 			imagesVisible_obstructed.add(imageId);
-			//imagesVisible.add(imageId);
-			//imagesVisible_obstructed.add(imageId);
-			//imagesVisible_obstructed.add(imageId);
-			//imagesVisible.add(imageId);
 
 			bb = ByteBuffer.allocateDirect( n_bytes * n_bands );
 			bb.order(ByteOrder.nativeOrder());
 
-			//System.out.println(Arrays.toString(band_list));
-			//System.exit(1);
 			image.ReadRaster_Direct((int)x, (int)y, 1, 1, 1, 1, data_type, bb, band_list);
 
 
-	/*
-			System.out.println("this: " + temp1.GetRasterDataType());
-			System.out.println("byte: " + GDT_Byte);
-			System.out.println("int_16: " + GDT_Int16);
-			System.out.println("uint_16: " + GDT_UInt16);
-			System.out.println("float_32: " + GDT_Float32);
-			System.out.println("float_64: " + GDT_Float64);
-
-			System.exit(1);
-
-*/
 			//int[] val1 = new int[n_bands];
 
 			for(int i = 0; i < image.GetRasterCount(); i++){
@@ -1613,32 +1443,7 @@ class ai2las{
 				}
 				//int value = getUnsignedShort(bb);
 				channelMeans_obstructed[i] += value;
-				//channelMeans_obstructed[i] += value;
-				//val1[i] = value;
 			}
-			/*
-
-			int[] val2 = new int[n_bands];
-
-			for(int i = 1; i <= image.GetRasterCount(); i++){
-
-				Band temp = image.GetRasterBand(i);
-
-				int a = temp.ReadRaster((int)x,
-						(int)y,
-						1,
-						1,
-						array1);
-
-				channelMeans[i - 1] += array1[0];
-				channelMeans_obstructed[i - 1] += array1[0];
-				val2[i-1] = array1[0];
-
-			}
-*/
-			//System.out.println(Arrays.toString(val1));
-			//System.out.println(Arrays.toString(val2));
-			//System.out.println("-------------");
 
 		}
 
