@@ -66,6 +66,7 @@ public class lasRasterTools {
             while (line != null) {
                 String[] temp = line.split("=");
                 metadata.add(new Pair<String, String>(temp[0], temp[1]));
+                //just made a change
                 line = br.readLine();
             }
             br.close();
