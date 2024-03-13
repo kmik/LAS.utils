@@ -39,6 +39,8 @@ public class argumentReader {
     public int origCores = 1;
 
     public String userString1 = null;
+
+    public String path = null;
     public ArrayList<String> metadataitems = new ArrayList<>();
     public ArrayList<String> metadataitemsModNames = new ArrayList<>();
     public ArrayList<File> inputFilesSpectral = new ArrayList<>();
@@ -629,6 +631,13 @@ public class argumentReader {
 
         options.addOption( Option.builder()
                 .longOpt("name")
+                .hasArg(true)
+                .desc("naming convention")
+                .required(false)
+                .build());
+
+        options.addOption( Option.builder()
+                .longOpt("path")
                 .hasArg(true)
                 .desc("naming convention")
                 .required(false)
@@ -2377,6 +2386,12 @@ public class argumentReader {
 
                 if(change_version_minor > 4 || change_version_minor < 1)
                     throw new argumentException("Incomprehensible version minor (-change_version_minor). Great Scott!!");
+
+            }
+
+            if( cmd.hasOption("path")){
+
+                this.path = cmd.getOptionValue("path");
 
             }
 

@@ -17,6 +17,8 @@ public class inpho {
     ArrayList<String> cameraIds = new ArrayList<>();
     ArrayList<Camera> cameras = new ArrayList<>();
 
+    ArrayList<photo> photos = new ArrayList<>();
+
     argumentReader aR;
 
 
@@ -60,6 +62,7 @@ public class inpho {
                     String photoCamera = sc.readLine();
                     phot.setCameraId(photoCamera.split(": ")[1]);
 
+                    this.photos.add(phot);
                     //System.out.println(phot);
 
                 }
@@ -125,6 +128,18 @@ public class inpho {
 
                     boolean writing = false;
 
+                    if(line.contains("$PHOTO_FILE")){
+
+                        String[] split = line.split(": ");
+                        String photoPath = split[1];
+                        String[] splitPath = photoPath.split("[/\\\\]");
+
+                        String photoName = splitPath[splitPath.length-1];
+                        String replacementPath = aR.path + aR.pathSep + photoName;
+
+                        line = line.replace(photoPath, replacementPath);
+
+                    }
                     //if(false)
                     if (line.equals("$CAMERA_DEFINITION")) {
 
@@ -184,6 +199,48 @@ public class inpho {
 
         }
 
+    }
+
+    public void writePhotosAndCameras() {
+
+        String outputDirectory = aR.odir;
+
+        if (aR.odir.equals("asd")) {
+            throw new IllegalArgumentException("Output directory not set, this tool requires an output directory. Please define by setting -odir argument.");
+        }
+
+        String outputFileName = outputDirectory + aR.pathSep + "photos.txt";
+
+        File outputFile = new File(outputFileName);
+
+        if (outputFile.exists()) {
+            outputFile.delete();
+        }
+
+        try {
+            outputFile.createNewFile();
+
+            BufferedWriter writer = new BufferedWriter(new BufferedWriter(new FileWriter(outputFile)));
+
+            for (int i = 0; i < this.numPhotos; i++) {
+
+                photo p = new photo();
+
+                p = this.getPhoto(i);
+
+                writer.write(p.getName() + "\t" + p.getCameraId());
+                writer.newLine();
+
+            }
+
+            writer.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public photo getPhoto(int i){
+        return this.photos.get(i);
     }
 }
 
