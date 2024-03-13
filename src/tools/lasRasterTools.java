@@ -5,7 +5,7 @@ import LASio.LasPoint;
 import LASio.LasPointBufferCreator;
 import com.drew.metadata.Directory;
 import err.toolException;
-import javafx.util.Pair;
+//import javafx.util.Pair;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.gdal;
@@ -37,7 +37,7 @@ public class lasRasterTools {
     boolean[][] mask = null;
     double[] geoTransform = null;
 
-    ArrayList<Pair<String, String>> metadata = new ArrayList<Pair<String, String>>();
+    ArrayList<MyPair<String, String>> metadata = new ArrayList<MyPair<String, String>>();
     argumentReader aR;
     public lasRasterTools(){
 
@@ -65,7 +65,7 @@ public class lasRasterTools {
             String line = br.readLine();
             while (line != null) {
                 String[] temp = line.split("=");
-                metadata.add(new Pair<String, String>(temp[0], temp[1]));
+                metadata.add(new MyPair<String, String>(temp[0], temp[1]));
                 //just made a change
                 line = br.readLine();
             }
@@ -188,6 +188,29 @@ public class lasRasterTools {
 
         //return rasters;
 
+    }
+
+    public class MyPair<K, V> {
+        private final K key;
+        private final V value;
+
+        public MyPair(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public K getKey() {
+            return key;
+        }
+
+        public V getValue() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return "(" + key + ", " + value + ")";
+        }
     }
 
     public void readMultipleRasters(argumentReader aR, double[] areaOfInterest, rasterCollection rasterBank, rasterCollection rasterBank2){
