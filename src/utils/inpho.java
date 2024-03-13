@@ -104,7 +104,7 @@ public class inpho {
 
             String cameraName = cameras.get(i).getCameraId();
 
-            String outputFileName = outputDirectory + aR.pathSep + cameraName;
+            String outputFileName = outputDirectory + aR.pathSep + cameraName + ".INPHO";
 
             File outputFile = new File(outputFileName);
 
