@@ -1378,7 +1378,7 @@ public class ITDstatistics{
         double[] mu = new double[x_ * y_ * z_];
         double[] sum = new double[x_ * y_ * z_];
 
-        double minZ = maxZ * 0.5;  //Math.min(maxPointZ - minPointZ, 2.0);
+        double minZ = maxZ * 0.33;  //Math.min(maxPointZ - minPointZ, 2.0);
 
         ArrayList<WritableRaster> textureLayers = new ArrayList<>();
         ColorModel cm = null;
@@ -3689,10 +3689,10 @@ public class ITDstatistics{
 
                 /* Means the point is part of the treeTop x and y location */
                 //if(tempPoint.classification == 15 || aR.noLasUtilsInput){
-                if(tempPoint.classification == 15){
+                if(tempPoint.classification == 15 || aR.noLasUtilsInput){
 
                     //System.out.println(tempPoint.z);
-                    if(mappi3.containsKey(treeId) && tempPoint.z > mappi3.get(treeId)[2]){
+                    if( (mappi3.containsKey(treeId) && tempPoint.z > mappi3.get(treeId)[2])){
                         mappi3.get(treeId)[0] = tempPoint.x;
                         mappi3.get(treeId)[1] = tempPoint.y;
                         mappi3.get(treeId)[2] = tempPoint.z;

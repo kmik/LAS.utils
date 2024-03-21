@@ -185,9 +185,6 @@ public class lasRasterTools {
 
         }
 
-
-        //return rasters;
-
     }
 
     public class MyPair<K, V> {

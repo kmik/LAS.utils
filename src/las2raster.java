@@ -109,7 +109,15 @@ public class las2raster {
                 lasRasterTools tool = new lasRasterTools(aR);
 
                 try {
+
+
+                    if(aR.metadatafile != null)
+                        tool.readMetadata(aR.metadatafile);
+
                     LASReader temp = new LASReader(f);
+
+
+
                     tool.rasterize(temp, aR.res);
                 }catch (Exception e){
                     e.printStackTrace();
