@@ -518,7 +518,7 @@ public class lasRasterTools {
         String year = "0000";
 
         for(MyPair pair : this.metadata){
-            System.out.println(pair.getKey() + " " + pair.getValue());
+            //System.out.println(pair.getKey() + " " + pair.getValue());
 
             if(pair.getKey().equals("DATE")){
 
