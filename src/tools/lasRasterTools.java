@@ -514,7 +514,46 @@ public class lasRasterTools {
         String outputFileNameMask = "notAssigned";
         String outputFileNameColor = "notAssigned";
 
-        String outputFileName = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster.tif").getAbsolutePath();
+
+        String year = "0000";
+
+        for(MyPair pair : this.metadata){
+            System.out.println(pair.getKey() + " " + pair.getValue());
+
+            if(pair.getKey().equals("DATE")){
+
+
+                year = pair.getValue().toString().substring(0, 4);
+
+            }
+        }
+
+        String outputFileName = "";
+
+
+        KarttaLehtiJako karttaLehtiJako = new KarttaLehtiJako();
+
+        try {
+            karttaLehtiJako.readFromFile(new File(""));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        // point cloud geometric center
+        double x__ = (pointCloud.getMinX() + pointCloud.getMaxX()) / 2.0;
+        double y__ = (pointCloud.getMinY() + pointCloud.getMaxY()) / 2.0;
+
+        String mapSheetName_ = karttaLehtiJako.getMapSheetNameByCoordinates(x__, y__);
+
+
+        outputFileName = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster.tif").getAbsolutePath();
+
+        if(!year.equals("0000")){
+            outputFileName = fo.createNewFileWithoutNewExtension(pointCloud.getFile(), mapSheetName_ + "_" + year + "_IPC.tif").getAbsolutePath();
+            //System.out.println(outputFileName);
+            //System.out.println(pointCloud.getFile().getAbsolutePath());
+            //System.exit(1);
+            //outputFileName = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_" + year + "_IPC.tif").getAbsolutePath();
+        }
 
         if(aR.outputMask){
             outputFileNameMask = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_mask.tif").getAbsolutePath();

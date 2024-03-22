@@ -23,6 +23,16 @@ public class fileOperations {
 
     }
 
+    public File createNewFileWithoutNewExtension(File file, String newName){
+
+        //String fileName = file.getName();
+        //System.out.println(file.getAbsoluteFile().getParent() + System.getProperty("file.separator") + newName);
+        //System.exit(1);
+        return new File(file.getAbsoluteFile().getParent() + System.getProperty("file.separator") + newName);
+
+
+    }
+
     public File createNewFileWithNewExtension(String file, String extension){
 
         return new File(file.substring(0, file.lastIndexOf(".")) + extension);
