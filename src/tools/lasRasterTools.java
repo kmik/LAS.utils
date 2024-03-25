@@ -520,7 +520,7 @@ public class lasRasterTools {
         for(MyPair pair : this.metadata){
             //System.out.println(pair.getKey() + " " + pair.getValue());
 
-            if(pair.getKey().equals("DATE")){
+            if(pair.getKey().equals("DATA_DATE")){
 
 
                 year = pair.getValue().toString().substring(0, 4);
