@@ -3753,7 +3753,7 @@ public class argumentReader {
 
         File outputFile = null;
 
-        if(this.inputFiles.size() == 0){
+        if(this.inputFiles.size() == 0 && this.odir.equals("asd")){
             throw new IllegalArgumentException("No input files");
         }
 
@@ -3762,11 +3762,8 @@ public class argumentReader {
         if(this.odir.equals("asd")) {
             outputFile = new File(inputFiles.get(0).getParent() + pathSep + fileName);
         }else{
-
             outputFile = new File(this.odir + pathSep + fileName);
         }
-
-
 
         return outputFile;
     }

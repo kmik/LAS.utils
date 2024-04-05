@@ -37,21 +37,26 @@ public class miscProcessing {
             pathSep = "\\" + pathSep;
         boolean lasFormat, txtFormat;
 
-        String[] lasToken = new File(aR.files[0]).getName().split("\\.");
-        lasFormat = lasToken[lasToken.length-1].equals("las");
-        txtFormat = lasToken[lasToken.length-1].equals("txt");
-        ArrayList<String> filesList = new ArrayList<String>();
-        ArrayList<LASReader> pointClouds = new ArrayList<LASReader>();
         ArrayList<File> inputFiles = new ArrayList<>();
-        filesList = getFileListAsString(aR, lasFormat, txtFormat, filesList, inputFiles);
 
-        aR.setInputFiles(inputFiles);
-        aR.p_update.totalFiles = aR.pointClouds.size();
-
-        if(aR.cores > aR.inputFiles.size())
-            aR.cores = aR.inputFiles.size();
+        if(aR.files != null)
+        if(aR.files.length != 0) {
 
 
+            String[] lasToken = new File(aR.files[0]).getName().split("\\.");
+            lasFormat = lasToken[lasToken.length - 1].equals("las");
+            txtFormat = lasToken[lasToken.length - 1].equals("txt");
+            ArrayList<String> filesList = new ArrayList<String>();
+            ArrayList<LASReader> pointClouds = new ArrayList<LASReader>();
+            filesList = getFileListAsString(aR, lasFormat, txtFormat, filesList, inputFiles);
+
+            aR.setInputFiles(inputFiles);
+            aR.p_update.totalFiles = aR.pointClouds.size();
+
+            if (aR.cores > aR.inputFiles.size())
+                aR.cores = aR.inputFiles.size();
+
+        }
         return inputFiles;
 
     }

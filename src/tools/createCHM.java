@@ -2632,9 +2632,6 @@ public class createCHM{
             deleteFile2.delete();
             deleteFile22.delete();
 
-
-
-
             if(!aR.skeleton_output) {
 
                 if (outFile.exists())

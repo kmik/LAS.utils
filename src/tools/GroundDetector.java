@@ -1475,7 +1475,12 @@ public class GroundDetector{
 
         double tHold = 5.0;
 
+
         double stdResolution = 0.5;
+
+
+        if(!aR.photogrammetry)
+            stdResolution = aR.axgrid;
 
 
         double minX = pointCloud.getMinX();

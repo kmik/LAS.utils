@@ -10,6 +10,8 @@ import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconst;
 import org.gdal.ogr.ogr;
 import org.gdal.osr.SpatialReference;
+import org.tinfour.common.IIncrementalTinNavigator;
+import org.tinfour.common.SimpleTriangle;
 import org.tinfour.common.Vertex;
 import org.tinfour.interpolation.IVertexValuator;
 import org.tinfour.interpolation.NaturalNeighborInterpolator;
@@ -18,6 +20,8 @@ import org.tinfour.interpolation.VertexValuatorDefault;
 import org.tinfour.standard.IncrementalTin;
 import utils.argumentReader;
 import utils.fileOperations;
+
+import java.util.List;
 
 public class ground2raster {
 
@@ -29,6 +33,9 @@ public class ground2raster {
     IncrementalTin tin = new IncrementalTin();
 
     public ground2raster(LASReader pointCloud, argumentReader aR, int coreNumber) throws Exception{
+
+        IIncrementalTinNavigator navi = tin.getNavigator();
+        SimpleTriangle triang = null;
 
 
         LasPoint tempPoint = new LasPoint();
@@ -48,6 +55,23 @@ public class ground2raster {
 
                 pointCloud.readFromBuffer(tempPoint);
 
+                if(aR.min_edge_length > 0 && tin.isBootstrapped()) {
+
+                    List<Vertex> closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(tempPoint.x, tempPoint.y, 0, 0);
+
+                    if (closest.size() > 0) {
+
+                        double distToClosest = Double.POSITIVE_INFINITY;
+                        double dist = Math.sqrt(Math.pow(closest.get(0).getX() - tempPoint.x, 2) + Math.pow(closest.get(0).getY() - tempPoint.y, 2));
+
+                        if(dist < aR.min_edge_length)
+                            continue;
+                    }
+
+                    if (tempPoint.classification == 2) {
+                        tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
+                    }
+                }
                 if(tempPoint.classification == 2){
 
                     tin.add(new Vertex(tempPoint.x, tempPoint.y, tempPoint.z));
@@ -124,6 +148,38 @@ public class ground2raster {
             for(int x = 0; x < grid_x_size; x++){
 
                 double interpolatedValue = polator.interpolate(true_min_x + x * aR.step + aR.step/2.0, true_max_y - y * aR.step - aR.step/2.0, valuator);
+
+
+
+                if(Double.isNaN(interpolatedValue)){
+
+                    // Search for the closest 3 vertices and calculate the weighted average based on euclidean distance
+                    List<Vertex> closest = tin.getNeighborhoodPointsCollector().collectNeighboringVertices(true_min_x + x * aR.step + aR.step/2.0, true_max_y - y * aR.step - aR.step/2.0, 0, 0);
+
+
+
+                    if (closest.size() > 0) {
+                        double sum = 0;
+                        double sumWeights = 0;
+
+                        int count = 0;
+
+                        for (Vertex v : closest) {
+                            double dist = Math.sqrt(Math.pow(v.getX() - (true_min_x + x * aR.step + aR.step/2.0), 2) + Math.pow(v.getY() - (true_max_y - y * aR.step - aR.step/2.0), 2));
+
+                            // Inverse distance weighting: accumulate values inversely proportional to distance
+                            if (dist != 0) { // Avoid division by zero
+                                sum += v.getZ() / dist; // Divide by distance instead of multiplying
+                                sumWeights += 1 / dist; // Accumulate inverse distance
+                            }
+
+                            if(count++ > 2)
+                                break;
+                        }
+                        interpolatedValue = sum / sumWeights; // Divide by sum of inverse distances
+                    }
+
+                }
                 outValue[x] = (float)interpolatedValue;
 
             }
