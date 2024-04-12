@@ -2,7 +2,10 @@ package utils;
 
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
+import org.gdal.osr.SpatialReference;
+import tools.ConcaveHull;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -11,6 +14,12 @@ import static utils.Stanford2010.clone2DArray;
 
 public class ShapefileUtils {
 
+    Layer layer;
+    KdTree kdTree = null;
+    public String shapetype;
+
+    boolean createKdTreeOfPoints = false;
+    HashMap<Integer, Feature> pointFeatures = new HashMap<>();
     HashMap<Integer, ArrayList<Integer>> polyAffiliation = new HashMap<>();
     HashMap<Integer, String> polyIdsAsString = new HashMap<>();
     HashMap<Integer, double[][]> bounds = new HashMap<>();
@@ -19,6 +28,8 @@ public class ShapefileUtils {
     HashMap<Integer, double[]> centroids = new HashMap<>();
 
     HashMap<Integer, double[]> boundingBoxes = new HashMap<>();
+
+    HashMap<Integer, Double> areas = new HashMap<>();
 
     HashMap<Integer, Polygon> polygons = new HashMap<>();
     KdTree centroids_ = new KdTree();
@@ -38,6 +49,10 @@ public class ShapefileUtils {
         ogr.RegisterAll();
         gdal.AllRegister();
         this.aR = aR;
+    }
+
+    public void createKdTree(){
+        this.createKdTreeOfPoints = true;
     }
 
     public void calculateBoundingBoxes(){
@@ -138,6 +153,28 @@ public class ShapefileUtils {
 
     }
 
+    public double calculateAreas(){
+
+        for(int i : bounds.keySet()){
+
+            double[] bbox = getBoundingBox(i);
+            double[][] points = bounds.get(i);
+            double area = 0.0;
+
+            for (int j = 0; j < points.length; j++) {
+                double[] p1 = points[j];
+                double[] p2 = points[(j + 1) % points.length];
+
+                area += p1[0] * p2[1] - p2[0] * p1[1];
+            }
+
+            area = Math.abs(area) / 2.0;
+            areas.put(i, area);
+            System.out.println(area);
+        }
+
+        return 0;
+    }
     public ArrayList<double[]> randomPointsInAllPolygons(double minDistance){
 
             ArrayList<double[]> points = new ArrayList<>();
@@ -146,6 +183,7 @@ public class ShapefileUtils {
             KdTree.XYZPoint point = new KdTree.XYZPoint(0, 0, 0, 0);
 
             for(int i : bounds.keySet()){
+
 
                 double[] bbox = getBoundingBox(i);
 
@@ -170,6 +208,7 @@ public class ShapefileUtils {
                         y = bbox[1] + Math.random() * (bbox[3] - bbox[1]);
 
                         pointInPolygon = pointInPolygon(i, x, y);
+
                         if (points.size() == 0)
                             distanceOk = true;
                         else {
@@ -182,20 +221,114 @@ public class ShapefileUtils {
                         }
                     }
 
-
-
                     if(!breakLoop) {
-                        System.out.println("Point added: " + x + " " + y + " " + i);
+                        //System.out.println("Point added: " + x + " " + y + " " + i);
                         points.add(new double[]{x, y});
                         kdTree.add(new KdTree.XYZPoint(x, y, 0, 0));
                     }
 
-                    System.out.println("Points: " + points.size() + " " + i);
+                    //System.out.println("Points: " + points.size() + " " + i);
                 }
                 //System.out.println("Points: " + points.size() + " " + i);
             }
 
             return points;
+    }
+
+    /*
+    public ArrayList<double[]> randomPointsWithinBoundingBoxes(double minDistance) {
+
+        ArrayList<double[]> points = new ArrayList<>();
+
+        KdTree kdTree = new KdTree();
+        KdTree.XYZPoint point = new KdTree.XYZPoint(0, 0, 0, 0);
+
+        double[] bbox = getBoundingBox();
+
+        for (int i : bounds.keySet()) {
+
+            double[] bbox = getBoundingBox(i);
+
+            double x = bbox[0] + Math.random() * (bbox[2] - bbox[0]);
+            double y = bbox[1] + Math.random() * (bbox[3] - bbox[1]);
+
+            int nTries = 100;
+        }
+    }
+
+     */
+
+    public HashMap<Integer, ArrayList<double[]>> randomCirclesWithinPolygons(double circleRadius, double minDistanceBetweenTwoCircles, double areaFraction){
+
+        double[] bbox = getBoundingBox();
+        HashMap<Integer, ArrayList<double[]>> circles = new HashMap<>();
+
+
+        for(int i : this.bounds.keySet()){
+
+            System.out.println("Polygon: " + i);
+            KdTree tmpTree = new KdTree();
+
+            int currentPolyId = i;
+
+            double[] currentBbox = getBoundingBox(i);
+
+            double currentArea = areas.get(i);
+
+            double targetArea = currentArea * areaFraction;
+            int maxNumTries = 200;
+
+            ArrayList<double[]> circlesInPoly = new ArrayList<>();
+
+            boolean breakLoop = false;
+
+            int numTries = 0;
+
+            while(!breakLoop){
+
+                double x = currentBbox[0] + Math.random() * (currentBbox[2] - currentBbox[0]);
+                double y = currentBbox[1] + Math.random() * (currentBbox[3] - currentBbox[1]);
+
+                int counter = 0;
+                boolean distanceOk = false;
+                boolean pointInPolygon = false;
+                boolean distanceToBoundaryOk = false;
+
+                while (!pointInPolygon || !distanceOk || !distanceToBoundaryOk) {
+
+                    x = currentBbox[0] + Math.random() * (currentBbox[2] - currentBbox[0]);
+                    y = currentBbox[1] + Math.random() * (currentBbox[3] - currentBbox[1]);
+
+                    pointInPolygon = pointInPolygon(i, x, y);
+
+                    distanceToBoundaryOk = distanceToPolygonBorder(x, y, currentPolyId) > circleRadius;
+
+                    if (circlesInPoly.size() == 0)
+                        distanceOk = true;
+                    else {
+                        distanceOk = distanceToNearest(tmpTree, new KdTree.XYZPoint(x, y, 0, 0)) > minDistanceBetweenTwoCircles;
+                    }
+
+                    //System.out.println(distanceToBoundaryOk + " " + pointInPolygon + " " + distanceOk + " " + x + " " + y + " " + i + " " + counter + " " + numTries);
+
+                    if(counter++ > maxNumTries){
+                        //System.out.println("Max number of tries reached: " + maxNumTries);
+                        breakLoop = true;
+                        break;
+                    }
+                }
+
+                if(!breakLoop) {
+                    //System.out.println("Point added: " + x + " " + y + " " + i);
+                    circlesInPoly.add(new double[]{x, y});
+                    tmpTree.add(new KdTree.XYZPoint(x, y, 0, 0));
+                }
+            }
+
+            circles.put(i, circlesInPoly);
+        }
+
+        return circles;
     }
 
     public ArrayList<double[]> randomPointsInAllPolygonsNearRegular(double minDistance){
@@ -245,12 +378,12 @@ public class ShapefileUtils {
 
 
                 if(!breakLoop) {
-                    System.out.println("Point added: " + x + " " + y + " " + i);
+                    //System.out.println("Point added: " + x + " " + y + " " + i);
                     points.add(new double[]{x, y});
                     kdTree.add(new KdTree.XYZPoint(x, y, 0, 0));
                 }
 
-                System.out.println("Points: " + points.size() + " " + i);
+                //System.out.println("Points: " + points.size() + " " + i);
             }
             //System.out.println("Points: " + points.size() + " " + i);
         }
@@ -297,7 +430,7 @@ public class ShapefileUtils {
 
         boolean debugPrint = false;
 
-
+        int pointId = 0;
 
         for(long i = 0; i < shapeFileLayer.GetFeatureCount(); i++ ) {
 
@@ -307,7 +440,7 @@ public class ShapefileUtils {
 
                 String id = tempF.GetFieldAsString(aR.field);
 
-                System.out.println("id: " + id + " " + tempF.GetFieldCount());
+               // System.out.println("id: " + id + " " + tempF.GetFieldCount());
 
 
                 //if(id == null){
@@ -317,16 +450,18 @@ public class ShapefileUtils {
                 //}
 
                 //tempF.GetFiel
-                System.out.println("id: " + id + " " + tempF.GetFieldCount());
+                //System.out.println("id: " + id + " " + tempF.GetFieldCount());
                 Geometry tempG = tempF.GetGeometryRef();
 
 
-                System.out.println(tempG.GetGeometryName());
+                ;
 // check if geometry is a MultiPolygon
                 if (tempG.GetGeometryName().equals("MULTIPOLYGON")) {
+
+                    this.shapetype = "polygon";
                     //System.out.println("here1 " + tempF.GetFieldAsInteger(0));
 
-                    System.out.println("MULTIPOLYGON");
+                   // System.out.println("MULTIPOLYGON");
 
                     int numGeom = tempG.GetGeometryCount();
 
@@ -362,7 +497,7 @@ public class ShapefileUtils {
                                     //System.out.println("here5 " + tempF.GetFieldAsInteger(0));
                                     centroids_.add(new KdTree.XYZPoint(centroid[0], centroid[1], 0, shapeId));
 
-                                    System.out.println("Centroid: " + centroid[0] + " " + centroid[1] + " " + shapeId);
+                                    //System.out.println("Centroid: " + centroid[0] + " " + centroid[1] + " " + shapeId);
 
                                     tempP.addOuterRing(clone2DArray(tempG2.GetPoints()));
                                     tempP.setId(shapeId);
@@ -390,7 +525,8 @@ public class ShapefileUtils {
                             }
                         }
                     }
-                } else if (tempG.GetGeometryName().equals("POLYGON")) {
+                }
+                else if (tempG.GetGeometryName().equals("POLYGON")) {
 
                     Geometry tempG2 = tempG.GetGeometryRef(0);
 
@@ -400,7 +536,7 @@ public class ShapefileUtils {
 
                     int numGeom = tempG.GetGeometryCount();
 
-                    System.out.println("numGeom: " + numGeom);
+                    //System.out.println("numGeom: " + numGeom);
 
                     if (tempG2.GetGeometryName().equals("LINEARRING")) {
 
@@ -410,7 +546,7 @@ public class ShapefileUtils {
                             Geometry tempG3 = tempG.GetGeometryRef(j);
 
 
-                            System.out.println("POINTS: " + tempG3.GetPointCount());
+                            //System.out.println("POINTS: " + tempG3.GetPointCount());
 
                             if (tempG3 == null || tempG3.GetPoints() == null) {
                                 continue;
@@ -429,7 +565,7 @@ public class ShapefileUtils {
                                 polyIdsAsString.put(shapeId, id);
                                 //System.out.println("here5 " + tempF.GetFieldAsInteger(0));
 
-                                System.out.println("centroid: " + centroid[0] + " " + centroid[1] + " " + shapeId);
+                                //System.out.println("centroid: " + centroid[0] + " " + centroid[1] + " " + shapeId);
 
                                 centroids_.add(new KdTree.XYZPoint(centroid[0], centroid[1], 0, shapeId));
 
@@ -455,8 +591,31 @@ public class ShapefileUtils {
                         }
                         //System.out.println("centroid: " + centroid[0] + " " + centroid[1] + " " + shapeId);
                     }
-                } else {
+                } else if(tempG.GetGeometryName().equals("POINT")){
                     // handle other types of geometries if needed
+                    shapeId = pointId++;
+
+                    if(createKdTreeOfPoints) {
+
+                        if(this.kdTree == null){
+                            this.kdTree = new KdTree();
+                        }
+
+                        double[] centroid = tempG.GetPoint(0);
+
+                        KdTree.XYZPoint p = new KdTree.XYZPoint(centroid[0], centroid[1], 0, shapeId);
+                        kdTree.add(p);
+                    }
+                    this.shapetype = "point";
+
+                    System.out.println("Point shapeId " + shapeId);
+                    if(!pointFeatures.containsKey(shapeId)){
+                        pointFeatures.put(shapeId, tempF);
+                    }else{
+
+                    }
+
+
                 }
 
                 //if(tempF.GetFieldAsInteger(0) == 199){
@@ -479,6 +638,8 @@ public class ShapefileUtils {
         System.out.println(centroids.size() + " stand centroids read.");
         System.out.println(nExcluded + " stands rejected");
         System.out.println("holes: " + holes.size());
+
+        System.out.println("Point features: " + pointFeatures.size());
 
 
     }
@@ -516,10 +677,33 @@ public class ShapefileUtils {
             if(pointInPolygon(i, x, y)){
                 return i;
             }
+        }
+        return -1;
 
+    }
+
+    public List<Feature> kNearestPoints(double x, double y, int k, double radius){
+
+        ArrayList<KdTree.XYZPoint> nearest = (ArrayList<KdTree.XYZPoint>)kdTree.nearestNeighbourSearch(k, new KdTree.XYZPoint(x, y, 0, 0));
+
+        ArrayList<Feature> output = new ArrayList<>();
+
+        for(KdTree.XYZPoint p : nearest){
+
+            if(euclideanDistance(p.getX(), p.getY(), x, y) > radius){
+                continue;
+            }
+
+            output.add(pointFeatures.get(p.getIndex()));
         }
 
-        return -1;
+        return output;
+
+    }
+
+    public double euclideanDistance(double x1, double y1, double x2, double y2){
+
+        return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 
     }
 
@@ -545,9 +729,9 @@ public class ShapefileUtils {
         double gridX = Math.ceil((bbox_[2] - bbox_[0]) / resolutionX);
         double gridY = Math.ceil((bbox_[3] - bbox_[1]) / resolutionY);
 
-        System.out.println("Number of grid cells: " + gridX * gridY);
+        //System.out.println("Number of grid cells: " + gridX * gridY);
         // In megabytes
-        System.out.println("Memory usage: " + (gridX * gridY * 2 * 2) / 1024 / 1024 + " MB");
+        //System.out.println("Memory usage: " + (gridX * gridY * 2 * 2) / 1024 / 1024 + " MB");
 
         return new short[(int)gridX][(int)gridY];
 
@@ -632,7 +816,7 @@ public class ShapefileUtils {
 
     public double overlapPercentage(double[][] bounds1, double[][] bounds2) {
         if (!boundsOverlap(bounds1, bounds2)) {
-            System.out.println("No overlap");
+            //System.out.println("No overlap");
             return 0; // No overlap, so percentage is 0
         }
 
@@ -644,7 +828,7 @@ public class ShapefileUtils {
         double area2 = calculatePolygonArea(bounds2);
         double smallerArea = Math.min(area1, area2);
 
-        System.out.println(area1 + " " + area2 + " " + smallerArea + " " + intersectionArea + " " + (intersectionArea / smallerArea) * 100);
+        //System.out.println(area1 + " " + area2 + " " + smallerArea + " " + intersectionArea + " " + (intersectionArea / smallerArea) * 100);
 
         // Calculate and return the overlap percentage
         return (intersectionArea / smallerArea) * 100;
@@ -766,6 +950,151 @@ public class ShapefileUtils {
             p1 = p2;
         }
         return intersectCount % 2 != 0;
+    }
+
+    public double distanceToPolygonBorder(double pointX, double pointY, int polyId) {
+        double minDistance = Double.MAX_VALUE;
+        int numPoints = bounds.get(polyId).length;
+
+        for (int i = 0; i < numPoints; i++) {
+            double[] currentPoint = bounds.get(polyId)[i];
+            double[] nextPoint = bounds.get(polyId)[(i + 1) % numPoints];
+
+            double distance = distanceToSegment(pointX, pointY, currentPoint[0], currentPoint[1], nextPoint[0], nextPoint[1]);
+            minDistance = Math.min(minDistance, distance);
+        }
+
+        return minDistance;
+    }
+
+    private static double distance(double x1, double y1, double x2, double y2) {
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    private static double distanceToSegment(double pointX, double pointY, double segmentStartX, double segmentStartY,
+                                            double segmentEndX, double segmentEndY) {
+        double segmentLength = distance(segmentStartX, segmentStartY, segmentEndX, segmentEndY);
+
+        if (segmentLength == 0.0) {
+            // The segment is actually a point
+            return distance(pointX, pointY, segmentStartX, segmentStartY);
+        }
+
+        double u = ((pointX - segmentStartX) * (segmentEndX - segmentStartX) +
+                (pointY - segmentStartY) * (segmentEndY - segmentStartY)) / (segmentLength * segmentLength);
+
+        if (u < 0.0 || u > 1.0) {
+            // The closest point is outside the segment, return the distance to the nearest endpoint
+            double distanceToStart = distance(pointX, pointY, segmentStartX, segmentStartY);
+            double distanceToEnd = distance(pointX, pointY, segmentEndX, segmentEndY);
+            return Math.min(distanceToStart, distanceToEnd);
+        }
+
+        double intersectionX = segmentStartX + u * (segmentEndX - segmentStartX);
+        double intersectionY = segmentStartY + u * (segmentEndY - segmentStartY);
+        return distance(pointX, pointY, intersectionX, intersectionY);
+    }
+
+    public void declarePlotShapefile(String outputName){
+
+        gdal.AllRegister();
+
+        String driverName = "ESRI Shapefile";
+
+        Driver shpDriver = ogr.GetDriverByName(driverName);
+
+        String pathSeparator = System.getProperty("file.separator");
+
+        //File output_directory = new File(aR.odir + pathSeparator);
+
+        File outFile = aR._createOutputFile_(outputName);
+        //File outFile = new File(output_directory.getAbsolutePath() + pathSeparator + outputName);
+        DataSource outShp = shpDriver.CreateDataSource(outFile.getAbsolutePath());
+
+        layer = outShp.CreateLayer("out_name", null, 0);
+
+        FieldDefn layerFieldDef = new FieldDefn("id", 4);
+
+        layer.CreateField(layerFieldDef);
+
+        FieldDefn layerFieldDef1 = new FieldDefn("center_x", 0);
+        layer.CreateField(layerFieldDef1);
+
+        FieldDefn layerFieldDef2 = new FieldDefn("center_y", 0);
+        layer.CreateField(layerFieldDef2);
+
+    }
+
+    public List<double[]> calculateCircleBoundary(double centerX, double centerY, double radius) {
+        List<double[]> boundaryPoints = new ArrayList<>();
+        int numPoints = 20; // Number of points to approximate the circle
+
+        for (int i = 0; i < numPoints; i++) {
+            double angle = 2 * Math.PI * i / numPoints;
+            double x = centerX + radius * Math.cos(angle);
+            double y = centerY + radius * Math.sin(angle);
+            boundaryPoints.add(new double[]{x, y});
+        }
+
+        return boundaryPoints;
+    }
+
+    public void addCircleToShapefile(double x, double y, double r,  String id){
+
+        try {
+            gdal.AllRegister();
+            List<double[]> circlePoints = calculateCircleBoundary(x, y, r);
+
+            Geometry outShpGeom2 = new Geometry(ogr.wkbLinearRing);
+            Geometry outShpGeom = new Geometry(ogr.wkbPolygon);
+
+            for (int i = 0; i < circlePoints.size(); i++) {
+
+                //System.out.println("Wrote " + i);
+                outShpGeom2.AddPoint_2D(circlePoints.get(i)[0], circlePoints.get(i)[1]);
+
+            }
+
+            if(circlePoints.size() == 0){
+                System.out.println("Circle points size is zero");
+                System.exit(1);
+            }
+
+            outShpGeom2.AddPoint_2D(circlePoints.get(0)[0], circlePoints.get(0)[1]);
+
+            outShpGeom.AddGeometry(outShpGeom2);
+
+            FeatureDefn outShpFeatDefn = layer.GetLayerDefn();
+            Feature feature = new Feature(outShpFeatDefn);
+            feature.SetGeometryDirectly(outShpGeom);
+
+            //Feature feature = new Feature(allPlotsShapeFileLayer.GetLayerDefn());
+            //feature.SetGeometry(outShpGeom);
+
+            // Set feature attributes
+
+            feature.SetField("id", id);
+            feature.SetField("center_x", x);
+            feature.SetField("center_y", y);
+
+
+            SpatialReference spatialRef = new SpatialReference();
+            spatialRef.ImportFromEPSG(3067);
+            feature.GetGeometryRef().AssignSpatialReference(spatialRef);
+
+            layer.CreateFeature(feature);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+    }
+
+    public void finalizeOutputLayer(){
+        layer.SyncToDisk();
     }
 
 }

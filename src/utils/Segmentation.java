@@ -17,6 +17,7 @@ import java.util.TreeMap;
 
 public class Segmentation {
 
+    ArrayList<ShapefileUtils> sU_plots = new ArrayList<>();
     GridUtils gU;
     argumentReader aR;
 
@@ -80,6 +81,10 @@ public class Segmentation {
 
     }
 
+    public void addShapefile(ShapefileUtils sU) {
+        this.sU_plots.add(sU);
+    }
+
     public void regionGrowing() {
         // Region growing algorithm
 
@@ -104,7 +109,9 @@ public class Segmentation {
             if(gU.cellHasValue(point[0], point[1])) {
                 ArrayList<Integer> values = gU.getCellValues(point[0], point[1]);
                 for(int j = 0; j < values.size(); j++) {
+
                     segment.addFeature(values.get(j));
+                    segment.addFeature(sU_plots.get(0).getPolyIdAsString(values.get(j)));
 
                     if(gU.featureInMultipleCells(values.get(j))) {
 
@@ -189,7 +196,9 @@ public class Segmentation {
                     if(gU.cellHasValue(x, y)) {
                         ArrayList<Integer> values = gU.getCellValues(x, y);
                         for(int j = 0; j < values.size(); j++) {
+
                             segment.addFeature(values.get(j));
+                            segment.addFeature(sU_plots.get(0).getPolyIdAsString(values.get(j)));
 
                             if(gU.featureInMultipleCells(values.get(j))) {
 
@@ -281,7 +290,7 @@ public class Segmentation {
 
                         // This means we must interpolate the value based on the tin
                         if (grid[x][y] == 0) {
-                            System.out.println("HERE! " + (short) (Math.ceil(polator.interpolate(x, y, valuator))));
+                            //System.out.println("HERE! " + (short) (Math.ceil(polator.interpolate(x, y, valuator))));
 
                             grid[x][y] = (short) (Math.ceil(polator.interpolate(x, y, valuator)));
                         }
@@ -332,13 +341,16 @@ public class Segmentation {
 
                 if(interpolated[x][y] != original[x][y]) {
                     // Find the segment that has the original value
-                    for(int i = 0; i < this.segments.size(); i++) {
+                    for(int i : this.segments.keySet()) {
                         if(this.segments.get(i).id == interpolated[x][y]) {
                             this.segments.get(i).addPoint(new int[]{x, y});
                             if(gU.cellHasValue(x, y)) {
                                 ArrayList<Integer> values = gU.getCellValues(x, y);
                                 for(int j = 0; j < values.size(); j++) {
+
                                     this.segments.get(i).addFeature(values.get(j));
+                                    this.segments.get(i).addFeature(this.sU_plots.get(0).getPolyIdAsString(values.get(j)));
+
                                 }
                             }
                             break;
@@ -463,7 +475,7 @@ public class Segmentation {
 
                 int segmentId = segment.id;
 
-                System.out.println("Segment " + segment.id + " has " + segment.getArea() + " points");
+                //System.out.println("Segment " + segment.id + " has " + segment.getArea() + " points");
 
                 HashMap<Short, Integer> neighbors = this.segmentNeighbors(segmentId);
 
@@ -478,10 +490,10 @@ public class Segmentation {
                         highestBorderSegment = key;
                     }
 
-                    System.out.println("Segment " + key + " has " + neighbors.get(key) + " neighbors");
+                    //System.out.println("Segment " + key + " has " + neighbors.get(key) + " neighbors");
                 }
 
-                System.out.println("Segment " + segmentId + " has " + highestNumberOfBorder + " neighbors with segment " + highestBorderSegment);
+                //System.out.println("Segment " + segmentId + " has " + highestNumberOfBorder + " neighbors with segment " + highestBorderSegment);
 
                 Segment highestBorderSegmentObject = this.segments.get(highestBorderSegment);
                 highestBorderSegmentObject.mergeSegmentToThisOne(segment);
@@ -566,27 +578,31 @@ public class Segmentation {
         try {
             fw = new FileWriter(file);
             writer = new BufferedWriter(fw);
-            writer.write("id\tarea_sq_km\tn_features\tfeatures\tfeature_affi\tn_affi\taffi\taffiProp\n");
+            writer.write("id\tarea_sq_km\tn_features\tfeature_ids\tfeature_affis\tn_segment_affi\tsegment_affi_ids\taffiProp\n");
 
             for(int i : this.segments.keySet()) {
                 Segment segment = this.segments.get(i);
                 writer.write(segment.id + "\t" + segment.getArea() + "\t" + segment.numFeatrues());
 
                 writer.write("\t");
-                for(int j = 0; j < segment.features.size(); j++){
-                    writer.write(segment.features.get(j) + "");
-                    if(j < segment.features.size() - 1){
+                for(int j = 0; j < segment.features_s.size(); j++){
+                    writer.write(segment.features_s.get(j) + "");
+                    if(j < segment.features_s.size() - 1){
                         writer.write(";");
                     }
                 }
+                if(segment.numFeatrues() == 0)
+                    writer.write("null");
 
                 writer.write("\t");
-                for(int j = 0; j < segment.features.size(); j++){
+                for(int j = 0; j < segment.features_s.size(); j++){
                     writer.write(sU_plots.getAffiliation(segment.features.get(j)) + "");
-                    if(j < segment.features.size() - 1){
+                    if(j < segment.features_s.size() - 1){
                         writer.write(";");
                     }
                 }
+                if(segment.numFeatrues() == 0)
+                    writer.write("null");
 
 
                 writer.write("\t" + segment.affiliationPercentages.size() + "\t");

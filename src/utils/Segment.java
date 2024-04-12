@@ -52,6 +52,8 @@ public class Segment {
     ArrayList<Integer> features = new ArrayList<>();
     ArrayList<String> features_s = new ArrayList<>();
 
+    rolling_stats rs_center_x = new rolling_stats();
+    rolling_stats rs_center_y = new rolling_stats();
     public Segment() {
 
     }
@@ -79,6 +81,10 @@ public class Segment {
 
     public void addFeature(int feature){
         features.add(feature);
+    }
+
+    public void addFeature(String feature){
+        features_s.add(feature);
     }
 
     public void setAffiliationPercentages(TreeMap<Integer, Integer> affiliationPercentages){
@@ -154,7 +160,7 @@ public class Segment {
                 if(true) {
                     if(areaLimit > 0){
 
-                        if(tinArea > areaLimit * 1.2){
+                        if(tinArea > areaLimit * 1.0){
                             tin.remove(v);
                             navi.resetForChangeToTin();
                             this.perimeter = tin.getPerimeter();
@@ -165,7 +171,7 @@ public class Segment {
 
                     }
 
-                    if (compactness < 0.50 && tinArea > 13) {
+                    if (compactness < 0.55 && tinArea > 13) {
                         tin.remove(v);
                         navi.resetForChangeToTin();
                         this.perimeter = tin.getPerimeter();
@@ -211,16 +217,26 @@ public class Segment {
 
     public void addToQueue(int[] point) {
 
+        if(rs_center_x.count_rolling_stats == 0) {
+            rs_center_x.add(point[0]);
+            rs_center_y.add(point[1]);
+        }
+
         if(Math.random() < probabilityToUpdateCenter) {
             // Set the center to be the 2/3 of the distance between current center and input point
 
+            rs_center_x.add(point[0]);
+            rs_center_y.add(point[1]);
 
-            //this.center_x = (int) Math.round((this.center_x + point[0]) / 2);
-            this.center_x = (int) Math.round((this.center_x + point[0]) / 2);
+            this.center_x = (int) Math.round(rs_center_x.average_rolling_stats);
+            this.center_y = (int) Math.round(rs_center_y.average_rolling_stats);
+            // this.center_x = (int) Math.round((this.center_x + point[0]) / 2);
             //this.center_y = (int) Math.round((this.center_y + point[1]) / 2);
-            this.center_y = (int) Math.round((this.center_y + point[1]) / 2);
 
-
+            if(rs_center_x.count_rolling_stats > 5){
+                rs_center_x.reset();
+                rs_center_y.reset();
+            }
             //this.updateDistancesInQueue();
         }
 
@@ -357,7 +373,7 @@ public class Segment {
 
     public void addTinVertices(IncrementalTin inputTin){
         for(Vertex v : this.tin.getVertices()){
-            System.out.println("ADDED");
+            //System.out.println("ADDED");
             inputTin.add(v);
         }
     }

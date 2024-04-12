@@ -548,11 +548,17 @@ public class lasRasterTools {
         outputFileName = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster.tif").getAbsolutePath();
 
         if(!year.equals("0000")){
+
             outputFileName = fo.createNewFileWithoutNewExtension(pointCloud.getFile(), mapSheetName_ + "_" + year + "_IPC.tif").getAbsolutePath();
-            //System.out.println(outputFileName);
-            //System.out.println(pointCloud.getFile().getAbsolutePath());
-            //System.exit(1);
-            //outputFileName = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_" + year + "_IPC.tif").getAbsolutePath();
+
+            if(aR.outputMask){
+                outputFileNameMask = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_mask.tif").getAbsolutePath();
+            }
+
+            if(aR.rasterizeColor){
+                outputFileNameColor = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_color.tif").getAbsolutePath();
+            }
+
         }
 
         if(aR.outputMask){

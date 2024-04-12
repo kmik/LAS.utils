@@ -172,7 +172,7 @@ public class GridUtils {
             int gridX = (int)Math.floor((x - this.originX) / this.resolution);
             int gridY = (int)Math.floor((this.originY - y) / this.resolution);
 
-            System.out.println(this.originX + " " + this.originY + " " + x + " " + y + " " + gridX + " " + gridY + " " + this.resolution);
+            //System.out.println(this.originX + " " + this.originY + " " + x + " " + y + " " + gridX + " " + gridY + " " + this.resolution);
             int[] gridPoint = {gridX, gridY};
 
             gridCoordinates.add(gridPoint);
@@ -230,7 +230,7 @@ public class GridUtils {
         //band2.FlushCache();
         dataset_output.delete();
 
-        System.out.println("GOT HER! " + this.originX + " " + this.originY);
+        //System.out.println("GOT HER! " + this.originX + " " + this.originY);
         // Write the grid to a raster file
     }
 
@@ -318,7 +318,7 @@ public class GridUtils {
                 newGrid[xcoordinatesToAlter.get(i)][ycoordinatesToAlter.get(i)] = values.get(i);
             }
 
-            System.out.println("Iterations: " + iterations++ + " " + countNa);
+           // System.out.println("Iterations: " + iterations++ + " " + countNa);
         }
 
         int countNanew = 0;

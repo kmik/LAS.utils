@@ -56,9 +56,9 @@ public class tesselator {
                 double[][] bound2 = sU_plots.getBounds(j);
 
                 if(sU.boundsOverlap(bound1, bound2)) {
-                    System.out.println("Overlap: " + i + " " + j);
+                    //System.out.println("Overlap: " + i + " " + j);
 
-                    System.out.println(sU.overlapPercentage(bound1, bound2));
+                    //System.out.println(sU.overlapPercentage(bound1, bound2));
 
                     sU_plots.addAffiliation(j, i);
                 }
@@ -76,10 +76,10 @@ public class tesselator {
             pointToPolygonLink.add(sU.pointInWhichPolygon(points.get(i)[0], points.get(i)[1]));
         }
 
-        System.out.println("Number of points: " + points.size() + " " + pointToPolygonLink.size());
+        //System.out.println("Number of points: " + points.size() + " " + pointToPolygonLink.size());
 
         for( int i = 0; i < points.size(); i++){
-            System.out.println("Point: " + points.get(i)[0] + " " + points.get(i)[1] + " " + pointToPolygonLink.get(i));
+            //System.out.println("Point: " + points.get(i)[0] + " " + points.get(i)[1] + " " + pointToPolygonLink.get(i));
         }
 
 
@@ -99,10 +99,10 @@ public class tesselator {
         for(int i : sU_plots.getBounds().keySet()){
             double[] bbox = sU_plots.getBoundingBox(i);
             ArrayList<int[]> cells = gU.getCellsThatOverlapWithExtent(bbox);
-            System.out.println("Number of cells: " + cells.size());
+            //System.out.println("Number of cells: " + cells.size());
 
             if(cells.size() > 1){
-                System.out.println("More than one cell for polygon: " + i);
+                //System.out.println("More than one cell for polygon: " + i);
                 featuresInMultipleCells.put(i, new ArrayList<>());
                 for(int j = 0; j < cells.size(); j++){
                     featuresInMultipleCells.get(i).add(cells.get(j));
@@ -116,9 +116,9 @@ public class tesselator {
         System.out.println("Number of features in multiple cells: " + featuresInMultipleCells.size());
 
         for(int i : featuresInMultipleCells.keySet()){
-            System.out.println("Feature: " + i);
+            //System.out.println("Feature: " + i);
             for(int j = 0; j < featuresInMultipleCells.get(i).size(); j++){
-                System.out.println("Cell: " + featuresInMultipleCells.get(i).get(j)[0] + " " + featuresInMultipleCells.get(i).get(j)[1]);
+                //System.out.println("Cell: " + featuresInMultipleCells.get(i).get(j)[0] + " " + featuresInMultipleCells.get(i).get(j)[1]);
             }
         }
 
@@ -149,7 +149,7 @@ public class tesselator {
         }
 
         seg.setAlgorithm("regionGrowing");
-
+        seg.addShapefile(sU_plots);
         seg.run();
         seg.validateNoFeaturesInMultipleCells();
         seg.affiliationPercentages();
