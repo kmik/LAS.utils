@@ -1568,11 +1568,12 @@ public class lasRasterTools {
             else
                 mostPixels = 0;
 
-            if(aR.metadataitems.size() == 0)
+            if(aR.metadataitems.size() == 0) {
                 lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i));
-            if(aR.convo)
+            }
+            else if(aR.convo) {
                 lCMO.writeLine_convo_raster(metrics_convo, colnames_convo, polyIds.get(i));
-            else {
+            }else {
                 lCMO.writeLineZonal(metrics_a, colnames_a, polyIds.get(i), metadataItems, aR.metadataitems.size(), mostPixels, mapSheetName);
 
                 if(aR.convo)
