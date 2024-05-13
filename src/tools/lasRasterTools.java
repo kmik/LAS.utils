@@ -560,13 +560,14 @@ public class lasRasterTools {
                 outputFileNameColor = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_color.tif").getAbsolutePath();
             }
 
-        }
+        }else {
 
-        if(aR.outputMask){
-            outputFileNameMask = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_mask.tif").getAbsolutePath();
-        }
-        if(aR.rasterizeColor){
-            outputFileNameColor = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_color.tif").getAbsolutePath();
+            if (aR.outputMask) {
+                outputFileNameMask = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_mask.tif").getAbsolutePath();
+            }
+            if (aR.rasterizeColor) {
+                outputFileNameColor = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_color.tif").getAbsolutePath();
+            }
         }
 
         double pointCloudMinX = pointCloud.getMinX() - aR.res/2.0;
