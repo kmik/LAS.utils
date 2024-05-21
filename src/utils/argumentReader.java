@@ -156,7 +156,7 @@ public class argumentReader {
     public boolean mode_3d = false;
 
     public int field = 0;
-
+    public String field_string = "";
     public int drop_scan_angle_below = -1;
     public int drop_scan_angle_above = -1;
     //public String pathSep = System.getProperty("file.separator");
@@ -752,6 +752,13 @@ public class argumentReader {
                 .longOpt("drop_classification")
                 .hasArg(true)
                 .desc("Drop a point class")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("field_string")
+                .hasArg(true)
+                .desc("Field id as string")
                 .required(false)
                 .build());
 
@@ -2455,6 +2462,11 @@ public class argumentReader {
 
                 this.iparse = cmd.getOptionValue("iparse");
 
+            }
+
+            if (cmd.hasOption("field_string")) {
+
+                this.field_string = (cmd.getOptionValue("field_string"));
             }
 
             if (cmd.hasOption("EPSG")) {

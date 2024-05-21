@@ -77,7 +77,7 @@ public class treeMapToPlots {
             int counter = 0;
             for(double[] plotCenter : plotCenters){
 
-                String id = "plot_" + p + "_sim_" + counter++;
+                String id = "poly_" + p + "_sim_" + counter++;
 
                 outputPlots.addCircleToShapefile(plotCenter[0], plotCenter[1], 9.0, id);
                 List<Feature> treesInPlot = trees.kNearestPoints(plotCenter[0], plotCenter[1], 100, 9.0);

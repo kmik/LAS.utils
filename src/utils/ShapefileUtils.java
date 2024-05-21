@@ -407,6 +407,14 @@ public class ShapefileUtils {
         return bounds.get(id);
     }
 
+    public boolean canCastStringToInteger(String str) {
+    try {
+        Integer.parseInt(str);
+        return true;
+    } catch (NumberFormatException e) {
+        return false;
+    }
+}
     public void readShapeFiles(String shapeFile) throws IOException {
 
 
@@ -438,9 +446,12 @@ public class ShapefileUtils {
 
                 Feature tempF = shapeFileLayer.GetFeature(i);
 
-                String id = tempF.GetFieldAsString(aR.field);
+                String id;
 
-               // System.out.println("id: " + id + " " + tempF.GetFieldCount());
+                if(!aR.field_string.equals(""))
+                    id = tempF.GetFieldAsString(aR.field_string);
+                else
+                    id = Integer.toString(tempF.GetFieldAsInteger(aR.field));
 
 
                 //if(id == null){
@@ -453,8 +464,10 @@ public class ShapefileUtils {
                 //System.out.println("id: " + id + " " + tempF.GetFieldCount());
                 Geometry tempG = tempF.GetGeometryRef();
 
+                boolean canCast = canCastStringToInteger(id);
 
-                ;
+                int castShapeId = -1;
+
 // check if geometry is a MultiPolygon
                 if (tempG.GetGeometryName().equals("MULTIPOLYGON")) {
 
@@ -469,7 +482,7 @@ public class ShapefileUtils {
 
                         int numGeom2 = tempG.GetGeometryRef(j).GetGeometryCount();
 
-                        shapeId++;
+
 
                         for(int j_ = 0; j_ < numGeom2; j_++){
 
@@ -488,34 +501,40 @@ public class ShapefileUtils {
 
                                     Polygon tempP = new Polygon();
 
+                                    if(canCast)
+                                        castShapeId = Integer.parseInt(id);
+                                    else
+                                        castShapeId = shapeId++;
+
+
                                     double[] centroid = tempG.GetGeometryRef(j).Centroid().GetPoint(0);
                                     //System.out.println("here3 " + tempF.GetFieldAsInteger(0));
-                                    bounds.put(shapeId, clone2DArray(tempG2.GetPoints()));
+                                    bounds.put(castShapeId, clone2DArray(tempG2.GetPoints()));
                                     //System.out.println("here4 " + tempF.GetFieldAsInteger(0));
-                                    centroids.put(shapeId, new double[]{centroid[0], centroid[1]});
-                                    polyIdsAsString.put(shapeId, id);
+                                    centroids.put(castShapeId, new double[]{centroid[0], centroid[1]});
+                                    polyIdsAsString.put(castShapeId, id);
                                     //System.out.println("here5 " + tempF.GetFieldAsInteger(0));
-                                    centroids_.add(new KdTree.XYZPoint(centroid[0], centroid[1], 0, shapeId));
+                                    centroids_.add(new KdTree.XYZPoint(centroid[0], centroid[1], 0, castShapeId));
 
                                     //System.out.println("Centroid: " + centroid[0] + " " + centroid[1] + " " + shapeId);
 
                                     tempP.addOuterRing(clone2DArray(tempG2.GetPoints()));
-                                    tempP.setId(shapeId);
-                                    polygons.put(shapeId, tempP);
+                                    tempP.setId(castShapeId);
+                                    polygons.put(castShapeId, tempP);
 
 
-                                    polygons.put(shapeId, new Polygon());
+                                    polygons.put(castShapeId, new Polygon());
 
-                                    if (usedIds.contains(shapeId)) {
-                                        System.out.println("duplicate id: " + shapeId);
+                                    if (usedIds.contains(castShapeId)) {
+                                        System.out.println("duplicate id: " + castShapeId);
                                         System.exit(1);
                                     }
-                                    usedIds.add(shapeId);
+                                    usedIds.add(castShapeId);
 
                                 }else{
-                                    holes.put(shapeId, clone2DArray(tempG2.GetPoints()));
+                                    holes.put(castShapeId, clone2DArray(tempG2.GetPoints()));
 
-                                    polygons.get(shapeId).addHole(clone2DArray(tempG2.GetPoints()));
+                                    polygons.get(castShapeId).addHole(clone2DArray(tempG2.GetPoints()));
 
                                 }
 
@@ -532,7 +551,12 @@ public class ShapefileUtils {
 
 
                     //System.out.println(tempG2.GetPointCount() + " " + tempG2.GetGeometryName().equals("LINEARRING"));
-                    shapeId++;
+                    //shapeId++;
+
+                    if(canCast)
+                        castShapeId = Integer.parseInt(id);
+                    else
+                        castShapeId = shapeId++;
 
                     int numGeom = tempG.GetGeometryCount();
 
@@ -559,33 +583,33 @@ public class ShapefileUtils {
 
                                 double[] centroid = tempG.Centroid().GetPoint(0);
                                 //System.out.println("here3 " + tempF.GetFieldAsInteger(0));
-                                bounds.put(shapeId, clone2DArray(tempG3.GetPoints()));
+                                bounds.put(castShapeId, clone2DArray(tempG3.GetPoints()));
                                 //System.out.println("here4 " + tempF.GetFieldAsInteger(0));
-                                centroids.put(shapeId, new double[]{centroid[0], centroid[1]});
-                                polyIdsAsString.put(shapeId, id);
+                                centroids.put(castShapeId, new double[]{centroid[0], centroid[1]});
+                                polyIdsAsString.put(castShapeId, id);
                                 //System.out.println("here5 " + tempF.GetFieldAsInteger(0));
 
                                 //System.out.println("centroid: " + centroid[0] + " " + centroid[1] + " " + shapeId);
 
-                                centroids_.add(new KdTree.XYZPoint(centroid[0], centroid[1], 0, shapeId));
+                                centroids_.add(new KdTree.XYZPoint(centroid[0], centroid[1], 0, castShapeId));
 
                                 tempP.addOuterRing(clone2DArray(tempG3.GetPoints()));
-                                tempP.setId(shapeId);
-                                polygons.put(shapeId, tempP);
+                                tempP.setId(castShapeId);
+                                polygons.put(castShapeId, tempP);
 
 
-                                polygons.put(shapeId, new Polygon());
+                                polygons.put(castShapeId, new Polygon());
 
-                                if (usedIds.contains(shapeId)) {
-                                    System.out.println("duplicate id: " + shapeId);
+                                if (usedIds.contains(castShapeId)) {
+                                    System.out.println("duplicate id: " + castShapeId);
                                     System.exit(1);
                                 }
-                                usedIds.add(shapeId);
+                                usedIds.add(castShapeId);
 
                             }else{
 
-                                holes.put(shapeId, clone2DArray(tempG3.GetPoints()));
-                                polygons.get(shapeId).addHole(clone2DArray(tempG3.GetPoints()));
+                                holes.put(castShapeId, clone2DArray(tempG3.GetPoints()));
+                                polygons.get(castShapeId).addHole(clone2DArray(tempG3.GetPoints()));
 
                             }
                         }
