@@ -2683,11 +2683,16 @@ public class lasRasterTools {
                             continue;
 
                         String id = "";
-
+/*
                         if (tempF.GetFieldCount() > 0)
                             id = tempF.GetFieldAsString(aR.field);
                         else
                             id = String.valueOf(i);
+*/
+                        if(!aR.field_string.equals(""))
+                            id = tempF.GetFieldAsString(aR.field_string);
+                        else
+                            id = Integer.toString(tempF.GetFieldAsInteger(aR.field));
 
                         if(id.equals(""))
                             id = "lasutilsID_" + backUpId++;
