@@ -23,6 +23,8 @@ public class lasthin {
         ArrayList<File> inputFiles = prepareData(aR, "lasthin");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
+        try {
+
         if(aR.cores > 1){
             threadTool(aR, fD);
         }else{
@@ -33,6 +35,11 @@ public class lasthin {
                 Thinner thi = new Thinner(temp, aR.step, aR, 1);
 
             }
+        }
+
+        }catch (OutOfMemoryError e){
+            e.printStackTrace();
+            System.exit(2);
         }
         aR.cleanup();
 
@@ -63,6 +70,8 @@ public class lasthin {
                 threadList.get(i).join();
             } catch (Exception e) {
                 e.printStackTrace();
+                System.out.println("Error in thread: " + i);
+                System.exit(2);
             }
         }
 
@@ -100,12 +109,21 @@ public class lasthin {
                     temp = new LASReader(f);
                 }catch (Exception e){
                     e.printStackTrace();
+                    System.exit(2);
                 }
                 try {
+
                     Thinner thi = new Thinner(temp, aR.step, aR, nCore);
 
-                } catch (Exception e) {
+                } catch (OutOfMemoryError e) {
                     e.printStackTrace();
+                    System.out.println("Error in file: " + f.getAbsolutePath());
+                    System.exit(2);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("Error in file: " + f.getAbsolutePath());
+                    System.exit(2);
                 }
             }
         }

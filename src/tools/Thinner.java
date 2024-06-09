@@ -153,6 +153,7 @@ public class Thinner{
                 klj.readFromFile(new File(""));
             } catch (Exception e) {
                 e.printStackTrace();
+                System.exit(2);
             }
 
             double midCoordinatePointCloudX = (minX + maxX) / 2;

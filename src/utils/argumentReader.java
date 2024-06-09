@@ -31,6 +31,7 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public String stringArgument1 = null;
     public boolean convo = false;
     public boolean subsetColumnNamesVMI = false;
     public boolean compress_output = false;
@@ -935,6 +936,14 @@ public class argumentReader {
                 .longOpt("target")
                 .hasArg(true)
                 .desc("Target file")
+                .required(false)
+                .build());
+
+
+        options.addOption(Option.builder()
+                .longOpt("stringArg1")
+                .hasArg(true)
+                .desc("stringArg1 stringArg1")
                 .required(false)
                 .build());
 
@@ -2627,6 +2636,10 @@ public class argumentReader {
 
             if(cmd.hasOption("exclude")){
                 this.exclude = cmd.getOptionValue("exclude");
+            }
+
+            if(cmd.hasOption("stringArg1")){
+                this.stringArgument1 = cmd.getOptionValue("stringArg1");
             }
 
 

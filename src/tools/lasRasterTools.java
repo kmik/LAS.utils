@@ -1890,7 +1890,7 @@ public class lasRasterTools {
                             if(surfaceCoordinateX >= 0 && surfaceCoordinateX < numPixelsX && surfaceCoordinateY >= 0 && surfaceCoordinateY < numPixelsY){
 
                                 surface[surfaceCoordinateX][surfaceCoordinateY] = ras.readValue(x, y);
-                                System.out.println("HERE!!");
+                                //System.out.println("HERE!!");
 
                             }
 
