@@ -17,7 +17,7 @@ current_datetime=$(date +"%Y-%m-%d_%H-%M-%S.%N")
 callDir="$PWD"
 #java -Xmx500M -XX:ParallelGCThreads=8 -XX:ConcGCThreads=8 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" lasthin $@ 2>&1 | tee $callDir/lasthin_$current_datetime.log || [ ! -s $callDir/lasthin_$current_datetime.log ] && rm $callDir/lasthin_$current_datetime.log
 
-stdbuf -oL java -Xmx500M -XX:ParallelGCThreads=8 -XX:ConcGCThreads=8 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" lasthin "$@" 2>&1 | tee "$callDir/lasthin_$current_datetime.log"
+stdbuf -oL java -Xmx32g -XX:ParallelGCThreads=8 -XX:ConcGCThreads=8 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" lasthin "$@" 2>&1 | tee "$callDir/lasthin_$current_datetime.log"
 
 
 # Capture the exit status of the Java command
@@ -27,3 +27,5 @@ exit_status=${PIPESTATUS[0]}
 if [ $exit_status -eq 0 ]; then
   rm "$callDir/lasthin_$current_datetime.log"
 fi
+
+set +f
