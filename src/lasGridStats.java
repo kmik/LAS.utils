@@ -55,6 +55,7 @@ public class lasGridStats {
 
                 } catch (Exception e) {
                     e.printStackTrace();
+                    System.exit(2);
                 }
 
                 checkConfigFile(mapSheetsToConsider, klj, mapSheetsInsideFinland);
@@ -63,6 +64,7 @@ public class lasGridStats {
                     klj.readFromFile(new File(""), mapSheetsToConsider);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    System.exit(2);
                 }
 
                 System.out.println(klj.configMapSheetExtents.size());
@@ -145,6 +147,10 @@ public class lasGridStats {
                             //tools.lasGridStats lGS = new tools.lasGridStats(aR, 1, temp, outputName, lCMO);
                         } catch (Exception e) {
                             e.printStackTrace();
+                            System.exit(1);
+                        } catch (Error e) {
+                            e.printStackTrace();
+                            System.exit(1);
                         }
                     }
                 }
@@ -339,6 +345,10 @@ public class lasGridStats {
 
                 }catch (Exception e){
                     e.printStackTrace();
+                    System.exit(2);
+                } catch (Error e) {
+                    e.printStackTrace();
+                    System.exit(2);
                 }
 
                 aR.prog.fileDone();
@@ -388,6 +398,10 @@ public class lasGridStats {
                     tools.lasGridStats lGS = new tools.lasGridStats(aR, 1, temp, outputName, lCMO, rasterBank);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    System.exit(2);
+                }catch (Error e) {
+                    e.printStackTrace();
+                    System.exit(2);
                 }
 
             }

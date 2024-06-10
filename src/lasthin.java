@@ -125,6 +125,11 @@ public class lasthin {
                     System.out.println("Error in file: " + f.getAbsolutePath());
                     System.exit(2);
                 }
+                catch (Error e) {
+                    e.printStackTrace();
+                    System.out.println("Error in file: " + f.getAbsolutePath());
+                    System.exit(2);
+                }
             }
         }
     }

@@ -29,6 +29,10 @@ public class las2txt {
                     tools.las2txt ddd = new tools.las2txt(temp, aR.odir, aR.oparse, aR, 1);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    System.exit(1);
+                }catch (Error e) {
+                    e.printStackTrace();
+                    System.exit(1);
                 }
             }
         }
@@ -100,6 +104,10 @@ public class las2txt {
 
                 }catch (Exception e){
                     e.printStackTrace();
+                    System.exit(2);
+                }catch (Error e){
+                    e.printStackTrace();
+                    System.exit(2);
                 }
             }
         }

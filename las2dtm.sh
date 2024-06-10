@@ -10,10 +10,27 @@ export LD_LIBRARY_PATH=$GDAL_PATH:$GDAL_DATA_PATH:$GDAL_JAVA_PATH:$LIBGDAL_PATH:
 export GDAL_DATA=$GDAL_DATA_PATH
 
 # Get the current date and time
-current_datetime=$(date +"%Y-%m-%d_%H-%M-%S")
+#current_datetime=$(date +"%Y-%m-%d_%H-%M-%S")
+# Get the directory from which the script was called
+#callDir="$PWD"
+#java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" las2dtm $@ 2>&1 | tee $callDir/las2dtm_$current_datetime.log || [ ! -s $callDir/las2dtm_$current_datetime.log ] && rm $callDir/las2dtm_$current_datetime.log
+
+# Get the current date and time
+current_datetime=$(date +"%Y-%m-%d_%H-%M-%S.%N")
+
 # Get the directory from which the script was called
 callDir="$PWD"
-java -Xmx16g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" las2dtm $@ 2>&1 | tee $callDir/las2dtm_$current_datetime.log || [ ! -s $callDir/las2dtm_$current_datetime.log ] && rm $callDir/las2dtm_$current_datetime.log
+#java -Xmx500M -XX:ParallelGCThreads=8 -XX:ConcGCThreads=8 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" lasthin $@ 2>&1 | tee $callDir/lasthin_$current_datetime.log || [ ! -s $callDir/lasthin_$current_datetime.log ] && rm $callDir/lasthin_$current_datetime.log
+
+stdbuf -oL java -Xmx32g -XX:ParallelGCThreads=8 -XX:ConcGCThreads=8 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" las2dtm "$@" 2>&1 | tee "$callDir/las2dtm_$current_datetime.log"
+
+# Capture the exit status of the Java command
+exit_status=${PIPESTATUS[0]}
+
+# Check if the log file is empty or the command was successful and delete it if so
+if [ $exit_status -eq 0 ]; then
+  rm "$callDir/las2dtm_$current_datetime.log"
+fi
 
 set +f
 

@@ -16,6 +16,8 @@ public class txt2las {
     public static void main(String[] args) throws IOException {
 
         argumentReader aR = new argumentReader(args);
+
+
         ArrayList<File> inputFiles = prepareData(aR, "las2txt");
         //fileDistributor fD = new fileDistributor(aR.inputFiles);
         printProcessingTime();

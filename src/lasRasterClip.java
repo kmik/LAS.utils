@@ -25,11 +25,19 @@ public class lasRasterClip {
         //if(aR.cores > 1){
             //threadTool(aR, fD);
         //}else{
+            try {
+                lasRasterTools tooli = new lasRasterTools(aR);
 
-            lasRasterTools tooli = new lasRasterTools(aR);
-
-            tooli.readRasters();
-            tooli.clip();
+                tooli.readRasters();
+                tooli.clip();
+            }catch (Exception e) {
+                e.printStackTrace();
+                System.exit(2);
+            }
+            catch (Error e) {
+                e.printStackTrace();
+                System.exit(2);
+            }
 
             if(false)
             for (int i = 0; i < inputFiles.size(); i++) {

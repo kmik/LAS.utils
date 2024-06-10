@@ -20,8 +20,13 @@ public class las2tile {
 
         try {
             Tiler tile = new Tiler(aR.inputFiles, aR);
-        }catch (Exception e){
+        }catch (Exception e) {
             e.printStackTrace();
+            System.exit(2);
+        }
+        catch (Error e) {
+            e.printStackTrace();
+            System.exit(2);
         }
 
 

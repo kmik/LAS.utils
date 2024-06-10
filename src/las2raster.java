@@ -29,14 +29,24 @@ public class las2raster {
 
             for (int i = 0; i < inputFiles.size(); i++) {
 
-                lasRasterTools tool = new lasRasterTools(aR);
+                try {
+                    lasRasterTools tool = new lasRasterTools(aR);
 
-                if(aR.metadatafile != null)
-                    tool.readMetadata(aR.metadatafile);
+                    if (aR.metadatafile != null)
+                        tool.readMetadata(aR.metadatafile);
 
-                LASReader temp = new LASReader(aR.inputFiles.get(i));
+                    LASReader temp = new LASReader(aR.inputFiles.get(i));
 
-                tool.rasterize(temp, aR.res);
+
+                    tool.rasterize(temp, aR.res);
+                }catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+                catch (Error e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
 
             }
 
@@ -119,6 +129,11 @@ public class las2raster {
 
                 }catch (Exception e){
                     e.printStackTrace();
+                    System.exit(2);
+                }
+                catch (Error e) {
+                    e.printStackTrace();
+                    System.exit(2);
                 }
             }
         }

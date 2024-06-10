@@ -29,6 +29,11 @@ public class lasSplit {
                     split.split();
                 } catch (Exception e) {
                     e.printStackTrace();
+                    System.exit(2);
+                }
+                catch (Error e) {
+                    e.printStackTrace();
+                    System.exit(2);
                 }
             }
         }
@@ -96,8 +101,20 @@ public class lasSplit {
                     temp = new LASReader(f);
                     tools.lasSplit split = new tools.lasSplit(temp, aR, 1);
                     split.split();
-                }catch (Exception e){
+                } catch (OutOfMemoryError e) {
                     e.printStackTrace();
+                    System.out.println("Error in file: " + f.getAbsolutePath());
+                    System.exit(2);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("Error in file: " + f.getAbsolutePath());
+                    System.exit(2);
+                }
+                catch (Error e) {
+                    e.printStackTrace();
+                    System.out.println("Error in file: " + f.getAbsolutePath());
+                    System.exit(2);
                 }
             }
         }

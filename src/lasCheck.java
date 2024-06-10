@@ -29,6 +29,7 @@ public class lasCheck {
                     check.check();
                 } catch (Exception e) {
                     e.printStackTrace();
+                    System.exit(2);
                 }
             }
         }

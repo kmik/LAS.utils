@@ -1,5 +1,6 @@
 import LASio.LASReader;
 import err.toolException;
+import java_cup.runtime.XMLElement;
 import tools.groundMatch;
 import tools.lasAligner;
 import tools.process_las2las;
@@ -28,6 +29,7 @@ public class lasAlign{
             //threadTool(aR, fD);
         //}else{
 
+        try {
             aR.logFile = aR.createFile("alignerLog.log");
             lasAligner tooli = new lasAligner(aR);
             tooli.setTinManupulator(tin);
@@ -47,18 +49,24 @@ public class lasAlign{
 
             tooli.prepareData();
 
-            try {
                 tooli.processTargets();
+
+
+                tin.removeOutliers();
+
+                tin.writeTinToFile(tooli.targets.get(0).getFile(), 5);
+
+                tooli.applyCorrection();
+
+
             }catch (Exception e){
+                e.printStackTrace();
+                System.exit(1);
+            }catch (Error e){
                 e.printStackTrace();
                 System.exit(1);
             }
 
-            tin.removeOutliers();
-
-            tin.writeTinToFile(tooli.targets.get(0).getFile(), 5);
-
-            tooli.applyCorrection();
 
 
             System.out.println("FINISHED");
@@ -133,6 +141,13 @@ public class lasAlign{
                     tooli.convert(temp, aR);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    System.exit(2);
+                }catch (OutOfMemoryError e) {
+                    e.printStackTrace();
+                    System.exit(2);
+                }catch (Error e) {
+                    e.printStackTrace();
+                    System.exit(2);
                 }
             }
         }
