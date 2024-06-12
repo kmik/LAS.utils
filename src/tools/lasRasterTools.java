@@ -12,6 +12,16 @@ import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconst;
 import org.gdal.ogr.*;
 import org.gdal.osr.SpatialReference;
+
+import org.gdal.gdal.Band;
+import org.gdal.gdal.Dataset;
+import org.gdal.gdal.Driver;
+import org.gdal.gdal.gdal;
+import org.gdal.gdalconst.gdalconst;
+import org.gdal.ogr.ogr;
+import org.gdal.osr.CoordinateTransformation;
+import org.gdal.osr.SpatialReference;
+
 import utils.*;
 
 import javax.imageio.ImageIO;
@@ -1615,6 +1625,7 @@ public class lasRasterTools {
 
     public void zonalStatistics_exportSurface(argumentReader aR, lasClipMetricOfile lCMO ) throws Exception{
 
+
         KarttaLehtiJako klj = new KarttaLehtiJako();
         klj.readFromFile(new File(""));
 
@@ -1998,6 +2009,9 @@ public class lasRasterTools {
 
 
             File outputFile = new File(outDirectory + aR.pathSep + "surface.txt");
+            File outputFileTiff = new File(outDirectory + aR.pathSep + "surface.tif");
+
+
 
             if(outputFile.exists()){
                 outputFile.delete();
@@ -2006,12 +2020,39 @@ public class lasRasterTools {
                 outputFile.createNewFile();
             }
 
+            if(outputFileTiff.exists()){
+                outputFileTiff.delete();
+                outputFileTiff.createNewFile();
+            }else{
+                outputFileTiff.createNewFile();
+
+            }
+
+            Band band2=null;
+
+            Dataset dataset = null;
+            Driver driver = null;
+            driver = gdal.GetDriverByName("GTiff");
+            driver.Register();
+
+            dataset = driver.Create(outputFileTiff.getAbsolutePath(), numPixelsX, numPixelsY, 1, gdalconst.GDT_Float32);
+            //dataset.SetGeoTransform(chm.GetGeoTransform());
+            //dataset.SetProjection(chm.GetProjection());
+            band2 = dataset.GetRasterBand(1);    // writable band
+
+
+            rasterManipulator rM = new rasterManipulator(band2);
+
+
             FileWriter fw = null;
             BufferedWriter bw = null;//
             PrintWriter out = null;
 
             fw = new FileWriter(outputFile, false);
             bw = new BufferedWriter(fw);
+
+            float[] dataRow = new float[numPixelsX];
+            //int counterRowIndex = 0;
 
             for(int y = 0; y < numPixelsY; y++){
                 for(int x = 0; x < numPixelsX; x++){
@@ -2021,13 +2062,22 @@ public class lasRasterTools {
 
                     bw.write(String.valueOf(real_x) + "\t" + String.valueOf(real_y) + "\t" + String.valueOf(surface[x][y]) + "\n");
 
+                    dataRow[x] = (float)surface[x][y];
                     //if(x != (numPixelsX-1))
                     //    bw.write("\t");
 
                 }
+
+                rM.setValue(y, dataRow);
                 //if(y != (numPixelsY-1))
                 //    bw.write("\n");
+                //counterRowIndex = 0;
+
             }
+
+            band2.FlushCache();
+            dataset.FlushCache();
+
 
 
             bw.close();
