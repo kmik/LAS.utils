@@ -120,7 +120,6 @@ public class las2raster {
 
                 try {
 
-
                     if(aR.metadatafile != null)
                         tool.readMetadata(aR.metadatafile);
 

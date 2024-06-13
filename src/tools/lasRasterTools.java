@@ -31,10 +31,7 @@ import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.io.*;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
 
@@ -670,7 +667,10 @@ public class lasRasterTools {
             color.SetGeoTransform(geoTransform);
         }
 
-        double[][] chm_array = new double[rasterWidth][rasterHeight];
+        float[][] chm_array = new float[rasterWidth][rasterHeight];
+
+        reset2dArray(chm_array, -99.0f);
+
         ArrayList<int[][]> color_array = new ArrayList<int[][]>(aR.nBands);
         boolean[][] mask_array = new boolean[rasterWidth][rasterHeight];
 
@@ -720,9 +720,9 @@ public class lasRasterTools {
                 if (x >= 0 && x < rasterWidth && y >= 0 && y < rasterHeight) {
 
                     if(Double.isNaN(chm_array[x][y]))
-                        chm_array[x][y] = (double)tempPoint.z;
+                        chm_array[x][y] = (float)tempPoint.z;
                     else if ( (float)tempPoint.z > chm_array[x][y])
-                        chm_array[x][y] = (double)tempPoint.z;
+                        chm_array[x][y] = (float)tempPoint.z;
                     else{
 
                     }
@@ -788,6 +788,10 @@ public class lasRasterTools {
 
             }
         }
+        boolean interpolated[][] = null;
+
+        if(aR.interpolate)
+            interpolated = interpolate2dArrayMedian(chm_array, -99.0f, -100.0f);
 
         copyRasterContents(chm_array, band);
 
@@ -871,6 +875,240 @@ public class lasRasterTools {
 
     }
 
+    public void reset2dArray(float[][] array, float value){
+        for(int i = 0; i < array.length; i++){
+            for(int j = 0; j < array[0].length; j++){
+                array[i][j] = value;
+            }
+        }
+    }
+
+    public static float[][] clone2DArray(float[][] original) {
+        int rows = original.length;
+        float[][] clone = new float[rows][];
+
+        for (int i = 0; i < rows; i++) {
+            int columns = original[i].length;
+            clone[i] = new float[columns];
+            System.arraycopy(original[i], 0, clone[i], 0, columns);
+        }
+
+        return clone;
+    }
+
+    public boolean[][] interpolate2dArrayMedian(float[][] array, float nanvalue, float ignorevalue){
+
+        float[][] tmpArray = clone2DArray(array);
+
+        int ncols = array.length;
+        int nrows = array[0].length;
+
+        boolean[][] changed = new boolean[ncols][nrows];
+
+
+        int countDone = 0;
+        List<Long> nanvalues = new ArrayList<>();
+        //List<Long> nanvalues2 = new LinkedList<>();
+
+        for(int i = 0; i < ncols; i++){
+            for(int j = 0; j < nrows; j++){
+
+                if(array[i][j] == nanvalue){
+                    nanvalues.add((long)j * ncols + i);
+                }
+
+                if(array[i][j] == ignorevalue){
+                    changed[i][j] = true;
+
+                }
+            }
+        }
+
+        //boolean switch_ = true;
+
+        int size = nanvalues.size();
+        int currentIndex = 0;
+
+        HashMap<Long, Float> map = new HashMap<>();
+        ArrayList<Float> mapArray = new ArrayList<>();
+        ArrayList<Long> mapArrayIndex = new ArrayList<>();
+
+        int countDoneBefore = 0;
+
+        while(countDone < nanvalues.size()){
+
+            Long index = nanvalues.get(currentIndex);
+
+            if(nanvalues.get(currentIndex) == -99L){
+                currentIndex++;
+
+                if(currentIndex >= nanvalues.size()) {
+
+                    //System.out.println("RESETTING ITERATOR");
+                    if(false)
+                        for (Long key : map.keySet()) {
+                            int x_ = (int) (key % ncols);
+                            int y_ = (int) (key / ncols);
+                            array[x_][y_] = map.get(key);
+                            tmpArray[x_][y_] = map.get(key);
+                        }
+
+                    for(int i = 0; i < mapArray.size(); i++){
+                        int x_ = (int) (mapArrayIndex.get(i) % ncols);
+                        int y_ = (int) (mapArrayIndex.get(i) / ncols);
+                        array[x_][y_] = mapArray.get(i);
+                        tmpArray[x_][y_] = mapArray.get(i);
+                    }
+
+                    if(countDoneBefore == countDone) {
+                        System.out.println("COULD NOT INTERPOLATE ALL NAN VALUES - STOPPING. MISSING: " + (nanvalues.size() - countDone) + " / " + nanvalues.size());
+                        break;
+                    }
+
+                    countDoneBefore = countDone;
+
+                    map.clear();
+                    mapArray.clear();
+                    mapArrayIndex.clear();
+
+                    currentIndex = 0;
+
+                }
+
+                continue;
+            }
+
+            int x = (int)(index % ncols);
+            int y = (int)(index / ncols);
+
+            //float mean = getMeanFromNeighbors(tmpArray, x, y, nanvalue);
+            float mean = getMedianFromNeighbors(tmpArray, x, y, nanvalue, ignorevalue);
+
+            if(mean != nanvalue){
+                //array[x][y] = mean;
+                //map.put(index, mean);
+                mapArray.add(mean);
+                mapArrayIndex.add(index);
+
+                changed[x][y] = true;
+                nanvalues.set(currentIndex, -99L);
+                countDone++;
+            }
+
+            currentIndex++;
+
+            if(currentIndex >= nanvalues.size()) {
+
+                //System.out.println("RESETTING ITERATOR");
+                if(false)
+                    for (Long key : map.keySet()) {
+                        int x_ = (int) (key % ncols);
+                        int y_ = (int) (key / ncols);
+                        array[x_][y_] = map.get(key);
+                        tmpArray[x_][y_] = map.get(key);
+                    }
+
+                for(int i = 0; i < mapArray.size(); i++){
+                    int x_ = (int) (mapArrayIndex.get(i) % ncols);
+                    int y_ = (int) (mapArrayIndex.get(i) / ncols);
+                    array[x_][y_] = mapArray.get(i);
+                    tmpArray[x_][y_] = mapArray.get(i);
+                }
+
+                if(countDoneBefore == countDone) {
+                    System.out.println("COULD NOT INTERPOLATE ALL NAN VALUES - STOPPING. MISSING: " + (nanvalues.size() - countDone) + " / " + nanvalues.size());
+                    break;
+                }
+
+                countDoneBefore = countDone;
+
+
+                map.clear();
+                mapArray.clear();
+                mapArrayIndex.clear();
+
+                currentIndex = 0;
+
+            }
+
+            //if(countDone % 1000 == 0)
+            //   System.out.println("countDone: " + countDone + " / " + size);
+            //System.out.println("nanvalues: " + nanvalues.size() + " nanvalues2: " + nanvalues2.size() + " sum: " + (nanvalues.size() + nanvalues2.size()));
+
+        }
+
+        if(false)
+            if(map.size() > 0){
+                for (Long key : map.keySet()) {
+                    int x_ = (int) (key % ncols);
+                    int y_ = (int) (key / ncols);
+                    array[x_][y_] = map.get(key);
+                    tmpArray[x_][y_] = map.get(key);
+                }
+            }
+
+        if(mapArray.size() > 0){
+            for(int i = 0; i < mapArray.size(); i++){
+                int x_ = (int) (mapArrayIndex.get(i) % ncols);
+                int y_ = (int) (mapArrayIndex.get(i) / ncols);
+                array[x_][y_] = mapArray.get(i);
+                tmpArray[x_][y_] = mapArray.get(i);
+            }
+        }
+
+        for(int i = 0; i < nanvalues.size(); i++){
+            if(nanvalues.get(i) != -99L)
+                System.out.println("ERROR: nanvalues.get(i) != -99L");
+        }
+
+        return changed;
+
+    }
+
+    public float getMedianFromNeighbors(float[][] array, int x, int y, float nanvalue, float ignorevalue){
+        int numRows = array.length;
+        int numCols = array[0].length;
+
+        List<Float> neighbors = new ArrayList<>();
+
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                int newX = x + dx;
+                int newY = y + dy;
+
+                // Check if the neighboring cell is within bounds
+                if (newX >= 0 && newX < numRows && newY >= 0 && newY < numCols) {
+                    float neighborValue = array[newX][newY];
+
+                    // Ignore neighbors with nanvalue
+                    if (neighborValue != nanvalue && neighborValue != ignorevalue){
+                        neighbors.add(neighborValue);
+                    }
+                }
+            }
+        }
+
+        // Sort the list of valid neighboring values
+        Float[] sortedNeighbors = neighbors.toArray(new Float[0]);
+        Arrays.sort(sortedNeighbors);
+
+        // Calculate the median value
+        int size = sortedNeighbors.length;
+        if (size < 2) {
+            // No valid neighbors found, return a special value (e.g., NaN or -1) to indicate that
+            return nanvalue;
+        } else if (size % 2 == 0) {
+            // If there is an even number of values, return the average of the two middle values
+            int middle = size / 2;
+            float median = (sortedNeighbors[middle - 1] + sortedNeighbors[middle]) / 2.0f;
+            return median;
+        } else {
+            // If there is an odd number of values, return the middle value
+            int middle = size / 2;
+            return sortedNeighbors[middle];
+        }
+    }
+
     public static void copyRasterContents(int[][] from, Band to){
 
         int x = to.getXSize();
@@ -912,6 +1150,28 @@ public class lasRasterTools {
         to.WriteRaster(0, 0, x, y, read);
 
     }
+
+    public static void copyRasterContents(float[][] from, Band to){
+
+        int x = to.getXSize();
+        int y = to.getYSize();
+
+        float[] read = new float[x*y];
+
+        int counter = 0;
+
+        for(int y_ = 0; y_ < from[0].length; y_++){
+            for(int x_ = 0; x_ < from.length; x_++){
+
+                read[counter++] = (float)from[x_][y_];
+
+            }
+        }
+
+        to.WriteRaster(0, 0, x, y, read);
+
+    }
+
 
 
     public static void copyRasterContents(boolean[][] from, Band to){
