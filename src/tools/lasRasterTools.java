@@ -790,7 +790,7 @@ public class lasRasterTools {
         }
         boolean interpolated[][] = null;
 
-        if(aR.interpolate)
+        if(aR.rasterizeInterpolate)
             interpolated = interpolate2dArrayMedian(chm_array, -99.0f, -100.0f);
 
         copyRasterContents(chm_array, band);

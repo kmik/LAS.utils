@@ -193,6 +193,7 @@ public class argumentReader {
 
     public boolean interpolate = true;
 
+    public boolean rasterizeInterpolate = false;
     public boolean lasrelate = false;
 
     public boolean dz_on_the_fly = false;
@@ -993,6 +994,13 @@ public class argumentReader {
         options.addOption(Option.builder()
                 .longOpt("layers")
                 .hasArg(true)
+                .desc("neural network layers")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("rasterizeInterpolate")
+                .hasArg(false)
                 .desc("neural network layers")
                 .required(false)
                 .build());
@@ -2371,6 +2379,10 @@ public class argumentReader {
 
                 }
 
+            }
+
+            if (cmd.hasOption("rasterizeInterpolate")){
+                this.rasterizeInterpolate = true;
             }
 
             if (cmd.hasOption("c")) {
