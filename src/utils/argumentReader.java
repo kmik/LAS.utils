@@ -2145,15 +2145,21 @@ public class argumentReader {
 
                 for(String s : ref_){
 
-                    //System.out.println(s);
-                    LASReader tempReader = new LASReader(new File(s));
+                    if(new File(s).getName().contains("las")) {
+                        if (new File(s).getName().split("\\.")[1].equals("las")) {
 
-                    if(tempReader.getNumberOfPointRecords() < 10){
+                            LASReader tempReader = new LASReader(new File(s));
 
-                        tempReader.close();
-                        continue;
+                            if (tempReader.getNumberOfPointRecords() < 10) {
+
+                                tempReader.close();
+                                continue;
+                            }
+                            tempReader.close();
+                        }
                     }
-                    tempReader.close();
+                    //System.out.println(s);
+
                     this.ref.add(new File(s));
                 }
 
