@@ -155,6 +155,7 @@ public class lasAligner {
             int numberOfPixelsX = (int) Math.ceil((max_x - min_x) / resolution);
             int numberOfPixelsY = (int) Math.ceil((max_y - min_y) / resolution);
 
+
             double origo_x = min_x;
             double origo_y = max_y;
 

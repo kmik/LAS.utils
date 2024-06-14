@@ -2146,7 +2146,14 @@ public class argumentReader {
                 for(String s : ref_){
 
                     //System.out.println(s);
+                    LASReader tempReader = new LASReader(new File(s));
 
+                    if(tempReader.getNumberOfPointRecords() < 10){
+
+                        tempReader.close();
+                        continue;
+                    }
+                    tempReader.close();
                     this.ref.add(new File(s));
                 }
 
@@ -2222,6 +2229,14 @@ public class argumentReader {
                 for(String s : tar_){
 
                     //System.out.println(s);
+                    LASReader tempReader = new LASReader(new File(s));
+
+                    if(tempReader.getNumberOfPointRecords() < 10){
+
+                        tempReader.close();
+                        continue;
+                    }
+                    tempReader.close();
 
                     this.tar.add(new File(s));
                 }
@@ -2305,9 +2320,6 @@ public class argumentReader {
                 for(String s : files){
 
                     //System.out.println(s);
-
-
-
                     if(new File(s).getName().contains("las")) {
                         if (new File(s).getName().split("\\.")[1].equals("las")) {
 
@@ -2316,9 +2328,15 @@ public class argumentReader {
                             try {
                                 tempReader = new LASReader(new File(s));
 
+                                long numberOfPointRecords = tempReader.getNumberOfPointRecords();
+
                                 tempReader.close();
                                 tempReader = null;
 
+                                if(numberOfPointRecords < 10){
+
+                                    continue;
+                                }
                                 temp.add(s);
                                 this.inputFiles.add(new File(s));
 

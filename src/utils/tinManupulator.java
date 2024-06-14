@@ -485,13 +485,7 @@ public class tinManupulator {
         for(Vertex v : tin2.getVertices()){
 
             tin.add(new Vertex(v.getX(), v.getY(), v.getZ()));
-/*
-            double distanceFromBoundingbox = this.calculateDistance(v.getX(), v.getY());
 
-            if(distanceFromBoundingbox < minDistanceFromBoundingBox2){
-                minDistanceFromBoundingBox2 = distanceFromBoundingbox;
-            }
-*/
             mean += v.getZ();
             sum += (v.getZ() * v.getZ());
 
