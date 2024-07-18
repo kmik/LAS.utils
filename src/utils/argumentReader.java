@@ -47,6 +47,8 @@ public class argumentReader {
     public ArrayList<File> inputFilesSpectral = new ArrayList<>();
     public int nBands = 3;
     public boolean rasterizeColor = false;
+    public boolean rasterizeIntensity = false;
+
     public float extraByteFloat = 0;
     public ArrayList<String> extraByteNames = new ArrayList<>();
     public double adjustKappa = 0.0;
@@ -1357,6 +1359,14 @@ public class argumentReader {
                 .required(false)
                 .build());
 
+        options.addOption(Option.builder()
+                .longOpt("export_intensity")
+                .hasArg(false)
+                .desc("las2raster export intensity")
+                .required(false)
+                .build());
+
+
         options.addOption(Option.builder("c")
                 .longOpt("cores")
                 .hasArg(true)
@@ -2647,6 +2657,12 @@ public class argumentReader {
             if (cmd.hasOption("export_color")) {
 
                 this.rasterizeColor = true;
+
+            }
+
+            if (cmd.hasOption("export_intensity")) {
+
+                this.rasterizeIntensity = true;
 
             }
 

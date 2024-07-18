@@ -645,6 +645,9 @@ public class LASwrite {
 
 		String[] tokens = in.split(sep);
 		//StringTokenizer tokenizer = new StringTokenizer(in, sep);
+		//System.out.println(Arrays.toString(tokens));
+
+
 
 		for(int i = 0; i < charArray.length; i++){
 
@@ -711,6 +714,9 @@ public class LASwrite {
 				default:
 			}
 		}
+
+		//System.out.println(point.N);
+		//System.exit(1);
 	}
 
 	public static void String2LASpoint__(LasPoint point, String in, char[] charArray , String sep, int n_elements, argumentReader aR, float[] extraBytes){
@@ -1525,6 +1531,7 @@ public class LASwrite {
 							if (minimum_point_format >= 8) {
 								to.writeUnsignedShort(tempPoint.N);
 							}
+
 						}
 						if (minimum_point_format == 10 || minimum_point_format == 9) {
 

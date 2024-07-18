@@ -520,6 +520,7 @@ public class lasRasterTools {
 
         String outputFileNameMask = "notAssigned";
         String outputFileNameColor = "notAssigned";
+        String outputFileNameIntensity = "notAssigned";
 
 
         String year = "0000";
@@ -566,6 +567,9 @@ public class lasRasterTools {
             if(aR.rasterizeColor){
                 outputFileNameColor = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_color.tif").getAbsolutePath();
             }
+            if(aR.rasterizeIntensity){
+                outputFileNameIntensity = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_intensity.tif").getAbsolutePath();
+            }
 
         }else {
 
@@ -574,6 +578,9 @@ public class lasRasterTools {
             }
             if (aR.rasterizeColor) {
                 outputFileNameColor = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_color.tif").getAbsolutePath();
+            }
+            if (aR.rasterizeIntensity) {
+                outputFileNameIntensity = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_intensity.tif").getAbsolutePath();
             }
         }
 
@@ -612,6 +619,7 @@ public class lasRasterTools {
 
         Dataset mask = null;
         Dataset color = null;
+        Dataset intensity = null;
         try {
             cehoam = driver.Create(outputFileName, rasterWidth, rasterHeight, 1, gdalconst.GDT_Float32);
             //cehoam.SetMetadataItem("COMPRESSION", compressionOptions);
@@ -622,7 +630,12 @@ public class lasRasterTools {
             }
 
             if(aR.rasterizeColor){
-                color = driver.Create(outputFileNameColor, rasterWidth, rasterHeight, aR.nBands, gdalconst.GDT_Byte);
+                color = driver.Create(outputFileNameColor, rasterWidth, rasterHeight, aR.nBands, gdalconst.GDT_Float32);
+                //color.SetMetadataItem("COMPRESSION", compressionOptions);
+            }
+
+            if(aR.rasterizeIntensity){
+                intensity = driver.Create(outputFileNameIntensity, rasterWidth, rasterHeight, 1, gdalconst.GDT_Float32);
                 //color.SetMetadataItem("COMPRESSION", compressionOptions);
             }
 
@@ -635,6 +648,7 @@ public class lasRasterTools {
         Band band = cehoam.GetRasterBand(1);
 
         Band maskBand = null;
+        Band intensityBand = null;
         ArrayList<Band> colorBands = new ArrayList<Band>(aR.nBands);
 
         if(aR.outputMask){
@@ -646,6 +660,10 @@ public class lasRasterTools {
             for(int i = 0; i < aR.nBands; i++){
                 colorBands.add(color.GetRasterBand(i+1));
             }
+        }
+
+        if(aR.rasterizeIntensity){
+            intensityBand = intensity.GetRasterBand(1);
         }
 
         band.SetNoDataValue(Float.NaN);
@@ -667,7 +685,14 @@ public class lasRasterTools {
             color.SetGeoTransform(geoTransform);
         }
 
+        if(aR.rasterizeIntensity){
+            intensity.SetProjection(sr.ExportToWkt());
+            intensity.SetGeoTransform(geoTransform);
+        }
+
+
         float[][] chm_array = new float[rasterWidth][rasterHeight];
+        float[][] intensity_array = new float[rasterWidth][rasterHeight];
 
         reset2dArray(chm_array, -99.0f);
 
@@ -762,6 +787,9 @@ public class lasRasterTools {
                             color_array.get(1)[x][y] = tempPoint.G;
                             color_array.get(2)[x][y] = tempPoint.B;
                             color_array.get(3)[x][y] = tempPoint.N;
+
+                            //System.out.println(tempPoint.R + " " + tempPoint.G + " " + tempPoint.B + " " + tempPoint.N);
+                            //System.out.println(color_array.get(0)[x][y] + " " + color_array.get(1)[x][y] + " " + color_array.get(2)[x][y] + " " + color_array.get(3)[x][y]);
                             /*
                             // write tempPoint.R to raster
                             colorValue[0] = (byte)tempPoint.R;
@@ -783,6 +811,10 @@ public class lasRasterTools {
                              */
                         }
 
+                    }
+
+                    if(aR.rasterizeIntensity){
+                        intensity_array[x][y] = (float)tempPoint.intensity;
                     }
                 }
 
@@ -808,13 +840,17 @@ public class lasRasterTools {
             }
         }
 
+        if(aR.rasterizeIntensity){
+            copyRasterContents(intensity_array, intensityBand);
+        }
+
         //String[] options = new String[]{"COMPRESS=LZW"};
 
         // Compression options
         String[] options = new String[]{
                 "COMPRESS=DEFLATE",   // Use DEFLATE compression
                 "PREDICTOR=1",        // Use predictor=1
-                "TILED=YES",          // Enable tiling
+                //"TILED=YES",          // Enable tiling
                 "BLOCKXSIZE=256",    // Tile width in pixels
                 "BLOCKYSIZE=256"     // Tile height in pixels
         };
@@ -868,6 +904,23 @@ public class lasRasterTools {
             }
 
             outputDatasetColor.FlushCache();
+        }
+
+        if(aR.rasterizeIntensity){
+
+            Dataset outputDatasetIntensity = gdal.GetDriverByName("GTiff").CreateCopy(outputFileNameIntensity, intensity, 0, options);
+
+            if(this.metadata.size() > 0){
+
+                for(int i = 0; i < this.metadata.size(); i++){
+
+                    outputDatasetIntensity.SetMetadataItem(this.metadata.get(i).getKey(), this.metadata.get(i).getValue());
+
+                }
+
+            }
+
+            outputDatasetIntensity.FlushCache();
         }
 
 
