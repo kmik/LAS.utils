@@ -2045,11 +2045,11 @@ public class MKid4pointsLAS{
                                                         (!aR.eaba && point_inside_polygon)) {                   // Basic without eaba
 
                                                 //if (pointInPolygon(haku, tempPolygon)) {
-                                                    double distance = euclideanDistance(tempPoint.x, tempPoint.y, treeTops.get(j)[0], treeTops.get(j)[1]);
+                                                    //double distance = euclideanDistance(tempPoint.x, tempPoint.y, treeTops.get(j)[0], treeTops.get(j)[1]);
                                                     //System.out.println("Distance: " + distance);
-                                                    if(distance < 0.2){
-                                                        tempPoint.classification = 15;
-                                                    }
+                                                    //if(distance < 0.2){
+                                                    //    tempPoint.classification = 15;
+                                                    //}
 
                                                     if (otype.equals("las")) {
 
