@@ -244,6 +244,8 @@ public class lasClipMetricOfile {
 
             echo_class_FileWriter.get(0).write("poly_id\tcenter_x\tcenter_y\t");
 
+            if(aR.aux_file != null)
+                echo_class_FileWriter.get(0).write("aux_data\t");
 
             for (int i = 0; i < colnames_a.size(); i++) {
 
@@ -575,6 +577,40 @@ public class lasClipMetricOfile {
             echo_class_FileWriter.get(0).write(poly_id + "\t");
             echo_class_FileWriter.get(0).write(x_coord + "\t");
             echo_class_FileWriter.get(0).write(y_coord + "\t");
+
+            for (int i = 0; i < metrics_a.size(); i++) {
+
+                echo_class_FileWriter.get(0).write(metrics_a.get(i) + "");
+
+                // Write the separator if not the last element
+                if (i + 1 < metrics_a.size())
+                    echo_class_FileWriter.get(0).write("\t");
+            }
+
+            echo_class_FileWriter.get(0).write("\n");
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public synchronized void writeLineZonalGridAux(ArrayList<Double> metrics_a,
+                                                ArrayList<String> colnames_a, double poly_id, double x_coord, double y_coord, double[] auxData){
+
+        if(!colnamesWritten) {
+
+            this.writeColumnNamesZonalGrid(colnames_a);
+
+        }
+
+        try {
+
+            echo_class_FileWriter.get(0).write(poly_id + "\t");
+            echo_class_FileWriter.get(0).write(x_coord + "\t");
+            echo_class_FileWriter.get(0).write(y_coord + "\t");
+            echo_class_FileWriter.get(0).write(auxData[0] + "\t");
+
 
             for (int i = 0; i < metrics_a.size(); i++) {
 

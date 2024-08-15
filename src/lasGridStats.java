@@ -129,6 +129,12 @@ public class lasGridStats {
                     aR.logFile.createNewFile();
                 }
 
+                if(aR.aux_file != null){
+
+
+
+                }
+
                 if(aR.cores > 1){
                     threadTool2(aR, dD, klj, rasterBank);
                 }

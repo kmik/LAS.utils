@@ -74,6 +74,8 @@ public class lasGridStats {
     int grid_y_size = 0;
     int coreNumber = 0;
 
+    Dataset auxFile = null;
+    Band auxFileBand = null;
     org.tinfour.standard.IncrementalTin tin = new org.tinfour.standard.IncrementalTin();
 
     public lasGridStats(LASReader pointCloud, argumentReader aR, int coreNumber) throws Exception{
@@ -145,6 +147,7 @@ public class lasGridStats {
 
         //this.start_2_raster();
 
+
         this.start_2_raster_multithread();
 
         aR.p_update.fileProgress++;
@@ -196,10 +199,18 @@ public class lasGridStats {
 
         //this.start_2_raster();
 
+        if(aR.aux_file != null){
+
+            this.auxFile = gdal.Open(aR.aux_file.getAbsolutePath(), gdalconst.GA_ReadOnly);
+            this.auxFileBand = auxFile.GetRasterBand(1);
+        }
+
         if(aR.configFile != null){
             this.start_2_raster_multithread_specificSheets(extent, mapsheetname);
 
         }
+
+
 
         aR.p_update.fileProgress++;
 
@@ -4164,6 +4175,18 @@ public class lasGridStats {
 
         rasterCollection rasterBank = new rasterCollection(aR.cores);
 
+        double[] auxGeoTransform = new double[6];
+        Dataset auxRaster;
+        Band auxBand;
+
+        if(aR.aux_file != null){
+            auxRaster = gdal.Open(aR.aux_file.getAbsolutePath(), gdalconst.GA_ReadOnly);
+            auxBand = auxRaster.GetRasterBand(1);
+            auxRaster.GetGeoTransform(auxGeoTransform);
+        } else {
+            auxBand = null;
+            auxRaster = null;
+        }
 
 
         int nBands = 0;
@@ -4456,9 +4479,25 @@ public class lasGridStats {
                 metrics_a.add(0, proportionNoData);
                 colnames_a.add(0,"proportionNoData");
 
-                if (aR.metadataitems.size() == 0)
-                    aR.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord);
-                else {
+                double[] auxValue = new double[1];
+
+                if (aR.metadataitems.size() == 0) {
+
+                    if(aR.aux_file != null) {
+
+                        int coordinateX = (int) Math.round((x_coord - auxGeoTransform[0]) / auxGeoTransform[1]);
+                        int coordinateY = (int) Math.round((y_coord - auxGeoTransform[3]) / auxGeoTransform[5]);
+                        System.out.println(coordinateX + " " + coordinateY);
+
+                        auxBand.ReadRaster(coordinateX, coordinateY, 1, 1, auxValue);
+                        //aR.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, new String[]{String.valueOf(auxValue[0])});
+                        aR.lCMO.writeLineZonalGridAux(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, auxValue);
+
+                    }else {
+
+                        aR.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord);
+                    }
+                }else {
                     aR.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, metadataItems, aR.metadataitems.size());
 
                 }
@@ -4635,6 +4674,8 @@ public class lasGridStats {
             }
 
         System.out.println(Arrays.toString(extent));
+
+        double[] auxFileGeotransform = auxFile.GetGeoTransform();
 
 
         //findExtentRaster(rasterBank);
@@ -4847,10 +4888,17 @@ public class lasGridStats {
                     metrics_a.add(0, proportionNoData);
                     colnames_a.add(0, "proportionNoData");
 
+                    //int[] auxDataValue = new int[1];
 
-                    if (aR.metadataitems.size() == 0)
+                    // convert x_coord and y_coord to auxFileBand coordinates
+                    //int x_coord_aux = (int) Math.floor((x_coord - auxFileGeotransform[0]) / auxFileGeotransform[1]);
+                    //int y_coord_aux = (int) Math.floor((auxFileGeotransform[3] - y_coord) / auxFileGeotransform[5]);
+
+
+                    if (aR.metadataitems.size() == 0) {
+                    //    this.auxFileBand.ReadRaster(x_coord_aux, y_coord_aux, 1, 1, auxDataValue);
                         this.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord);
-                    else {
+                    }else {
 
                         this.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, metadataItems, aR.metadataitems.size(), mostPixels, mapSheetNameWithoutExtension);
 

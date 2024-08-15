@@ -307,7 +307,6 @@ public class LASReader {
         //System.out.println("minmax222: " + indexMinMax.get(index_u)[0] + " " + (indexMinMax.get(index_u)[1] - indexMinMax.get(index_u)[0] + 1));
 
       }catch (Exception e){
-
         e.printStackTrace();
       }
 
