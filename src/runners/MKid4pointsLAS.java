@@ -7,6 +7,8 @@ import java.util.*;
 import java.awt.geom.Path2D;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import LASio.*;
 import err.toolException;
@@ -335,6 +337,18 @@ public class MKid4pointsLAS{
                 else
                     id = String.valueOf(i);
 
+                // Regular expression to match numbers in the string
+                Pattern pattern = Pattern.compile("\\d+");
+                Matcher matcher = pattern.matcher(id);
+
+                String extractedNumber = "";
+                if (matcher.find()) {
+                    extractedNumber = matcher.group(); // Extract the first sequence of digits found
+                    id = extractedNumber;
+                }
+
+
+                //System.out.println("Extracted number: " + number);
                 //if(id == null){
 
                 //    System.out.println("null");
