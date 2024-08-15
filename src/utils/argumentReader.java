@@ -2232,11 +2232,6 @@ public class argumentReader {
                     this.metadataitems.add(s);
                 }
 
-                System.out.println(Arrays.toString(cmd.getOptionValues("metadataItems")));
-                System.out.println(Arrays.toString(ref_));
-                System.out.println(Arrays.toString(this.metadataitems.toArray()));
-                System.exit(1);
-
             }
 
             if(cmd.hasOption("tar")){
