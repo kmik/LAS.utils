@@ -1703,11 +1703,11 @@ public class MKid4pointsLAS{
             ArrayList<double[]> treeTops = new ArrayList<double[]>();
 
 
-            //polyBank1 = readPolygonsFromWKT(coords, plotID1);
+            polyBank1 = readPolygonsFromWKT(coords, plotID1);
 
-            polyBank1 = readShapeFiles_emil(aR.poly, aR, holes_wrong, plotID1, treeTops);
+            //polyBank1 = readShapeFiles_emil(aR.poly, aR, holes_wrong, plotID1, treeTops);
 
-            //holes = readPolygonHolesFromWKT(coords, plotID1);
+            holes = readPolygonHolesFromWKT(coords, plotID1);
 
 
             aR.p_update.totalFiles = plotID1.size();
