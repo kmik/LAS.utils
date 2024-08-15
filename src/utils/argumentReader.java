@@ -2218,7 +2218,7 @@ public class argumentReader {
             if(cmd.hasOption("metadataItems")){
                 ref_ = cmd.getOptionValues("metadataItems");
 
-                if(ref_[0].split(";").length > 1){
+                if(ref_[0].split(";").length > 0){
                     ref_ = ref_[0].split(";");
                 }
 
@@ -2231,6 +2231,11 @@ public class argumentReader {
 
                     this.metadataitems.add(s);
                 }
+
+                System.out.println(cmd.getOptionValues("metadataItems"));
+                System.out.println(Arrays.toString(ref_));
+                System.out.println(Arrays.toString(this.metadataitems.toArray()));
+                System.exit(1);
 
             }
 

@@ -701,8 +701,8 @@ public class lasClipMetricOfile {
                                                 ArrayList<String> colnames_a, double poly_id, double x_coord, double y_coord, ArrayList<String[]> metadata, int nMetadata, double[] auxData){
 
 
-        System.out.println("metadata size: " + metadata.size());
-        System.out.println("nMetadata: " + nMetadata);
+        //System.out.println("metadata size: " + metadata.size());
+        //System.out.println("nMetadata: " + nMetadata);
 
         for(int i = 0; i < nMetadata; i++)
             colnames_a.add(metadata.get(i)[0]);
