@@ -4487,9 +4487,12 @@ public class lasGridStats {
 
                         int coordinateX = (int) Math.round((x_coord - auxGeoTransform[0]) / auxGeoTransform[1]);
                         int coordinateY = (int) Math.round((y_coord - auxGeoTransform[3]) / auxGeoTransform[5]);
-                        System.out.println(coordinateX + " " + coordinateY);
-
-                        auxBand.ReadRaster(coordinateX, coordinateY, 1, 1, auxValue);
+                        //System.out.println(coordinateX + " " + coordinateY);
+                        try {
+                            auxBand.ReadRaster(coordinateX, coordinateY, 1, 1, auxValue);
+                        }catch (Exception e){
+                            //e.printStackTrace();
+                        }
                         //aR.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, new String[]{String.valueOf(auxValue[0])});
                         aR.lCMO.writeLineZonalGridAux(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, auxValue);
 
@@ -4498,7 +4501,24 @@ public class lasGridStats {
                         aR.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord);
                     }
                 }else {
-                    aR.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, metadataItems, aR.metadataitems.size());
+
+                    if(aR.aux_file != null) {
+
+                        int coordinateX = (int) Math.round((x_coord - auxGeoTransform[0]) / auxGeoTransform[1]);
+                        int coordinateY = (int) Math.round((y_coord - auxGeoTransform[3]) / auxGeoTransform[5]);
+                        //System.out.println(coordinateX + " " + coordinateY);
+                        try {
+                            auxBand.ReadRaster(coordinateX, coordinateY, 1, 1, auxValue);
+                        }catch (Exception e){
+                            //e.printStackTrace();
+                        }
+                        //aR.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, new String[]{String.valueOf(auxValue[0])});
+                        aR.lCMO.writeLineZonalGridAux(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, metadataItems, aR.metadataitems.size(), auxValue);
+
+                    }else {
+                        aR.lCMO.writeLineZonalGrid(metrics_a, colnames_a, grid_cell_id, x_coord, y_coord, metadataItems, aR.metadataitems.size());
+
+                    }
 
                 }
 
