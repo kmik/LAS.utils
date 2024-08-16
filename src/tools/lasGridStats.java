@@ -4370,6 +4370,8 @@ public class lasGridStats {
                         }
 
                         if (aR.metadataitems.size() > 0) {
+                            System.out.println(ras.metadatas.size());
+                            System.exit(1);
                             for (int i = 0; i < ras.metadatas.size(); i++) {
                                 metadataItems.add(new String[]{ras.metadatas.get(i), ras.metadatas_values.get(i)});
                             }
