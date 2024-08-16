@@ -4481,6 +4481,9 @@ public class lasGridStats {
 
                 double[] auxValue = new double[1];
 
+                System.out.println(aR.metadataitems.size());
+                System.exit(1);
+
                 if (aR.metadataitems.size() == 0) {
 
                     if(aR.aux_file != null) {

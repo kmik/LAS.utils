@@ -184,7 +184,7 @@ public class lasGridStats {
 */
             }else {
 
-
+                
 
                 try {
                     tools.lasGridStats lGS = new tools.lasGridStats(aR, 1);
