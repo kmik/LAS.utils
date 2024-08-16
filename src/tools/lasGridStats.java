@@ -4349,6 +4349,8 @@ public class lasGridStats {
 
                 ArrayList<Integer> selection = rasterBank.findOverlappingRastersThreadSafe(cellMinX, cellMaxX, cellMinY, cellMaxY);
 
+                if(selection.size() == 0)
+                    continue;
                 //System.out.println("GOT HERE: " + x_);
                 ArrayList<String[]> metadataItems = new ArrayList<>();
 
@@ -4370,9 +4372,9 @@ public class lasGridStats {
                         }
 
                         if (aR.metadataitems.size() > 0) {
-                            System.out.println("nmeta: " + ras.metadatas.size());
-                            System.out.println(ras.filename);
-                            System.exit(1);
+                            //System.out.println("nmeta: " + ras.metadatas.size());
+                            //System.out.println(ras.filename);
+                            //System.exit(1);
                             for (int i = 0; i < ras.metadatas.size(); i++) {
                                 metadataItems.add(new String[]{ras.metadatas.get(i), ras.metadatas_values.get(i)});
                             }
@@ -4484,8 +4486,8 @@ public class lasGridStats {
 
                 double[] auxValue = new double[1];
 
-                System.out.println(aR.metadataitems.size());
-                System.out.println(metadataItems.size());
+                //System.out.println(aR.metadataitems.size());
+                //System.out.println(metadataItems.size());
                 //System.exit(1);
 
                 if (aR.metadataitems.size() == 0) {
