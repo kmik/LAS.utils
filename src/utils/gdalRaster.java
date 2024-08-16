@@ -1,5 +1,6 @@
 package utils;
 
+import err.toolException;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.gdal;
@@ -77,6 +78,9 @@ public class gdalRaster {
 
         this.metadatas_values.add(this.raster.GetMetadataItem(item));
 
+        if(this.raster.GetMetadataItem(item) == null){
+            throw new toolException("Metadata item " + item + " not found in raster " + this.filename + " metadata");
+        }
 
         System.out.println(this.metadatas_values.get(this.metadatas_values.size()-1));
 
