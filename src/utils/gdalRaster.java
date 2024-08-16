@@ -78,7 +78,7 @@ public class gdalRaster {
         this.metadatas_values.add(this.raster.GetMetadataItem(item));
 
 
-        //System.out.println(this.metadatas_values.get(this.metadatas_values.size()-1));
+        System.out.println(this.metadatas_values.get(this.metadatas_values.size()-1));
 
     }
 
