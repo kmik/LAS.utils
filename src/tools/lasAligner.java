@@ -318,7 +318,7 @@ public class lasAligner {
             max_x_ = Integer.MIN_VALUE;
             max_y_ = Integer.MIN_VALUE;
 
-
+            System.out.println("Processing: " + in.getFile().getName());
             int thread_n = aR.pfac.addReadThread(in);
 
             for (long i = 0; i < in.getNumberOfPointRecords(); i += 20000) {
