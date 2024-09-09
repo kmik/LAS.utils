@@ -698,7 +698,9 @@ public class ShapefileUtils {
 
         for(int i : bounds.keySet()){
 
+
             if(pointInPolygon(i, x, y)){
+
                 return i;
             }
         }
@@ -762,16 +764,16 @@ public class ShapefileUtils {
 
     }
 
-    public byte[][] gridToAffiliationGrid(short[][] grid ) {
+    public int[][] gridToAffiliationGrid(short[][] grid ) {
 
-        byte[][] output = new byte[grid.length][grid[0].length];
+        int[][] output = new int[grid.length][grid[0].length];
 
         for(int x = 0; x < grid.length; x++) {
             for(int y = 0; y < grid[0].length; y++) {
 
                 double[] realCoordinates = gridCoordinateToRealCoordinate(x, y);
                 int affiliation = pointInWhichPolygon(realCoordinates[0], realCoordinates[1]);
-                output[x][y] = (byte)affiliation;
+                output[x][y] = affiliation;
             }
         }
 

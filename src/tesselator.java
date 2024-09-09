@@ -45,7 +45,7 @@ public class tesselator {
         System.out.println("Bounding box: " + boundingBox[0] + " " + boundingBox[1] + " " + boundingBox[2] + " " + boundingBox[3]);
 
         short[][] grid = sU.shapeFileToGrid(aR.step, aR.step);
-        byte [][] gridAffiliation = sU.gridToAffiliationGrid(grid);
+        int [][] gridAffiliation = sU.gridToAffiliationGrid(grid);
 
 
         for(int i : sU.getBounds().keySet()){
@@ -104,6 +104,7 @@ public class tesselator {
             if(cells.size() > 1){
                 //System.out.println("More than one cell for polygon: " + i);
                 featuresInMultipleCells.put(i, new ArrayList<>());
+
                 for(int j = 0; j < cells.size(); j++){
                     featuresInMultipleCells.get(i).add(cells.get(j));
                 }
@@ -118,7 +119,7 @@ public class tesselator {
         for(int i : featuresInMultipleCells.keySet()){
             //System.out.println("Feature: " + i);
             for(int j = 0; j < featuresInMultipleCells.get(i).size(); j++){
-                //System.out.println("Cell: " + featuresInMultipleCells.get(i).get(j)[0] + " " + featuresInMultipleCells.get(i).get(j)[1]);
+                System.out.println("Cell: " + featuresInMultipleCells.get(i).get(j)[0] + " " + featuresInMultipleCells.get(i).get(j)[1]);
             }
         }
 

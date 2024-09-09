@@ -271,6 +271,8 @@ class ai2las{
 
 
 				if(tokens.length < 8){
+					System.out.println(line);
+					System.out.println(Arrays.toString(tokens));
 					throw new toolException("ERROR!! EO file does not have enough columns!!");
 				}
 

@@ -147,6 +147,10 @@ public class GridUtils {
         int x2 = (int)Math.floor((bbox[2] - this.originX) / this.resolution);
         int y2 = (int)Math.floor((this.originY - bbox[1]) / this.resolution);
 
+        if(x1 < 0 || y1 < 0 || x2 >= this.grid.length || y2 >= this.grid[0].length){
+            throw new toolException("Bounding box is outside of the grid!");
+        }
+
         for(int x = x1; x <= x2; x++){
             for(int y = y1; y <= y2; y++){
                 int[] cell = {x, y};

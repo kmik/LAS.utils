@@ -26,7 +26,7 @@ public class Segmentation {
     // Generic 2d grid
     short[][] grid;
     short[][] interpolatedGrid;
-    byte[][] gridAffiliation = null;
+    int[][] gridAffiliation = null;
 
     String algorithm;
 
@@ -49,11 +49,11 @@ public class Segmentation {
 
     }
 
-    public void setGridAffiliation(byte[][] gridAffiliation) {
+    public void setGridAffiliation(int[][] gridAffiliation) {
         this.gridAffiliation = gridAffiliation;
     }
 
-    public byte[][] getGridAffiliation() {
+    public int[][] getGridAffiliation() {
         return this.gridAffiliation;
     }
 
@@ -166,8 +166,6 @@ public class Segmentation {
 
                     }
 
-
-
                     if(false)
                     if(gridAffiliation != null){
                         if(gridAffiliation[x][y] != segment.affiliation) {
@@ -193,8 +191,11 @@ public class Segmentation {
                     rS.add(segment.getArea());
 
                     grid[x][y] = (short)segment.id;
+
                     if(gU.cellHasValue(x, y)) {
+
                         ArrayList<Integer> values = gU.getCellValues(x, y);
+
                         for(int j = 0; j < values.size(); j++) {
 
                             segment.addFeature(values.get(j));
@@ -205,6 +206,7 @@ public class Segmentation {
                                 //System.out.println("Feature " + values.get(j) + " is in multiple cells, what to do?");
 
                                 for(int o = 0; o < gU.featuresInMultipleCells.get(values.get(j)).size(); o++){
+
                                     int x_ = gU.featuresInMultipleCells.get(values.get(j)).get(o)[0];
                                     int y_ = gU.featuresInMultipleCells.get(values.get(j)).get(o)[1];
 
