@@ -2706,6 +2706,8 @@ class ai2las{
 
 		double origZ = 0.0;
 
+		System.out.println("origZ_id: " + origZ_id);
+		System.exit(1);
 		try {
 
 			FileWriter fw = new FileWriter(ofile2);
