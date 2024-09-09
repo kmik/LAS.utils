@@ -2706,8 +2706,6 @@ class ai2las{
 
 		double origZ = 0.0;
 
-		System.out.println("origZ_id: " + origZ_id);
-		System.exit(1);
 		try {
 
 			FileWriter fw = new FileWriter(ofile2);
@@ -2732,10 +2730,12 @@ class ai2las{
 
 					asd2.readFromBuffer(tempPoint);
 
-					if(origZ_id != -1){
+					if(origZ_id > 0){
 						origZ = tempPoint.z;
 						tempPoint.z = tempPoint.getExtraByteFloat(origZ_id);
 
+					}else{
+						origZ = tempPoint.z;
 					}
 
 					if(!aR.inclusionRule.ask(tempPoint, p+j, true)){
