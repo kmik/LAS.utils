@@ -349,11 +349,12 @@ public class lasAligner {
 
                 for (int j_ = 0; j_ < maxi; j_++) {
 
+                    System.out.println("i : " + i + " j_: " + j_ + " maxi: " + maxi + " numpoints: " + in.getNumberOfPointRecords() + " currentProgress " + (i+j_));
                     try {
                         in.readFromBuffer(tempPoint);
                     }catch (Exception e){
                         e.printStackTrace();
-                        System.out.println("i : " + i + " j_: " + j_ + " maxi: " + maxi + " numpoints: " + in.getNumberOfPointRecords() + " currentProgress " + (i+j_));
+
                         System.exit(1);
                     }
 
