@@ -37,6 +37,7 @@ public class las2las {
 
 
             for (int i = 0; i < inputFiles.size(); i++) {
+
                 LASReader temp = new LASReader(aR.inputFiles.get(i));
 /*
                 double[][] dbscan_input = new double[(int)temp.getNumberOfPointRecords()][3];
@@ -67,6 +68,7 @@ public class las2las {
                 try {
 
                     tooli.convert(temp, aR);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

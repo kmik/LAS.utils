@@ -325,6 +325,13 @@ public class lasAligner {
 
                 int maxi = (int) Math.min(20000, Math.abs(in.getNumberOfPointRecords() - i));
 
+                try {
+                    aR.pfac.prepareBuffer(thread_n, i, maxi);
+                }catch (Exception e){
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+/*
                 try{
                     aR.pfac.prepareBuffer(thread_n, i, maxi);
                 }
@@ -334,6 +341,8 @@ public class lasAligner {
                     System.exit(1);
 
                 }
+
+ */
 
                 for (int j_ = 0; j_ < maxi; j_++) {
 
@@ -781,7 +790,7 @@ public class lasAligner {
 
                 try {
                     aR.pfac.prepareBuffer(thread_n, i, maxi);
-                } catch (Exception e) {
+                }catch (Exception e){
                     e.printStackTrace();
                     System.exit(1);
                 }

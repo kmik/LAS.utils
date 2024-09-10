@@ -24,7 +24,6 @@ public class process_las2las {
 
         File outFile = aR.createOutputFile(in);
 
-        int maxi;
 
         int thread_n = aR.pfac.addReadThread(in);
 
@@ -68,7 +67,7 @@ public class process_las2las {
 
         //for(long i = 0; i < in.getNumberOfPointRecords(); i++) {
 
-            maxi = (int) Math.min(20000, Math.abs(in.getNumberOfPointRecords() - i));
+            int maxi = (int) Math.min(20000, Math.abs(in.getNumberOfPointRecords() - i));
 
             aR.pfac.prepareBuffer(thread_n, i, maxi);
 
