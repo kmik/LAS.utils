@@ -349,7 +349,8 @@ public class lasAligner {
 
                 for (int j_ = 0; j_ < maxi; j_++) {
 
-                    System.out.println("i : " + i + " j_: " + j_ + " maxi: " + maxi + " numpoints: " + in.getNumberOfPointRecords() + " currentProgress " + (i+j_));
+                    // i : 14520000 j_: 11319 maxi: 12491 numpoints: 14532491 currentProgress 14531319
+                    //System.out.println("i : " + i + " j_: " + j_ + " maxi: " + maxi + " numpoints: " + in.getNumberOfPointRecords() + " currentProgress " + (i+j_));
                     try {
                         in.readFromBuffer(tempPoint);
                     }catch (Exception e){

@@ -2156,6 +2156,7 @@ public class LASReader {
             braf.buffer.get(p.extra_bytes.get(i));
           }catch (Exception e2){
             e2.printStackTrace();
+            System.out.println(this.extraBytesInPoint.size());
             System.exit(1);
           }
 
