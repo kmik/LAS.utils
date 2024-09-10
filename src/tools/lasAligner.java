@@ -173,6 +173,7 @@ public class lasAligner {
             System.out.println("origo_x: " + origo_x + " origo_y: " + origo_y);
             System.out.println("numberOfPixelsX: " + numberOfPixelsX + " numberOfPixelsY: " + numberOfPixelsY + " " + resolution);
 
+            int thread_n = -1;
 
             for (int j = 0; j < targetPairsInRef.get(i_).size(); j++) {
 
@@ -185,7 +186,7 @@ public class lasAligner {
                     e.printStackTrace();
                     System.exit(1);
                 }
-                int thread_n = aR.pfac.addReadThread(in);
+                thread_n = aR.pfac.addReadThread(in);
 
 
                 for (long i = 0; i < in.getNumberOfPointRecords(); i += 20000) {
@@ -310,6 +311,7 @@ public class lasAligner {
                 e.printStackTrace();
                 System.exit(1);
             }
+
             int counterPoints = 0;
             int readPoints = 0;
 
@@ -319,7 +321,8 @@ public class lasAligner {
             max_y_ = Integer.MIN_VALUE;
 
             System.out.println("Processing: " + in.getFile().getName());
-            int thread_n = aR.pfac.addReadThread(in);
+
+            thread_n = aR.pfac.addReadThread(in);
 
             for (long i = 0; i < in.getNumberOfPointRecords(); i += 20000) {
 
