@@ -349,6 +349,7 @@ public class lasAligner {
 
                 for (int j_ = 0; j_ < maxi; j_++) {
 
+                    System.out.println(j_);
                     in.readFromBuffer(tempPoint);
 
                     int x = (int) Math.floor((tempPoint.x - origo_x) / resolution);
