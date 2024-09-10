@@ -312,6 +312,7 @@ public class lasAligner {
                 System.exit(1);
             }
 
+            tempPoint = new LasPoint();
             int counterPoints = 0;
             int readPoints = 0;
 
