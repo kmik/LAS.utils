@@ -349,8 +349,13 @@ public class lasAligner {
 
                 for (int j_ = 0; j_ < maxi; j_++) {
 
-                    System.out.println(j_);
-                    in.readFromBuffer(tempPoint);
+                    try {
+                        in.readFromBuffer(tempPoint);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                        System.out.println("i : " + i + " j_: " + j_ + " maxi: " + maxi + " numpoints: " + in.getNumberOfPointRecords() + " currentProgress " + (i+j_));
+                        System.exit(1);
+                    }
 
                     int x = (int) Math.floor((tempPoint.x - origo_x) / resolution);
                     int y = (int) Math.floor((origo_y - tempPoint.y) / resolution);
