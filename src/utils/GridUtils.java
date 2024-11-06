@@ -341,6 +341,79 @@ public class GridUtils {
         return newGrid;
     }
 
+    public short[][] interpolate(String method, short naValue, int[][] mask, int maskValue){
+        // Interpolate the grid
+
+        // Create a new grid
+        short[][] newGrid = new short[this.grid.length][this.grid[0].length];
+
+        int countNa = 0;
+
+        for(int x = 0; x < this.grid.length; x++){
+            for(int y = 0; y < this.grid[0].length; y++) {
+                if(this.grid[x][y] == naValue && mask[x][y] != maskValue){
+                    countNa++;
+                }
+                newGrid[x][y] = this.grid[x][y];
+            }
+        }
+
+        int iterations = 0;
+
+        ArrayList<Integer> xcoordinatesToAlter = new ArrayList<>();
+        ArrayList<Integer> ycoordinatesToAlter = new ArrayList<>();
+        ArrayList<Short> values = new ArrayList<>();
+
+        while(countNa > 0){
+
+            xcoordinatesToAlter.clear();
+            ycoordinatesToAlter.clear();
+            values.clear();
+
+            for(int x = 0; x < this.grid.length; x++){
+                for(int y = 0; y < this.grid[0].length; y++) {
+                    if(newGrid[x][y] == naValue && mask[x][y] != maskValue){
+                        // Interpolate the value
+                        short median = neighborhoodMedian(x, y, 1, naValue, newGrid);
+
+                        if(median != naValue) {
+
+                            xcoordinatesToAlter.add(x);
+                            ycoordinatesToAlter.add(y);
+                            values.add(median);
+                            countNa--;
+
+                        }
+                        //System.out.println("HERE");
+                    }else{
+                        // Otherwise, just copy the value
+                        //newGrid[x][y] = this.grid[x][y];
+                    }
+                }
+            }
+            for(int i = 0; i < xcoordinatesToAlter.size(); i++){
+                newGrid[xcoordinatesToAlter.get(i)][ycoordinatesToAlter.get(i)] = values.get(i);
+            }
+
+            // System.out.println("Iterations: " + iterations++ + " " + countNa);
+        }
+
+        int countNanew = 0;
+        // Check that there indeed are no na values
+        for(int x = 0; x < this.grid.length; x++){
+            for(int y = 0; y < this.grid[0].length; y++) {
+                if(newGrid[x][y] == naValue && mask[x][y] != maskValue){
+                    countNanew++;
+                }
+            }
+        }
+
+        if(countNanew > 0){
+            throw new toolException("Interpolation failed! There are still " + countNanew + " NA values in the grid!");
+        }
+        return newGrid;
+    }
+
     public short neighborhoodMedian(int x, int y, int radius, short naValue, short[][] grid){
         // Calculate the median of the neighborhood
 

@@ -49,6 +49,8 @@ public class createCHM{
       	}
  	}
 
+
+
     static class CheckerWater implements Comparator<WaterBody>{
 
         public int compare(WaterBody ob1, WaterBody ob2){
@@ -211,7 +213,7 @@ public class createCHM{
 
             leftOvers2 = (ArrayList<int[]>)leftOvers.clone();
             leftOvers.clear();
-
+            System.gc();
             leftOverCount++;
 
             for(int i = 0; i < leftOvers2.size(); i++){
@@ -2992,8 +2994,6 @@ public class createCHM{
                 aR.kernel = (int)( 2.0 * Math.ceil( 3.0 * aR.theta) + 1.0);
 
 
-
-
             //make();
 
             //polator = new tinfour.interpolation.TriangularFacetInterpolator(tin);
@@ -3177,7 +3177,7 @@ public class createCHM{
 
             long tStart = System.currentTimeMillis();
 
-            MaxSizeHashMap<Integer, Float> map = new MaxSizeHashMap<>(100000);
+            MaxSizeHashMap<Integer, Float> map = new MaxSizeHashMap<>(1000);
             IIncrementalTinNavigator navi = pit_free_tin.getNavigator();
             SimpleTriangle triang = null;
             Vertex[] closest = new Vertex[3];
@@ -3374,7 +3374,7 @@ public class createCHM{
             int counter = 0;
             int counter2 = 0;
 
-            pit_free_tin.preAllocateEdges(1000000);
+            pit_free_tin.preAllocateEdges(10000);
 
 
             if(aR.pitFree){

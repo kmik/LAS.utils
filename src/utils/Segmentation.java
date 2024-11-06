@@ -264,7 +264,7 @@ public class Segmentation {
         System.out.println("Number of segments: " + segments.size());
 
         //System.exit(1);
-        this.interpolatedGrid = gU.interpolate("haha", (short)0);
+        this.interpolatedGrid = gU.interpolate("haha", (short)0, gridAffiliation, -1);
         updateSegmentation(interpolatedGrid, grid);
         this.mergeSmallSegments();
         //
@@ -450,6 +450,10 @@ public class Segmentation {
                 int y1 = y + j;
 
                 if(x1 < 0 || x1 >= grid.length || y1 < 0 || y1 >= grid[0].length) {
+                    continue;
+                }
+                if(gridAffiliation[x1][y1] == -1) {
+                    //System.out.println("HERE!");
                     continue;
                 }
 

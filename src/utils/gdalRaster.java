@@ -3,9 +3,11 @@ package utils;
 import err.toolException;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
+import org.gdal.gdal.Driver;
 import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconst;
 
+import java.io.File;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +28,7 @@ public class gdalRaster {
 
     Dataset raster;
 
+    int readOrWrite = gdalconst.GA_ReadOnly;
     Band band;
 
     boolean isOpen = false;
@@ -67,7 +70,7 @@ public class gdalRaster {
 
 
     public synchronized void readRaster(String filename) {
-        this.raster = (gdal.Open(filename, gdalconst.GA_ReadOnly));
+        this.raster = (gdal.Open(filename, readOrWrite));
         this.nanValue = new Double[1];
         this.raster.GetRasterBand(1).GetNoDataValue(this.nanValue);
 
@@ -148,7 +151,7 @@ public class gdalRaster {
         }
     }
     public synchronized void open(String filename){
-        this.raster = (gdal.Open(filename, gdalconst.GA_ReadOnly));
+        this.raster = (gdal.Open(filename, readOrWrite));
         this.band = this.raster.GetRasterBand(1);
     }
 
@@ -225,10 +228,11 @@ public class gdalRaster {
 
             for (int x = 0; x < number_of_pix_x; x++) {
 
-                //System.out.println("line " + y);
+                //System.out.println("line " + y + "  " + this.filename);
                 float value = floatArray[x];
 
                 output[x][y] = value;
+                //System.out.println(value);
 
             }
         }
@@ -268,6 +272,7 @@ public class gdalRaster {
         //    this.open();
 
         if(dontcareformemory){
+            //System.out.println("here");
             return rasterArray[x][y];
         }
         else {
@@ -284,6 +289,178 @@ public class gdalRaster {
 
     public void readAreaToBuffer(){
 
+
+
+    }
+
+
+    /**
+     * Synchronize two rasters with each other. If the other raster has a value that is below the threshold, the value of this raster is set that of the other raster.
+     * @param chm
+     * @param threshold
+     */
+
+    public void syncWithAnotherChm(gdalRaster chm, float threshold, String filename){
+
+        if(this.number_of_pix_x != chm.number_of_pix_x || this.number_of_pix_y != chm.number_of_pix_y){
+            throw new toolException("The two rasters do not have the same dimensions");
+        }
+
+
+        if(!chm.isOpen)
+            chm.open();
+
+        File f = new File(filename);
+
+        if(f.exists()){
+            f.delete();
+        }
+
+        try {
+            f.createNewFile();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        Dataset dataset = null;
+        Driver driver = null;
+        driver = gdal.GetDriverByName("GTiff");
+        driver.Register();
+
+        dataset = driver.Create(filename, this.number_of_pix_x, this.number_of_pix_y, 1, gdalconst.GDT_Float32);
+
+        Band band2 = dataset.GetRasterBand(1);    // writable band
+
+        rasterManipulator rM = new rasterManipulator(band2);
+        float[] dataRow = new float[this.number_of_pix_x];
+
+        for(int y = 0; y < this.number_of_pix_y; y++){
+            for(int x = 0; x < this.number_of_pix_x;x++){
+
+                float value = chm.readValue(x, y);
+
+                if(value <= threshold)
+                    dataRow[x] = value;
+                else
+                    dataRow[x] = this.readValue(x, y);
+
+            }
+
+            rM.setValue(y, dataRow);
+            //System.out.println(Arrays.toString(dataRow));
+        }
+
+        //System.exit(1);
+        band2.FlushCache();
+        dataset.FlushCache();
+
+        band2.delete();
+        dataset.delete();
+
+
+    }
+
+    public void toTxt() {
+
+        File outputFile = this.declareTxtFile();
+
+        if(outputFile.exists())
+            outputFile.delete();
+
+        try {
+            outputFile.createNewFile();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        if(!this.isOpen)
+            this.open();
+
+        //System.out.println(Arrays.toString(this.geoTransform));
+        //System.out.println("HERE");
+        //System.exit(1);
+        // The first two columns are x and y coordinates, followed by the value of the raster.
+
+        try {
+            java.io.FileWriter fw = new java.io.FileWriter(outputFile);
+            java.io.BufferedWriter bw = new java.io.BufferedWriter(fw);
+
+            for (int y = 0; y < this.number_of_pix_y; y++) {
+                for (int x = 0; x < this.number_of_pix_x; x++) {
+
+                    float value = this.readValue(x, y);
+
+                    double realCoordinateX = this.geoTransform[0] + x * this.geoTransform[1] + y * this.geoTransform[2];
+                    double realCoordinateY = this.geoTransform[3] + x * this.geoTransform[4] + y * this.geoTransform[5];
+
+                    bw.write(realCoordinateX + " " + realCoordinateY + " " + value + "\n");
+
+                }
+            }
+
+            bw.close();
+            fw.close();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+
+    }
+
+    /**
+     * Declare a txt file for writing the raster to. The directory is the directory the raster is in and the filename is the name of the raster with .txt extension.
+     */
+    public File declareTxtFile(){
+
+        File outputFileName = new File(this.filename);
+        String outputFileNameString = outputFileName.getName();
+        outputFileNameString = outputFileNameString.substring(0, outputFileNameString.length() - 4);
+        outputFileNameString = outputFileNameString + ".txt";
+
+        File f = new File(outputFileName.getParent() + "/" + outputFileNameString);
+
+        return f;
+    }
+
+    public void copyRasterToFile(String filename){
+
+        File f = new File(filename);
+
+        if(f.exists()){
+            f.delete();
+        }
+
+        try {
+            f.createNewFile();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        Dataset dataset = null;
+        Driver driver = null;
+        driver = gdal.GetDriverByName("GTiff");
+        driver.Register();
+
+        dataset = driver.Create(filename, this.number_of_pix_x, this.number_of_pix_y, 1, gdalconst.GDT_Float32);
+
+        Band band2 = dataset.GetRasterBand(1);    // writable band
+
+
+        rasterManipulator rM = new rasterManipulator(band2);
+        float[] dataRow = new float[this.number_of_pix_x];
+
+        for(int y = 0; y < this.number_of_pix_y; y++){
+            for(int x = 0; x < this.number_of_pix_x;x++){
+
+                dataRow[x] = this.readValue(x, y);
+
+            }
+            rM.setValue(y, dataRow);
+        }
+        band2.FlushCache();
+        dataset.FlushCache();
 
 
     }

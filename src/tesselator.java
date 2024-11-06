@@ -67,7 +67,6 @@ public class tesselator {
 
         }
 
-
         //System.exit(1);
         ArrayList<double[]> points = sU.randomPointsInAllPolygons(aR.dist);
         ArrayList<Integer> pointToPolygonLink = new ArrayList<>();

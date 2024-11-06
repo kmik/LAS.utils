@@ -16,12 +16,14 @@ public class test_stanford {
 
     public static void main(String[] args) throws IOException {
 
+
+        ogr.RegisterAll(); //Registering all the formats..
+        gdal.AllRegister();
+
         argumentReader aR = new argumentReader(args);
         ArrayList<File> inputFiles = prepareData(aR, "las2las");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
-        ogr.RegisterAll(); //Registering all the formats..
-        gdal.AllRegister();
 
         KarttaLehtiJako kj = new KarttaLehtiJako();
 
@@ -32,10 +34,6 @@ public class test_stanford {
         catch (Exception e){
             e.printStackTrace();
         }
-
-
-
-        //System.exit(1);
 
         Stanford2010 stanford = new Stanford2010(aR);
         stanford.readExcludedStandsFromFile(aR.exclude);
@@ -55,9 +53,6 @@ public class test_stanford {
 
         System.out.println("number of rasters: " + rasters.numRasters() + " " + rasters.numRasterExtents());
         stanford.setRasters(rasters);
-
-        //System.exit(1);
-
 
         HashMap<Integer, ArrayList<File>> files = stanford.getOverlappingHPRFiles(inputFiles);
 
@@ -88,8 +83,6 @@ public class test_stanford {
             System.gc();
 
         }
-
-
 
         stanford.printFailedFiles();
         stanford.finalizeMergedShapefile();

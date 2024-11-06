@@ -839,6 +839,15 @@ public class lasAligner {
                 }
             }
             aR.pfac.closeThread(thread_n);
+
+            try{
+                in.close();
+                in = null;
+                System.gc();
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
 
     }

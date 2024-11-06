@@ -440,6 +440,7 @@ public class ShapefileUtils {
 
         int pointId = 0;
 
+        System.out.println("reading: " + shapeFileLayer.GetFeatureCount() + " features");
         for(long i = 0; i < shapeFileLayer.GetFeatureCount(); i++ ) {
 
             if(true) {
@@ -477,6 +478,7 @@ public class ShapefileUtils {
                    // System.out.println("MULTIPOLYGON");
 
                     int numGeom = tempG.GetGeometryCount();
+                    //System.out.println("MULTIPOLYGON " + numGeom);
 
                     for (int j = 0; j < numGeom; j++) {
 
@@ -548,7 +550,7 @@ public class ShapefileUtils {
                 else if (tempG.GetGeometryName().equals("POLYGON")) {
 
                     Geometry tempG2 = tempG.GetGeometryRef(0);
-
+                    //System.out.println("POLYGON");
 
                     //System.out.println(tempG2.GetPointCount() + " " + tempG2.GetGeometryName().equals("LINEARRING"));
                     //shapeId++;
