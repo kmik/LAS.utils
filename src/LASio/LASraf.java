@@ -110,12 +110,12 @@ public class LASraf implements Closeable {
 
   long step = 0;
 
-  public double xScaleFactor;
-  public double yScaleFactor;
-  public double zScaleFactor;
-  public double xOffset;
-  public double yOffset;
-  public double zOffset;
+  double xScaleFactor;
+  double yScaleFactor;
+  double zScaleFactor;
+  double xOffset;
+  double yOffset;
+  double zOffset;
   public int pointDataRecordFormat;
   public int pointDataRecordLength;
   public long offsetToPointData;
