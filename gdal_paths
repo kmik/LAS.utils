@@ -1,0 +1,6 @@
+# path to gdal/java below
+/home/koomikko/Documents/codes/gdal/java/
+# path to libgdal.so.xx below
+/home/koomikko/Documents/codes/gdal/java/
+# path to gdal_data below
+/home/koomikko/Documents/codes/gdal/gdal_data
