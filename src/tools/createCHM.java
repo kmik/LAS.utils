@@ -207,13 +207,17 @@ public class createCHM{
 
         ArrayList<int[]> leftOvers2;
 
+        int counter2 = 0;
+
         while(leftOvers.size() > 0){
 
             temppi = arrayCopy(input);
 
             leftOvers2 = (ArrayList<int[]>)leftOvers.clone();
             leftOvers.clear();
-            System.gc();
+
+            if(counter2 ++ % 10 == 0)
+                System.gc();
             leftOverCount++;
 
             for(int i = 0; i < leftOvers2.size(); i++){
