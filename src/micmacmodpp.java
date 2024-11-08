@@ -16,7 +16,7 @@ public class micmacmodpp {
 
         MicMacOri mMOri = new MicMacOri(aR);
 
-        mMOri.modifypp(aR.idir, 30, 0);
+        mMOri.modifypp(aR.idir, 29.5, -0.5);
 
         aR.cleanup();
 
