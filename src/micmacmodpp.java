@@ -16,7 +16,10 @@ public class micmacmodpp {
 
         MicMacOri mMOri = new MicMacOri(aR);
 
-        mMOri.modifypp(aR.idir, 29.5, -0.5);
+        double pp_x_offset = aR.pp_x_offset;
+        double pp_y_offset = aR.pp_y_offset;
+
+        mMOri.modifypp(aR.idir, pp_x_offset, pp_y_offset);
 
         aR.cleanup();
 

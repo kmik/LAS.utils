@@ -31,6 +31,9 @@ import org.apache.commons.cli.Options;
 @SuppressWarnings("unchecked")
 public class argumentReader {
 
+    public double pp_x_offset = 0.0;
+    public double pp_y_offset = 0.0;
+
     public String stringArgument1 = null;
     public boolean convo = false;
     public boolean subsetColumnNamesVMI = false;
@@ -878,6 +881,21 @@ public class argumentReader {
                 .desc("Exclude these ids")
                 .required(false)
                 .build());
+
+        options.addOption(Option.builder()
+                .longOpt("pp_x_offset")
+                .hasArg(true)
+                .desc("Principal point X offset")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("pp_y_offset")
+                .hasArg(true)
+                .desc("Principal point Y offset")
+                .required(false)
+                .build());
+
 
         options.addOption(Option.builder()
                 .longOpt("concavity")
@@ -2831,6 +2849,14 @@ public class argumentReader {
 
                 this.dist = Double.parseDouble(cmd.getOptionValue("dist"));
 
+            }
+
+            if (cmd.hasOption("pp_x_offset")){
+                this.pp_x_offset = Double.parseDouble(cmd.getOptionValue("pp_x_offset"));
+            }
+
+            if (cmd.hasOption("pp_y_offset")){
+                this.pp_y_offset = Double.parseDouble(cmd.getOptionValue("pp_y_offset"));
             }
 
             if (cmd.hasOption("prob")) {
