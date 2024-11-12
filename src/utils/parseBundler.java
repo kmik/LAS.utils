@@ -191,7 +191,7 @@ public class parseBundler {
 
     }
 
-    class point{
+    public class point{
 
 
 
@@ -282,7 +282,7 @@ public class parseBundler {
         }
     }
 
-    class View{
+    public class View{
 
         int keynumber;
         double x, y;
@@ -345,7 +345,7 @@ public class parseBundler {
         }
     }
 
-    class Camera{
+    public class Camera{
 
 
         ArrayList<View> views = new ArrayList<View>();
