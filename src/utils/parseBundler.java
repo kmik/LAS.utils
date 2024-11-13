@@ -74,9 +74,11 @@ public class parseBundler {
                 for(int i = 0; i < num_cameras; i++){
 
                     Camera c = new Camera();
-                    c.setFocal_length(17347.781282993);
-                    c.setPrincipal_point_x(14790 / 2.0 + (0.0467 * 0.00158177));
-                    c.setPrincipal_point_y(23010 / 2.0 + (0.0008 * 0.00158177));
+                    c.setFocal_length(17347.8261);
+                    c.setPrincipal_point_x(14790 / 2.0 + 29.5);
+                    //c.setPrincipal_point_x(14790 / 2.0 + (0.0467 * 0.00158177));
+                    c.setPrincipal_point_y(23010 / 2.0 + (-0.5));
+                    //c.setPrincipal_point_y(23010 / 2.0 + (0.0008 * 0.00158177));
                     c.setKey(i);
                     cameras.put(i, c);
                     // Five lines per camera, but we don't need these for now
