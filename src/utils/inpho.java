@@ -490,7 +490,7 @@ public class inpho {
             dico_appuis_writer.newLine();
             dico_appuis_writer.write("</Global>");
 
-            mesure_appuis_writer.write("<SetOfMeasureAppuisFlottants>");
+            mesure_appuis_writer.write("<SetOfMesureAppuisFlottants>");
             mesure_appuis_writer.newLine();
 
             for(int i = 0; i < this.photos.size(); i++){
@@ -527,7 +527,7 @@ public class inpho {
             }
 
 
-            mesure_appuis_writer.write("</SetOfMeasureAppuisFlottants>");
+            mesure_appuis_writer.write("</SetOfMesureAppuisFlottants>");
             mesure_appuis_writer.close();
             dico_appuis_writer.close();
 
