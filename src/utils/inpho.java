@@ -499,7 +499,7 @@ public class inpho {
 
                 if(p.photControlPointsCoords.size() > 0){
 
-                    mesure_appuis_writer.write("\t<MeasureAppuiFlottant1Im>");
+                    mesure_appuis_writer.write("\t<MesureAppuiFlottant1Im>");
                     mesure_appuis_writer.newLine();
 
                     mesure_appuis_writer.write("\t\t<NameIm>" + p.getName() + "</NameIm>");
@@ -508,18 +508,18 @@ public class inpho {
 
                     for(int j = 0; j < p.photControlPointsCoords.size(); j++){
 
-                        mesure_appuis_writer.write("\t\t<OneMeasureAF1I>");
+                        mesure_appuis_writer.write("\t\t<OneMesureAF1I>");
                         mesure_appuis_writer.newLine();
                         mesure_appuis_writer.write("\t\t\t<NamePt> " + p.photoControlPoints.get(j) + " </NamePt>");
                         mesure_appuis_writer.newLine();
                         mesure_appuis_writer.write("\t\t\t<PtIm>" + p.photControlPointsCoords.get(j)[0] + " " + p.photControlPointsCoords.get(j)[1] + " </PtIm>");
                         mesure_appuis_writer.newLine();
-                        mesure_appuis_writer.write("\t\t</OneMeasureAF1I>");
+                        mesure_appuis_writer.write("\t\t</OneMesureAF1I>");
                         mesure_appuis_writer.newLine();
                     }
 
 
-                    mesure_appuis_writer.write("\t</MeasureAppuiFlottant1Im>");
+                    mesure_appuis_writer.write("\t</MesureAppuiFlottant1Im>");
                     mesure_appuis_writer.newLine();
                 }
 
