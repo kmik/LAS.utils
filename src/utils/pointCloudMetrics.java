@@ -1857,6 +1857,10 @@ public class pointCloudMetrics {
             output.add(Double.NaN);
             colnames.add("kurtosis_z" + suffix);
             output.add(Double.NaN);
+            colnames.add("canopy_v_i" + suffix);
+            output.add(Double.NaN);
+            colnames.add("canopy_v_o" + suffix);
+            output.add(Double.NaN);
 
             int counter22 = 0;
 
@@ -1889,7 +1893,7 @@ public class pointCloudMetrics {
         double percentile_step_z = percentile_step_orig;
 
         double[] densitiesOutput = new double[densities.length];
-
+        double[] densitiesOutput_sumZ = new double[densities.length];
 
 
         double z_val;
@@ -1920,7 +1924,7 @@ public class pointCloudMetrics {
 
                 if(z_val <= densities[j]){
                     densitiesOutput[j]++;
-
+                    densitiesOutput_sumZ[j] += z_val;
                 }
 
             }
@@ -1966,6 +1970,10 @@ public class pointCloudMetrics {
             colnames.add("skewness_z" + suffix);
             output.add(Double.NaN);
             colnames.add("kurtosis_z" + suffix);
+            output.add(Double.NaN);
+            colnames.add("canopy_v_i" + suffix);
+            output.add(Double.NaN);
+            colnames.add("canopy_v_o" + suffix);
             output.add(Double.NaN);
 
             int counter22 = 0;
@@ -2083,7 +2091,7 @@ public class pointCloudMetrics {
 
         double[] z_array = ArrayUtils.toPrimitive(z_above_threshold.toArray(new Double[z_above_threshold.size()]));
 
-
+        double canopy_volume_inner = ( 1.0 - z.size() * densities[0] ) * mean_z;
 
         Percentile p_z = new Percentile(this.percentile_step_orig);
 
@@ -2121,6 +2129,10 @@ public class pointCloudMetrics {
         output.add(skewness_z);
         colnames.add("kurtosis_z" + suffix);
         output.add(kurtosis_z);
+        colnames.add("canopy_v_i" + suffix);
+        output.add(Double.NaN);
+        colnames.add("canopy_v_o" + suffix);
+        output.add(Double.NaN);
 
         counter = 0;
         for(int i = 0 ; i < percentiles_z.length; i++){

@@ -150,7 +150,7 @@ public class parseBundler {
 
                         if(c.views.get(j).getKeynumber() > maxViewKey)
                             maxViewKey = c.views.get(j).getKeynumber();
-                        System.out.println(c.getKey() + " " + c.views.get(j).toString());
+                        //System.out.println(c.getKey() + " " + c.views.get(j).toString());
                     }
 
                 }

@@ -4,12 +4,18 @@ import org.datavec.api.split.StringSplit;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class inpho {
 
     File inphoFile = null;
+
+    int numControlPoints = 0;
+
+    HashMap<Integer, ControlPoint> controlPoints = new HashMap<>();
 
     int numPhotos = 0;
     int numCameras = 0;
@@ -92,6 +98,171 @@ public class inpho {
 
     }
 
+    public void findControlPoints(){
+
+        int uniqueId = 0;
+        // Read inpho file line by line
+        // Parse the file and store the data in the class variables
+        try {
+            BufferedReader sc = new BufferedReader(new FileReader(inphoFile));
+
+            while(sc.ready()){
+                String line = sc.readLine();
+
+                if(line.equals("$CONTROL_POINTS")){
+
+                    while(!line.equals("$END_POINTS")){
+
+                        if(line.contains("$ID")){
+
+                            String[] tokens = line.split(" ");
+
+                            System.out.println(Arrays.toString(tokens));
+                            String id = tokens[tokens.length-1];
+
+
+                            ControlPoint newControlPoint = new ControlPoint();
+                            newControlPoint.setUniqueId(uniqueId++);
+
+                            newControlPoint.setName(id);
+
+                            line = sc.readLine();
+
+                            //System.out.println(line);
+                            while(!line.contains("$ID")){
+
+
+                                line = sc.readLine();
+                                //System.out.println(line);
+
+                                if(line.contains("$END_POINTS"))
+                                    break;
+
+                                if(line.contains("$POSITION")){
+
+                                    // Regular expression to match doubles
+                                    String regex = "\\d+\\.\\d+";
+
+                                    Pattern pattern = Pattern.compile(regex);
+                                    Matcher matcher = pattern.matcher(line);
+
+                                    double[] values = new double[3];
+                                    int counter = 0;
+
+                                    while (matcher.find()) {
+                                        double value = Double.parseDouble(matcher.group());
+                                        values[counter++] = value;
+
+                                        System.out.println(value);
+                                    }
+
+                                    newControlPoint.setX(values[0]);
+                                    newControlPoint.setY(values[1]);
+                                    newControlPoint.setZ(values[2]);
+
+                                }
+
+                                controlPoints.put(newControlPoint.getUniqueId(), newControlPoint);
+
+                            }
+
+                        }
+
+                        //System.out.println(line);
+                        if(line.contains("$END_POINTS"))
+                            break;
+
+                        line = sc.readLine();
+                        //System.out.println(line);
+
+                    }
+
+                    System.out.println("OUT!");
+
+                }
+
+
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+    }
+
+    public void findPhotos(){
+
+        String photoname = null;
+        // Read inpho file line by line
+        // Parse the file and store the data in the class variables
+        try {
+
+            BufferedReader sc = new BufferedReader(new FileReader(inphoFile));
+
+            while (sc.ready()) {
+
+                String line = sc.readLine();
+
+                boolean writing = false;
+
+                if (line.contains("$PHOTO_FILE")) {
+
+                    photo p = new photo();
+                    String[] split = line.split(": ");
+                    String photoPath = split[1];
+                    String[] splitPath = photoPath.split("[/\\\\]");
+
+
+                    photoname = splitPath[splitPath.length - 1];
+
+                    p.setName(photoname);
+                    photos.add(p);
+
+                }
+
+                if (line.contains("$PHOTO_POINTS")){
+
+                    while(!line.contains("$END_POINTS")){
+
+                        line = sc.readLine();
+
+                        // Regex pattern to match: String (non-whitespace) followed by two doubles
+                        String regex = "(\\S+)\\s+([+-]?\\d+\\.\\d+)\\s+([+-]?\\d+\\.\\d+)";
+
+                        Pattern pattern = Pattern.compile(regex);
+                        Matcher matcher = pattern.matcher(line);
+
+                        if (matcher.find()) {
+                            // Extract the values
+                            String firstValue = matcher.group(1);  // First string
+                            double secondValue = Double.parseDouble(matcher.group(2)); // First double
+                            double thirdValue = Double.parseDouble(matcher.group(3));  // Second double
+
+                            photos.get(photos.size()-1).photoControlPoints.add(firstValue);
+                            photos.get(photos.size()-1).photControlPointsCoords.add(new double[]{secondValue, thirdValue});
+
+                            // Output results
+                        }
+
+
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        for(photo p : photos){
+            System.out.println(p.getName());
+
+            for(int i = 0; i < p.photoControlPoints.size(); i++){
+                System.out.println(p.photoControlPoints.get(i) + " " + p.photControlPointsCoords.get(i)[0] + " " + p.photControlPointsCoords.get(i)[1]);
+            }
+        }
+
+
+    }
     public void splitFileToSingleCameras(){
 
         String outputDirectory = aR.odir;
@@ -112,8 +283,6 @@ public class inpho {
                 outputFile.delete();
             }
 
-
-
             // Read inpho file line by line
             // Parse the file and store the data in the class variables
             try {
@@ -124,6 +293,7 @@ public class inpho {
                 BufferedReader sc = new BufferedReader(new FileReader(inphoFile));
 
                 while (sc.ready()) {
+
                     String line = sc.readLine();
 
                     boolean writing = false;
@@ -242,6 +412,97 @@ public class inpho {
     public photo getPhoto(int i){
         return this.photos.get(i);
     }
+
+    public void writeMicMacControlPointFiles(String odir){
+
+        odir = aR.odir;
+
+        File mesure_appuis = new File(odir + aR.pathSep + "Mesure-Appuix.xml");
+        File dico_appuis = new File(odir + aR.pathSep + "Dico-Appuis.xml");
+
+        BufferedWriter mesure_appuis_writer = null;
+        BufferedWriter dico_appuis_writer = null;
+
+        try {
+            mesure_appuis.createNewFile();
+            dico_appuis.createNewFile();
+
+            mesure_appuis_writer = new BufferedWriter(new FileWriter(mesure_appuis));
+            dico_appuis_writer = new BufferedWriter(new FileWriter(dico_appuis));
+
+
+            dico_appuis_writer.write("<?xml version=\"1.0\" ?>");
+            dico_appuis_writer.newLine();
+            dico_appuis_writer.write("<Global>");
+            dico_appuis_writer.newLine();
+            dico_appuis_writer.write("\t<DiscoAppuisFlottant>");
+            dico_appuis_writer.newLine();
+            for (ControlPoint cp : controlPoints.values()) {
+
+
+
+                dico_appuis_writer.write("\t\t<OneAppuisDAF>");
+                dico_appuis_writer.newLine();
+                dico_appuis_writer.write("\t\t\t<Pt>");
+                dico_appuis_writer.write(" " + cp.getX() + " " + cp.getY() + " " + cp.getZ() + " </Pt>");
+                dico_appuis_writer.newLine();
+                dico_appuis_writer.write("\t\t\t<NamePt> " + cp.getName() + " </NamePt>");
+                dico_appuis_writer.newLine();
+                dico_appuis_writer.write("\t\t\t<Incertitude> " + 0.01 + " " + 0.01 + " " + 0.01 + " </Incertitude>");
+                dico_appuis_writer.newLine();
+                dico_appuis_writer.write("\t\t</OneAppuisDAF>");
+                dico_appuis_writer.newLine();
+
+            }
+
+            dico_appuis_writer.write("\t</DiscoAppuisFlottant>");
+            dico_appuis_writer.newLine();
+            dico_appuis_writer.write("</Global>");
+
+            mesure_appuis_writer.write("<SetOfMeasureAppuisFlottants>");
+            mesure_appuis_writer.newLine();
+
+            for(int i = 0; i < this.photos.size(); i++){
+
+                photo p = photos.get(i);
+
+                if(p.photControlPointsCoords.size() > 0){
+
+                    mesure_appuis_writer.write("\t<MeasureAppuiFlottant1Im>");
+                    mesure_appuis_writer.newLine();
+                    mesure_appuis_writer.write("\t\t<NameIm>" + p.getName() + "</NameIm>");
+
+                    mesure_appuis_writer.newLine();
+
+                    for(int j = 0; j < p.photControlPointsCoords.size(); j++){
+
+
+                        mesure_appuis_writer.write("\t\t<OneMeasureAF1I>");
+                        mesure_appuis_writer.newLine();
+                        mesure_appuis_writer.write("\t\t\t<NamePt> " + p.photoControlPoints.get(j) + " </NamePt>");
+                        mesure_appuis_writer.newLine();
+                        mesure_appuis_writer.write("\t\t\t<PtIm>" + p.photControlPointsCoords.get(j)[0] + " " + p.photControlPointsCoords.get(j)[1] + " </PtIm>");
+                        mesure_appuis_writer.newLine();
+                        mesure_appuis_writer.write("\t\t</OneMeasureAF1I>");
+                        mesure_appuis_writer.newLine();
+                    }
+
+                    mesure_appuis_writer.write("\t</MeasureAppuiFlottant1Im>");
+                    mesure_appuis_writer.newLine();
+                }
+
+
+            }
+
+
+            mesure_appuis_writer.write("</SetOfMeasureAppuisFlottants>");
+            mesure_appuis_writer.close();
+            dico_appuis_writer.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
 
 class photo{
@@ -252,6 +513,9 @@ class photo{
     public String cameraId;
     public String cameraName;
     public String cameraType;
+
+    ArrayList<String> photoControlPoints = new ArrayList<>();
+    ArrayList<double[]> photControlPointsCoords = new ArrayList<>();
 
     public photo(){
 
@@ -345,4 +609,66 @@ class Camera{
 
 
 
+}
+
+class ControlPoint{
+
+    String name;
+
+    int uniqueId;
+
+    int type;
+    double x, y, z;
+
+    public ControlPoint(){
+
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public void setY(double y) {
+        this.y = y;
+    }
+
+    public double getZ() {
+        return z;
+    }
+
+    public void setZ(double z) {
+        this.z = z;
+    }
+
+    public int getUniqueId() {
+        return uniqueId;
+    }
+
+    public void setUniqueId(int uniqueId) {
+        this.uniqueId = uniqueId;
+    }
 }
