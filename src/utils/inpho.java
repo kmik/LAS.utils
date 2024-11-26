@@ -211,6 +211,8 @@ public class inpho {
     public void findPhotos(){
 
         String photoname = null;
+        boolean include = false;
+
         // Read inpho file line by line
         // Parse the file and store the data in the class variables
         try {
@@ -237,12 +239,15 @@ public class inpho {
 
                     if(includedImages.contains(photoname)){
                         photos.add(p);
+                        include = true;
+                    }else{
+                        include = false;
                     }
 
 
                 }
 
-                if (line.contains("$PHOTO_POINTS")){
+                if (line.contains("$PHOTO_POINTS") && include){
 
                     while(!line.contains("$END_POINTS")){
 
@@ -260,7 +265,7 @@ public class inpho {
                             double secondValue = Double.parseDouble(matcher.group(2)); // First double
                             double thirdValue = Double.parseDouble(matcher.group(3));  // Second double
 
-                            if(!includedImages.contains(photoname)) {
+                            if(includedImages.contains(photoname)) {
                                 photos.get(photos.size() - 1).photoControlPoints.add(firstValue);
                                 photos.get(photos.size() - 1).photControlPointsCoords.add(new double[]{secondValue, thirdValue});
                             }
@@ -279,10 +284,14 @@ public class inpho {
             System.out.println(p.getName());
 
             for(int i = 0; i < p.photoControlPoints.size(); i++){
-                System.out.println(p.photoControlPoints.get(i) + " " + p.photControlPointsCoords.get(i)[0] + " " + p.photControlPointsCoords.get(i)[1]);
+                //System.out.println(p.photoControlPoints.get(i) + " " + p.photControlPointsCoords.get(i)[0] + " " + p.photControlPointsCoords.get(i)[1]);
             }
-        }
 
+
+            System.out.println( p.photoControlPoints.size());
+
+
+        }
 
     }
     public void splitFileToSingleCameras(){
@@ -492,12 +501,12 @@ public class inpho {
 
                     mesure_appuis_writer.write("\t<MeasureAppuiFlottant1Im>");
                     mesure_appuis_writer.newLine();
+
                     mesure_appuis_writer.write("\t\t<NameIm>" + p.getName() + "</NameIm>");
 
                     mesure_appuis_writer.newLine();
 
                     for(int j = 0; j < p.photControlPointsCoords.size(); j++){
-
 
                         mesure_appuis_writer.write("\t\t<OneMeasureAF1I>");
                         mesure_appuis_writer.newLine();
@@ -508,6 +517,7 @@ public class inpho {
                         mesure_appuis_writer.write("\t\t</OneMeasureAF1I>");
                         mesure_appuis_writer.newLine();
                     }
+
 
                     mesure_appuis_writer.write("\t</MeasureAppuiFlottant1Im>");
                     mesure_appuis_writer.newLine();
