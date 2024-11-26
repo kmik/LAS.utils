@@ -1,16 +1,16 @@
 package utils;
 
-import org.datavec.api.split.StringSplit;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class inpho {
 
+    HashSet<String> includedImages = new HashSet<>();
     File inphoFile = null;
 
     int numControlPoints = 0;
@@ -191,6 +191,23 @@ public class inpho {
 
     }
 
+    public void setIncludedImages(String file){
+
+        // Each line of the file contains the name of an image to be excluded
+        // Read the file and store the names in the HashSet ignoredImages
+
+        try {
+            BufferedReader sc = new BufferedReader(new FileReader(file));
+
+            while (sc.ready()) {
+                String line = sc.readLine();
+                includedImages.add(line);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void findPhotos(){
 
         String photoname = null;
@@ -217,7 +234,11 @@ public class inpho {
                     photoname = splitPath[splitPath.length - 1];
 
                     p.setName(photoname);
-                    photos.add(p);
+
+                    if(includedImages.contains(photoname)){
+                        photos.add(p);
+                    }
+
 
                 }
 
@@ -239,9 +260,10 @@ public class inpho {
                             double secondValue = Double.parseDouble(matcher.group(2)); // First double
                             double thirdValue = Double.parseDouble(matcher.group(3));  // Second double
 
-                            photos.get(photos.size()-1).photoControlPoints.add(firstValue);
-                            photos.get(photos.size()-1).photControlPointsCoords.add(new double[]{secondValue, thirdValue});
-
+                            if(!includedImages.contains(photoname)) {
+                                photos.get(photos.size() - 1).photoControlPoints.add(firstValue);
+                                photos.get(photos.size() - 1).photControlPointsCoords.add(new double[]{secondValue, thirdValue});
+                            }
                             // Output results
                         }
 

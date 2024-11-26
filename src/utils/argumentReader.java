@@ -83,6 +83,7 @@ public class argumentReader {
     public String[] tar_;
     public String[] gr;
     public String exclude = null;
+    public String include = null;
     public HashMap<Integer, HashSet<Integer>> tree_belongs_to_this_plot = null;
 
     public ArrayList<Integer> create_extra_byte_vlr = new ArrayList<>();
@@ -881,6 +882,15 @@ public class argumentReader {
                 .desc("Exclude these ids")
                 .required(false)
                 .build());
+
+        options.addOption(Option.builder()
+                .longOpt("include")
+                .hasArg(true)
+                .desc("Include these ids")
+                .required(false)
+                .build());
+
+
 
         options.addOption(Option.builder()
                 .longOpt("pp_x_offset")
@@ -2706,6 +2716,10 @@ public class argumentReader {
 
             if(cmd.hasOption("exclude")){
                 this.exclude = cmd.getOptionValue("exclude");
+            }
+
+            if(cmd.hasOption("include")){
+                this.include = cmd.getOptionValue("include");
             }
 
             if(cmd.hasOption("stringArg1")){

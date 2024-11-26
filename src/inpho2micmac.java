@@ -1,4 +1,3 @@
-import err.toolException;
 import utils.argumentReader;
 import utils.fileDistributor;
 import utils.inpho;
@@ -26,6 +25,9 @@ public class inpho2micmac {
 
 
             file_.setInphoFile(aR.inputFiles.get(i));
+
+            if(aR.include != null)
+                file_.setIncludedImages(aR.include);
 
             file_.findControlPoints();
             file_.findPhotos();
