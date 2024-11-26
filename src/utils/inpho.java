@@ -466,7 +466,7 @@ public class inpho {
             dico_appuis_writer.newLine();
             dico_appuis_writer.write("<Global>");
             dico_appuis_writer.newLine();
-            dico_appuis_writer.write("\t<DiscoAppuisFlottant>");
+            dico_appuis_writer.write("\t<DicoAppuisFlottant>");
             dico_appuis_writer.newLine();
             for (ControlPoint cp : controlPoints.values()) {
 
@@ -486,7 +486,7 @@ public class inpho {
 
             }
 
-            dico_appuis_writer.write("\t</DiscoAppuisFlottant>");
+            dico_appuis_writer.write("\t</DicoAppuisFlottant>");
             dico_appuis_writer.newLine();
             dico_appuis_writer.write("</Global>");
 
