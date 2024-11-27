@@ -355,11 +355,11 @@ public class createCHM{
             hasNaN = false; // Flag to check if there are still NaN values to process
             int countNaN = 0; // Count the number of NaN values
             // Time the deep copy
-            long startTimeCopy = System.nanoTime(); // Start timing the deep copy
+            //long startTimeCopy = System.nanoTime(); // Start timing the deep copy
             temppi = arrayCopy(input);  // Deep copy of the input array
-            long endTimeCopy = System.nanoTime();  // End timing the deep copy
-            long copyDuration = (endTimeCopy - startTimeCopy) / 1000000;  // Convert to milliseconds
-            System.out.println("Time for deep copy: " + copyDuration + " ms");
+            //long endTimeCopy = System.nanoTime();  // End timing the deep copy
+            //long copyDuration = (endTimeCopy - startTimeCopy) / 1000000;  // Convert to milliseconds
+            //System.out.println("Time for deep copy: " + copyDuration + " ms");
 
             // Iterate over the entire array
             for (x = 0; x < width; x++) {
@@ -398,7 +398,7 @@ public class createCHM{
                     }
                 }
             }
-            System.out.println("countNaN: " + countNaN + " hasNaN: " + hasNaN);
+            //System.out.println("countNaN: " + countNaN + " hasNaN: " + hasNaN);
         } while (hasNaN);  // Continue looping until no NaN values remain
         count3 = 0;
 
