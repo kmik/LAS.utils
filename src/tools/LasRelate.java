@@ -391,7 +391,7 @@ public class LasRelate{
 
                 /* Let's make a correction raster from correctionTin and interpolate it */
 
-                double[][] correctionRaster = new double[sizeX][sizeY];
+                float[][] correctionRaster = new float[sizeX][sizeY];
 
                 double locationX = 0.0;
                 double locationY = 0.0;

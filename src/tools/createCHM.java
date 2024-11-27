@@ -105,7 +105,7 @@ public class createCHM{
     }
 
 
-    public static double[][] removeOutliers(double[][] input, int blur, int kernel, double theta){
+    public static float[][] removeOutliers(float[][] input, int blur, int kernel, double theta){
 
         Statistics stat = new Statistics();
 
@@ -114,9 +114,9 @@ public class createCHM{
 
         int n = 1;
 
-        float[][] output = new float[input.length - n * 2][input[0].length - n * 2];
+        //float[][] output = new float[input.length - n * 2][input[0].length - n * 2];
 
-        double[][] temppi = arrayCopy(input);
+        float[][] temppi = arrayCopy(input);
 
         int height = input[0].length;
         int width = input.length;
@@ -129,14 +129,14 @@ public class createCHM{
 
         ArrayList<int[]> leftOvers = new ArrayList<int[]>();
 
-        TreeSet<Double> zets = new TreeSet<Double>();
+        //TreeSet<Float> zets = new TreeSet<Float>();
 
         for(int i = n; i < (height - n); i++){
 
             for(int j = n; j < (width - n); j++){
 
-                if(input[j][i] > 2.0)
-                    zets.add(input[j][i]);
+                //if(input[j][i] > 2.0)
+                 //   zets.add(input[j][i]);
 
                 int minX = j - n;
                 int maxX = j + n;
@@ -209,15 +209,20 @@ public class createCHM{
 
         int counter2 = 0;
 
+        /*
         while(leftOvers.size() > 0){
 
+            System.out.println(leftOvers.size());
             temppi = arrayCopy(input);
 
+            System.out.println("cloning");
             leftOvers2 = (ArrayList<int[]>)leftOvers.clone();
+            System.out.println("cloning done");
             leftOvers.clear();
 
             if(counter2 ++ % 10 == 0)
                 System.gc();
+
             leftOverCount++;
 
             for(int i = 0; i < leftOvers2.size(); i++){
@@ -256,7 +261,7 @@ public class createCHM{
                         }
 
                     }
-                
+
                 }
 
 
@@ -275,7 +280,7 @@ public class createCHM{
                 //input[leftOvers.get(i)[0]][leftOvers.get(i)[1]] = median;
 
                 if(Double.isNaN(input[leftOvers2.get(i)[0]][leftOvers2.get(i)[1]])){
-                    
+
                     int[] leftOver = new int[2];
 
                     leftOver[0] = leftOvers2.get(i)[0];
@@ -287,6 +292,114 @@ public class createCHM{
             }
         }
 
+
+         */
+/*
+        while (!leftOvers.isEmpty()) {
+            System.out.println("Remaining: " + leftOvers.size());
+
+            // Time the deep copy
+            long startTimeCopy = System.nanoTime(); // Start timing the deep copy
+            temppi = arrayCopy(input);  // Deep copy of the input array
+            long endTimeCopy = System.nanoTime();  // End timing the deep copy
+            long copyDuration = (endTimeCopy - startTimeCopy) / 1000000;  // Convert to milliseconds
+            System.out.println("Time for deep copy: " + copyDuration + " ms");
+
+            ArrayList<int[]> nextLeftOvers = new ArrayList<>();
+            long startTimeLoop = System.nanoTime(); // Start timing the for loop
+
+            for (int[] point : leftOvers) {
+                x = point[0];
+                y = point[1];
+
+                int minX = Math.max(x - n, 0);
+                int maxX = Math.min(x + n, width - 1);
+                int minY = Math.max(y - n, 0);
+                int maxY = Math.min(y + n, height - 1);
+
+                float sum = 0;
+                int count = 0;
+
+                for (int h = minX; h <= maxX; h++) {
+                    for (int u = minY; u <= maxY; u++) {
+                        if ((h != x || u != y) && !Float.isNaN(temppi[h][u])) {
+                            sum += temppi[h][u];
+                            count++;
+                        }
+                    }
+                }
+
+                float median = count > 1 ? sum / count : Float.NaN;
+
+                if (Float.isNaN(input[x][y]) || Math.abs(median - input[x][y]) > 2.0) {
+                    input[x][y] = median;
+                    //buffer[x][y] = median;  // Example update
+                }
+
+                if (Float.isNaN(input[x][y])) {
+                    nextLeftOvers.add(point);
+                }
+            }
+
+            long endTimeLoop = System.nanoTime();  // End timing the for loop
+            long loopDuration = (endTimeLoop - startTimeLoop) / 1000000;  // Convert to milliseconds
+            System.out.println("Time for loop: " + loopDuration + " ms");
+
+            leftOvers = nextLeftOvers;
+        }
+*/
+
+        // Ensure that no NaN values remain in the input array
+        boolean hasNaN;
+        do {
+            hasNaN = false; // Flag to check if there are still NaN values to process
+            int countNaN = 0; // Count the number of NaN values
+            // Time the deep copy
+            long startTimeCopy = System.nanoTime(); // Start timing the deep copy
+            temppi = arrayCopy(input);  // Deep copy of the input array
+            long endTimeCopy = System.nanoTime();  // End timing the deep copy
+            long copyDuration = (endTimeCopy - startTimeCopy) / 1000000;  // Convert to milliseconds
+            System.out.println("Time for deep copy: " + copyDuration + " ms");
+
+            // Iterate over the entire array
+            for (x = 0; x < width; x++) {
+                for (y = 0; y < height; y++) {
+                    // Only process if the current value is NaN
+                    if (Float.isNaN(input[x][y])) {
+                        countNaN++; // Increment the NaN count
+                        hasNaN = true; // We found a NaN value, so we need to loop again
+
+                        // Define the range for the neighborhood
+                        int minX = Math.max(x - n, 0);
+                        int maxX = Math.min(x + n, width - 1);
+                        int minY = Math.max(y - n, 0);
+                        int maxY = Math.min(y + n, height - 1);
+
+                        float sum = 0;
+                        int count = 0;
+
+                        // Iterate through the neighborhood
+                        for (int h = minX; h <= maxX; h++) {
+                            for (int u = minY; u <= maxY; u++) {
+                                if ((h != x || u != y) && !Float.isNaN(temppi[h][u])) {
+                                    sum += temppi[h][u];
+                                    count++;
+                                }
+                            }
+                        }
+
+                        // Calculate the median (average in this case)
+                        float median = count > 1 ? sum / count : Float.NaN;
+
+                        // Update the value if NaN or if the difference is significant
+                        if (Float.isNaN(input[x][y]) || Math.abs(median - input[x][y]) > 2.0) {
+                            input[x][y] = median;
+                        }
+                    }
+                }
+            }
+            System.out.println("countNaN: " + countNaN + " hasNaN: " + hasNaN);
+        } while (hasNaN);  // Continue looping until no NaN values remain
         count3 = 0;
 
         double[][] original = null;
@@ -298,14 +411,14 @@ public class createCHM{
 
         double p80 = 0f;
 
-        for(double i : zets){
+        //for(double i : zets){
 
-            if(count++ >= zets.size() * 0.80){
-                p80 = i;
-                break;
-            }
+        //    if(count++ >= zets.size() * 0.80){
+       //         p80 = i;
+       //         break;
+       //     }
 
-        }
+        //}
 
         if(theta > 0)
         if(n > 0){
@@ -377,7 +490,7 @@ public class createCHM{
 
     }
 
-    public static void copyRasterContents(double[][] from, Band to){
+    public static void copyRasterContents(float[][] from, Band to){
 
 
         int x = to.getXSize();
@@ -2861,7 +2974,7 @@ public class createCHM{
 		//Mat output = new Mat();
 
         public float[][] output2;
-        public double[][] chm_array;
+        public float[][] chm_array;
 
         float[][] output2R;
         float[][] output2G;
@@ -3004,6 +3117,7 @@ public class createCHM{
 
             //System.out.println("OUTPUT: " + outputFileName);
 
+            System.out.println("EXPORTING!!");
 			export(outputFileName);
 		}
 
@@ -3066,12 +3180,12 @@ public class createCHM{
             cehoam.SetProjection(sr.ExportToWkt());
             cehoam.SetGeoTransform(geoTransform);
 
-            this.chm_array = new double[numberOfPixelsX][numberOfPixelsY];
+            this.chm_array = new float[numberOfPixelsX][numberOfPixelsY];
 
 
             for(int x = 0; x < numberOfPixelsX; x++)
                 for(int y = 0; y < numberOfPixelsY; y++)
-                    chm_array[x][y] = Double.NaN;
+                    chm_array[x][y] = Float.NaN;
 
 
             this.resolution_m = (maxX - minX) / numberOfPixelsX;
@@ -3269,7 +3383,7 @@ public class createCHM{
                         //floatArray[0] = (float)tempPoint.z;
                         //band.WriteRaster((int)temppi[0], (int)temppi[1], 1, 1, floatArray);
 
-                        chm_array[(int) temppi[0]][(int) temppi[1]] = tempPoint.z;
+                        chm_array[(int) temppi[0]][(int) temppi[1]] = (float)tempPoint.z;
                     }
 
 
@@ -3277,7 +3391,7 @@ public class createCHM{
                         //floatArray[0] = (float)tempPoint.z;
                         //band.WriteRaster((int)temppi[0], (int)temppi[1], 1, 1, floatArray);
 
-                        chm_array[(int) temppi[0]][(int) temppi[1]] = tempPoint.z;
+                        chm_array[(int) temppi[0]][(int) temppi[1]] = (float)tempPoint.z;
                     }
 
                     //if(true)
@@ -3522,7 +3636,7 @@ public class createCHM{
 
                         double value = polator_pit_free.interpolate(coord_x, coord_y, valuator);
 
-                        chm_array[x][y] = value;
+                        chm_array[x][y] = (float)value;
 
                         //System.out.println(chm_array[x][y] + " ?? " + value);
                     }
@@ -3914,7 +4028,7 @@ public class createCHM{
                 floatArray[0] = Float.NaN;
 
                 for(int[] i : indexes_to_set_nan){
-                    chm_array[i[0]][i[1]] = Double.NaN;
+                    chm_array[i[0]][i[1]] = Float.NaN;
                     //band.WriteRaster(i[0], i[1], 1, 1, floatArray);
                 }
                 //scehoam.FlushCache();
