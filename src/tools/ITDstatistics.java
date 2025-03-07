@@ -1771,7 +1771,12 @@ public class ITDstatistics{
 
                     int[] getValu = new int[]{0};
 
-                    densities[locatio] += intens;
+
+                    if(aR.voxel_intensity)
+                        densities[locatio] += intens;
+                    else
+                        densities[locatio] = 1;
+
                     densities_count[locatio]++;
 
                     double delta = intens - mu[locatio];
@@ -1907,15 +1912,16 @@ public class ITDstatistics{
 
         double ratio = 1.0 / (densities_size_x * densities_size_y * densities_size_y);
 
-        for(int i = 0; i < densities.length; i++){
+        if(aR.voxel_intensity)
+            for(int i = 0; i < densities.length; i++){
 
-            if(densities_count[i] > 1)
-                densities[i] /= densities_count[i];
-                //densities[i] /= Math.sqrt(sum[i] / ((double)densities_count[i] - 1));
-                //densities[i] = (double)densities_count[i] * ratio;
-            else
-                densities[i] = 0;
-        }
+                if(densities_count[i] > 1)
+                    densities[i] /= densities_count[i];
+                    //densities[i] /= Math.sqrt(sum[i] / ((double)densities_count[i] - 1));
+                    //densities[i] = (double)densities_count[i] * ratio;
+                else
+                    densities[i] = 0;
+            }
 
         if(finalHullPoints.length > 10){
 
@@ -2189,26 +2195,28 @@ public class ITDstatistics{
                     printti += "\t";
 
                 }
-                printti += "-999\t";
-                colnames.add("-999");
 
-                printti += "-666\t";
-                colnames.add("-666");
+                if(aR.convolution_metrics) {
+                    printti += "-999\t";
+                    colnames.add("-999");
 
-                //for(double d : densities){
-                for(int i = 0; i < densities.length; i++){
+                    printti += "-666\t";
+                    colnames.add("-666");
 
-                    double d = densities[i];
-                    printti += d;
-                    colnames.add("v_i_" + i);
+                    //for(double d : densities){
+                    for (int i = 0; i < densities.length; i++) {
 
-                    printti += "\t";
+                        double d = densities[i];
+                        printti += d;
+                        colnames.add("v_i_" + i);
 
-                }
+                        printti += "\t";
 
-                /* These are the haralick features */
-                if(true)
-                for(int i = 0; i < textureFeatures.size(); i++){
+                    }
+
+                    /* These are the haralick features */
+                    if (true)
+                        for (int i = 0; i < textureFeatures.size(); i++) {
 /*
                     BufferedImage newImg = new BufferedImage(textureLayers.get(i).getWidth(), textureLayers.get(i).getHeight(), BufferedImage.TYPE_BYTE_GRAY);
                     newImg.setData(textureLayers.get(i));
@@ -2219,20 +2227,20 @@ public class ITDstatistics{
                     ImageIO.write(newImg, "png", outputfile);
 
 */
-                    for(int j_ = 0; j_ < textureFeatures.get(i).length; j_++){
-                        if(j_ <= 10) {
-                            if(!obsoleteFeatures.contains(j_)){
+                            for (int j_ = 0; j_ < textureFeatures.get(i).length; j_++) {
+                                if (j_ <= 10) {
+                                    if (!obsoleteFeatures.contains(j_)) {
 
-                                printti += textureFeatures.get(i)[j_];
-                                colnames.add("haralick_" + i + "_" + j_);
-                                printti += "\t";
+                                        printti += textureFeatures.get(i)[j_];
+                                        colnames.add("haralick_" + i + "_" + j_);
+                                        printti += "\t";
 
+                                    }
+
+                                }
                             }
-
                         }
-                    }
                 }
-
                 int[] pixelValue = new int[]{0};
                 int size = textureResolution_x*textureResolution_y;
 
@@ -2610,6 +2618,7 @@ public class ITDstatistics{
         this.colnames.add("field_tree_id");
         this.colnames.add("field_tree_height");
         this.colnames.add("field_tree_species");
+        this.colnames.add("field_tree_volume");
 
         while(it.hasNext()){
 
@@ -2668,6 +2677,7 @@ public class ITDstatistics{
                 temp += treeBank[index][8] + "\t";
                 temp += treeBank[index][2] + "\t";
                 temp += (treeBank[index][4]-1) + "\t";
+                temp += (treeBank[index][6]) + "\t";
 
 
                 temp += 1 + "\t";
@@ -2686,6 +2696,7 @@ public class ITDstatistics{
 
                 temp += treeBank[index][7] + "\t";
                 //temp += "-1\t";
+                temp += "-1\t";
                 temp += "-1\t";
                 temp += "-1\t";
                 temp += "-1\t";
@@ -2710,6 +2721,7 @@ public class ITDstatistics{
                 temp += "-1\t";
                 temp += "-1\t";
                 temp += "-1\t";
+                temp += "-1\t";
                 temp += 1 + "\t";
 
                 output.set(tem.getIndex(), temp);
@@ -2722,6 +2734,7 @@ public class ITDstatistics{
                 temp = c12 + "\t" + temp;
                 temp = c9 + "\t" + temp;
 
+                temp += "-1\t";
                 temp += "-1\t";
                 temp += "-1\t";
                 temp += "-1\t";
@@ -3170,8 +3183,6 @@ public class ITDstatistics{
             while ((line = br.readLine()) != null) {
 
                 line = line.replaceAll("\"", "");
-
-
 
                 if(lineCount != 0){
                     //if(Double.parseDouble(line.split(",")[5]) == -1.0){

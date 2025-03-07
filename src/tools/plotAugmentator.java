@@ -121,7 +121,12 @@ public class plotAugmentator {
 
     public void preparePlots(){
 
+        // Remove half at random
+
         for(int plot : plots.keySet()){
+
+
+            System.out.println("Preparing plot " + plot);
             plots.get(plot).preparePlot();
         }
 
@@ -320,7 +325,10 @@ public class plotAugmentator {
 
         for(long i = 0; i < shapeFileLayer.GetFeatureCount(); i++ ) {
 
-            if( i % 3 == 0 || true) {
+            // THIS IS HOW TO REDUCE THE NUMBER OF PLOTS
+            //if( i % 2 == 0 || false) {
+            //if (i % 4 < 3) {
+            if (i % 3 == 0 || true) {
                 Feature tempF = shapeFileLayer.GetFeature(i);
                 Geometry tempG = tempF.GetGeometryRef();
                 Geometry tempG2 = tempG.GetGeometryRef(0);
@@ -578,6 +586,7 @@ public class plotAugmentator {
         }
 
         //System.exit(1);
+
     }
 
     public static double getRandomDoubleInRange(double min, double max) {
@@ -646,6 +655,7 @@ public class plotAugmentator {
             customThreadPool.submit(() ->
 
                     IntStream.range(0, n_simulations).parallel().forEach(i -> {
+                    //IntStream.range(0, 10).parallel().forEach(i -> {
 
 
                         //for( int i = 0; i < n_simulations; i++ ){

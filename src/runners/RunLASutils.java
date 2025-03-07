@@ -50,9 +50,8 @@ public class RunLASutils {
 
     public static void main(String[] args) throws Exception {
 
-        ogr.RegisterAll(); //Registering all the formats..
-        gdal.AllRegister();
-
+        //ogr.RegisterAll(); //Registering all the formats..
+        //gdal.AllRegister();
 
         long tStart = System.currentTimeMillis();
         argumentReader aR = new argumentReader(args);

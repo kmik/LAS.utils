@@ -287,7 +287,7 @@ public class simulatedAnnealingForestSimulator {
 
         //for(int restart = 0; restart < (int)(this.allPlots.size() * 0.1); restart++) {
         //for(int restart = 0; restart < (int)(this.allPlots.size() * 0.05); restart++) {
-        for(int restart = 0; restart < 2; restart++) {
+        for(int restart = 0; restart < 3; restart++) {
 
             double t = maxTemperature;
 
@@ -327,7 +327,9 @@ public class simulatedAnnealingForestSimulator {
             volumesCurrent[3] = sumOfArray(speciesVolume);
 
             initialCost = relativeRMSE(targetVolumes, volumesCurrent);
-            initialCost += sd_itcs;
+
+            // THIS WAS RECENTLY COMMENTED OUT (09.01.2025)
+            //initialCost += sd_itcs;
             //initialCost = relativeDifference(sumOfArray(targetVolume), sumOfArray(speciesVolume));
             //                + relativeRMSE(targetDGM, dgm);
                     //+ costWithEMDSINGLE(targetSpecies, diameterDistribution_species);
@@ -372,6 +374,7 @@ public class simulatedAnnealingForestSimulator {
                 swap_this_many = Math.max(1, swap_this_many);
                 int average_n_swapped = 0;
 
+                switch_prop = Math.min(switch_prop, 0.5);
 
                 for (int i = 0; i < iterPerTemp; i++) {
 
@@ -423,7 +426,9 @@ public class simulatedAnnealingForestSimulator {
 
                     sd_itcs = calculateStandardDeviation(current_solution_map);
                     //newCost += relativeDifference(sd_itcs, initial_sd);
-                    newCost += sd_itcs;
+
+                    // THIS WAS RECENTLY COMMENTED OUT (09.01.2025)
+                    //newCost += sd_itcs;
 
                     List<List<Double>> outliers_ = outliersModifiedZScore(current_solution_map, z_score_threshold);
 
@@ -478,6 +483,9 @@ public class simulatedAnnealingForestSimulator {
             restart();
             prepare();
         }
+
+        System.out.println("All time best cost: " + all_time_best_cost);
+
 
 
         if(visualize)

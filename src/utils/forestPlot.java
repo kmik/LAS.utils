@@ -151,9 +151,10 @@ public class forestPlot {
 
     public void preparePlot(){
 
+        System.out.println("Reading LAS file: " + this.plotLASFile.getName());
         try {
             plotLASReader = new LASReader(this.plotLASFile);
-            //System.out.println("Reading LAS file: " + this.plotLASFile.getName());
+            System.out.println("Reading LAS file: " + this.plotLASFile.getName());
         }catch (Exception e){
             System.out.println("Error reading LAS file");
         }

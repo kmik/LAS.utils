@@ -34,6 +34,8 @@ public class argumentReader {
     public double pp_x_offset = 0.0;
     public double pp_y_offset = 0.0;
 
+    public boolean voxel_intensity = false;
+
     public String stringArgument1 = null;
     public boolean convo = false;
     public boolean subsetColumnNamesVMI = false;
@@ -108,6 +110,9 @@ public class argumentReader {
     public boolean ray_trace = false;
 
     public double min_edge_length = 0.5;
+
+    public boolean clamper_Z = false;
+    public double clamp_z = 0.0;
 
     public boolean convolution_metrics_train = false;
     public boolean convolution_metrics = true;
@@ -630,6 +635,13 @@ public class argumentReader {
                 .build());
 
         options.addOption( Option.builder()
+                .longOpt("clamp_z")
+                .hasArg(true)
+                .desc("Clamp z values below threshold")
+                .required(false)
+                .build());
+
+        options.addOption( Option.builder()
                 .longOpt("ground")
                 .hasArg(true)
                 .desc("Ground las files")
@@ -862,6 +874,14 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("no_convo")
+                .hasArg(false)
+                .desc("ITC_metrics output file")
+                .required(false)
+                .build());
+
+
+        options.addOption(Option.builder()
                 .longOpt("prob")
                 .hasArg(true)
                 .desc("Probability (check tool for more info)")
@@ -956,6 +976,15 @@ public class argumentReader {
                 .desc("Field measured trees")
                 .required(false)
                 .build());
+
+        options.addOption(Option.builder()
+                .longOpt("voxel_intensity")
+                .hasArg(false)
+                .desc("Assign intensity to voxel")
+                .required(false)
+                .build());
+
+
         options.addOption(Option.builder()
                 .longOpt("measured_trees_2")
                 .hasArg(true)
@@ -2447,6 +2476,17 @@ public class argumentReader {
                 this.rasterizeInterpolate = true;
             }
 
+            if (cmd.hasOption("voxel_intensity")) {
+                this.voxel_intensity = true;
+
+            }
+
+            if(cmd.hasOption("clamp_z")){
+                this.clamper_Z = true;
+                this.clamp_z = Double.parseDouble(cmd.getOptionValue("clamp_z"));
+            }
+
+
             if (cmd.hasOption("c")) {
 
                 this.cores = Integer.parseInt(cmd.getOptionValue("c"));
@@ -2477,6 +2517,10 @@ public class argumentReader {
                 if(change_version_minor > 4 || change_version_minor < 1)
                     throw new argumentException("Incomprehensible version minor (-change_version_minor). Great Scott!!");
 
+            }
+
+            if( cmd.hasOption("no_convo")){
+                this.convolution_metrics = false;
             }
 
             if( cmd.hasOption("path")){

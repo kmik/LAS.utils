@@ -473,6 +473,9 @@ public class plotSimulator {
         List<Double> keysAsArray_ = new ArrayList<Double>(candidatePlots.keySet());
 
         int candidatePlot = candidatePlots.get(keysAsArray_.get(0));
+        // Instead just get one randomly
+        candidatePlot = candidatePlots.get(keysAsArray_.get(r.nextInt(keysAsArray_.size())));
+        //candidatePlot = candidatePlots.get(keysAsArray_.get(keysAsArray_.size() - 1));
 
         //System.out.println(keysAsArray_);
         //System.out.println("----------------------------------");
@@ -715,13 +718,28 @@ public class plotSimulator {
             plots_.add(augmentator.itc_with_tree.get(ITC_segments_optimized_array.get(i)).getPlotID());
 
         }
-
+/*
 
         sInfo.setTarget(  new double[]{sumOfArray(sa.targetVolume)});
 
         sInfo.setSimulated( new double[]{sumOfArray(this.calculateSpeciesSpecificVolumes(sa.best_solution_map, bin, target, plot.getArea()))});
         sInfo.setFromFile(plot.getPlotLASFile().getName());
         sInfo.setInitial( new double[]{sumOfArray(this.calculateSpeciesSpecificVolumes(plot.trees_unique_id_for_simulation, bin, target, plot.getArea()))});
+*/
+
+        sInfo.setTarget(Arrays.copyOf(sa.targetVolume, sa.targetVolume.length));
+        System.out.println(Arrays.toString(sa.targetVolume));
+        //System.exit(1);
+        double[] tmp = this.calculateSpeciesSpecificVolumes(sa.best_solution_map, bin, target, plot.getArea());
+        sInfo.setSimulated(Arrays.copyOf(tmp, tmp.length));
+        double[] tmp2 = this.calculateSpeciesSpecificVolumes(plot.trees_unique_id_for_simulation, bin, target, plot.getArea());
+        sInfo.setInitial(Arrays.copyOf(tmp2, tmp2.length));
+        sInfo.setFromFile(plot.getPlotLASFile().getName());
+
+        //sInfo.setSimulated( new double[]{sumOfArray(this.calculateSpeciesSpecificVolumes(sa.best_solution_map, bin, target, plot.getArea()))});
+        //sInfo.setInitial( new double[]{sumOfArray(this.calculateSpeciesSpecificVolumes(plot.trees_unique_id_for_simulation, bin, target, plot.getArea()))});
+
+
 
         this.addReport(sInfo);
 
@@ -1620,14 +1638,31 @@ public class plotSimulator {
             FileWriter fw = new FileWriter(output);
             BufferedWriter bw = new BufferedWriter(fw);
 
-            bw.write("SimulationID\tTarget\tInitial\tSimulated\tFromFile");
+            bw.write("SimulationID\tTarget\tInitial\tSimulated\t" +
+                    "Target_p\tInitial_p\tSimulated_p\t" +
+                    "Target_s\tInitial_s\tSimulated_s\t" +
+                    "Target_d\tInitial_d\tSimulated_d\t" +
+                    "FromFile");
             bw.newLine();
 
             for(simulationInformation sim : simulationRaport){
                 bw.write(sim.getSimulationID() + "\t");
+                bw.write(sumOfArray(sim.getTarget()) + "\t");
+                bw.write(sumOfArray(sim.getInitial()) + "\t");
+                bw.write(sumOfArray(sim.getSimulated()) + "\t");
+
                 bw.write((sim.getTarget()[0]) + "\t");
                 bw.write((sim.getInitial()[0]) + "\t");
                 bw.write((sim.getSimulated()[0]) + "\t");
+
+                bw.write((sim.getTarget()[1]) + "\t");
+                bw.write((sim.getInitial()[1]) + "\t");
+                bw.write((sim.getSimulated()[1]) + "\t");
+
+                bw.write((sim.getTarget()[2]) + "\t");
+                bw.write((sim.getInitial()[2]) + "\t");
+                bw.write((sim.getSimulated()[2]) + "\t");
+
                 bw.write(sim.getFromFile());
                 bw.newLine();
             }

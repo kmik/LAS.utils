@@ -8,6 +8,7 @@ import org.apache.commons.math3.util.FastMath;
 
 public class pointCloudMetrics {
 
+    argumentReader aR;
     public double percentile_step_orig = 0.05;
 
     public double[] densities = new double[]{1.3, 2.5, 5.0, 7.5, 10.0, 15.0, 20.0, 25.0};
@@ -46,6 +47,8 @@ public class pointCloudMetrics {
     public double diagonal = Math.sqrt((convolution_image_height*convolution_image_height)+(convolution_image_height*convolution_image_height));
 
     public pointCloudMetrics(argumentReader aR){
+
+        this.aR = aR;
 
         this.clip_to_circle = aR.clip_to_circle;
 
@@ -1830,8 +1833,37 @@ public class pointCloudMetrics {
         return output;
     }
 
+    public void clampValuesTo(ArrayList<Double> values, double clampValue){
+
+            for(int i = 0; i < values.size(); i++){
+
+                if(values.get(i) > clampValue)
+                    values.set(i, clampValue);
+
+            }
+    }
+
+    public double sum (ArrayList<Double> values){
+
+        double sum = 0;
+
+        for(int i = 0; i < values.size(); i++){
+
+            sum += values.get(i);
+
+        }
+
+        return sum;
+    }
 
     public ArrayList<Double> calcZonal(ArrayList<Double> z, double sum_z, String suffix, ArrayList<String> colnames){
+
+        if(aR.clamper_Z && false){
+
+            clampValuesTo(z, aR.clamp_z);
+            sum_z = sum(z);
+
+        }
 
         ArrayList<Double> output = new ArrayList<>();
         colnames.clear();

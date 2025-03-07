@@ -1777,6 +1777,11 @@ public class lasRasterTools {
                                 continue;
                             }
 
+                            if(aR.clamper_Z){
+                                if(value < aR.clamp_z)
+                                    value = (float)aR.clamp_z;
+                            }
+
                             nValid++;
 
                             gridPoints_z_a.add((double) value);
