@@ -114,7 +114,7 @@ public class plotAugmentator {
 
         }
 
-        System.out.println(itc_with_tree_unique_id.size());
+        //System.out.println(itc_with_tree_unique_id.size());
         //System.exit(1);
 
     }
@@ -323,12 +323,38 @@ public class plotAugmentator {
 
         Layer shapeFileLayer = ds.GetLayer(0);
 
+        long featureCount = shapeFileLayer.GetFeatureCount();
+        List<Long> indices = new ArrayList<>();
+
+        for (long i = 0; i < featureCount; i++) {
+            indices.add(i);
+        }
+
+        Collections.shuffle(indices);  // Randomize order
+        int limit = (int) (featureCount / 1);
+
+        for (int j = 0; j < limit; j++) {
+            long i = indices.get(j);
+            Feature tempF = shapeFileLayer.GetFeature(i);
+            Geometry tempG = tempF.GetGeometryRef();
+
+            if (tempG == null)
+                continue;
+
+            Geometry tempG2 = tempG.GetGeometryRef(0);
+            int plotId = tempF.GetFieldAsInteger(0);
+
+            plots.put(plotId, new forestPlot(plotId, tempG2.GetPoints(), this));
+            plots.get(plotId).setArea(tempG2.GetArea());
+        }
+
+        /*
         for(long i = 0; i < shapeFileLayer.GetFeatureCount(); i++ ) {
 
             // THIS IS HOW TO REDUCE THE NUMBER OF PLOTS
             //if( i % 2 == 0 || false) {
             //if (i % 4 < 3) {
-            if (i % 3 == 0 || true) {
+            if (i % 2 == 0 ) {
                 Feature tempF = shapeFileLayer.GetFeature(i);
                 Geometry tempG = tempF.GetGeometryRef();
                 Geometry tempG2 = tempG.GetGeometryRef(0);
@@ -343,6 +369,8 @@ public class plotAugmentator {
                 //System.exit(1);
             }
         }
+        */
+
 
         int numberOfSegments = 0;
 
@@ -486,7 +514,7 @@ public class plotAugmentator {
                 targets.get(plotID).addTree(tmpTree);
 
                 counter++;
-                System.out.println(targets.get(plotID).trees.size());
+                //System.out.println(targets.get(plotID).trees.size());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -546,6 +574,8 @@ public class plotAugmentator {
 
                 double volumeBinCenter = Double.parseDouble(line[0]) + 10;
                 int countInBin = Integer.parseInt(line[1]);
+
+                countInBin *= 10;
 
                 for(int i_ = 0; i_ < 1; i_++)
                 for(int i = 0; i < countInBin; i++){

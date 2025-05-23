@@ -1684,7 +1684,7 @@ public class LASraf implements Closeable {
 
 
 
-  public void updateHeader_1_4_2(int pointCount, double minX, double maxX, double minY, double maxY, double minZ, double maxZ, long[] pointsByReturn, long[] pointsByReturn_1_4,
+  public void updateHeader_1_4_2(long pointCount, double minX, double maxX, double minY, double maxY, double minZ, double maxZ, long[] pointsByReturn, long[] pointsByReturn_1_4,
                                argumentReader aR,
                                double x_offset, double y_offset, double z_offset,
                                double x_scale, double y_scale, double z_scale	) throws IOException{

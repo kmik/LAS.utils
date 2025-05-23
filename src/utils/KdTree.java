@@ -887,7 +887,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
         public void setX(double x){this.x = x;}
         public void setY(double y){this.y = y;}
         public void setZ(double z){this.z = z;}
-        public void setExtra_value1(float value){this.extra_value1 = extra_value1;}
+        public void setExtra_value1(float value){this.extra_value1 = value;}
 
         public double euclideanDistance(XYZPoint o1) {
             return euclideanDistance(o1, this);

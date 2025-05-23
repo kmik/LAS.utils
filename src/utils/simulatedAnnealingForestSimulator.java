@@ -86,7 +86,7 @@ public class simulatedAnnealingForestSimulator {
     double[] maxValue_array = new double[]{0,0,0};
 
 
-    int iterPerTemp = 100;
+    int iterPerTemp = 200;
 
     double switch_prop = 0.5;
 
@@ -329,8 +329,8 @@ public class simulatedAnnealingForestSimulator {
             initialCost = relativeRMSE(targetVolumes, volumesCurrent);
 
             // THIS WAS RECENTLY COMMENTED OUT (09.01.2025)
-            //initialCost += sd_itcs;
-            //initialCost = relativeDifference(sumOfArray(targetVolume), sumOfArray(speciesVolume));
+            initialCost += sd_itcs;
+           // initialCost = relativeDifference(sumOfArray(targetVolume), sumOfArray(speciesVolume));
             //                + relativeRMSE(targetDGM, dgm);
                     //+ costWithEMDSINGLE(targetSpecies, diameterDistribution_species);
             double initial_sd = sd_itcs;
@@ -350,7 +350,6 @@ public class simulatedAnnealingForestSimulator {
             double previousCost = initialCost;
 
             if(restart == 0) {
-
 
                 all_time_best_cost = initialCost;
 
@@ -428,7 +427,7 @@ public class simulatedAnnealingForestSimulator {
                     //newCost += relativeDifference(sd_itcs, initial_sd);
 
                     // THIS WAS RECENTLY COMMENTED OUT (09.01.2025)
-                    //newCost += sd_itcs;
+                    newCost += sd_itcs;
 
                     List<List<Double>> outliers_ = outliersModifiedZScore(current_solution_map, z_score_threshold);
 

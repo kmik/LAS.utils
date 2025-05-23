@@ -4,10 +4,7 @@ import err.toolException;
 import org.apache.commons.math3.ml.distance.EarthMoversDistance;
 import tools.plotAugmentator;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class plotSimulator {
@@ -573,6 +570,7 @@ public class plotSimulator {
 
  */
 
+
         sa.optimize();
 
         //System.out.println(sa.startId + " " + sa.bestSolutionPlotId);
@@ -622,7 +620,6 @@ public class plotSimulator {
 
 
         for(int i : plot.trees_unique_id_for_simulation.keySet()){
-
 
             if(plot.trees_unique_id_for_simulation.get(i).hasCrown) {
                 //System.out.println(plot.trees_unique_id_for_simulation.get(i).getTreeITCid() + " " + ITC_segments_original.contains(plot.trees_unique_id_for_simulation.get(i).getTreeITCid()));
@@ -812,10 +809,45 @@ public class plotSimulator {
 
         //System.out.println("Original: " + count_original + " New: " + count_new + " Unchanged: " + count_unchanged);
         //System.out.println("DONE!");
-
+        simulateFieldPlot(9.0, plot);
         plot.unlock();
         System.out.println("Unlocked plot " + plot.id);
         //System.exit(1);
+
+    }
+
+    public void simulateFieldPlot(double radius, forestPlot plot){
+
+        File trees = plot.simulationPlotFile;
+
+        // Read the trees from the file line by line
+        try (BufferedReader br = new BufferedReader(new FileReader(trees))) {
+            String line;
+            int count = 0;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split("\t");
+                if(parts.length < 3)
+                    continue;
+                double x = Double.parseDouble(parts[3]);
+                double y = Double.parseDouble(parts[4]);
+                int treeSpecies = Integer.parseInt(parts[8]);
+                double volume = Double.parseDouble(parts[parts.length - 5]);
+
+                forestTree tree = new forestTree();
+                tree.setTreeX(x);
+                tree.setTreeY(y);
+                tree.setTreeVolume(volume);
+                tree.setTreeSpecies(treeSpecies);
+                //System.out.println(tree.toString());
+
+                count++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //System.exit(1);
+
 
     }
     public void simulatePlotAnnealingWay(int simulationID, boolean fill, boolean original, List<Integer> targets, String odir){

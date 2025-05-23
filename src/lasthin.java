@@ -33,7 +33,9 @@ public class lasthin {
 
                 LASReader temp = new LASReader(aR.inputFiles.get(i));
                 Thinner thi = new Thinner(temp, aR.step, aR, 1);
-
+                thi.releaseMemory();
+                temp.releaseMemory();
+                temp = null;
             }
         }
 
@@ -114,6 +116,9 @@ public class lasthin {
                 try {
 
                     Thinner thi = new Thinner(temp, aR.step, aR, nCore);
+                    thi.releaseMemory();
+                    temp.releaseMemory();
+                    temp = null;
 
                 } catch (OutOfMemoryError e) {
                     e.printStackTrace();
@@ -130,6 +135,9 @@ public class lasthin {
                     System.out.println("Error in file: " + f.getAbsolutePath());
                     System.exit(2);
                 }
+
+
+
             }
         }
     }

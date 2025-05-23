@@ -274,7 +274,7 @@ public class argumentReader {
 
     public boolean debug = false;
 
-
+    public boolean export_only_ITC_segments = false;
 
     public int set_seed = -1;
 
@@ -719,6 +719,14 @@ public class argumentReader {
                 .desc("Overwrite output file")
                 .required(false)
                 .build());
+
+        options.addOption(Option.builder()
+                .longOpt("exportOnlyITC")
+                .hasArg(false)
+                .desc("Overwrite output file")
+                .required(false)
+                .build());
+
 
         options.addOption(Option.builder()
                 .longOpt("subsetColumns")
@@ -2433,6 +2441,10 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("exportOnlyITC")){
+                this.export_only_ITC_segments = true;
+
+            }
             if (cmd.hasOption("poly2")) {
 
                 poly_2 = cmd.getOptionValues("poly2");
@@ -2895,7 +2907,7 @@ public class argumentReader {
             if (cmd.hasOption("only_convo")) {
 
                 this.onlyConvolutionMetrics = true;
-
+                this.noConvolution = false;
             }
 
 

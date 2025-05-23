@@ -552,7 +552,6 @@ public class lasRasterTools {
 
         String mapSheetName_ = karttaLehtiJako.getMapSheetNameByCoordinates(x__, y__);
 
-
         outputFileName = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster.tif").getAbsolutePath();
 
         if(!year.equals("0000")){

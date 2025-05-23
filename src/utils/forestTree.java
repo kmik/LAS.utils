@@ -339,8 +339,11 @@ public class forestTree {
                 ", plotID=" + plotID +
                 ", treeITCid=" + treeITCid +
                 ", treeHeight=" + treeHeight +
+                ", treeVolume=" + treeVolume +
                 ", hasCrown=" + hasCrown +
                 ", beneath=" + beneathCrownId +
+                ", x=" + treeX +
+                ", y=" + treeY +
                 ", belongsToOptimization=" + belongsToOptimization +
                 '}';
     }

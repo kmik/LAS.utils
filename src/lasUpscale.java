@@ -1,6 +1,5 @@
 import LASio.LASReader;
-import org.gdal.ogr.ogr;
-import tools.lasRasterTools;
+import tools.lasScaler;
 import tools.process_las2las;
 import utils.argumentReader;
 import utils.fileDistributor;
@@ -11,13 +10,10 @@ import java.util.ArrayList;
 
 import static runners.RunLASutils.proge;
 import static utils.miscProcessing.prepareData;
-import static utils.miscProcessing.printProcessingTime;
 
-public class las2raster {
+public class lasUpscale {
 
     public static void main(String[] args) throws IOException {
-
-        ogr.RegisterAll();
 
         argumentReader aR = new argumentReader(args);
         ArrayList<File> inputFiles = prepareData(aR, "las2las");
@@ -27,36 +23,40 @@ public class las2raster {
             threadTool(aR, fD);
         }else{
 
+            //process_las2las tooli = new process_las2las(1);
+
+
             for (int i = 0; i < inputFiles.size(); i++) {
 
+                LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+
+                lasScaler tooli = new lasScaler(aR);
+
+                tooli.setFactor(4);
+                tooli.setMaxDistance(1.5);
+                tooli.setMinDistance(0.75);
+                tooli.setMethod("knn");
+                tooli.setNeigborhoodStatistic("mean");
+                tooli.k = 3;
+
                 try {
-                    lasRasterTools tool = new lasRasterTools(aR);
-
-                    if (aR.metadatafile != null)
-                        tool.readMetadata(aR.metadatafile);
-
-                    LASReader temp = new LASReader(aR.inputFiles.get(i));
-
-                    tool.rasterize(temp, aR.res);
-                }catch (Exception e) {
+                    tooli.scale(temp, aR);
+                } catch (Exception e) {
                     e.printStackTrace();
-                    System.exit(1);
                 }
-                catch (Error e) {
-                    e.printStackTrace();
-                    System.exit(1);
+                temp.releaseMemory();
+                temp = null;
+                //System.out.println("DBSCAN COMPLETE! " + results.length);
+                if( i % 100 == 0){
+                    System.gc();
                 }
-
             }
-
         }
 
         aR.cleanup();
-        printProcessingTime();
 
     }
-
-
 
     private static void threadTool(argumentReader aR, fileDistributor fD) {
 
@@ -115,23 +115,16 @@ public class las2raster {
                 File f = fD.getFile();
                 if (f == null)
                     continue;
-                lasRasterTools tool = new lasRasterTools(aR);
-
+                LASReader temp = null;
                 try {
-
-                    if(aR.metadatafile != null)
-                        tool.readMetadata(aR.metadatafile);
-
-                    LASReader temp = new LASReader(f);
-                    tool.rasterize(temp, aR.res);
-
+                    temp = new LASReader(f);
                 }catch (Exception e){
                     e.printStackTrace();
-                    System.exit(2);
                 }
-                catch (Error e) {
+                try {
+                    tooli.convert(temp, aR);
+                } catch (Exception e) {
                     e.printStackTrace();
-                    System.exit(2);
                 }
             }
         }

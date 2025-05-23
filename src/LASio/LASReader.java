@@ -138,6 +138,30 @@ public class LASReader {
 
   public boolean errorCode1 = false;
 
+  public void releaseMemory(){
+
+    this.braf = null;
+    this.vlrList.clear();
+
+    if (this.indexMap != null) {
+      this.indexMap.clear();
+    }
+    this.indexMap = null;
+
+    if (this.indexMap2 != null) {
+      this.indexMap2.clear();
+    }
+
+    this.indexMap2 = null;
+
+    if (this.queriedIndexes != null) {
+      this.queriedIndexes.clear();
+    }
+
+    this.queriedIndexes = null;
+
+  }
+
   public LASReader(File path) throws IOException {
 
     sanityCheckPointRecordLength.put(0, 20);

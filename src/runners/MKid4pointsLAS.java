@@ -1866,8 +1866,8 @@ public class MKid4pointsLAS{
                     extentti2[2] = all_min_y.get(th);
                     extentti2[3] = all_max_y.get(th);
 
-                    System.out.println("Point cloud: " + Arrays.toString(extentti2));
-                    System.out.println("Polygon: " + Arrays.toString(minmaxXY));
+                    //System.out.println("Point cloud: " + Arrays.toString(extentti2));
+                    //System.out.println("Polygon: " + Arrays.toString(minmaxXY));
 
                     if(buffer > 0){
 
@@ -2375,6 +2375,7 @@ public class MKid4pointsLAS{
                     }
 
                     try {
+                        asd.releaseMemory();
                         asd.close();
                         asd = null;
                     }catch (Exception e){

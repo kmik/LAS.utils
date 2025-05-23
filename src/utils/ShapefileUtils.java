@@ -276,7 +276,7 @@ public class ShapefileUtils {
             double currentArea = areas.get(i);
 
             double targetArea = currentArea * areaFraction;
-            int maxNumTries = 200;
+            int maxNumTries = 2000;
 
             ArrayList<double[]> circlesInPoly = new ArrayList<>();
 
@@ -301,7 +301,7 @@ public class ShapefileUtils {
 
                     pointInPolygon = pointInPolygon(i, x, y);
 
-                    distanceToBoundaryOk = distanceToPolygonBorder(x, y, currentPolyId) > circleRadius;
+                    distanceToBoundaryOk = distanceToPolygonBorder(x, y, currentPolyId) > circleRadius * 1.15;
 
                     if (circlesInPoly.size() == 0)
                         distanceOk = true;
@@ -1053,6 +1053,21 @@ public class ShapefileUtils {
         FieldDefn layerFieldDef2 = new FieldDefn("center_y", 0);
         layer.CreateField(layerFieldDef2);
 
+        FieldDefn layerFieldDef3 = new FieldDefn("V_tot", 0);
+        layer.CreateField(layerFieldDef3);
+
+        FieldDefn layerFieldDef4 = new FieldDefn("V_pine", 0);
+        layer.CreateField(layerFieldDef4);
+
+        FieldDefn layerFieldDef5 = new FieldDefn("V_spruce", 0);
+        layer.CreateField(layerFieldDef5);
+
+        FieldDefn layerFieldDef6 = new FieldDefn("V_decid", 0);
+        layer.CreateField(layerFieldDef6);
+
+
+
+
     }
 
     public List<double[]> calculateCircleBoundary(double centerX, double centerY, double radius) {
@@ -1069,7 +1084,8 @@ public class ShapefileUtils {
         return boundaryPoints;
     }
 
-    public void addCircleToShapefile(double x, double y, double r,  String id){
+    public void addCircleToShapefile(double x, double y, double r,  String id,
+                                     double frac, double V_tot, double V_pine, double V_spruce, double V_decid){
 
         try {
             gdal.AllRegister();
@@ -1106,7 +1122,13 @@ public class ShapefileUtils {
             feature.SetField("id", id);
             feature.SetField("center_x", x);
             feature.SetField("center_y", y);
+            feature.SetField("V_tot", V_tot);
+            feature.SetField("V_pine", V_pine);
+            feature.SetField("V_spruce", V_spruce);
+            feature.SetField("V_decid", V_decid);
 
+            System.out.println("Circle added: " + x + " " + y + " " + r + " " + id + " " + frac + " " +
+                    V_tot + " " + V_pine + " " + V_spruce + " " + V_decid);
 
             SpatialReference spatialRef = new SpatialReference();
             spatialRef.ImportFromEPSG(3067);

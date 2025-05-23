@@ -799,36 +799,7 @@ public class LASwrite {
 
 					if(Character.isDigit(charArray[i])){
 
-						/*
-						if(c - '0' == 1){
-							aR.add_extra_bytes(6, aR.extraByteNames.get(0), "blank");
-						}
-						if(c - '0' == 2){
-							aR.add_extra_bytes(6, aR.extraByteNames.get(1), "blank");
-						}
 
-						if(c - '0' == 3){
-							aR.add_extra_bytes(6, aR.extraByteNames.get(2), "blank");
-						}
-
-						if(c - '0' == 4){
-							aR.add_extra_bytes(6, aR.extraByteNames.get(3), "blank");
-						}
-
-						if(c - '0' == 5){
-							aR.add_extra_bytes(6, aR.extraByteNames.get(4), "blank");
-						}
-
-						if(c - '0' == 6){
-							aR.add_extra_bytes(6, aR.extraByteNames.get(5), "blank");
-						}
-
-						if(c - '0' == 7){
-							aR.add_extra_bytes(6, aR.extraByteNames.get(6), "blank");
-						}
-						*/
-
-						//System.out.println(charArray[i] - '0');
 
 						switch(charArray[i] - '0')
 						{
@@ -1238,7 +1209,7 @@ public class LASwrite {
 		double offSet = 0.0;
 		double scaleFactor = 0.01;
 
-		int count = 0;
+		long count = 0;
 
 
 		/* UPDATE THESE HEADER INFORMATION */
@@ -1258,6 +1229,7 @@ public class LASwrite {
 	        while((line = in.readLine())!= null){
 
 	        	String2LASpoint__(tempPoint, line, charArray, sep, n_elements, aR, extraBytes);
+
 
 
 				if(!aR.inclusionRule.ask(tempPoint, 1, true)){
@@ -1568,7 +1540,7 @@ public class LASwrite {
 	    to.writeBuffer2();
 
 		if(minimum_version == 4){
-			to.updateHeader_1_4_2((int)pointCount, minX, maxX, minY, maxY
+			to.updateHeader_1_4_2(pointCount, minX, maxX, minY, maxY
 					, maxZ, minZ, pointsByReturn, pointsByReturn_1_4,  aR, x_offset_update, y_offset_update, z_offset_update,
 					x_scale_update, y_scale_update, z_scale_update);
 		}else

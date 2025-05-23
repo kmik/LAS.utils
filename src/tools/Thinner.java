@@ -110,6 +110,20 @@ public class Thinner{
 
     }
 
+    public void releaseMemory(){
+
+        pointCloud.releaseMemory();
+        pointCloud = null;
+
+        if(mask != null)
+            mask = null;
+
+        if(geoTransform != null)
+            geoTransform = null;
+
+        System.gc();
+    }
+
     /**
      * Constructor
      *

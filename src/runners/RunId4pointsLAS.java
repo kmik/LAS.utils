@@ -1004,6 +1004,11 @@ public class RunId4pointsLAS{
                 outputFiles.add(pwriteTemp);
 
                 System.out.println(tempFile1.getAbsolutePath());
+
+                tempFile11.releaseMemory();
+                tempFile11.close();
+                tempFile11 = null;
+
             }
 
         }

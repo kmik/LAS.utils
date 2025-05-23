@@ -2870,6 +2870,8 @@ public class createCHM{
                                 //tempPoint.setExtraByteINT( key_to_treetop_map.get((int)(floatArray[0])), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
 
                             } else {
+
+
                                 tempPoint.setExtraByteINT(0, aR.create_extra_byte_vlr_n_bytes.get(0), 0);
 
                                 //tempPoint.pointSourceId = 0;
@@ -2891,7 +2893,7 @@ public class createCHM{
 
                             } else if (aR.output_only_itc_segments && !remove_buffer) {
 
-                                if (mask[x][y])
+                                if (mask[x][y] || tempPoint.z < 2.0)
                                     aR.pfac.writePoint(tempPoint, i+j, thread_n);
 
                             } else if (!aR.output_only_itc_segments && remove_buffer) {

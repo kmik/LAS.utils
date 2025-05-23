@@ -61,6 +61,8 @@ public class lasClipMetricOfile {
 
         try {
 
+            //System.out.println("Creating output files for: " + in.getAbsolutePath());
+
             echo_class_files.add(aR.fo.createNewFileWithNewExtension(in, "_metrics_a.txt"));
             echo_class_FileWriter.add(new FileWriter(echo_class_files.get(echo_class_files.size()-1)));
 

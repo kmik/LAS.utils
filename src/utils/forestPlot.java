@@ -206,7 +206,7 @@ public class forestPlot {
                     for(int i = 0; i < trees.get(treeID).treesBeneath.size(); i++){
 
                         if( !trees.containsKey(trees.get(treeID).treesBeneath.get(i).getTreeID())) {
-                            System.out.println(trees.get(treeID).getTreeITCid() + " " + trees.get(treeID).getTreeID());
+                            //System.out.println(trees.get(treeID).getTreeITCid() + " " + trees.get(treeID).getTreeID());
                             throw new toolException("Tree " + trees.get(treeID).treesBeneath.get(i) + " is not in the plot " + this.id);
                         }
                         trees_unique_id_for_simulation.put(trees.get(treeID).treesBeneath.get(i).getTreeID_unique(), trees.get(treeID).treesBeneath.get(i));
@@ -802,6 +802,141 @@ public class forestPlot {
         writeSimilatedPlotFile(this.simulationPlotFile, simulationID);
         writeTreeTopFile(this.simulationTreeTopFile, simulationID, ps, add);
         pA.aR.pfac.closeThread(thread_n);
+        //System.exit(1);
+    }
+
+    public void writeTreeTopFile2(File in, int simulationID, plotSimulator ps, TreeMap<Integer, Integer> add){
+
+        ogr.RegisterAll();
+        Driver driver = ogr.GetDriverByName("ESRI Shapefile");
+        driver.Register();
+
+        if(in.exists())
+            in.delete();
+        // Create the data source
+        DataSource dataSource = driver.CreateDataSource(in.getPath(), null);
+
+        if(dataSource == null)
+            throw new toolException("Could not create shapefile: " + in.getPath());
+
+        SpatialReference sr = new SpatialReference();
+        sr.ImportFromEPSG(3067);
+
+        //System.out.println(in.exists());
+        // Create a layer
+
+
+        Layer outShpLayer = dataSource.CreateLayer("points", sr, wkbPoint, null);
+
+        FieldDefn layerFieldDef = new FieldDefn("id",2);
+        FieldDefn layerFieldDef_2 = new FieldDefn("height",2);
+
+        FieldDefn layerFieldDef_3 = new FieldDefn("species",2);
+        FieldDefn layerFieldDef_4 = new FieldDefn("vol",2);
+
+
+        outShpLayer.CreateField(layerFieldDef);
+        outShpLayer.CreateField(layerFieldDef_2);
+
+        outShpLayer.CreateField(layerFieldDef_3);
+        outShpLayer.CreateField(layerFieldDef_4);
+
+        FeatureDefn outShpFeatDefn=outShpLayer.GetLayerDefn();
+        Feature outShpFeat = new Feature(outShpFeatDefn);
+
+        for(int i : this.simulated_plot.keySet()){
+
+
+            double tree_sim_x = simulated_plot.get(i).getTreeX();
+            double tree_sim_x_ITC = simulated_plot.get(i).getTreeX_ITC();
+            double tree_sim_y = simulated_plot.get(i).getTreeY();
+            double tree_sim_y_ITC = simulated_plot.get(i).getTreeY_ITC();
+
+            if(simulated_plot.get(i).plotID != this.id){
+                tree_sim_x = simulated_plot.get(i).getTreeX() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX()) +
+                        (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX());
+                tree_sim_x += this.simulationOffsetX * simulationLocationCountX;
+
+                tree_sim_y = simulated_plot.get(i).getTreeY() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY()) +
+                        (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY());
+                tree_sim_y -= this.simulationOffsetY * simulationLocationCountY;
+                //System.out.println("HERE!! " + counter++ + " " + simulated_plot.size() );
+                //System.out.println("from_external_plot: " + tree_sim_x + " " + tree_sim_y + " " + simulated_plot.get(i).hasCrown + " " +
+                //       simulated_plot.get(i).getTreeX() + " " + simulated_plot.get(i).getTreeY());
+
+            }else{
+                tree_sim_x += this.simulationOffsetX * simulationLocationCountX;
+                tree_sim_y -= this.simulationOffsetY * simulationLocationCountY;
+
+                //System.out.println("from_original_plot: " + tree_sim_x + " " + tree_sim_y + " " + simulated_plot.get(i).hasCrown + " " +
+                //        simulated_plot.get(i).getTreeX() + " " + simulated_plot.get(i).getTreeY());
+
+            }
+
+            if(this.simulated_plot.get(i).hasCrown){
+
+                //System.out.println(simulated_plot.get(i).getTreeX_ITC());
+
+                // AAHHHH THIS IS NULL IF THE simulated_plot.get(i) is already in the plot!
+                //System.out.println(add.get(simulated_plot.get(i).getTreeITCid()));
+                //System.out.println((ps.augmentator.ITC_id_to_tree_id.get(add.get(simulated_plot.get(i).getTreeITCid())).getTreeX_ITC()));
+
+                double translated_x = simulated_plot.get(i).getTreeX() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX()) +
+                        (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX());
+                translated_x += this.simulationOffsetX * simulationLocationCountX;
+
+
+                double translated_y = simulated_plot.get(i).getTreeY() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY()) +
+                        (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY());
+                //System.out.println("translated_y: " + translated_y);
+                translated_y -= this.simulationOffsetY * simulationLocationCountY;
+
+                //System.out.println("Translated x: " + translated_x + " Translated y: " + translated_y);
+
+                /*
+                empPoint.x += (ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id)).getTreeX_ITC() - tempPoint.x) +
+                                (ps.augmentator.ITC_id_to_tree_id.get((itc_id)).getTreeX_ITC()- tempPoint.x);
+                        //tempPoint.y += (ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id)).geometricCenter[1] - tempPoint.y) +
+                        //        (ps.augmentator.ITC_id_to_tree_id.get((itc_id)).geometricCenter[1] - tempPoint.y);
+                        tempPoint.y += (ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id)).getTreeY_ITC() - tempPoint.y) +
+                                (ps.augmentator.ITC_id_to_tree_id.get((itc_id)).getTreeY_ITC() - tempPoint.y);
+
+                        tempPoint.x += this.simulationOffsetX * simulationLocationCountX;
+                        tempPoint.y -= this.simulationOffsetY * simulationLocationCountY;
+                 */
+
+                Geometry outShpGeom = new Geometry(1);
+                outShpGeom.SetPoint(0, translated_x, translated_y);
+                outShpFeat.SetField("vol", simulated_plot.get(i).getTreeVolume());
+                outShpFeat.SetField("height",simulated_plot.get(i).getTreeHeight());
+                outShpFeat.SetField("species",simulated_plot.get(i).getTreeSpecies());
+
+                outShpFeat.SetField("id", simulated_plot.get(i).getTreeITCid());
+
+                outShpFeat.SetGeometryDirectly(outShpGeom);
+                outShpLayer.CreateFeature(outShpFeat);
+
+            }else{
+                tree_sim_x += this.simulationOffsetX * simulationLocationCountX;
+                tree_sim_y -= this.simulationOffsetY * simulationLocationCountY;
+
+                Geometry outShpGeom = new Geometry(1);
+                outShpGeom.SetPoint(0, tree_sim_x, tree_sim_y);
+                outShpFeat.SetField("vol", simulated_plot.get(i).getTreeVolume());
+                outShpFeat.SetField("height",simulated_plot.get(i).getTreeHeight());
+                outShpFeat.SetField("species",simulated_plot.get(i).getTreeSpecies());
+
+                outShpFeat.SetField("id", simulated_plot.get(i).getTreeITCid());
+
+                outShpFeat.SetGeometryDirectly(outShpGeom);
+                outShpLayer.CreateFeature(outShpFeat);
+
+            }
+
+        }
+
+        dataSource.FlushCache();
+
 
     }
 
@@ -827,33 +962,254 @@ public class forestPlot {
 
 
         Layer outShpLayer = dataSource.CreateLayer("points", sr, wkbPoint, null);
-        FieldDefn layerFieldDef = new FieldDefn("z",2);
-        FieldDefn layerFieldDef_2 = new FieldDefn("id",2);
+
+        FieldDefn layerFieldDef = new FieldDefn("id",2);
+        FieldDefn layerFieldDef_2 = new FieldDefn("height",2);
+
+        FieldDefn layerFieldDef_3 = new FieldDefn("species",2);
+        FieldDefn layerFieldDef_4 = new FieldDefn("vol",2);
+
+
         outShpLayer.CreateField(layerFieldDef);
         outShpLayer.CreateField(layerFieldDef_2);
+
+        outShpLayer.CreateField(layerFieldDef_3);
+        outShpLayer.CreateField(layerFieldDef_4);
+
         FeatureDefn outShpFeatDefn=outShpLayer.GetLayerDefn();
         Feature outShpFeat = new Feature(outShpFeatDefn);
 
         for(int i : this.simulated_plot.keySet()){
 
-            if(this.simulated_plot.get(i).hasCrown){
+            //double x = -1 , y = -1;
 
-                //System.out.println(simulated_plot.get(i).getTreeX_ITC());
+            double tree_sim_x = simulated_plot.get(i).getTreeX();
+            double tree_sim_x_ITC = simulated_plot.get(i).getTreeX_ITC();
+            double tree_sim_y = simulated_plot.get(i).getTreeY();
+            double tree_sim_y_ITC = simulated_plot.get(i).getTreeY_ITC();
 
-                // AAHHHH THIS IS NULL IF THE simulated_plot.get(i) is already in the plot!
-                //System.out.println(add.get(simulated_plot.get(i).getTreeITCid()));
-                //System.out.println((ps.augmentator.ITC_id_to_tree_id.get(add.get(simulated_plot.get(i).getTreeITCid())).getTreeX_ITC()));
 
-                double translated_x = simulated_plot.get(i).getTreeX_ITC() + (ps.augmentator.ITC_id_to_tree_id.get(add.get(simulated_plot.get(i).getTreeITCid())).getTreeX_ITC() - simulated_plot.get(i).getTreeX_ITC()) +
-                        (ps.augmentator.ITC_id_to_tree_id.get((simulated_plot.get(i).getTreeITCid())).getTreeX_ITC() - simulated_plot.get(i).getTreeX_ITC());
-                translated_x += this.simulationOffsetX * simulationLocationCountX;
+            //if(!pointInPlot(new double[]{simulated_plot.get(i).getTreeX(), simulated_plot.get(i).getTreeY()}))
+            //  continue;
+/*
+            double tree_sim_x = simulated_plot.get(i).getTreeX();
+            double tree_sim_x_ITC = simulated_plot.get(i).getTreeX_ITC();
+            double tree_sim_y = simulated_plot.get(i).getTreeY();
+            double tree_sim_y_ITC = simulated_plot.get(i).getTreeY_ITC();
 
-                double translated_y = simulated_plot.get(i).getTreeY_ITC() + (ps.augmentator.ITC_id_to_tree_id.get(add.get(simulated_plot.get(i).getTreeITCid())).getTreeY_ITC() - simulated_plot.get(i).getTreeY_ITC()) +
-                        (ps.augmentator.ITC_id_to_tree_id.get((simulated_plot.get(i).getTreeITCid())).getTreeY_ITC() - simulated_plot.get(i).getTreeY_ITC());
-                translated_y -= this.simulationOffsetY * simulationLocationCountY;
 
-                //System.out.println("Translated x: " + translated_x + " Translated y: " + translated_y);
+            if(simulated_plot.get(i).plotID != this.id){
+                tree_sim_x = simulated_plot.get(i).getTreeX() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX()) +
+                        (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX());
+                tree_sim_x += this.simulationOffsetX * simulationLocationCountX;
 
+                tree_sim_y = simulated_plot.get(i).getTreeY() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY()) +
+                        (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY());
+                tree_sim_y -= this.simulationOffsetY * simulationLocationCountY;
+                //System.out.println("HERE!! " + counter++ + " " + simulated_plot.size() );
+                //System.out.println("from_external_plot: " + tree_sim_x + " " + tree_sim_y + " " + simulated_plot.get(i).hasCrown + " " +
+                //       simulated_plot.get(i).getTreeX() + " " + simulated_plot.get(i).getTreeY());
+
+            }else{
+                tree_sim_x += this.simulationOffsetX * simulationLocationCountX;
+                tree_sim_y -= this.simulationOffsetY * simulationLocationCountY;
+
+                //System.out.println("from_original_plot: " + tree_sim_x + " " + tree_sim_y + " " + simulated_plot.get(i).hasCrown + " " +
+                //        simulated_plot.get(i).getTreeX() + " " + simulated_plot.get(i).getTreeY());
+
+                counter++;
+            }
+
+            if(simulated_plot.get(i).hasCrown)
+                if(simulated_plot.get(i).plotID != this.id){
+                    tree_sim_x_ITC = simulated_plot.get(i).getTreeX_ITC() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX_ITC()) +
+                            (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX_ITC());
+                    tree_sim_x_ITC += this.simulationOffsetX * simulationLocationCountX;
+
+                    tree_sim_y_ITC = simulated_plot.get(i).getTreeY_ITC() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY_ITC()) +
+                            (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY_ITC());
+                    tree_sim_y_ITC -= this.simulationOffsetY * simulationLocationCountY;
+                    //System.out.println("HERE!! " + counter++ + " " + simulated_plot.size() );
+                    //System.out.println("from_external_plot: " + tree_sim_x + " " + tree_sim_y + " " + simulated_plot.get(i).hasCrown + " " +
+                    //       simulated_plot.get(i).getTreeX() + " " + simulated_plot.get(i).getTreeY());
+
+                }else{
+                    tree_sim_x_ITC += this.simulationOffsetX * simulationLocationCountX;
+                    tree_sim_y_ITC -= this.simulationOffsetY * simulationLocationCountY;
+
+                    //System.out.println("from_original_plot: " + tree_sim_x + " " + tree_sim_y + " " + simulated_plot.get(i).hasCrown + " " +
+                    //        simulated_plot.get(i).getTreeX() + " " + simulated_plot.get(i).getTreeY());
+
+                    counter++;
+                }
+
+
+            if(!simulated_plot.get(i).hasCrown) {
+                if (!pointInPlot(new double[]{tree_sim_x, tree_sim_y}, this.plotBounds_simulated.get(this.plotBounds_simulated.size() - 1)))
+                    continue;
+            }
+            else{
+                if(!pointInPlot(new double[]{tree_sim_x, tree_sim_y }, this.plotBounds_simulated.get(this.plotBounds_simulated.size() - 1)))
+                    continue;
+            }
+            //System.out.println("here2: " + counter2++);
+
+            treeSpeciesVolumes[simulated_plot.get(i).treeSpecies] += simulated_plot.get(i).getTreeVolume();
+
+            String[] outLine = simulated_plot.get(i).getTreeLineFromFieldData_delimited();
+
+            System.out.println(Arrays.toString(outLine));
+            //System.exit(1);
+            for(int j = 0; j < outLine.length; j++){
+
+                //System.out.println(outLine.length);
+                // X
+                if(simulated_plot.get(i).plotID != this.id) {
+                    if (j == 3 && simulated_plot.get(i).hasCrown) {
+                        double translated_x = simulated_plot.get(i).getTreeX() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX()) +
+                                (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX());
+                        translated_x += this.simulationOffsetX * simulationLocationCountX;
+                        //System.out.println("translated_x: " + translated_x) ;
+                        bw.write(translated_x + "\t");
+
+                        double translated_y = simulated_plot.get(i).getTreeY() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY()) +
+                                (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY());
+                        //System.out.println("translated_y: " + translated_y);
+                        translated_y -= this.simulationOffsetY * simulationLocationCountY;
+                        bw.write(translated_y + "\t");
+
+                    } else if(j == 3 && !simulated_plot.get(i).hasCrown){
+
+                        bw.write(tree_sim_x + "\t");
+                        bw.write(tree_sim_y + "\t");
+
+                    } else if(j == 2){
+                        bw.write((10000 + simulationID) + "\t");
+                    }else if ( j == 0 && !simulated_plot.get(i).hasCrown){
+                        bw.write("NO-CROWN" + outLine.length + "\t");
+                    }else if ( j == 0 && simulated_plot.get(i).hasCrown){
+                        bw.write("CROWN" + outLine.length + "\t");
+                    }
+
+                    else{
+                        bw.write(outLine[j] + "\t");
+                    }
+                }else{
+                    if (j == 3){
+                        bw.write(tree_sim_x + "\t");
+                        bw.write(tree_sim_y + "\t");
+                    }
+                    else if (j == 2){
+                        bw.write((10000 + simulationID) + "\t");
+                    }else if ( j == 0 && !simulated_plot.get(i).hasCrown){
+                        bw.write("NO-CROWN_PID" + outLine.length + "\t");
+                    }else if ( j == 0 && simulated_plot.get(i).hasCrown){
+                        bw.write("CROWN_PID" + outLine.length + "\t");
+                    }
+                    else{
+                        bw.write(outLine[j] + "\t");
+                    }
+
+                }
+*/
+            if(simulated_plot.get(i).plotID != this.id){
+                tree_sim_x = simulated_plot.get(i).getTreeX() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX()) +
+                        (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX());
+                tree_sim_x += this.simulationOffsetX * simulationLocationCountX;
+
+                tree_sim_y = simulated_plot.get(i).getTreeY() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY()) +
+                        (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY());
+                tree_sim_y -= this.simulationOffsetY * simulationLocationCountY;
+                //System.out.println("HERE!! " + counter++ + " " + simulated_plot.size() );
+                //System.out.println("from_external_plot: " + tree_sim_x + " " + tree_sim_y + " " + simulated_plot.get(i).hasCrown + " " +
+                //       simulated_plot.get(i).getTreeX() + " " + simulated_plot.get(i).getTreeY());
+
+            }else{
+                tree_sim_x += this.simulationOffsetX * simulationLocationCountX;
+                tree_sim_y -= this.simulationOffsetY * simulationLocationCountY;
+
+                //System.out.println("from_original_plot: " + tree_sim_x + " " + tree_sim_y + " " + simulated_plot.get(i).hasCrown + " " +
+                //        simulated_plot.get(i).getTreeX() + " " + simulated_plot.get(i).getTreeY());
+
+            }
+
+            if(simulated_plot.get(i).hasCrown)
+                if(simulated_plot.get(i).plotID != this.id){
+                    tree_sim_x_ITC = simulated_plot.get(i).getTreeX_ITC() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX_ITC()) +
+                            (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX_ITC());
+                    tree_sim_x_ITC += this.simulationOffsetX * simulationLocationCountX;
+
+                    tree_sim_y_ITC = simulated_plot.get(i).getTreeY_ITC() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY_ITC()) +
+                            (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY_ITC());
+                    tree_sim_y_ITC -= this.simulationOffsetY * simulationLocationCountY;
+                    //System.out.println("HERE!! " + counter++ + " " + simulated_plot.size() );
+                    //System.out.println("from_external_plot: " + tree_sim_x + " " + tree_sim_y + " " + simulated_plot.get(i).hasCrown + " " +
+                    //       simulated_plot.get(i).getTreeX() + " " + simulated_plot.get(i).getTreeY());
+
+                }else{
+                    tree_sim_x_ITC += this.simulationOffsetX * simulationLocationCountX;
+                    tree_sim_y_ITC -= this.simulationOffsetY * simulationLocationCountY;
+
+                    //System.out.println("from_original_plot: " + tree_sim_x + " " + tree_sim_y + " " + simulated_plot.get(i).hasCrown + " " +
+                    //        simula
+
+                }
+
+
+            if(!simulated_plot.get(i).hasCrown) {
+                if (!pointInPlot(new double[]{tree_sim_x, tree_sim_y}, this.plotBounds_simulated.get(this.plotBounds_simulated.size() - 1)))
+                    continue;
+            }
+            else{
+                if(!pointInPlot(new double[]{tree_sim_x, tree_sim_y }, this.plotBounds_simulated.get(this.plotBounds_simulated.size() - 1)))
+                    continue;
+            }
+
+
+                // X
+                if(simulated_plot.get(i).plotID != this.id) {
+                    if (simulated_plot.get(i).hasCrown) {
+                        double translated_x = simulated_plot.get(i).getTreeX() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX()) +
+                                (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX());
+                        translated_x += this.simulationOffsetX * simulationLocationCountX;
+                        //System.out.println("translated_x: " + translated_x) ;
+
+                        double translated_y = simulated_plot.get(i).getTreeY() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY()) +
+                                (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY());
+                        //System.out.println("translated_y: " + translated_y);
+                        translated_y -= this.simulationOffsetY * simulationLocationCountY;
+
+                        tree_sim_x = translated_x;
+                        tree_sim_y = translated_y;
+
+                    } else if (!simulated_plot.get(i).hasCrown) {
+
+                        tree_sim_x = tree_sim_x;
+                        tree_sim_y = tree_sim_y;
+
+                    }
+                    if (this.simulated_plot.get(i).hasCrown) {
+
+                        //System.out.println(simulated_plot.get(i).getTreeX_ITC());
+
+                        // AAHHHH THIS IS NULL IF THE simulated_plot.get(i) is already in the plot!
+                        //System.out.println(add.get(simulated_plot.get(i).getTreeITCid()));
+                        //System.out.println((ps.augmentator.ITC_id_to_tree_id.get(add.get(simulated_plot.get(i).getTreeITCid())).getTreeX_ITC()));
+
+                        double translated_x = simulated_plot.get(i).getTreeX() + (simulated_plot.get(i).simulationTranslationX1 - simulated_plot.get(i).getTreeX()) +
+                                (simulated_plot.get(i).simulationTranslationX2 - simulated_plot.get(i).getTreeX());
+                        translated_x += this.simulationOffsetX * simulationLocationCountX;
+
+
+                        double translated_y = simulated_plot.get(i).getTreeY() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY()) +
+                                (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY());
+                        //System.out.println("translated_y: " + translated_y);
+                        translated_y -= this.simulationOffsetY * simulationLocationCountY;
+
+                        //System.out.println("Translated x: " + translated_x + " Translated y: " + translated_y);
+                        tree_sim_x = translated_x;
+                        tree_sim_y = translated_y;
+                    }
                 /*
                 empPoint.x += (ps.augmentator.ITC_id_to_tree_id.get(add.get(itc_id)).getTreeX_ITC() - tempPoint.x) +
                                 (ps.augmentator.ITC_id_to_tree_id.get((itc_id)).getTreeX_ITC()- tempPoint.x);
@@ -865,15 +1221,19 @@ public class forestPlot {
                         tempPoint.x += this.simulationOffsetX * simulationLocationCountX;
                         tempPoint.y -= this.simulationOffsetY * simulationLocationCountY;
                  */
+                }
                 Geometry outShpGeom = new Geometry(1);
-                outShpGeom.SetPoint(0, translated_x, translated_y);
-                outShpFeat.SetField("z",simulated_plot.get(i).getTreeHeight());
+                outShpGeom.SetPoint(0, tree_sim_x, tree_sim_y);
+                outShpFeat.SetField("vol", simulated_plot.get(i).getTreeVolume());
+                outShpFeat.SetField("height",simulated_plot.get(i).getTreeHeight());
+                outShpFeat.SetField("species",simulated_plot.get(i).getTreeSpecies());
+
                 outShpFeat.SetField("id", simulated_plot.get(i).getTreeITCid());
 
                 outShpFeat.SetGeometryDirectly(outShpGeom);
                 outShpLayer.CreateFeature(outShpFeat);
 
-            }
+
 
         }
 
@@ -881,6 +1241,7 @@ public class forestPlot {
 
 
     }
+
 
     public void writePlotShapeFile(File in, int simulationID, plotSimulator ps){
 
@@ -963,6 +1324,8 @@ public class forestPlot {
         try {
             //BufferedReader br = new BufferedReader(new FileReader(in));
             BufferedWriter bw = new BufferedWriter(new FileWriter(this.simulationPlotFile));
+
+            System.out.println("Simulation plot file: " + this.simulationPlotFile.getAbsolutePath());
 
             //String line = br.readLine();
             int counter = 0;
@@ -1068,8 +1431,11 @@ public class forestPlot {
 
                 String[] outLine = simulated_plot.get(i).getTreeLineFromFieldData_delimited();
 
+                System.out.println(Arrays.toString(outLine));
+                //System.exit(1);
                 for(int j = 0; j < outLine.length; j++){
 
+                    //System.out.println(outLine.length);
                     // X
                     if(simulated_plot.get(i).plotID != this.id) {
                         if (j == 3 && simulated_plot.get(i).hasCrown) {
@@ -1078,24 +1444,40 @@ public class forestPlot {
                             translated_x += this.simulationOffsetX * simulationLocationCountX;
                             //System.out.println("translated_x: " + translated_x) ;
                             bw.write(translated_x + "\t");
-                        } else if(j == 4 && !simulated_plot.get(i).hasCrown){
+
+                            double translated_y = simulated_plot.get(i).getTreeY() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY()) +
+                                    (simulated_plot.get(i).simulationTranslationY2 - simulated_plot.get(i).getTreeY());
+                            //System.out.println("translated_y: " + translated_y);
+                            translated_y -= this.simulationOffsetY * simulationLocationCountY;
+                            bw.write(translated_y + "\t");
+
+                        } else if(j == 3 && !simulated_plot.get(i).hasCrown){
 
                             bw.write(tree_sim_x + "\t");
+                            bw.write(tree_sim_y + "\t");
+
                         } else if(j == 2){
                             bw.write((10000 + simulationID) + "\t");
+                        }else if ( j == 0 && !simulated_plot.get(i).hasCrown){
+                            bw.write("NO-CROWN" + outLine.length + "\t");
+                        }else if ( j == 0 && simulated_plot.get(i).hasCrown){
+                            bw.write("CROWN" + outLine.length + "\t");
                         }
+
                         else{
                             bw.write(outLine[j] + "\t");
                         }
                     }else{
                         if (j == 3){
                             bw.write(tree_sim_x + "\t");
-                        }
-                        if (j == 4){
                             bw.write(tree_sim_y + "\t");
                         }
-                        if (j == 2){
+                        else if (j == 2){
                             bw.write((10000 + simulationID) + "\t");
+                        }else if ( j == 0 && !simulated_plot.get(i).hasCrown){
+                            bw.write("NO-CROWN_PID" + outLine.length + "\t");
+                        }else if ( j == 0 && simulated_plot.get(i).hasCrown){
+                            bw.write("CROWN_PID" + outLine.length + "\t");
                         }
                         else{
                             bw.write(outLine[j] + "\t");
@@ -1104,6 +1486,7 @@ public class forestPlot {
                     }
 
                     // Y
+                    if(false)
                     if(simulated_plot.get(i).plotID != this.id) {
                         if (j == 4 && simulated_plot.get(i).hasCrown) {
                             double translated_y = simulated_plot.get(i).getTreeY() + (simulated_plot.get(i).simulationTranslationY1 - simulated_plot.get(i).getTreeY()) +
@@ -1115,9 +1498,9 @@ public class forestPlot {
 
                             bw.write(tree_sim_y + "\t");
                         } else if (j == 2) {
-                            bw.write((10000 + simulationID) + "\t");
+                            //bw.write((10000 + simulationID) + "\t");
                         } else {
-                            bw.write(outLine[j] + "\t");
+                            //bw.write(outLine[j] + "\t");
                         }
                     }else{
                         if (j == 3){
@@ -1127,10 +1510,10 @@ public class forestPlot {
                             bw.write(tree_sim_y + "\t");
                         }
                         if (j == 2){
-                            bw.write((10000 + simulationID) + "\t");
+                            //bw.write((10000 + simulationID) + "\t");
                         }
                         else{
-                            bw.write(outLine[j] + "\t");
+                            //bw.write(outLine[j] + "\t");
                         }
                     }
                 }
@@ -1173,6 +1556,8 @@ public class forestPlot {
             e.printStackTrace();
         }
 
+
+        //System.exit(1);
 
     }
 
