@@ -34,6 +34,7 @@ public class argumentReader {
     public double pp_x_offset = 0.0;
     public double pp_y_offset = 0.0;
 
+    public int minimumVersion = -1;
     public boolean voxel_intensity = false;
 
     public String stringArgument1 = null;
@@ -1812,6 +1813,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("version")
+                .hasArg(false)
+                .desc("LAS format version")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("adjustKappa")
                 .hasArg(true)
                 .desc("Add this value to kappa")
@@ -2549,6 +2557,11 @@ public class argumentReader {
             if (cmd.hasOption("drop_classification")) {
                 this.noModify = false;
                 this.inclusionRule.dropClassification(Integer.parseInt(cmd.getOptionValue("drop_classification")));
+
+            }
+
+            if (cmd.hasOption("version")) {
+                this.minimumVersion = Integer.parseInt(cmd.getOptionValue("version"));
 
             }
 

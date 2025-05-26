@@ -973,7 +973,8 @@ public class LASwrite {
 			minimum_version = 4;
 
 
-		minimum_version = 4;
+		if(aR.minimumVersion != -1)
+			minimum_version = aR.minimumVersion;
 
 		String line = "";
 		LasPoint tempPoint = new LasPoint();
