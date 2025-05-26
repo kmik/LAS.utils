@@ -1011,8 +1011,8 @@ public class LASwrite {
 
 
 		to.writeAscii(4, "LASF");
-	    to.writeUnsignedShort((short)2); // = braf.readUnsignedShort();
-	    to.writeUnsignedShort((short)1); // = braf.readUnsignedShort();
+	    to.writeUnsignedShort((short)0); // = braf.readUnsignedShort();
+	    to.writeUnsignedShort((short)0); // = braf.readUnsignedShort();
 
 	    // GUID
 	    to.writeLong(0);
