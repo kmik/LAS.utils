@@ -958,6 +958,7 @@ public class LASwrite {
 
 		int minimum_point_format = inferPointDataFormat(parse);
 		to.pointDataRecordFormat = minimum_point_format;
+
 		int minimum_version = -1;
 
 		if(minimum_point_format <= 3){
@@ -970,6 +971,9 @@ public class LASwrite {
 
 		if(aR.create_extra_byte_vlr_n_bytes.size() > 0)
 			minimum_version = 4;
+
+
+		minimum_version = 4;
 
 		String line = "";
 		LasPoint tempPoint = new LasPoint();

@@ -1718,8 +1718,10 @@ public class LASraf implements Closeable {
     else {
 
       //this.writePointCount(this.writtenPoints);
-      this.writePointCount(pointCount);
-      this.writePByReturn(pointsByReturn);
+      this.writePointCount(0);
+      //this.writePointCount(pointCount);
+      this.writePByReturn(new long[]{0,0,0,0,0});
+      //this.writePByReturn(pointsByReturn);
 
     }
 
@@ -1729,9 +1731,7 @@ public class LASraf implements Closeable {
     this.write_n_points_1_4(pointCount);
     this.writePByReturn_1_4(pointsByReturn_1_4);
 
-
     System.out.println(Arrays.toString(pointsByReturn_1_4));
-
 
   }
 
