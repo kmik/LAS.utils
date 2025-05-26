@@ -772,6 +772,7 @@ public class ply2las {
         }
         to.writeBuffer2();
 
+
         if(minimum_version == 4){
             to.updateHeader_1_4_2((int)pointCount, minX, maxX, minY, maxY
                     , maxZ, minZ, pointsByReturn, pointsByReturn_1_4,  aR, x_offset_update, y_offset_update, z_offset_update,

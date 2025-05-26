@@ -1199,7 +1199,7 @@ public class LASwrite {
 		double minZ = Double.POSITIVE_INFINITY;
 		double maxZ = Double.NEGATIVE_INFINITY;
 
-		long pointCount = 0;
+		long pointCount = 0L;
 
 		long[] pointsByReturn = new long[5];
 		long[] pointsByReturn_1_4 = new long[15];
@@ -1209,7 +1209,7 @@ public class LASwrite {
 		double offSet = 0.0;
 		double scaleFactor = 0.01;
 
-		long count = 0;
+		long count = 0L;
 
 
 		/* UPDATE THESE HEADER INFORMATION */
@@ -1538,6 +1538,8 @@ public class LASwrite {
 			e.printStackTrace();
 		}
 	    to.writeBuffer2();
+
+		count = pointCount;
 
 		if(minimum_version == 4){
 			to.updateHeader_1_4_2(pointCount, minX, maxX, minY, maxY
