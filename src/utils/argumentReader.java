@@ -34,6 +34,7 @@ public class argumentReader {
     public double pp_x_offset = 0.0;
     public double pp_y_offset = 0.0;
 
+    public boolean writeIdToRaster = false;
     public int minimumVersion = -1;
     public boolean voxel_intensity = false;
 
@@ -858,6 +859,13 @@ public class argumentReader {
                 .longOpt("compress_output")
                 .hasArg(false)
                 .desc("Compress output?")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("writeIdToRaster")
+                .hasArg(false)
+                .desc("Write geometry id to raster")
                 .required(false)
                 .build());
 
@@ -2587,6 +2595,11 @@ public class argumentReader {
 
                 this.compress_output = true;
 
+            }
+
+            if (cmd.hasOption("writeIdToRaster")){
+
+                this.writeIdToRaster = true;
             }
 
             if (cmd.hasOption("learning_rate")) {

@@ -1,19 +1,23 @@
 package utils;
 
+import com.fasterxml.jackson.core.sym.NameN;
 import err.toolException;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.Driver;
 import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconst;
+import org.gdal.gdalconst.gdalconstConstants;
 
 import java.io.File;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Vector;
 
 public class gdalRaster {
 
+    int numBands = 0;
     boolean dontcareformemory = true;
     float[][] rasterArray = new float[1][1];
     boolean lock_1 = false;
@@ -27,9 +31,14 @@ public class gdalRaster {
     public String filename = null;
 
     Dataset raster;
+    Dataset rasterMask;
 
     int readOrWrite = gdalconst.GA_ReadOnly;
+
     Band band;
+
+    Band bandClip;
+    Band bandClipFloat;
 
     boolean isOpen = false;
 
@@ -61,6 +70,7 @@ public class gdalRaster {
     }
 
     public gdalRaster(String filename, int id) {
+
         this.filename = filename;
         this.readRaster(filename);
         this.id = id;
@@ -68,11 +78,80 @@ public class gdalRaster {
         //this.openedForNQueries_ = new int[cores];
     }
 
+    public gdalRaster(String filename, int id, int readOrWrite2) {
+
+        this.readOrWrite = readOrWrite2;
+        this.filename = filename;
+        this.readRaster(filename);
+        this.id = id;
+        this.rasterExtent();
+        //this.openedForNQueries_ = new int[cores];
+    }
+
+    public void writeIdToRaster() {
+
+        // Remove existing .tif extension if present and append _clip_mask.tif
+        String outputFilename;
+        if (this.filename.toLowerCase().endsWith(".tif")) {
+            outputFilename = this.filename.substring(0, this.filename.length() - 4) + "_clip_mask.tif";
+        } else {
+            outputFilename = this.filename + "_clip_mask.tif";
+        }
+
+        Driver driver = gdal.GetDriverByName("GTiff");
+        Vector<String> options = new Vector<>();
+        options.add("COMPRESS=LZW");
+        options.add("TILED=YES");
+        options.add("BLOCKXSIZE=256");
+        options.add("BLOCKYSIZE=256");
+
+        this.rasterMask = driver.Create(
+                outputFilename,              // filename
+                this.number_of_pix_x,        // width
+                this.number_of_pix_y,        // height
+                2,                           // number of bands
+                gdalconstConstants.GDT_Float32, // data type
+                options                      // creation options
+        );
+
+        double[] rasterExtent = new double[6];
+        this.raster.GetGeoTransform(rasterExtent);
+
+        this.rasterMask.SetGeoTransform(rasterExtent);
+        this.rasterMask.SetProjection(this.raster.GetProjection());
+        //System.out.println(Arrays.toString(rasterExtent) + " " + this.number_of_pix_x + " " + this.number_of_pix_y + " " + outputFilename);
+        this.bandClip = this.rasterMask.GetRasterBand(1); // writable band
+
+        this.bandClip.SetNoDataValue(-9999f);
+
+        this.bandClipFloat = this.rasterMask.GetRasterBand(2); // writable band
+
+        this.bandClipFloat.SetNoDataValue(-9999f);
+
+        int fillStatus = this.bandClip.Fill(-9999f);
+        int fillStatus2 = this.bandClipFloat.Fill(-9999f);
+
+        if (fillStatus != 0) {
+            throw new RuntimeException("Fill failed with error code: " + fillStatus);
+        }
+        if (fillStatus2 != 0) {
+            throw new RuntimeException("Fill failed with error code: " + fillStatus);
+        }
+
+
+    }
 
     public synchronized void readRaster(String filename) {
         this.raster = (gdal.Open(filename, readOrWrite));
         this.nanValue = new Double[1];
         this.raster.GetRasterBand(1).GetNoDataValue(this.nanValue);
+
+        // Add a raster band
+        if (this.raster == null) {
+            throw new toolException("Raster " + filename + " could not be opened. Please check the file path and format.");
+        }
+
+
 
     }
 
@@ -287,6 +366,39 @@ public class gdalRaster {
 
     }
 
+    public synchronized void setValue(int x, int y, int value){
+
+        if(!this.isOpen)
+            this.open();
+
+        this.bandClip.WriteRaster(x, y, 1, 1, new int[]{value});
+
+
+    }
+
+    public synchronized void setValue2(int x, int y, float value, float value2){
+
+        if(!this.isOpen)
+            this.open();
+
+        this.bandClip.WriteRaster(x, y, 1, 1, new float[]{value});
+        this.bandClipFloat.WriteRaster(x, y, 1, 1, new float[]{value2});
+
+
+    }
+
+    public synchronized void syncToDisk(){
+
+        if(!this.isOpen)
+            this.open();
+
+        this.band.FlushCache();
+        this.raster.FlushCache();
+
+        this.bandClip.FlushCache();
+        this.rasterMask.FlushCache();
+
+    }
     public void readAreaToBuffer(){
 
 

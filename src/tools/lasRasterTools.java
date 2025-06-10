@@ -1532,7 +1532,6 @@ public class lasRasterTools {
 
         rasterCollection rasterBank = new rasterCollection(aR.cores);
 
-
         this.aR = aR;
         String polyWKT = readShapefile(aR.poly);
         ArrayList<String> polyIds = new ArrayList<>();
@@ -1590,12 +1589,35 @@ public class lasRasterTools {
 
             //rasterBoundingBoxes.add(new double[]{rasterExtent[0], rasterExtent[3] + rasterExtent[5] * rasterWidthHeight_[1],rasterExtent[0] + rasterExtent[1] * rasterWidthHeight_[0],  rasterExtent[3]});
 
-            if(aR.metadataitems.size() == 0)
-                rasterBank.addRaster(new gdalRaster(raster.GetDescription(), counter++));
-            else{
-                rasterBank.addRaster(new gdalRaster(raster.GetDescription(), counter++), aR);
-                n_metadataItems = aR.metadataitems.size();
+            if(aR.metadataitems.size() == 0) {
 
+                gdalRaster tmpRaster = null;
+
+                if(!aR.writeIdToRaster) {
+                    tmpRaster = new gdalRaster(raster.GetDescription(), counter++);
+
+                }else {
+                    tmpRaster = new gdalRaster(raster.GetDescription(), counter++, gdalconst.GA_Update);
+                    tmpRaster.writeIdToRaster();
+                }
+
+
+                rasterBank.addRaster(tmpRaster);
+            }else{
+
+                gdalRaster tmpRaster = null;
+
+                if(!aR.writeIdToRaster) {
+                    tmpRaster = new gdalRaster(raster.GetDescription(), counter++);
+                }else {
+                    tmpRaster = new gdalRaster(raster.GetDescription(), counter++, gdalconst.GA_Update);
+                    tmpRaster.writeIdToRaster();
+                }
+
+                rasterBank.addRaster(tmpRaster, aR);
+
+                //rasterBank.addRaster(new gdalRaster(raster.GetDescription(), counter++), aR);
+                n_metadataItems = aR.metadataitems.size();
             }
             raster.delete();
             //System.out.println(counter_++);
@@ -1664,7 +1686,6 @@ public class lasRasterTools {
             int nValid = 0;
 
             ArrayList<String[]> metadataItems = new ArrayList<>();
-
 
             float[] readValue = new float[1];
 
@@ -1764,6 +1785,8 @@ public class lasRasterTools {
 
                             float value = ras.readValue(x, y);
 
+                            if(aR.writeIdToRaster)
+                                ras.setValue2(x, y, Float.parseFloat(polyIds.get(i)), value);
 
                             if (value == Float.NaN) {
                                 nNoData++;
@@ -1915,6 +1938,13 @@ public class lasRasterTools {
                 System.out.println("Progress: " + i + " / " + polygons.size());
             }
 
+        }
+
+        if(aR.writeIdToRaster){
+            for( gdalRaster raster : rasterBank.rasters){
+
+                raster.syncToDisk();
+            }
         }
 
         HashSet<String> ignoreTheseColumnNames = new HashSet<>();
