@@ -1597,7 +1597,7 @@ public class lasRasterTools {
                     tmpRaster = new gdalRaster(raster.GetDescription(), counter++);
 
                 }else {
-                    tmpRaster = new gdalRaster(raster.GetDescription(), counter++, gdalconst.GA_Update);
+                    tmpRaster = new gdalRaster(raster.GetDescription(), counter++);
                     tmpRaster.writeIdToRaster(aR.odir);
                 }
 
@@ -1610,7 +1610,7 @@ public class lasRasterTools {
                 if(!aR.writeIdToRaster) {
                     tmpRaster = new gdalRaster(raster.GetDescription(), counter++);
                 }else {
-                    tmpRaster = new gdalRaster(raster.GetDescription(), counter++, gdalconst.GA_Update);
+                    tmpRaster = new gdalRaster(raster.GetDescription(), counter++);
                     tmpRaster.writeIdToRaster(aR.odir);
                 }
 

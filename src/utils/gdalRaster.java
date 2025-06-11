@@ -398,8 +398,8 @@ public class gdalRaster {
         if(!this.isOpen)
             this.open();
 
-        this.band.FlushCache();
-        this.raster.FlushCache();
+        //this.band.FlushCache();
+        //this.raster.FlushCache();
 
         this.bandClip.FlushCache();
         this.rasterMask.FlushCache();
