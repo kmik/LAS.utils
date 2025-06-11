@@ -88,15 +88,21 @@ public class gdalRaster {
         //this.openedForNQueries_ = new int[cores];
     }
 
-    public void writeIdToRaster() {
+    public void writeIdToRaster(String odir) {
 
         // Remove existing .tif extension if present and append _clip_mask.tif
-        String outputFilename;
-        if (this.filename.toLowerCase().endsWith(".tif")) {
-            outputFilename = this.filename.substring(0, this.filename.length() - 4) + "_clip_mask.tif";
-        } else {
-            outputFilename = this.filename + "_clip_mask.tif";
+        File outputDir = new File(odir);
+        if (!outputDir.isDirectory()) {
+            throw new RuntimeException("Output directory does not exist or is not a directory: " + odir);
         }
+
+// Extract base name from the input file
+        String baseName = new File(this.filename).getName();
+        if (baseName.toLowerCase().endsWith(".tif")) {
+            baseName = baseName.substring(0, baseName.length() - 4);
+        }
+
+        String outputFilename = new File(outputDir, baseName + "_clip_mask.tif").getAbsolutePath();
 
         Driver driver = gdal.GetDriverByName("GTiff");
         Vector<String> options = new Vector<>();

@@ -1598,7 +1598,7 @@ public class lasRasterTools {
 
                 }else {
                     tmpRaster = new gdalRaster(raster.GetDescription(), counter++, gdalconst.GA_Update);
-                    tmpRaster.writeIdToRaster();
+                    tmpRaster.writeIdToRaster(aR.odir);
                 }
 
 
@@ -1611,7 +1611,7 @@ public class lasRasterTools {
                     tmpRaster = new gdalRaster(raster.GetDescription(), counter++);
                 }else {
                     tmpRaster = new gdalRaster(raster.GetDescription(), counter++, gdalconst.GA_Update);
-                    tmpRaster.writeIdToRaster();
+                    tmpRaster.writeIdToRaster(aR.odir);
                 }
 
                 rasterBank.addRaster(tmpRaster, aR);
