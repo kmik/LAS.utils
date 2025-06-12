@@ -380,6 +380,12 @@ public class tinManupulator {
         double min = limits[0];
         double max = limits[1];
 
+        if(outlierIndexes.size() == 0){
+            min = Double.NEGATIVE_INFINITY;
+            max = Double.POSITIVE_INFINITY;
+        }
+
+
         HashSet<Integer> removeThese = new HashSet<>(outlierIndexes);
 
         org.tinfour.standard.IncrementalTin tin2 = new org.tinfour.standard.IncrementalTin();

@@ -4112,6 +4112,14 @@ public class argumentReader {
 
     }
 
+    public File createOutputFileWithExtension_(LASReader in, String extension) throws IOException {
+
+
+        return createOutputFileWithExtension_(in.getFile(), extension);
+
+    }
+
+
     public synchronized File createOutputFileWithExtension(File in, String extension) throws IOException {
 
         File tempFile = null;
@@ -4130,7 +4138,8 @@ public class argumentReader {
         }
 
         //if(tempFile.exists()){
-
+        System.out.println("Creating output file with extension: " + tempFile.getAbsolutePath() + " and extension: " + extension);
+        System.out.println(in.getAbsolutePath());
         tempFile = fo.createNewFileWithNewExtension(tempFile, extension);
 
         //}
@@ -4148,6 +4157,45 @@ public class argumentReader {
         return tempFile;
     }
 
+    public synchronized File createOutputFileWithExtension_(File in, String extension) throws IOException {
+
+        File tempFile = null;
+        String tempPath = this.output;
+
+        if(this.output.equals("asd"))
+            tempFile = in;
+        else
+            tempFile = new File(this.output);
+
+        //System.out.println(this.output);
+        //System.out.println(tempFile.getAbsolutePath());
+
+        if(!odir.equals("asd")) {
+
+            File diri = new File(odir);
+            tempFile = fo.transferDirectories(tempFile, diri.getAbsolutePath());
+
+        }
+
+        //if(tempFile.exists()){
+        //System.out.println("Creating output file with extension: " + tempFile.getAbsolutePath() + " and extension: " + extension);
+        //System.out.println(in.getAbsolutePath());
+        tempFile = fo.createNewFileWithNewExtension(tempFile, extension);
+
+        //}
+
+        if(tempFile.getAbsolutePath().compareTo(in.getAbsolutePath()) == 0)
+            throw new toolException("Attempting to delete the original file. NO NO NO NO! ");
+
+
+        if(tempFile.exists())
+            tempFile.delete();
+
+
+        tempFile.createNewFile();
+
+        return tempFile;
+    }
     public synchronized File createFile(String extension) throws IOException {
 
         File tempFile = new File(extension);

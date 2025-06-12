@@ -138,7 +138,7 @@ public class LASReader {
 
   public boolean errorCode1 = false;
 
-  public void releaseMemory(){
+  public synchronized void releaseMemory(){
 
     this.braf = null;
     this.vlrList.clear();
@@ -2491,7 +2491,7 @@ public class LASReader {
    *
    * @throws IOException in the event of an non-recoverable IO condition.
    */
-  public void close() throws IOException {
+  public synchronized void close() throws IOException {
 
     braf.close();
     braf = null;

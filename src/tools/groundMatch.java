@@ -29,10 +29,10 @@ public class groundMatch {
 
         this.aR = aR;
 
-        this.aR.createOutputFileWithExtension(pointCloud1, "_z_cor.txt");
+        this.aR.createOutputFileWithExtension_(pointCloud1, "_z_cor.txt");
 
-        //this.match();
-        this.matchNoGroundClass();
+        this.match();
+        //this.matchNoGroundClass();
     }
 
     public void match(){
@@ -104,7 +104,7 @@ public class groundMatch {
                     continue;
                 }
 
-                if(tempPoint.classification == 2 || true){
+                if(tempPoint.classification == 2 || false){
 
                     int slot_x = (int)Math.floor( (tempPoint.x - min_x) / resolution );
                     int slot_y = (int)Math.floor( (max_y - tempPoint.y) / resolution );
@@ -155,7 +155,7 @@ public class groundMatch {
                     continue;
                 }
 
-                if(tempPoint.classification == 2 || true){
+                if(tempPoint.classification == 2 || false){
 
                     int slot_x = (int)Math.floor( (tempPoint.x - min_x) / resolution );
                     int slot_y = (int)Math.floor( (max_y - tempPoint.y) / resolution );

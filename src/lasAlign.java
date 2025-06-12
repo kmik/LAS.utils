@@ -49,7 +49,8 @@ public class lasAlign{
 
             tooli.prepareData();
 
-                tooli.processTargets();
+                //tooli.processTargetsPhotogrammetry();
+                tooli.processTargetsLidar();
 
 
                 tin.removeOutliers();
