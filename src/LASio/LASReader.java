@@ -2493,7 +2493,8 @@ public class LASReader {
    */
   public synchronized void close() throws IOException {
 
-    braf.close();
+    if(braf != null)
+      braf.close();
     braf = null;
 
   }
