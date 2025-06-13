@@ -382,6 +382,8 @@ public class gdalRaster {
 
     }
 
+
+
     public synchronized void setValue2(int x, int y, float value, float value2){
 
         if(!this.isOpen)
@@ -391,6 +393,21 @@ public class gdalRaster {
         this.bandClipFloat.WriteRaster(x, y, 1, 1, new float[]{value2});
 
 
+    }
+
+    public synchronized void setValue(int x, int y, int xSize, int ySize, float[] value1, float[] value2){
+
+        if(!this.isOpen)
+            this.open();
+
+        try {
+            this.bandClip.WriteRaster(x, y, xSize, ySize, value1);
+            this.bandClipFloat.WriteRaster(x, y, xSize, ySize, value2);
+        } catch (Exception e) {
+            System.err.println("Error writing raster at (" + x + ", " + y + "): " + e.getMessage());
+            e.printStackTrace();
+            // Optionally: handle error, retry, or abort
+        }
     }
 
     public synchronized void syncToDisk(){

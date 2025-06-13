@@ -1765,6 +1765,18 @@ public class lasRasterTools {
                 extentInPixelCoordinates[2] = (int) Math.floor((polygonExtent[2] - bbox[0]) / geotransform[1]);
                 extentInPixelCoordinates[1] = (int) Math.floor((bbox[3] - polygonExtent[3]) / geotransform[1]);
 
+                int width = extentInPixelCoordinates[2] - extentInPixelCoordinates[0] + 1;
+                int height = extentInPixelCoordinates[3] - extentInPixelCoordinates[1] + 1;
+                int size = width * height;
+
+                float[] outPutvalue1 = new float[size];
+                float[] outPutvalue2 = new float[size];
+
+                Arrays.fill(outPutvalue1, -9999f);
+                Arrays.fill(outPutvalue2, -9999f);
+
+
+
                 for(int x = extentInPixelCoordinates[0]; x <= extentInPixelCoordinates[2]; x++){
                     for(int y = extentInPixelCoordinates[1]; y <= extentInPixelCoordinates[3]; y++){
 
@@ -1782,11 +1794,14 @@ public class lasRasterTools {
 
                         if(pointInPolygon) {
 
-
                             float value = ras.readValue(x, y);
 
-                            if(aR.writeIdToRaster)
-                                ras.setValue2(x, y, Float.parseFloat(polyIds.get(i)), value);
+                            if(aR.writeIdToRaster) {
+
+                                outPutvalue1[x - extentInPixelCoordinates[0] + (y - extentInPixelCoordinates[1]) * width] = value;
+                                outPutvalue2[x - extentInPixelCoordinates[0] + (y - extentInPixelCoordinates[1]) * width] = Float.parseFloat(polyIds.get(i));
+                                //ras.setValue2(x, y, Float.parseFloat(polyIds.get(i)), value);
+                            }
 
                             if (value == Float.NaN) {
                                 nNoData++;
@@ -1816,11 +1831,17 @@ public class lasRasterTools {
 
                 }
 
+                if(aR.writeIdToRaster){
+                    ras.setValue(extentInPixelCoordinates[0], extentInPixelCoordinates[1], width, height, outPutvalue2, outPutvalue1);
+                }
+
                 ras.setProcessingInProgress(false);
             }else{
                 nNoData = 1;
                 nValid = 1;
             }
+
+
 /*
             if(nBands > 0){
 
