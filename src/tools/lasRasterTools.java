@@ -1890,8 +1890,6 @@ public class lasRasterTools {
 
             ArrayList<String> colnames_convo = new ArrayList<>();
 
-
-
             if(nBands == 0) {
                 metrics_a = pCM.calcZonal(gridPoints_z_a, sum_z_a, "_a", colnames_a);
                 /*

@@ -106,7 +106,7 @@ public class gdalRaster {
 
         Driver driver = gdal.GetDriverByName("GTiff");
         Vector<String> options = new Vector<>();
-        options.add("COMPRESS=LZW");
+        options.add("COMPRESS=NONE");
         options.add("TILED=YES");
         options.add("BLOCKXSIZE=256");
         options.add("BLOCKYSIZE=256");
