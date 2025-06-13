@@ -334,6 +334,7 @@ public class LASReader {
         e.printStackTrace();
       }
 
+
       long output = this.index_p;
 
       this.index_p = indexMinMax.get(index_u)[0];

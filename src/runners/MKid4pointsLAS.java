@@ -2004,6 +2004,11 @@ public class MKid4pointsLAS{
 
                                             p = asd.fastReadFromQuery(tempPoint);
 
+                                            if(aR.clamper_Z){
+                                                if(tempPoint.z < aR.clamp_z)
+                                                    tempPoint.z = (float)aR.clamp_z;
+                                            }
+
                                             if(aR.eaba){
                                                 treeId = tempPoint.getExtraByteInt(tree_id);
                                             }
@@ -2197,6 +2202,11 @@ public class MKid4pointsLAS{
 
                                 int count = 0;
                                 asd.readRecord_noRAF(p, tempPoint, maxi);
+
+                                if(aR.clamper_Z){
+                                    if(tempPoint.z < aR.clamp_z)
+                                        tempPoint.z = (float)aR.clamp_z;
+                                }
 
                                 //pointCloud.braf.buffer.position(0);
 
