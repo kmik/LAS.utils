@@ -1776,7 +1776,6 @@ public class lasRasterTools {
                 Arrays.fill(outPutvalue2, -9999f);
 
 
-
                 for(int x = extentInPixelCoordinates[0]; x <= extentInPixelCoordinates[2]; x++){
                     for(int y = extentInPixelCoordinates[1]; y <= extentInPixelCoordinates[3]; y++){
 
@@ -1963,6 +1962,7 @@ public class lasRasterTools {
             for( gdalRaster raster : rasterBank.rasters){
 
                 raster.syncToDisk();
+                raster.compressAndReplaceDataset();
             }
         }
 

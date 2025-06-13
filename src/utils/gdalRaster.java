@@ -147,6 +147,67 @@ public class gdalRaster {
 
     }
 
+    public void compressAndReplaceDataset() {
+        gdal.AllRegister();
+
+        if (this.rasterMask == null) {
+            System.err.println("Input dataset is null.");
+        }
+
+        // Get original filename
+        String originalPath = this.rasterMask.GetDescription();
+        if (originalPath == null || originalPath.isEmpty()) {
+            throw new toolException("Dataset does not have a valid filename.");
+
+        }
+
+        // Create temp path
+        String tempPath = originalPath + ".tmp_compressed.tif";
+
+        // Get GTiff driver
+        Driver driver = gdal.GetDriverByName("GTiff");
+
+        // Define compression options
+        Vector<String> compressOptions = new Vector<>();
+        compressOptions.add("COMPRESS=LZW");
+        compressOptions.add("TILED=YES");
+        compressOptions.add("BLOCKXSIZE=256");
+        compressOptions.add("BLOCKYSIZE=256");
+
+        // Create compressed copy
+        Dataset compressedDataset = driver.CreateCopy(tempPath, this.rasterMask, 0, compressOptions);
+        if (compressedDataset == null) {
+            throw new toolException("Compression failed.");
+        }
+
+        // Close both datasets before replacing file
+        this.rasterMask.delete();
+        compressedDataset.delete();
+
+        // Replace original with compressed
+        File originalFile = new File(originalPath);
+        File tempFile = new File(tempPath);
+
+        if (!originalFile.delete()) {
+            System.err.println("Failed to delete original file: " + originalPath);
+
+        }
+
+        if (!tempFile.renameTo(originalFile)) {
+            System.err.println("Failed to rename compressed file.");
+
+        }
+
+        // Reopen compressed dataset
+        Dataset newDataset = gdal.Open(originalPath);
+        if (newDataset == null) {
+            System.err.println("Failed to reopen compressed dataset.");
+        }
+
+
+    }
+
+
     public synchronized void readRaster(String filename) {
         this.raster = (gdal.Open(filename, readOrWrite));
         this.nanValue = new Double[1];
