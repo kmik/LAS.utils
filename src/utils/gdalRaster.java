@@ -17,6 +17,7 @@ import java.util.Vector;
 
 public class gdalRaster {
 
+    float nanvalue = Float.NaN;
     int numBands = 0;
     boolean dontcareformemory = true;
     float[][] rasterArray = new float[1][1];
@@ -25,7 +26,7 @@ public class gdalRaster {
     int processingInProgress = 0;
     public ArrayList<String> metadatas = new ArrayList<String>();
     public ArrayList<String> metadatas_values = new ArrayList<String>();
-    Double[] nanValue;
+    public Float[] nanValue;
     float[] value = new float[1];
 
     public String filename = null;
@@ -210,8 +211,11 @@ public class gdalRaster {
 
     public synchronized void readRaster(String filename) {
         this.raster = (gdal.Open(filename, readOrWrite));
-        this.nanValue = new Double[1];
-        this.raster.GetRasterBand(1).GetNoDataValue(this.nanValue);
+        this.nanValue = new Float[1];
+        Double[] nanValueDouble = new Double[1];
+        this.raster.GetRasterBand(1).GetNoDataValue(nanValueDouble);
+
+        this.nanValue[0] = nanValueDouble[0].floatValue();
 
         // Add a raster band
         if (this.raster == null) {
@@ -432,6 +436,21 @@ public class gdalRaster {
         }
 
     }
+
+    public synchronized float[] readValue(int x, int y, int xSize, int ySize){
+
+        if(!this.isOpen)
+            this.open();
+
+        float[] value = new float[xSize * ySize];
+
+        band.ReadRaster(x, y, xSize, ySize, value);
+
+        return value;
+
+    }
+
+
 
     public synchronized void setValue(int x, int y, int value){
 

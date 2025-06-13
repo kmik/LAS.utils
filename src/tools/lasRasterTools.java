@@ -1769,12 +1769,15 @@ public class lasRasterTools {
                 int height = extentInPixelCoordinates[3] - extentInPixelCoordinates[1] + 1;
                 int size = width * height;
 
+                float[] inputValue = new float[size];
+
                 float[] outPutvalue1 = new float[size];
                 float[] outPutvalue2 = new float[size];
 
                 Arrays.fill(outPutvalue1, -9999f);
                 Arrays.fill(outPutvalue2, -9999f);
 
+                inputValue = ras.readValue(extentInPixelCoordinates[0], extentInPixelCoordinates[1], width, height);
 
                 for(int x = extentInPixelCoordinates[0]; x <= extentInPixelCoordinates[2]; x++){
                     for(int y = extentInPixelCoordinates[1]; y <= extentInPixelCoordinates[3]; y++){
@@ -1793,8 +1796,10 @@ public class lasRasterTools {
 
                         if(pointInPolygon) {
 
-                            float value = ras.readValue(x, y);
+                            //float value = ras.readValue(x, y);
 
+                            float value = inputValue[x - extentInPixelCoordinates[0] + (y - extentInPixelCoordinates[1]) * width];
+                            //System.out.println("value: " + value);
                             if(aR.writeIdToRaster) {
 
                                 outPutvalue1[x - extentInPixelCoordinates[0] + (y - extentInPixelCoordinates[1]) * width] = value;
@@ -1802,7 +1807,7 @@ public class lasRasterTools {
                                 //ras.setValue2(x, y, Float.parseFloat(polyIds.get(i)), value);
                             }
 
-                            if (value == Float.NaN) {
+                            if (value ==  ras.nanValue[0]) {
                                 nNoData++;
                                 continue;
                             }
