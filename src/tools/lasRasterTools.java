@@ -1969,8 +1969,10 @@ public class lasRasterTools {
         if(aR.writeIdToRaster){
             for( gdalRaster raster : rasterBank.rasters){
 
+                System.out.println("Syncing: " + raster.filename);
                 raster.syncToDisk();
                 System.gc();
+                System.out.println("Synced: " + raster.filename);
                 //raster.compressAndReplaceDataset();
             }
         }
