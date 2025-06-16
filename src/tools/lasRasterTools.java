@@ -1970,6 +1970,7 @@ public class lasRasterTools {
             for( gdalRaster raster : rasterBank.rasters){
 
                 raster.syncToDisk();
+                System.gc();
                 //raster.compressAndReplaceDataset();
             }
         }

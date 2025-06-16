@@ -503,6 +503,12 @@ public class gdalRaster {
         this.bandClip.FlushCache();
         this.rasterMask.FlushCache();
 
+        this.bandClip.delete();
+        this.rasterMask.delete();
+        this.bandClip = null;
+        this.rasterMask = null;
+
+
     }
     public void readAreaToBuffer(){
 
