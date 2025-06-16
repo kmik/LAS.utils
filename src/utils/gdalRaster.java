@@ -17,7 +17,7 @@ import java.util.Vector;
 
 public class gdalRaster {
 
-    boolean outputRastrerCreated = false;
+    public boolean outputRastrerCreated = false;
     float nanvalue = Float.NaN;
     int numBands = 0;
     boolean dontcareformemory = true;
@@ -94,6 +94,7 @@ public class gdalRaster {
 
         if(outputRastrerCreated)
             return;
+
         outputRastrerCreated = true;
         // Remove existing .tif extension if present and append _clip_mask.tif
         File outputDir = new File(odir);
