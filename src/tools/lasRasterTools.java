@@ -1976,7 +1976,7 @@ public class lasRasterTools {
                 if(!raster.outputRastrerCreated)
                     continue;
                 System.out.println("Syncing: " + raster.rasterMask.GetFileList().get(0));
-                raster.syncToDisk();
+                //raster.syncToDisk();
 
                 System.out.println("Synced!");
 
