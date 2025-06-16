@@ -1598,7 +1598,7 @@ public class lasRasterTools {
 
                 }else {
                     tmpRaster = new gdalRaster(raster.GetDescription(), counter++);
-                    tmpRaster.writeIdToRaster(aR.odir);
+                    //tmpRaster.writeIdToRaster(aR.odir);
                 }
 
 
@@ -1611,7 +1611,7 @@ public class lasRasterTools {
                     tmpRaster = new gdalRaster(raster.GetDescription(), counter++);
                 }else {
                     tmpRaster = new gdalRaster(raster.GetDescription(), counter++);
-                    tmpRaster.writeIdToRaster(aR.odir);
+                    //tmpRaster.writeIdToRaster(aR.odir);
                 }
 
                 rasterBank.addRaster(tmpRaster, aR);
@@ -1796,6 +1796,9 @@ public class lasRasterTools {
 
                         if(pointInPolygon) {
 
+
+                            if(aR.writeIdToRaster)
+                                ras.writeIdToRaster(aR.odir);
                             //float value = ras.readValue(x, y);
 
                             float value = inputValue[x - extentInPixelCoordinates[0] + (y - extentInPixelCoordinates[1]) * width];
@@ -1957,7 +1960,7 @@ public class lasRasterTools {
             }
 
             // print progress
-            if(i % 1000 == 0){
+            if(i % 10 == 0){
                 System.out.println("Progress: " + i + " / " + polygons.size());
             }
 

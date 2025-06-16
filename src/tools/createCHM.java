@@ -2137,7 +2137,6 @@ public class createCHM{
 			start2();
             aR.p_update.updateProgressITD();
 
-
 			export();
 
 		}
@@ -2868,6 +2867,10 @@ public class createCHM{
                                 //tempPoint.setExtraByteINT( key_to_treetop.get((int)(floatArray[0])), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
                                 tempPoint.setExtraByteINT(key_to_treetop.get((int) (floatArray[0])), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
                                 //tempPoint.setExtraByteINT( key_to_treetop_map.get((int)(floatArray[0])), aR.create_extra_byte_vlr_n_bytes.get(0), 0);
+
+                                if(aR.save_to_p_id)
+                                    tempPoint.pointSourceId = (short) (key_to_treetop.get((int) floatArray[0]) + 1);
+
 
                             } else {
 

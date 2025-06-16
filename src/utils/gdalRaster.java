@@ -17,6 +17,7 @@ import java.util.Vector;
 
 public class gdalRaster {
 
+    boolean outputRastrerCreated = false;
     float nanvalue = Float.NaN;
     int numBands = 0;
     boolean dontcareformemory = true;
@@ -91,6 +92,9 @@ public class gdalRaster {
 
     public void writeIdToRaster(String odir) {
 
+        if(outputRastrerCreated)
+            return;
+        outputRastrerCreated = true;
         // Remove existing .tif extension if present and append _clip_mask.tif
         File outputDir = new File(odir);
         if (!outputDir.isDirectory()) {
@@ -107,7 +111,7 @@ public class gdalRaster {
 
         Driver driver = gdal.GetDriverByName("GTiff");
         Vector<String> options = new Vector<>();
-        options.add("COMPRESS=NONE");
+        options.add("COMPRESS=LZW");
         options.add("TILED=YES");
         options.add("BLOCKXSIZE=256");
         options.add("BLOCKYSIZE=256");
@@ -221,12 +225,10 @@ public class gdalRaster {
         if (this.raster == null) {
             throw new toolException("Raster " + filename + " could not be opened. Please check the file path and format.");
         }
-
-
-
     }
 
     public synchronized void addMetadataitem(String item){
+
         this.metadatas.add(item);
 
         this.metadatas_values.add(this.raster.GetMetadataItem(item));
@@ -234,8 +236,6 @@ public class gdalRaster {
         if(this.raster.GetMetadataItem(item) == null){
             throw new toolException("Metadata item " + item + " not found in raster " + this.filename + " metadata");
         }
-
-        System.out.println(this.metadatas_values.get(this.metadatas_values.size()-1));
 
     }
 
