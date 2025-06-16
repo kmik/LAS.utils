@@ -495,6 +495,8 @@ public class gdalRaster {
         if(!this.isOpen)
             this.open();
 
+        if(!this.outputRastrerCreated)
+            return;
         //this.band.FlushCache();
         //this.raster.FlushCache();
 
