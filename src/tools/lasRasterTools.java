@@ -1971,10 +1971,10 @@ public class lasRasterTools {
 
                 if(!raster.outputRastrerCreated)
                     continue;
-                System.out.println("Syncing: " + raster.filename);
+                System.out.println("Syncing: " + raster.rasterMask.GetFileList().get(0));
                 raster.syncToDisk();
                 System.gc();
-                System.out.println("Synced: " + raster.filename);
+                System.out.println("Synced!");
                 //raster.compressAndReplaceDataset();
             }
         }

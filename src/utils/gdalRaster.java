@@ -32,8 +32,8 @@ public class gdalRaster {
 
     public String filename = null;
 
-    Dataset raster;
-    Dataset rasterMask;
+    public Dataset raster;
+    public Dataset rasterMask;
 
     int readOrWrite = gdalconst.GA_ReadOnly;
 
