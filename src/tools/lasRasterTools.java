@@ -1841,8 +1841,10 @@ public class lasRasterTools {
                 if(aR.writeIdToRaster){
                     ras.setValue(extentInPixelCoordinates[0], extentInPixelCoordinates[1], width, height, outPutvalue2, outPutvalue1);
                 }
-
+                ras.syncToDisk();
                 ras.setProcessingInProgress(false);
+
+
             }else{
                 nNoData = 1;
                 nValid = 1;
@@ -1978,8 +1980,11 @@ public class lasRasterTools {
 
                 System.out.println("Synced!");
 
+                raster.closeRasterMask();
+
                 if(counter2++ % 10 == 0)
                     System.gc();
+
                 //raster.compressAndReplaceDataset();
             }
         }
