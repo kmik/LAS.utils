@@ -1966,6 +1966,8 @@ public class lasRasterTools {
 
         }
 
+        int counter2 = 0;
+
         if(aR.writeIdToRaster){
             for( gdalRaster raster : rasterBank.rasters){
 
@@ -1973,8 +1975,11 @@ public class lasRasterTools {
                     continue;
                 System.out.println("Syncing: " + raster.rasterMask.GetFileList().get(0));
                 raster.syncToDisk();
-                System.gc();
+
                 System.out.println("Synced!");
+
+                if(counter2++ % 10 == 0)
+                    System.gc();
                 //raster.compressAndReplaceDataset();
             }
         }
