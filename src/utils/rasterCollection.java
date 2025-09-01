@@ -2,9 +2,12 @@ package utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class rasterCollection {
+
+    HashMap<String, Integer> rasterByName = new HashMap<String, Integer>();
 
     public ArrayList<Integer> currentSelection = new ArrayList<Integer>();
 
@@ -34,6 +37,23 @@ public class rasterCollection {
 
     }
 
+    public void addRaster(gdalRaster raster, String name) {
+
+
+        rasters.add(raster);
+
+        rasterExtents.add(raster.rasterExtent());
+
+        if(name != null && !name.isEmpty()) {
+            rasterByName.put(name, rasters.size() - 1);
+        } else {
+            throw new IllegalArgumentException("Raster name cannot be null or empty");
+        }
+        raster.close();
+
+    }
+
+
     public void addRaster(gdalRaster raster, argumentReader aR) {
 
         rasters.add(raster);
@@ -56,6 +76,7 @@ public class rasterCollection {
         raster.close();
 
     }
+
 
     public ArrayList<Integer> findOverlappingRastersThreadSafe(double minx, double maxx, double miny, double maxy){
 
@@ -168,10 +189,27 @@ public class rasterCollection {
     }
 
     public void closeCurrentSelection(){
+
         for(int i = 0; i < currentSelection.size(); i++)
             rasters.get(currentSelection.get(i)).close();
 
         currentSelection.clear();
+
+    }
+
+    public gdalRaster getRasterByName(String name) {
+
+        Integer index = rasterByName.get(name);
+
+        if (index != null) {
+
+            return rasters.get(index);
+
+        } else {
+
+            throw new IllegalArgumentException("Raster with name '" + name + "' not found.");
+
+        }
 
     }
 
@@ -269,6 +307,7 @@ public class rasterCollection {
 
         return 0.0f;
     }
+
 
     public int whichSelectedRasterContainsPoint(double x, double y){
 

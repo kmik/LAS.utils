@@ -32,16 +32,17 @@ public class pointCloudMetrics {
 
     // THIS IS FOR THE HEXAGON
     //static double convolution_image_width =     20.0;
-    public double convolution_image_width =     18.0;
+    public double convolution_image_width =     15.0;
 
     // THIS IS FOR THE HEXAGON
     //static double convolution_image_height =    20.0;
-    public double convolution_image_height =    18.0;
-    static double convolution_image_resolution = 1.0;
+    public double convolution_image_height =    15.0;
+    static double convolution_image_resolution = 0.46875;
+
     //static double convolution_image_resolution = 0.8888889;
     static double convolution_image_resolution_x = convolution_image_resolution;
     static double convolution_image_resolution_y = convolution_image_resolution;
-    static double convolution_image_resolution_z = 1.0;
+    static double convolution_image_resolution_z = 0.46875;
     static double convolution_image_depth =     35.0;
     static double angle_increment =             45.0;
     public double diagonal = Math.sqrt((convolution_image_height*convolution_image_height)+(convolution_image_height*convolution_image_height));
@@ -835,10 +836,10 @@ public class pointCloudMetrics {
         //ArrayList<Double> output = new ArrayList<>();
         colnames.clear();
 
-        double max_x = center_x + (convolution_image_width / 2.0) * convolution_image_resolution_x;
-        double max_y = center_y + (convolution_image_height / 2.0) * convolution_image_resolution_y;
-        double min_x = center_x - (convolution_image_width / 2.0) * convolution_image_resolution_x;
-        double min_y = center_y - (convolution_image_height / 2.0) * convolution_image_resolution_y;
+        double max_x = center_x + convolution_image_width / 2.0;
+        double max_y = center_y + convolution_image_height / 2.0;
+        double min_x = center_x - convolution_image_width / 2.0;
+        double min_y = center_y - convolution_image_height / 2.0;
 
         /* circle_diameter = a√2
          *
@@ -863,13 +864,13 @@ public class pointCloudMetrics {
         double boxWidth = (max_x - min_x);
         double boxHeight = (max_y - min_y);
 
-        int z_dim = (int)Math.round((convolution_image_depth) * convolution_image_resolution_z);
-        int x_dim = (int)Math.round(convolution_image_width * convolution_image_resolution_x);
-        int y_dim = (int)Math.round(convolution_image_height * convolution_image_resolution_y);
+        int z_dim = (int)Math.ceil((convolution_image_depth) / convolution_image_resolution_z);
+        int x_dim = (int)Math.ceil(convolution_image_width / convolution_image_resolution_x);
+        int y_dim = (int)Math.ceil(convolution_image_height / convolution_image_resolution_y);
 
-        z_dim = (int)convolution_image_depth;
-        x_dim = (int)convolution_image_width;
-        y_dim = (int)convolution_image_height;
+        this.x_dim_ = x_dim;
+        this.y_dim_ = y_dim;
+        this.z_dim_ = z_dim;
 
 
         System.out.println("x_dim: " + x_dim + " y_dim: " + y_dim + " z_dim: " + z_dim);
@@ -986,7 +987,9 @@ public class pointCloudMetrics {
 
 
                     if(array[x][y][z] > 0) {
-                        out.add(1.0);
+                        //out.add(1.0);
+                        out.add(array[x][y][z]);
+
 
                     }
                     else {
@@ -1225,6 +1228,7 @@ public class pointCloudMetrics {
                 for(int y=0 ; y<array[0].length ; y++){
 
                     if(grid_mask[x][y] == 1 || square) {
+
                         if (array[x][y][z] > 0) {
                             int surrounding_points = 1;
 

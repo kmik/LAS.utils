@@ -199,13 +199,22 @@ public class lasITC {
     }
 
     private static void run_itc(argumentReader aR, int i) throws Exception {
-        LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+        LASReader temp = null;
+
+        if(aR.dtm == null)
+            temp = new LASReader(aR.inputFiles.get(i));
 
         aR.p_update.threadFile[0] = "CHM";
         aR.p_update.updateProgressITD();
         createCHM testi_c = new createCHM();
-
-        createCHM.chm testi = testi_c.new chm(temp, "y", 1, aR, 1);
+        createCHM.chm testi;
+        if(aR.dtm == null)
+            testi = testi_c.new chm(temp, "y", 1, aR, 1);
+        else{
+            testi = testi_c.new chm(aR);
+            testi.setCehoam(aR.dtm);
+        }
 
         aR.p_update.threadFile[0] = "CHM - treeTops";
         aR.p_update.updateProgressITD();
@@ -219,8 +228,11 @@ public class lasITC {
         fill.releaseMemory();
         fill = null;
         testi = null;
-        temp.close();
-        temp = null;
+
+        if(aR.dtm == null) {
+            temp.close();
+            temp = null;
+        }
 
 
     }

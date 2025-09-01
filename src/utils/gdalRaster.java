@@ -35,6 +35,8 @@ public class gdalRaster {
     public Dataset raster;
     public Dataset rasterMask;
 
+    public Dataset additionalBands;
+
     int readOrWrite = gdalconst.GA_ReadOnly;
 
     Band band;
@@ -61,6 +63,9 @@ public class gdalRaster {
 
     int cores = 1;
     double resolution;
+
+    public ArrayList<Band> newBands = new ArrayList<Band>();
+
     public gdalRaster() {
 
     }
@@ -220,7 +225,11 @@ public class gdalRaster {
         Double[] nanValueDouble = new Double[1];
         this.raster.GetRasterBand(1).GetNoDataValue(nanValueDouble);
 
-        this.nanValue[0] = nanValueDouble[0].floatValue();
+        if(nanValueDouble[0] == null || nanValueDouble[0].isNaN() || nanValueDouble[0].isInfinite()){
+
+        }
+        else
+            this.nanValue[0] = nanValueDouble[0].floatValue();
 
         // Add a raster band
         if (this.raster == null) {
@@ -292,6 +301,22 @@ public class gdalRaster {
         this.raster.FlushCache();
     }
 
+    public double[] realWorldCoordinateToPixelCoordinate(double x, double y){
+
+        if(!this.isOpen)
+            this.open();
+
+        double[] pixelCoordinate = new double[2];
+
+        pixelCoordinate[0] = (x - this.geoTransform[0]) / this.geoTransform[1];
+        pixelCoordinate[1] = (y - this.geoTransform[3]) / this.geoTransform[5];
+
+        //System.out.println(Arrays.toString(pixelCoordinate));
+
+        return pixelCoordinate;
+
+    }
+
     public synchronized void open(){
         this.open(this.filename);
         this.isOpen = true;
@@ -359,6 +384,142 @@ public class gdalRaster {
             }
         }
     }
+
+    public void retileRaster(String outputDirectory, int tileSizeX, int tileSizeY) {
+
+        if (this.raster == null) {
+            throw new toolException("Raster is not opened. Please open the raster before retile.");
+        }
+
+        int numTilesX = (int) Math.ceil((double) this.number_of_pix_x / tileSizeX);
+        int numTilesY = (int) Math.ceil((double) this.number_of_pix_y / tileSizeY);
+
+        for (int tileY = 0; tileY < numTilesY; tileY++) {
+            for (int tileX = 0; tileX < numTilesX; tileX++) {
+
+                int startX = tileX * tileSizeX;
+                int startY = tileY * tileSizeY;
+                int endX = Math.min(startX + tileSizeX, this.number_of_pix_x);
+                int endY = Math.min(startY + tileSizeY, this.number_of_pix_y);
+
+                String outputFilename = String.format("%s/tile_%d_%d.tif", outputDirectory, tileX, tileY);
+                Driver driver = gdal.GetDriverByName("GTiff");
+                Dataset outputDataset = driver.Create(outputFilename, endX - startX, endY - startY, 1, gdalconst.GDT_Float32);
+
+                Band outputBand = outputDataset.GetRasterBand(1);
+                float[] dataRow = new float[endX - startX];
+
+                for (int y = startY; y < endY; y++) {
+                    this.band.ReadRaster(startX, y, endX - startX, 1, dataRow);
+                    outputBand.WriteRaster(0, y - startY, endX - startX, 1, dataRow);
+                }
+
+                outputBand.FlushCache();
+                outputDataset.FlushCache();
+                outputDataset.delete();
+            }
+        }
+
+    }
+
+    public void retileRasterWithGeotransform(String outputDirectory, int tileSizeX, int tileSizeY) {
+
+        if (this.raster == null) {
+            throw new toolException("Raster is not opened. Please open the raster before retile.");
+        }
+
+        int numTilesX = (int) Math.ceil((double) this.number_of_pix_x / tileSizeX);
+        int numTilesY = (int) Math.ceil((double) this.number_of_pix_y / tileSizeY);
+
+        for (int tileY = 0; tileY < numTilesY; tileY++) {
+            for (int tileX = 0; tileX < numTilesX; tileX++) {
+
+                int startX = tileX * tileSizeX;
+                int startY = tileY * tileSizeY;
+                int endX = Math.min(startX + tileSizeX, this.number_of_pix_x);
+                int endY = Math.min(startY + tileSizeY, this.number_of_pix_y);
+
+                String outputFilename = String.format("%s/tile_%d_%d.tif", outputDirectory, tileX, tileY);
+                Driver driver = gdal.GetDriverByName("GTiff");
+                Dataset outputDataset = driver.Create(outputFilename, endX - startX, endY - startY, 1, gdalconst.GDT_Float32);
+
+                double[] geoTransform = new double[6];
+                System.arraycopy(this.geoTransform, 0, geoTransform, 0, 6);
+                geoTransform[0] += startX * geoTransform[1];
+                geoTransform[3] += startY * geoTransform[5];
+
+                outputDataset.SetGeoTransform(geoTransform);
+                outputDataset.SetProjection(this.raster.GetProjection());
+
+                Band outputBand = outputDataset.GetRasterBand(1);
+                float[] dataRow = new float[endX - startX];
+
+                for (int y = startY; y < endY; y++) {
+                    this.band.ReadRaster(startX, y, endX - startX, 1, dataRow);
+                    outputBand.WriteRaster(0, y - startY, endX - startX, 1, dataRow);
+                }
+
+                outputBand.FlushCache();
+                outputDataset.FlushCache();
+                outputDataset.delete();
+            }
+        }
+
+
+    }
+
+    public void retileRasterWithGeotransform(String outputDirectory, int tileSizeX, int tileSizeY, int overlap) {
+
+        if (this.raster == null) {
+            throw new toolException("Raster is not opened. Please open the raster before retile.");
+        }
+
+        if (overlap >= tileSizeX || overlap >= tileSizeY) {
+            throw new IllegalArgumentException("Overlap must be smaller than tile size.");
+        }
+
+        int strideX = tileSizeX - overlap;
+        int strideY = tileSizeY - overlap;
+
+        // Calculate number of tiles needed using stride steps
+        int numTilesX = (int) Math.ceil((double)(this.number_of_pix_x - overlap) / strideX);
+        int numTilesY = (int) Math.ceil((double)(this.number_of_pix_y - overlap) / strideY);
+
+        for (int tileY = 0; tileY < numTilesY; tileY++) {
+            for (int tileX = 0; tileX < numTilesX; tileX++) {
+
+                int startX = tileX * strideX;
+                int startY = tileY * strideY;
+                int endX = Math.min(startX + tileSizeX, this.number_of_pix_x);
+                int endY = Math.min(startY + tileSizeY, this.number_of_pix_y);
+
+                String outputFilename = String.format("%s/tile_%d_%d.tif", outputDirectory, tileX, tileY);
+                Driver driver = gdal.GetDriverByName("GTiff");
+                Dataset outputDataset = driver.Create(outputFilename, endX - startX, endY - startY, 1, gdalconst.GDT_Float32);
+
+                double[] geoTransform = new double[6];
+                System.arraycopy(this.geoTransform, 0, geoTransform, 0, 6);
+                geoTransform[0] += startX * geoTransform[1];
+                geoTransform[3] += startY * geoTransform[5];
+
+                outputDataset.SetGeoTransform(geoTransform);
+                outputDataset.SetProjection(this.raster.GetProjection());
+
+                Band outputBand = outputDataset.GetRasterBand(1);
+                float[] dataRow = new float[endX - startX];
+
+                for (int y = startY; y < endY; y++) {
+                    this.band.ReadRaster(startX, y, endX - startX, 1, dataRow);
+                    outputBand.WriteRaster(0, y - startY, endX - startX, 1, dataRow);
+                }
+
+                outputBand.FlushCache();
+                outputDataset.FlushCache();
+                outputDataset.delete();
+            }
+        }
+    }
+
 
     public float[][] rasterToArray(){
 
@@ -491,6 +652,85 @@ public class gdalRaster {
         }
     }
 
+    public void addBands(int numAddedBands, ArrayList<Float> bandValues){
+
+        if(!this.isOpen)
+            this.open();
+
+        // Create a new tif file (dataset) with numaddedbands + 1
+        // bands and copy the data from the original raster to the new raster.
+        if(this.raster == null){
+            throw new toolException("Raster is not opened. Please open the raster before adding bands.");
+        }
+        if(this.raster.GetRasterBand(1) == null){
+            throw new toolException("Raster band is not available. Please check the raster file.");
+        }
+        if(this.raster.GetRasterBand(1).GetDataset() == null){
+            throw new toolException("Raster band dataset is not available. Please check the raster file.");
+        }
+        this.numBands = this.raster.GetRasterCount() + numAddedBands;
+        Driver driver = gdal.GetDriverByName("GTiff");
+        Vector<String> options = new Vector<>();
+        options.add("COMPRESS=LZW");
+        options.add("TILED=YES");
+        //options.add("BLOCKXSIZE=256");
+        //options.add("BLOCKYSIZE=256");
+        this.additionalBands = driver.Create(
+                this.filename,              // filename
+                this.number_of_pix_x,        // width
+                this.number_of_pix_y,        // height
+                this.numBands,               // number of bands
+                gdalconstConstants.GDT_Float32, // data type
+                options                      // creation options
+        );
+
+        double[] rasterExtent = new double[6];
+        this.raster.GetGeoTransform(rasterExtent);
+        this.additionalBands.SetGeoTransform(rasterExtent);
+        this.additionalBands.SetProjection(this.raster.GetProjection());
+        //System.out.println(Arrays.toString(rasterExtent) + " " + this.number_of_pix_x + " " + this.number_of_pix_y + " " + this.filename);
+
+        // First add the original raster values to the additionalBands raster
+        Band originalBand = this.band;
+        Band newBand = this.additionalBands.GetRasterBand(1); // writable band
+
+        float[] dataRow = new float[this.number_of_pix_x];
+        for (int y = 0; y < this.number_of_pix_y; y++) {
+            originalBand.ReadRaster(0, y, this.number_of_pix_x, 1, dataRow);
+            newBand.WriteRaster(0, y, this.number_of_pix_x, 1, dataRow);
+        }
+
+        for(int i = 1; i <= numAddedBands; i++){
+
+            Band addedBand = this.additionalBands.GetRasterBand(i + 1); // writable band
+            addedBand.SetNoDataValue(-9999f);
+            addedBand.Fill(-9999f);
+
+            // Write the values from bandValues to the new band
+            for (int y = 0; y < this.number_of_pix_y; y++) {
+                float[] dataRow2 = new float[this.number_of_pix_x];
+
+                // Fill the datarow with bandValues.get(i)
+                for (int x = 0; x < this.number_of_pix_x; x++) {
+                    dataRow2[x] = bandValues.get(i-1); // Default value
+                }
+
+                //for (int x = 0; x < this.number_of_pix_x; x++) {
+                //    float value = bandValues.get(i-1);
+                    //if (value != -9999f) {
+                addedBand.WriteRaster(0, y, this.number_of_pix_x, 1, dataRow2);
+                    //}
+                //}
+            }
+        }
+
+
+        // Flush the cache to ensure all data is written
+
+        this.additionalBands.FlushCache();
+
+    }
+
     public synchronized void syncToDisk(){
 
         if(!this.isOpen)
@@ -508,6 +748,8 @@ public class gdalRaster {
 
 
     }
+
+
 
     public synchronized void closeRasterMask(){
 
@@ -592,6 +834,8 @@ public class gdalRaster {
 
     }
 
+
+
     public void toTxt() {
 
         File outputFile = this.declareTxtFile();
@@ -639,6 +883,44 @@ public class gdalRaster {
 
 
 
+    }
+
+    // This adds ALL values from raster2 to this raster that are within the bounds of this raster,
+    // The other raster may or may not be of same resolution, so check based on the center pixel
+    // coordinates of this raster the value from the other raster.
+    public void addValuesFromAnotherRaster(gdalRaster raster2, int bandNumberToWriteOn){
+
+        if(!this.isOpen)
+            this.open();
+
+        if(!raster2.isOpen)
+            raster2.open();
+
+        if(this.number_of_pix_x != raster2.number_of_pix_x || this.number_of_pix_y != raster2.number_of_pix_y){
+            throw new toolException("The two rasters do not have the same dimensions");
+        }
+
+        Band bandToWrite = this.raster.GetRasterBand(bandNumberToWriteOn);
+
+        float[] dataRow = new float[this.number_of_pix_x];
+
+        for(int y = 0; y < this.number_of_pix_y; y++){
+            for(int x = 0; x < this.number_of_pix_x;x++){
+
+                float value = raster2.readValue(x, y);
+
+                if(value != raster2.nanValue[0]){
+                    dataRow[x] = value;
+                }
+                else{
+                    dataRow[x] = -9999f;
+                }
+
+            }
+            bandToWrite.WriteRaster(0, y, this.number_of_pix_x, 1, dataRow);
+        }
+
+        bandToWrite.FlushCache();
     }
 
     /**

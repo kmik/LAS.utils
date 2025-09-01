@@ -2004,6 +2004,9 @@ public class MKid4pointsLAS{
 
                                             p = asd.fastReadFromQuery(tempPoint);
 
+                                            if(!aR.inclusionRule.ask(tempPoint, 0, true))
+                                                continue;
+
                                             if(aR.clamper_Z){
                                                 if(tempPoint.z < aR.clamp_z)
                                                     tempPoint.z = (float)aR.clamp_z;
@@ -2217,6 +2220,9 @@ public class MKid4pointsLAS{
 
                                         asd.readFromBuffer(tempPoint);
 
+                                        if(!aR.inclusionRule.ask(tempPoint, 0, true))
+                                            continue;
+
                                         if(aR.eaba){
 
                                             treeId = tempPoint.getExtraByteInt(tree_id);
@@ -2412,6 +2418,8 @@ public class MKid4pointsLAS{
                         } else if (aR.convolution_metrics) {
                             ArrayList<Double> metrics_convolution = pCM.calc_nn_input_test_spectral(gridPoints_xyz_a, "_convo_f", colnames_convo, minmaxXY[0], minmaxXY[3],
                                     minmaxXY[1], minmaxXY[2], rotation);
+                            //ArrayList<Double> metrics_convolution = pCM.calc_nn_input_test_spectral(gridPoints_xyz_a, "_convo_f", colnames_convo, minmaxXY[0], minmaxXY[3],
+                            //        minmaxXY[1], minmaxXY[2], rotation);
                             aR.lCMO.writeLine_convo_test(metrics_convolution, colnames_convo, plotID.get(j));
                             //System.out.println("HERE_test_data!!");
                         }

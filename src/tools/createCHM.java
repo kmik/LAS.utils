@@ -2056,10 +2056,20 @@ public class createCHM{
 
 		public WaterShed(HashSet<double[]> in, double speed2, Dataset inMat, chm inChm, argumentReader aR, int coreNumber) throws Exception{
 
-            this.minx = inChm.pointCloud.getMinX();
-            this.maxx = inChm.pointCloud.getMaxX();
-            this.miny = inChm.pointCloud.getMinY();
-            this.maxy = inChm.pointCloud.getMaxY();
+            if (aR.dtm == null) {
+                this.minx = inChm.pointCloud.getMinX();
+                this.maxx = inChm.pointCloud.getMaxX();
+                this.miny = inChm.pointCloud.getMinY();
+                this.maxy = inChm.pointCloud.getMaxY();
+            }
+            else{
+                double[] geotransform = inChm.cehoam.GetGeoTransform();
+                this.minx = geotransform[0];
+                this.maxx = geotransform[0] + inChm.cehoam.getRasterXSize() * inChm.resolution_m;
+                this.miny = geotransform[3] - inChm.cehoam.getRasterYSize() * inChm.resolution_m;
+                this.maxy = geotransform[3];
+
+            }
 
             this.minx_no_buf = inChm.minX_no_buf;
             this.miny_no_buf = inChm.minY_no_buf;
@@ -2704,8 +2714,10 @@ public class createCHM{
 
             String out_file = "waterShed.shp";
 
-            out_file = fo.createNewFileWithNewExtension(canopy.pointCloud.getFile(), "_TreeSegmentation.shp").getAbsolutePath();
-
+            if(aR.dtm == null)
+                out_file = fo.createNewFileWithNewExtension(canopy.pointCloud.getFile(), "_TreeSegmentation.shp").getAbsolutePath();
+            else
+                out_file = fo.createNewFileWithNewExtension(aR.dtm, "_TreeSegmentation_dtm.shp").getAbsolutePath();
             if(!aR.odir.equals("asd"))
                 out_file = fo.transferDirectories(new File(out_file), aR.odir).getAbsolutePath();
 
@@ -2731,10 +2743,21 @@ public class createCHM{
 
             gdal.Polygonize(rasterBand, rasterBand_mask, outShpLayer, 0);
 
-            String pointCloudName = canopy.pointCloud.getFile().getAbsolutePath();
+            String pointCloudName = null;
 
-            File outFile = fo.createNewFileWithNewExtension(canopy.pointCloud.getFile(), "_ITD.las");
+            if(aR.dtm == null)
+                pointCloudName = canopy.pointCloud.getFile().getAbsolutePath();
+            else{
+               pointCloudName = aR.dtm.getAbsolutePath();
+            }
 
+            File outFile = null;
+
+            if(aR.dtm == null)
+                outFile = fo.createNewFileWithNewExtension(canopy.pointCloud.getFile(), "_ITD.las");
+            else{
+                outFile = fo.createNewFileWithNewExtension(aR.dtm, "_ITD_dtm.las");
+            }
             if(!aR.odir.equals("asd"))
                 outFile = fo.transferDirectories(outFile, aR.odir);
 
@@ -2750,6 +2773,7 @@ public class createCHM{
             deleteFile2.delete();
             deleteFile22.delete();
 
+            if(aR.dtm == null)
             if(!aR.skeleton_output) {
 
                 if (outFile.exists())
@@ -3055,6 +3079,71 @@ public class createCHM{
         public chm(){
 
 		}
+
+        public chm(argumentReader aR){
+            this.aR = aR;
+
+            resolution = aR.step;
+
+
+
+
+        }
+
+        public void setCehoam(Dataset cehoam){
+
+            this.cehoam = cehoam;
+
+            if(cehoam != null) {
+                this.band = cehoam.GetRasterBand(1);
+                this.band.SetNoDataValue(Float.NaN);
+            }
+
+        }
+
+        public void setCehoam(File in){
+
+
+            try {
+                this.cehoam = gdal.Open(in.getAbsolutePath(), gdalconst.GA_ReadOnly);
+                if(cehoam != null) {
+                    this.band = cehoam.GetRasterBand(1);
+                    this.band.SetNoDataValue(Float.NaN);
+                }
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            this.numberOfPixelsX = (int)cehoam.GetRasterXSize();
+            this.numberOfPixelsY = (int)cehoam.GetRasterYSize();
+
+            this.minX = cehoam.GetGeoTransform()[0];
+            this.maxY = cehoam.GetGeoTransform()[3];
+            this.minY = this.maxY - (this.numberOfPixelsY * resolution);
+            this.maxX = this.minX + (this.numberOfPixelsX * resolution);
+            // populate chm_array
+
+            this.chm_array = new float[numberOfPixelsX][numberOfPixelsY];
+            for(int x = 0; x < numberOfPixelsX; x++)
+                for(int y = 0; y < numberOfPixelsY; y++)
+                    chm_array[x][y] = Float.NaN;
+
+
+            // Add values from cehoam to chm_array
+
+            float[] row = new float[numberOfPixelsX];
+            for(int y = 0; y < numberOfPixelsY; y++){
+
+                band.ReadRaster(0, y, numberOfPixelsX, 1, row);
+
+                for(int x = 0; x < numberOfPixelsX; x++){
+                    chm_array[x][y] = row[x];
+                }
+
+            }
+        }
 
 		public chm(LASReader in, String outputFileName) throws IOException{
 
@@ -5128,9 +5217,12 @@ public class createCHM{
 
 			ogr.RegisterAll(); //Registering all the formats..
       		gdal.AllRegister();
-
-            String out_file = fo.createNewFileWithNewExtension(this.pointCloud.getFile(), "_treeTops.shp").getAbsolutePath();// this.pointCloud.getFile().getAbsolutePath().substring(this.pointCloud.getFile().getAbsolutePath().lastIndexOf(".")-1) + "_treeTops.shp";
-
+            String out_file = null;
+            if(aR.dtm == null)
+                out_file = fo.createNewFileWithNewExtension(this.pointCloud.getFile(), "_treeTops.shp").getAbsolutePath();// this.pointCloud.getFile().getAbsolutePath().substring(this.pointCloud.getFile().getAbsolutePath().lastIndexOf(".")-1) + "_treeTops.shp";
+            else{
+                out_file = fo.createNewFileWithNewExtension(aR.dtm, "_treeTops.shp").getAbsolutePath();// this.pointCloud.getFile().getAbsolutePath().substring(this.pointCloud.getFile().getAbsolutePath().lastIndexOf(".")-1) + "_treeTops.shp";
+            }
             if(!aR.odir.equals("asd"))
                 out_file = fo.transferDirectories(new File(out_file), aR.odir).getAbsolutePath();
 
@@ -5195,20 +5287,21 @@ public class createCHM{
 			int endX = numberOfPixelsX - 1 - kernelSize;
 			int endY = numberOfPixelsY - 1 - kernelSize;
 
-
-			aR.p_update.threadProgress[coreNumber-1] = 0;
-            aR.p_update.threadEnd[coreNumber-1] = (endX-startX)*(endY-startY);
+            if( aR.dtm == null) {
+                aR.p_update.threadProgress[coreNumber - 1] = 0;
+                aR.p_update.threadEnd[coreNumber - 1] = (endX - startX) * (endY - startY);
+            }
 
            // System.out.println("kernel: " + kernelSize);
 
             int id = 0;
 
+            System.out.println(startX + " " + endX + " " + startY + " " + endY + " " + numberOfPixelsX + " " + numberOfPixelsY);
 
             for(int i = startX; i <= endX; i++){
 				for(int j = startY; j <= endY; j++){
 
 					//if(isTreeTop(output, i, j, kernelSize)){
-
 
 
                     //if(isTreeTop(output2, i, j, kernelSize)){
@@ -5237,11 +5330,12 @@ public class createCHM{
 						treeTopBank.add((long)(i * this.maxY + j));
 						treeTops.add(temp);
 
-						aR.p_update.threadProgress[coreNumber-1]++;
+                        if( aR.dtm == null) {
+                            aR.p_update.threadProgress[coreNumber - 1]++;
 
-						if(aR.p_update.threadProgress[coreNumber-1] % 1000 == 0)
-						    aR.p_update.updateProgressITD();
-
+                            if (aR.p_update.threadProgress[coreNumber - 1] % 1000 == 0)
+                                aR.p_update.updateProgressITD();
+                        }
 						//output.put(j, i, -9999);
 
 					}

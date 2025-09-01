@@ -3133,6 +3133,7 @@ public class lasRasterTools {
                         else
                             id = Integer.toString(tempF.GetFieldAsInteger(aR.field));
 
+
                         if(id.equals(""))
                             id = "lasutilsID_" + backUpId++;
 

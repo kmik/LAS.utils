@@ -68,6 +68,8 @@ public class argumentReader {
 
     public String extraByteName = "asd";
     public File aux_file = null;
+
+    public ArrayList<File> aux_files = new ArrayList<>();
     public double radius = 0.0;
     public boolean turnHexagon = false;
 
@@ -115,6 +117,8 @@ public class argumentReader {
 
     public boolean clamper_Z = false;
     public double clamp_z = 0.0;
+
+    public File dtm = null;
 
     public boolean convolution_metrics_train = false;
     public boolean convolution_metrics = true;
@@ -183,6 +187,7 @@ public class argumentReader {
 
     fileOperations fo = new fileOperations();
     public ArrayList<LASReader> pointClouds = new ArrayList<LASReader>();
+    String[] auxFiles = null;
     public ArrayList<File> inputFiles = new ArrayList<>();
     public ArrayList<File> outputFiles = new ArrayList<File>();
 
@@ -611,6 +616,14 @@ public class argumentReader {
                 .required(false)
                 .build());
 
+        options.addOption( org.apache.commons.cli.Option.builder()
+                .longOpt("aux_files")
+                .hasArg(true)
+                .desc("Auxiliary files")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .required(false)
+                .build());
+
         options.addOption( Option.builder()
                 .longOpt("inputSpectral")
                 .hasArg(true)
@@ -618,6 +631,15 @@ public class argumentReader {
                 .numberOfArgs(Option.UNLIMITED_VALUES)
                 .required(false)
                 .build());
+
+        options.addOption( Option.builder()
+                .longOpt("dtm")
+                .hasArg(true)
+                .desc("Input digital terrain model (DTM)")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .required(false)
+                .build());
+
 
         options.addOption( Option.builder()
                 .longOpt("metadataItems")
@@ -2357,6 +2379,24 @@ public class argumentReader {
 
             }
 
+            if (cmd.hasOption("aux_files")){
+
+                System.out.println("HERE!");
+
+                auxFiles = cmd.getOptionValues("aux_files");
+
+                System.out.println(auxFiles[0]);
+
+                if(auxFiles[0].split(";").length > 1){
+                    auxFiles = auxFiles[0].split(";");
+                }
+
+                for(String s : auxFiles){
+
+                    this.aux_files.add(new File(s));
+                }
+            }
+
             if (cmd.hasOption("i")) {
 
                 files = cmd.getOptionValues("i");
@@ -2616,6 +2656,17 @@ public class argumentReader {
             if (cmd.hasOption("eaba")) {
 
                 this.eaba = true;
+
+            }
+
+            if (cmd.hasOption("dtm")){
+
+                if(!new File(cmd.getOptionValue("dtm")).exists())
+                    throw new argumentException("-dtm does not exist!");
+
+                this.dtm = new File(cmd.getOptionValue("dtm"));
+
+
 
             }
 

@@ -18,6 +18,10 @@ public class Polygon {
     double[] centroid;
     double[][] points;
 
+    double minX = Double.MAX_VALUE;
+    double minY = Double.MAX_VALUE;
+    double maxX = Double.MIN_VALUE;
+    double maxY = Double.MIN_VALUE;
 
 
     public Polygon() {
@@ -53,9 +57,72 @@ public class Polygon {
 
     }
 
+    public void findCentroid() {
+
+        double sumX = 0;
+        double sumY = 0;
+        int numPoints = 0;
+
+        for (double[][] ring : outerRings) {
+            for (double[] point : ring) {
+                sumX += point[0];
+                sumY += point[1];
+                numPoints++;
+            }
+        }
+
+        if (numPoints > 0) {
+            this.centroid = new double[]{sumX / numPoints, sumY / numPoints};
+        } else {
+            this.centroid = new double[]{0, 0}; // Default value if no points
+        }
+    }
+
+    public double findBoundingBox() {
+
+        for (double[][] ring : outerRings) {
+            for (double[] point : ring) {
+                if (point[0] < minX) {
+                    minX = point[0];
+                }
+                if (point[0] > maxX) {
+                    maxX = point[0];
+                }
+                if (point[1] < minY) {
+                    minY = point[1];
+                }
+                if (point[1] > maxY) {
+                    maxY = point[1];
+                }
+            }
+        }
+
+        return 0;
+
+    }
+
+    public double getMinX() {
+        return minX;
+    }
+    public double getMinY() {
+        return minY;
+    }
+    public double getMaxX() {
+        return maxX;
+    }
+    public double getMaxY() {
+        return maxY;
+    }
+
     public void setId(int id){
 
         this.id = id;
+
+    }
+
+    public double[] getCentroid(){
+
+        return this.centroid;
 
     }
 
@@ -67,7 +134,7 @@ public class Polygon {
 
     public boolean pointInPolygon(double[] point) {
 
-        if(this.outerRings.size() == 0) {
+        if(this.outerRings.size() != 0) {
             int numPolyCorners = this.outerRings.get(0).length;
             double[][] poly = this.outerRings.get(0);
             int j = numPolyCorners - 1;
@@ -104,6 +171,67 @@ public class Polygon {
 
                         if (polyHole[i][1] < point[1] && polyHole[j][1] >= point[1] || polyHole[j][1] < point[1] && polyHole[i][1] >= point[1]) {
                             if (polyHole[i][0] + (point[1] - polyHole[i][1]) / (polyHole[j][1] - polyHole[i][1]) * (polyHole[j][0] - polyHole[i][0]) < point[0]) {
+                                is_inside_hole = !is_inside_hole;
+                            }
+                        }
+                        j = i;
+                    }
+
+                    //System.out.println("-------------------------");
+                    if (is_inside_hole) {
+
+                        //System.out.println("YES YES YES!");
+                        return false;
+                    }
+                }
+            }
+
+            return isInside;
+        }else{
+            return false;
+        }
+
+    }
+
+    public boolean pointInPolygon(double x, double y) {
+
+        if(this.outerRings.size() != 0) {
+            int numPolyCorners = this.outerRings.get(0).length;
+            double[][] poly = this.outerRings.get(0);
+            int j = numPolyCorners - 1;
+            boolean isInside = false;
+
+            for (int i = 0; i < numPolyCorners; i++) {
+                if (poly[i][1] < y && poly[j][1] >= y || poly[j][1] < y && poly[i][1] >= y) {
+                    if (poly[i][0] + (y - poly[i][1]) / (poly[j][1] - poly[i][1]) * (poly[j][0] - poly[i][0]) < x) {
+                        isInside = !isInside;
+                    }
+                }
+                j = i;
+            }
+
+            if (holes.size() > 0) {
+
+
+                ArrayList<double[][]> holet = this.holes;
+                double[][] polyHole = null;
+
+                for (int i_ = 0; i_ < holet.size(); i_++) {
+
+                    numPolyCorners = holet.get(i_).length;
+
+                    //System.out.println(holet.get(i_)[0][0] + " == " + holet.get(i_)[holet.get(i_).length-1][0]);
+                    //System.out.println(holet.get(i_)[0][1] + " == " + holet.get(i_)[holet.get(i_).length-1][1]);
+                    j = numPolyCorners - 1;
+                    boolean is_inside_hole = false;
+                    polyHole = holet.get(i_);
+
+                    for (int i = 0; i < numPolyCorners; i++) {
+
+                        //System.out.println(polyHole[i][0] + " " + polyHole[i][1]);
+
+                        if (polyHole[i][1] < y && polyHole[j][1] >= y || polyHole[j][1] < y && polyHole[i][1] >= y) {
+                            if (polyHole[i][0] + (y - polyHole[i][1]) / (polyHole[j][1] - polyHole[i][1]) * (polyHole[j][0] - polyHole[i][0]) < x) {
                                 is_inside_hole = !is_inside_hole;
                             }
                         }

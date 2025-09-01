@@ -2009,6 +2009,7 @@ class ai2las{
 		}
 
 		ai2las a2l = new ai2las();
+
 		if(!aR.debug) {
 
 			//IntStream.range(0, tempList.size()).parallel().forEach(t -> {
@@ -2145,6 +2146,8 @@ class ai2las{
 			for (int j = 0; j < maxi; j++) {
 
 				asd2.readFromBuffer(tempPoint);
+				if(!aR.inclusionRule.ask(tempPoint, 0, true))
+					continue;
 
 				int x = Math.min((int)((tempPoint.x - asd2.getMinX()) / resolution_3d), xDim-1);
 				int y = Math.min((int)((asd2.getMaxY() - tempPoint.y) / resolution_3d), yDim-1);
@@ -2729,6 +2732,8 @@ class ai2las{
 				for (int j = 0; j < maxi; j++) {
 
 					asd2.readFromBuffer(tempPoint);
+					if(!aR.inclusionRule.ask(tempPoint, 0, true))
+						continue;
 
 					if(origZ_id > 0){
 						origZ = tempPoint.z;
