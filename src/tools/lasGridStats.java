@@ -109,7 +109,8 @@ public class lasGridStats {
 
 
         if(aR.MML_klj){
-            this.resolution = cellSizeVMI;
+
+            //this.resolution = cellSizeVMI;
             this.prepareMML();
         }
 
@@ -3933,7 +3934,7 @@ public class lasGridStats {
         findExtentRaster(rasterBoundingBoxes);
 
         if(aR.MML_klj){
-            this.resolution = cellSizeVMI;
+            //this.resolution = cellSizeVMI;
             this.prepareMML();
         }
 
@@ -4305,7 +4306,7 @@ public class lasGridStats {
         findExtentRaster(rasterBoundingBoxes);
 
         if(aR.MML_klj){
-            this.resolution = cellSizeVMI;
+            //this.resolution = cellSizeVMI;
             this.prepareMML();
         }
 
@@ -4718,7 +4719,7 @@ public class lasGridStats {
         this.orig_y = this.maxY;
 
         if(aR.MML_klj){
-            this.resolution = cellSizeVMI;
+            //this.resolution = cellSizeVMI;
             this.prepareMML();
         }
 
