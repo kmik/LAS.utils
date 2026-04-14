@@ -602,17 +602,27 @@ public class gdalRaster {
     public synchronized int[] correct_requested_extent(int[] input){
 
         // input is in the form of:
-        // extentInPixelCoordinates[0] = (int) Math.floor((polygonExtent[0] - bbox[0]) / geotransform[1]);
-        // extentInPixelCoordinates[3] = (int) Math.floor((bbox[3] - polygonExtent[1]) / geotransform[1]);
-        // extentInPixelCoordinates[2] = (int) Math.floor((polygonExtent[2] - bbox[0]) / geotransform[1]);
-        // extentInPixelCoordinates[1] = (int) Math.floor((bbox[3] - polygonExtent[3]) / geotransform[1]);
-
+        // minx, maxx, miny, maxy
         int[] correctedValues = new int[4];
 
-        correctedValues[0] = Math.max(0, input[0]);
-        correctedValues[1] = Math.max(0, input[1]);
-        correctedValues[2] = Math.min(this.number_of_pix_x - 1, input[2]);
-        correctedValues[3] = Math.min(this.number_of_pix_y - 1, input[3]);
+        if(input[0] < 0)
+            correctedValues[0] = 0;
+        else
+            correctedValues[0] = input[0];
+        if(input[1] > this.number_of_pix_x - 1)
+            correctedValues[1] = this.number_of_pix_x - 1;
+        else
+            correctedValues[1] = input[1];
+        if(input[2] < 0)
+            correctedValues[2] = 0;
+        else
+            correctedValues[2] = input[2];
+        if(input[3] > this.number_of_pix_y - 1)
+            correctedValues[3] = this.number_of_pix_y - 1;
+        else
+            correctedValues[3] = input[3];
+
+
 
         return correctedValues;
 
