@@ -601,6 +601,16 @@ public class gdalRaster {
 
     public synchronized float[] readValue(int x, int y, int xSize, int ySize){
 
+        if( x < 0 )
+            x = 0;
+        if( y < 0 )
+            y = 0;
+        if( x > this.number_of_pix_x - 1 )
+            x = this.number_of_pix_x - 1;
+        if( y > this.number_of_pix_y - 1 )
+            y = this.number_of_pix_y - 1;
+
+
         if(!this.isOpen)
             this.open();
 
