@@ -599,17 +599,50 @@ public class gdalRaster {
 
     }
 
+    public synchronized int[] correct_requested_extent(int[] input){
+
+        // input is in the form of:
+        // extentInPixelCoordinates[0] = (int) Math.floor((polygonExtent[0] - bbox[0]) / geotransform[1]);
+        // extentInPixelCoordinates[3] = (int) Math.floor((bbox[3] - polygonExtent[1]) / geotransform[1]);
+        // extentInPixelCoordinates[2] = (int) Math.floor((polygonExtent[2] - bbox[0]) / geotransform[1]);
+        // extentInPixelCoordinates[1] = (int) Math.floor((bbox[3] - polygonExtent[3]) / geotransform[1]);
+
+        int[] correctedValues = new int[4];
+
+        correctedValues[0] = Math.max(0, input[0]);
+        correctedValues[1] = Math.max(0, input[1]);
+        correctedValues[2] = Math.min(this.number_of_pix_x - 1, input[2]);
+        correctedValues[3] = Math.min(this.number_of_pix_y - 1, input[3]);
+
+        return correctedValues;
+
+    }
+
     public synchronized float[] readValue(int x, int y, int xSize, int ySize){
 
-        if( x < 0 )
-            x = 0;
-        if( y < 0 )
-            y = 0;
-        if( x > this.number_of_pix_x - 1 )
-            x = this.number_of_pix_x - 1;
-        if( y > this.number_of_pix_y - 1 )
-            y = this.number_of_pix_y - 1;
+        /*
+        int change_in_x = 0;
+        int change_in_y = 0;
 
+        if( x < 0 ) {
+            change_in_x = -x;
+            x = 0;
+        }
+        if( y < 0 ) {
+            change_in_y = -y;
+            y = 0;
+        }
+        if( x > this.number_of_pix_x - 1 ) {
+            change_in_x = this.number_of_pix_x - 1 - x;
+            x = this.number_of_pix_x - 1;
+        }
+        if( y > this.number_of_pix_y - 1 ) {
+            y = this.number_of_pix_y - 1;
+        }
+
+         */
+
+        // Update xSize and ySize accordig to x and y
 
         if(!this.isOpen)
             this.open();

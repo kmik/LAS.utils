@@ -1765,6 +1765,8 @@ public class lasRasterTools {
                 extentInPixelCoordinates[2] = (int) Math.floor((polygonExtent[2] - bbox[0]) / geotransform[1]);
                 extentInPixelCoordinates[1] = (int) Math.floor((bbox[3] - polygonExtent[3]) / geotransform[1]);
 
+                extentInPixelCoordinates = ras.correct_requested_extent(extentInPixelCoordinates);
+
                 int width = extentInPixelCoordinates[2] - extentInPixelCoordinates[0] + 1;
                 int height = extentInPixelCoordinates[3] - extentInPixelCoordinates[1] + 1;
                 int size = width * height;
