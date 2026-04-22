@@ -16,7 +16,7 @@ current_datetime=$(date +"%Y-%m-%d_%H-%M-%S.%N")
 
 # Get the directory from which the script was called
 callDir="$PWD"
-stdbuf -oL java -Xmx32g -XX:ParallelGCThreads=8 -XX:ConcGCThreads=8 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" las2solar "$@" 2>&1 | tee "$callDir/las2solar_$current_datetime.log"
+stdbuf -oL java -Xmx128g -XX:ParallelGCThreads=8 -XX:ConcGCThreads=8 -cp ".:$curDir/lib/*:$curDir/target/:$GDAL_JAVA_PATH/*" las2solar "$@" 2>&1 | tee "$callDir/las2solar_$current_datetime.log"
 
 # Capture the exit status of the Java command
 exit_status=${PIPESTATUS[0]}
