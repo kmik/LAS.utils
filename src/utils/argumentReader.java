@@ -403,6 +403,8 @@ public class argumentReader {
 
     boolean estimationSpecialThinning = false;
 
+    public int year = 2020;
+
     /**
      * A sort of a "thread-safe" gc. Avoid calling GC multiple
      * times from different threads too many times (here, all
@@ -662,6 +664,13 @@ public class argumentReader {
                 .longOpt("clamp_z")
                 .hasArg(true)
                 .desc("Clamp z values below threshold")
+                .required(false)
+                .build());
+
+        options.addOption( Option.builder()
+                .longOpt("year")
+                .hasArg(true)
+                .desc("Year to use")
                 .required(false)
                 .build());
 
@@ -2672,6 +2681,10 @@ public class argumentReader {
 
             if(cmd.hasOption("convo")){
                 this.convo = true;
+            }
+
+            if(cmd.hasOption("year")){
+                this.year = Integer.parseInt(cmd.getOptionValue("year"));
             }
 
             if (cmd.hasOption("iparse")) {

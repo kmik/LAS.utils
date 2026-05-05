@@ -36,7 +36,10 @@ import quickhull3d.Vector3d;
 import utils.*;
 
 import java.awt.geom.Point2D;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ForkJoinPool;
@@ -65,15 +68,49 @@ public class las2solar_photogrammetry {
     short[][][] chm_values_mean_x;
     short[][][] chm_values_mean_y;
     short[][][] chm_values_mean_z;
+    /*
+    final int[] months_to_use = new int[]{
+            Calendar.JANUARY,
+            Calendar.FEBRUARY,
+            Calendar.MARCH,
+            Calendar.APRIL,
+            Calendar.MAY,
+            Calendar.JUNE,
+            Calendar.JULY,
+            Calendar.AUGUST,
+            Calendar.SEPTEMBER,
+            Calendar.OCTOBER,
+            Calendar.NOVEMBER,
+            Calendar.DECEMBER
+    };
+*/
+    final int[] months_to_use = new int[]{
 
+            Calendar.JUNE,
+            Calendar.JULY,
+            Calendar.AUGUST,
+
+    };
+
+    int year = 2020;
     float rasterMaxValue = 0.0f;
 
     public las2solar_photogrammetry(String chm_name, argumentReader aR, LASReader pointCloud, boolean d3) throws Exception{
 
+        this.year = aR.year;
 
         aR.add_extra_bytes(6, "normal", "Surface normal");
         aR.add_extra_bytes(6, "flatness", "Surface flatness");
         aR.add_extra_bytes(6, "insolation", "Solar insolation");
+
+        // Declare an output txt file that saves all insolation values for each point at all timesteps
+        File outFileTxt = aR.createOutputFileWithExtension(pointCloud.getFile(), ".txt");
+
+        // Declare the write buffer
+
+        BufferedWriter outWriter = new BufferedWriter(new FileWriter(outFileTxt), 1 << 16); // 64KB buffer
+
+
 
 
         boolean amapVox_mode = false;
@@ -162,6 +199,32 @@ public class las2solar_photogrammetry {
 
         VoxelNeighborhood[][][] vox_ = new VoxelNeighborhood[this_x_size][this_y_size][this_z_size];
 
+        // Write the header to the output txt file (first column is named "date_and_time" and the following are real world coordinates of voxels
+
+        //outWriter.write("voxel_coordinates\t");
+
+        if(false)
+            for (int j = 0; j < this_y_size; j++) {          // y loop first
+                for (int i = 0; i < this_y_size; i++) {      // x loop second
+                    for (int k = 0; k < raster_z_size; k++) {
+                        double real_x = this_min_x + i * aR.step;
+                        double real_y = this_max_y - j * aR.step;
+                        double real_z = this_min_z + k * aR.step;
+
+                        outWriter.write(String.format(
+                                Locale.US,
+                                "voxel_%d_%d_%d_(%.2f_%.2f_%.2f)",
+                                i, j, k, real_x, real_y, real_z
+                        ) + "\t");
+                    }
+                }
+            }
+
+        outWriter.newLine();
+
+        //outWriter.flush();
+        //outWriter.close();
+
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
 
             int maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
@@ -234,6 +297,7 @@ public class las2solar_photogrammetry {
                 }
 
                 if(chm_values_f_3d[y][x][z] < 127) {
+
                     chm_values_f_3d[y][x][z]++;
                     //dailyAverageInsolation = dailyAverageInsolation + ((dailyAverageInsolation_ / 24.0) - dailyAverageInsolation)/(double)++n;
                     /*New average = old average * (n-1)/n + new value /n */
@@ -246,7 +310,6 @@ public class las2solar_photogrammetry {
 
 
                 }
-
             }
         }
 
@@ -372,6 +435,8 @@ public class las2solar_photogrammetry {
 
         int[] calendar_month = new int[]{Calendar.JUNE, Calendar.JULY, Calendar.AUGUST};
 
+        calendar_month = months_to_use;
+
         int[] n_date_in_month = new int[]{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 , 31};
 
 
@@ -413,8 +478,6 @@ public class las2solar_photogrammetry {
 
         }
 
-
-
         int n_funk_per_thread = (int)Math.ceil((double)y_size / (double)aR.cores);
 
         sunriseAndSunset.clear();
@@ -440,14 +503,14 @@ public class las2solar_photogrammetry {
                 //System.out.println(Arrays.toString(point_transformed));
 
                 //System.exit(1);
-                for(int month : calendar_month) {
+                for(int month : months_to_use) {
                     for (int day = 1; day <= n_date_in_month[month]; day += 1) {
 
                         for (int hour = 0; hour <= 23; hour += 1) {
 
                             for(int minute = 0; minute < minutes.length; minute++) {
 
-                                time_.set(2020, month, day, hour, minutes[minute], 00);
+                                time_.set(year, month, day, hour, minutes[minute], 00);
 
                                 AzimuthZenithAngle result = SPA.calculateSolarPosition(time_, point_transformed[1], point_transformed[0], 0, DeltaT.estimate(time));
 
@@ -475,13 +538,20 @@ public class las2solar_photogrammetry {
         int cores = 4;
         Thread[] threads = new Thread[cores];
 
+        threadSafeWriteToFile threadWriter = new threadSafeWriteToFile(outWriter, x_size * y_size * raster_z_size + 1);
+/*
+        double real_x = this_min_x + i * aR.step;
+        double real_y = this_max_y - j * aR.step;
+        double real_z = this_min_z + k * aR.step;
+*/
         for (int i = 0; i < cores; i++) {
 
             int mini = i * n_funk_per_thread;
             int maxi = Math.min(y_size, mini + n_funk_per_thread);
 
             threads[i] = (new solarParallel_3d(mini, maxi, x_size,y_size, raster_z_size, rM, sunriseAndSunset, gt, ct, aR, chm_values_f, chm_output_f, precomputed, steppi, rasterMaxValue, provideRow, chm_values_f_3d,
-                    pointCloud, chm_values_mean_x, chm_values_mean_y, chm_values_mean_z));
+                    pointCloud, chm_values_mean_x, chm_values_mean_y, chm_values_mean_z, threadWriter,
+                    this_min_x, this_max_y, this_min_z, months_to_use, year));
             threads[i].start();
 
             //ForkJoinPool customThreadPool = new ForkJoinPool(5);
@@ -507,6 +577,8 @@ public class las2solar_photogrammetry {
                 e.printStackTrace();
             }
         }
+
+        threadWriter.close();
 
         //System.out.println("LOOP 2 COMPLETE!");
 
@@ -652,14 +724,25 @@ public class las2solar_photogrammetry {
 
         aR.pfac.closeThread(thread_n);
 
-        System.out.println("processing took: " + (System.currentTimeMillis()-start) + " ms with " + aR.cores + " threads");
+        long elapsed = System.currentTimeMillis() - start;
 
+        long seconds = elapsed / 1000;
+        long hours = seconds / 3600;
+        long minutes_ = (seconds % 3600) / 60;
+        long secs = seconds % 60;
+
+        System.out.printf(
+                "processing took: %02d:%02d:%02d with %d threads%n",
+                hours, minutes_, secs, aR.cores
+        );
         //dataset.FlushCache();
         chm.FlushCache();
 
     }
 
     public las2solar_photogrammetry(String chm_name, argumentReader aR, LASReader pointCloud, boolean d3, boolean this_is_binary) throws Exception{
+
+        this.year = aR.year;
 
         this.pointCloud = pointCloud;
         System.out.println(this.pointCloud.getMaxZ());
@@ -795,7 +878,7 @@ public class las2solar_photogrammetry {
 
 
         int[] calendar_month = new int[]{Calendar.JUNE, Calendar.JULY, Calendar.AUGUST};
-
+        calendar_month = months_to_use;
         int[] n_date_in_month = new int[]{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 , 31};
 
 
@@ -831,7 +914,7 @@ public class las2solar_photogrammetry {
         //ForkJoinPool myPool = new ForkJoinPool(aR.cores);
         GregorianCalendar time__ = new GregorianCalendar(TimeZone.getTimeZone("GMT+2"));
 
-        time__.set(2020, 6, 14, 0, 0, 00);
+        time__.set(year, 6, 14, 0, 0, 00);
 
         System.out.println("Hour: "+time__.get(Calendar.HOUR_OF_DAY));
         System.out.println("Date: "+time__.get(Calendar.DATE));
@@ -850,7 +933,7 @@ public class las2solar_photogrammetry {
             //for(int x = 0; x < x_res; x++){
             GregorianCalendar time_ = new GregorianCalendar(TimeZone.getTimeZone("GMT+2"));
 
-            time_.set(2020, 6, 20, 0, 0, 00);
+            time_.set(year, 6, 20, 0, 0, 00);
 
             time_.add(Calendar.SECOND, 10000);
 
@@ -870,14 +953,14 @@ public class las2solar_photogrammetry {
                 //System.out.println(Arrays.toString(point_transformed));
 
                 //System.exit(1);
-                for(int month : calendar_month) {
+                for(int month : months_to_use) {
                     for (int day = 1; day <= n_date_in_month[month]; day += 1) {
 
                         for (int hour = 0; hour <= 23; hour += 1) {
 
                             for(int minute = 0; minute < minutes.length; minute++) {
 
-                                time_.set(2020, month, day, hour, minutes[minute], 00);
+                                time_.set(year, month, day, hour, minutes[minute], 00);
 
                                 AzimuthZenithAngle result = SPA.calculateSolarPosition(time_, point_transformed[1], point_transformed[0], 0, DeltaT.estimate(time_));
 
@@ -905,7 +988,9 @@ public class las2solar_photogrammetry {
             int maxi = Math.min(y_size, mini + n_funk_per_thread);
 
             threads[i] = (new solarParallel_3d(mini, maxi, x_size,y_size, raster_z_size, rM, sunriseAndSunset, gt, ct, aR, chm_values_f, chm_output_f, precomputed, steppi, rasterMaxValue, provideRow, chm_values_f_3d,
-                    pointCloud, chm_values_mean_x, chm_values_mean_y, chm_values_mean_z));
+                    pointCloud, chm_values_mean_x, chm_values_mean_y, chm_values_mean_z, null,
+                    0,0,0,
+                    months_to_use, year));
             threads[i].start();
 
             //ForkJoinPool customThreadPool = new ForkJoinPool(5);
@@ -1003,8 +1088,17 @@ public class las2solar_photogrammetry {
         }
         aR.pfac.closeThread(thread_n);
 
-        System.out.println("processing took: " + (System.currentTimeMillis()-start) + " ms with " + aR.cores + " threads");
+        long elapsed = System.currentTimeMillis() - start;
 
+        long hours = elapsed / 3_600_000;
+        long minutes_ = (elapsed % 3_600_000) / 60_000;
+        long seconds = (elapsed % 60_000) / 1_000;
+        long ms = elapsed % 1_000;
+
+        System.out.printf(
+                "processing took: %02d:%02d:%02d.%03d with %d threads%n",
+                hours, minutes_, seconds, ms, aR.cores
+        );
         //dataset.FlushCache();
         chm.FlushCache();
 
@@ -1128,6 +1222,7 @@ public class las2solar_photogrammetry {
 
 
         int[] calendar_month = new int[]{Calendar.JUNE, Calendar.JULY, Calendar.AUGUST};
+        calendar_month = months_to_use;
 
         int[] n_date_in_month = new int[]{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 , 31};
 
@@ -1148,7 +1243,7 @@ public class las2solar_photogrammetry {
         for(int month : calendar_month){
             for(int day = 1; day <= n_date_in_month[month]; day++) {
 
-                time.set(2020, month, day, 12, 00, 00); // 17 October 2003, 12:30:30 LST-07:00
+                time.set(year, month, day, 12, 00, 00); // 17 October 2003, 12:30:30 LST-07:00
 
                 Calendar[] sunriseSunset = ca.rmen.sunrisesunset.SunriseSunset.getSunriseSunset(time, point_transformed[1], point_transformed[0]);
                 sunriseAndSunset.add(new int[]{sunriseSunset[0].getTime().getHours(), sunriseSunset[1].getTime().getHours()});
@@ -1188,7 +1283,7 @@ public class las2solar_photogrammetry {
                         // int sunrise = sunriseAndSunset.get(sunriseSunsetcounter)[0];
                         // int sunset = sunriseAndSunset.get(sunriseSunsetcounter++)[1];
 
-                        time.set(2020, month, day, 12, 00, 00);
+                        time.set(year, month, day, 12, 00, 00);
 
                         //Calendar[] sunriseSunset = ca.rmen.sunrisesunset.SunriseSunset.getSunriseSunset(time, point_transformed[1], point_transformed[0]);
 
@@ -1213,13 +1308,13 @@ public class las2solar_photogrammetry {
 
                             for(int minute = 0; minute < minutes.length; minute++) {
 
-                                time.set(2020, month, day, hour, minutes[minute], 00);
+                                time.set(year, month, day, hour, minutes[minute], 00);
 
                                 AzimuthZenithAngle result = SPA.calculateSolarPosition(time, point_transformed[1], point_transformed[0], 127, DeltaT.estimate(time));
 
                                 //System.out.println("127: " + result.getZenithAngle() + " " + result.getAzimuth());
 
-                                //result = SPA.calculateSolarPosition(time, point_transformed[1], point_transformed[0], 0, DeltaT.estimate(time));
+                                //result = SPA.calculateSolarPosition20200601T0200 (time, point_transformed[1], point_transformed[0], 0, DeltaT.estimate(time));
 
                                 //System.out.println("0: " + result.getZenithAngle() + " " + result.getAzimuth());
 
@@ -1250,7 +1345,8 @@ public class las2solar_photogrammetry {
             int mini = i * n_funk_per_thread;
             int maxi = Math.min(y_size, mini + n_funk_per_thread);
 
-            threads[i] = (new solarParallel(mini, maxi, x_size,y_size, rM, sunriseAndSunset, gt, ct, aR, chm_values_f, chm_output_f, precomputed, steppi, rasterMaxValue, provideRow));
+            threads[i] = (new solarParallel(mini, maxi, x_size,y_size, rM, sunriseAndSunset, gt, ct, aR,
+                    chm_values_f, chm_output_f, precomputed, steppi, rasterMaxValue, provideRow, months_to_use));
             threads[i].start();
 
         }
@@ -1264,8 +1360,17 @@ public class las2solar_photogrammetry {
             }
         }
 
-        System.out.println("processing took: " + (System.currentTimeMillis()-start) + " ms with " + aR.cores + " threads");
+        long elapsed = System.currentTimeMillis() - start;
 
+        long hours = elapsed / 3_600_000;
+        long minutes_ = (elapsed % 3_600_000) / 60_000;
+        long seconds = (elapsed % 60_000) / 1_000;
+        long ms = elapsed % 1_000;
+
+        System.out.printf(
+                "processing took: %02d:%02d:%02d.%03d with %d threads%n",
+                hours, minutes_, seconds, ms, aR.cores
+        );
         if(false)
             for(int y = 0; y < y_size; y++){
 
@@ -1298,7 +1403,7 @@ public class las2solar_photogrammetry {
 
                             for(int hour = sunrise; hour <= sunset; hour += 1){
 
-                                time.set(2020, month, day, hour, 00, 00);
+                                time.set(year, month, day, hour, 00, 00);
 
                                 AzimuthZenithAngle result = calculateSolarPosition(time, point_transformed[1], point_transformed[0]);
 
@@ -1537,11 +1642,13 @@ class solarParallel extends Thread {
 
     float rasterMaxValue;
 
+    int[] months_to_use;
     BlockingQueue<Pair<Integer, float[]>> providerRow;
 
     public solarParallel(int min, int max, int x_size, int y_size, rasterManipulator rM, ArrayList<int[]> sunriseAndSunset,
                          double[] gt, CoordinateTransformation ct, argumentReader aR, float[][] chm, float[][] chm_output,
-                         float[][][][][][][] precomputed, int precomputed_resolution, float rasterMaxValue, BlockingQueue<Pair<Integer, float[]>> providerRow) {
+                         float[][][][][][][] precomputed, int precomputed_resolution, float rasterMaxValue, BlockingQueue<Pair<Integer, float[]>> providerRow,
+                         int[] months_to_use) {
 
         this.providerRow = providerRow;
         this.rasterMaxValue = rasterMaxValue;
@@ -1561,6 +1668,8 @@ class solarParallel extends Thread {
         this.ct = ct;
 
         this.aR = aR;
+        this.months_to_use = months_to_use;
+
     }
 
     @Override
@@ -1570,8 +1679,8 @@ class solarParallel extends Thread {
         double[] point = new double[3];
         double[] point_transformed = new double[3];
 
-        int[] calendar_month = new int[]{Calendar.JUNE, Calendar.JULY, Calendar.AUGUST};
 
+        int[] calendar_month = months_to_use;
         int[] n_date_in_month = new int[]{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 , 31};
         int[] minutes = new int[]{0, 20, 40};
         int solarradiation = 1366;
@@ -2110,18 +2219,35 @@ class solarParallel_3d extends Thread {
 
     BlockingQueue<Pair<Integer, byte[][]>> providerRow;
 
+    threadSafeWriteToFile writer;
+
+    int[] months_to_use;
+    double minx, maxy, minz;
+
+    int year = 2020;
+
     public solarParallel_3d(int min, int max, int x_size, int y_size, int z_size, solar3dManipulator rM, ArrayList<int[]> sunriseAndSunset,
                             double[] gt, CoordinateTransformation ct, argumentReader aR, float[][] chm, float[][] chm_output,
                             float[][][][][][][] precomputed, int precomputed_resolution, float rasterMaxValue, BlockingQueue<Pair<Integer, byte[][]>> providerRow,
                             byte[][][] struct_3d, LASReader pointCloud,
                             short[][][] chm_values_mean_x,
                             short[][][] chm_values_mean_y,
-                            short[][][] chm_values_mean_z) {
+                            short[][][] chm_values_mean_z,
+                            threadSafeWriteToFile writer,
+                            double minx,
+                            double maxy,
+                            double minz,
+                            int[] months_to_use,
+                            int year
+                            ) {
 
         this.chm_values_mean_x = chm_values_mean_x;
         this.chm_values_mean_y = chm_values_mean_y;
         this.chm_values_mean_z = chm_values_mean_z;
 
+        this.minx = minx;
+        this.maxy = maxy;
+        this.minz = minz;
 
         this.pointCloud = pointCloud;
         this.z_size = z_size;
@@ -2129,6 +2255,7 @@ class solarParallel_3d extends Thread {
         this.p_cloud_max_y = pointCloud.getMaxY();
         this.p_cloud_min_z = pointCloud.getMinZ();
         this.p_cloud_min_x = pointCloud.getMinX();
+
 
 
         this.chm_3d = struct_3d;
@@ -2148,8 +2275,12 @@ class solarParallel_3d extends Thread {
         this.sunriseAndSunset = sunriseAndSunset;
         this.gt = gt;
         this.ct = ct;
-
+        this.year = year;
         this.aR = aR;
+
+        this.writer = writer;
+        this.months_to_use = months_to_use;
+
     }
 
     @Override
@@ -2159,14 +2290,14 @@ class solarParallel_3d extends Thread {
         double[] point = new double[3];
         double[] point_transformed = new double[3];
 
-        int[] calendar_month = new int[]{Calendar.JUNE, Calendar.JULY, Calendar.AUGUST};
-
+        //int[] calendar_month = new int[]{Calendar.JUNE, Calendar.JULY, Calendar.AUGUST};
         int[] n_date_in_month = new int[]{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 , 31};
         int[] minutes = new int[]{0};
         int solarradiation = 1366;
 
         boolean debug = false;
 
+        double[] tmpOutputLine = new double[x_size * z_size + 1];
         //ForkJoinPool customThreadPool = new ForkJoinPool(8);
         //float chm_value = 0f;
         //for (int y = min; y < this.max; y++) {
@@ -2185,8 +2316,14 @@ class solarParallel_3d extends Thread {
                 //myPool.submit(() ->
 
 
+            int[] id_ = new int[1];
+
                 IntStream.range(0, x_size).parallel().forEach(x -> {
+
                 int blocked_n = 0;
+
+
+
                 for (int z = 0; z < z_size; z++) {
 
                     int precomputed_x = (int) Math.floor((double) x / (double) precomputed_resolution);
@@ -2196,8 +2333,10 @@ class solarParallel_3d extends Thread {
                     byte value = row.getValue()[x][z];
                     float chm_value = chm[row.getKey()][x];
 
-                    if (value <= 0)
+                    if (value <= 0) {
+                        //tmpOutputLine[x * z_size + z] = 0;
                         continue;
+                    }
 
                     double stupid_irradiance_sum = 0.0;
                     int sunriseSunsetcounter = 0;
@@ -2213,7 +2352,19 @@ class solarParallel_3d extends Thread {
                     boolean day_switch = false;
                     int n_ = 0;
 
-                    for (int month : calendar_month) {
+                    double real_x = minx + x * aR.step;
+                    double real_y = maxy - row.getKey() * aR.step;
+                    double real_z = minz + z * aR.step;
+
+                    real_x = Math.round(real_x * 100.0) / 100.0;
+                    real_y = Math.round(real_y * 100.0) / 100.0;
+                    real_z = Math.round(real_z * 100.0) / 100.0;
+
+                    double[] outputCoordinates = new double[]{real_x, real_y, real_z};
+                    ArrayList<Double> outputValues = new ArrayList<>();
+                    ArrayList<String> outputDates = new ArrayList<>();
+
+                    for (int month : months_to_use) {
 
                         for (int day = 1; day <= n_date_in_month[month]; day += 5) {
 
@@ -2230,10 +2381,27 @@ class solarParallel_3d extends Thread {
 
                                 for (int minute = 0; minute < minutes.length; minute += 1) {
 
+                                    String dateTime = String.format(
+                                            Locale.US,
+                                            "%04d%02d%02dT%02d%02d",
+                                            year,
+                                            month + 1,
+                                            day,
+                                            hour,
+                                            minutes[minute]
+                                    );
+
+                                    outputDates.add(dateTime);
+
+                                    int id = (month << 20) | (day << 14) | (hour << 9) | minute;
+
                                     float[] precomp = precomputed[precomputed_x][precomputed_y][month][day][hour][minute];
 
-                                    if ((precomp[0] > 90.0f)) // || precomp[1] > 270.0f || precomp[1] < 90.0f)
+                                    if ((precomp[0] > 90.0f)) { // || precomp[1] > 270.0f || precomp[1] < 90.0f)
+                                        double value__ = 0.00;
+                                        outputValues.add(value__);
                                         continue;
+                                    }
 
                                     double insolation = (double) solarradiation * cos((precomp[0]));
 
@@ -2261,6 +2429,13 @@ class solarParallel_3d extends Thread {
 
                                     }
 
+                                    tmpOutputLine[x * z_size + z] = dampening;
+
+                                    double dampening2 = Math.max(0, dampening);
+
+                                    double value__ = insolation * dampening2;
+                                    value__ = Math.round(value__ * 100.0) / 100.0;
+                                    outputValues.add(value__);
 
                                     //System.out.println("insolation: " + slope + " " + (90.0f - precomp[0])) ;
                                     //if (debug)
@@ -2314,6 +2489,13 @@ class solarParallel_3d extends Thread {
                             dailyAverageInsolation = dailyAverageInsolation + ((dailyAverageInsolation_ / 24.0) - dailyAverageInsolation) / (double) ++n;
                         }
                     }
+
+                    try {
+                        writer.writeLineSpecial(outputValues, outputDates, outputCoordinates);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    
                     //chm_output[x][y] = (float)dailyAverageInsolation;
 
                     averageInsol[x] = (float) dailyAverageInsolation;
@@ -2325,6 +2507,8 @@ class solarParallel_3d extends Thread {
                     //}
                     rM.setValue(x, row.getKey(), z, (float) dailyAverageInsolation);
                 }
+
+
             });//);
 
             //System.out.println(row.getKey());
@@ -3506,14 +3690,19 @@ class solarParallel_3d extends Thread {
                 if(n_points_in_voxel > 1)
                     penetration++;
 
-                if(n_points_in_voxel > (1) && penetration >= minPenetration){
+                if(n_points_in_voxel > (1) && penetration >= minPenetration){ // PERHAPS only > minPenetration to ignore neighboring voxels?
 
                     double length = getLengthInCurrentVoxel(t_max_x, t_max_y, t_max_z, t_d_x, t_d_y, t_d_z, t_current, current_x, current_y, current_z, step_x,
                             step_y, step_z, delta_t_last);
 
                     if(length > length_threshold) {
 
+                        //System.out.println("length: " + length + " "  + " resolution: " + resolution + " div: " + (length / resolution) + " mul: " + (length * resolution) );
+                        //System.exit(1);
+
                         length *= resolution;
+
+
 
                         x_offset = (float) chm_values_mean_x[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;
                         y_offset = (float) chm_values_mean_y[(int) current_y][(int) current_x][(int) current_z] / 1000.0f;

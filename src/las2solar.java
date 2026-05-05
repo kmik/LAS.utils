@@ -49,6 +49,10 @@ public class las2solar {
                     e.printStackTrace();
                 }
 
+                System.gc();
+                System.gc();
+                System.gc();
+                System.gc();
             }
 
 
