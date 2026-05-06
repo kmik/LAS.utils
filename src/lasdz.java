@@ -1,8 +1,15 @@
 import LASio.LASReader;
+import javafx.animation.ScaleTransition;
+import org.gdal.gdal.Dataset;
+import org.gdal.gdal.gdal;
+import org.gdal.gdalconst.gdalconst;
+import org.gdal.ogr.ogr;
 import tools.GroundDetector;
 import tools.process_las2las;
 import utils.argumentReader;
 import utils.fileDistributor;
+import utils.gdalRaster;
+import utils.rasterCollection;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,9 +22,34 @@ public class lasdz {
 
     public static void main(String[] args) throws IOException {
 
+        ogr.RegisterAll();
+
         argumentReader aR = new argumentReader(args);
         ArrayList<File> inputFiles = prepareData(aR, "lasheight");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
+
+
+        // THIS MEANS WE ARE NORMALIZING BASED ON EXTERNAL RASTER!
+        if(aR.ref.size() > 0){
+
+            rasterCollection rasters = new rasterCollection(1);
+            Dataset raster = gdal.Open(aR.ref.get(0).getAbsolutePath(), gdalconst.GA_ReadOnly);
+            rasters.addRaster(new gdalRaster(raster.GetDescription(), 1));
+
+            for (int i = 0; i < inputFiles.size(); i++) {
+
+                LASReader temp = new LASReader(aR.inputFiles.get(i));
+                GroundDetector det = new GroundDetector(temp, false, aR.output, aR.odir, aR.getInclusionRule(), aR.angle, aR.numarg1, aR.axgrid, aR, 1);
+
+                try {
+                    det.normalizeZ_raster(aR.output, aR.getInclusionRule(), aR.otype, rasters);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+
+            System.exit(0);
+        }
 
         if(aR.cores > 1){
             threadTool(aR, fD);

@@ -34,6 +34,8 @@ public class argumentReader {
     public double pp_x_offset = 0.0;
     public double pp_y_offset = 0.0;
 
+    public boolean inverse = false;
+
     public boolean writeIdToRaster = false;
     public int minimumVersion = -1;
     public boolean voxel_intensity = false;
@@ -1209,6 +1211,13 @@ public class argumentReader {
 
         options.addOption(Option.builder()
                 .longOpt("use_p_source")
+                .hasArg(false)
+                .desc("special use case")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("inverse")
                 .hasArg(false)
                 .desc("special use case")
                 .required(false)
@@ -2807,6 +2816,10 @@ public class argumentReader {
 
                 this.output_only_itc_segments = true;
 
+            }
+
+            if (cmd.hasOption("inverse")){
+                this.inverse = true;
             }
 
             if (cmd.hasOption("input_in_radians")) {

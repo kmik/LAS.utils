@@ -2084,6 +2084,9 @@ public class GroundDetector{
         return point.returnNumber == point.numberOfReturns;
     }
 
+
+
+
     /**
      * This ain't done yet!!
      *
@@ -2275,6 +2278,7 @@ public class GroundDetector{
             }
         }
     }
+
 
     public void expandTin(){
 
@@ -2819,6 +2823,72 @@ public class GroundDetector{
         aR.p_update.updateProgressNormalize();
 
     }
+
+
+
+    public void normalizeZ_raster(String outputFile2, PointInclusionRule rule, String otype, rasterCollection rasters) throws Exception{
+
+        LasPoint tempPoint = new LasPoint();
+        int maxi;
+        double distance = 0.0;
+
+        pointWriterMultiThread pw = new pointWriterMultiThread(this.outWriteFile, pointCloud, "las2las", aR);
+
+        LasPointBufferCreator buf = new LasPointBufferCreator(1, pw);
+
+        List<IQuadEdge> perimeter = tin.getPerimeter();
+
+        for(long i = 0; i < pointCloud.getNumberOfPointRecords(); i += 10000) {
+
+            maxi = (int) Math.min(10000, pointCloud.getNumberOfPointRecords() - i);
+
+            try {
+                pointCloud.readRecord_noRAF(i, tempPoint, 10000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            for (int j = 0; j < maxi; j++) {
+
+                pointCloud.readFromBuffer(tempPoint);
+
+                    /* Reading, so ask if this point is ok, or if
+                it should be modified.
+                 */
+                if(!rule.ask(tempPoint, i+j, true)){
+                    continue;
+                }
+
+                this.progress_current++;
+                aR.p_update.threadProgress[coreNumber-1] = this.progress_current;
+                double[] pixCoordinates = rasters.getRaster(0).realWorldCoordinateToPixelCoordinate(tempPoint.x, tempPoint.y);
+
+                float readValue = rasters.getRaster(0).readValueIDW(pixCoordinates[0], pixCoordinates[1]);
+                //float readValue2 = rasters.getRaster(0).readValue((int)pixCoordinates[0], (int)pixCoordinates[1]);
+
+                //System.out.println(readValue + " " + readValue2);
+
+                 distance = (tempPoint.z - readValue);
+
+
+                 if(!Float.isNaN(readValue)){
+                     //if(distance < -100)
+                         //System.out.println(tempPoint.x + " " + tempPoint.y + " " + tempPoint.z + " " + readValue + " " + distance);
+
+                     if(aR.inverse){
+                         distance = readValue + tempPoint.z;
+                     }else{
+                         distance = tempPoint.z - readValue;
+                     }
+                     tempPoint.z = distance;
+                     buf.writePoint(tempPoint, aR.inclusionRule, i);
+                 }
+            }
+        }
+        buf.close();
+        buf.pwrite.close(aR);
+    }
+
 
     /**
      * Subtracts the TIN elevation from points in

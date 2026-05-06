@@ -11,9 +11,7 @@ import org.gdal.gdalconst.gdalconstConstants;
 
 import java.io.File;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Vector;
+import java.util.*;
 
 public class gdalRaster {
 
@@ -230,6 +228,9 @@ public class gdalRaster {
         }
         else
             this.nanValue[0] = nanValueDouble[0].floatValue();
+
+
+
 
         // Add a raster band
         if (this.raster == null) {
@@ -585,6 +586,9 @@ public class gdalRaster {
 
         if(dontcareformemory){
             //System.out.println("here");
+            if(rasterArray[x][y] == this.nanValue[0])
+                return Float.NaN;
+
             return rasterArray[x][y];
         }
         else {
@@ -597,6 +601,95 @@ public class gdalRaster {
             return value[0];
         }
 
+    }
+
+    public synchronized float readValueIDW(double x, double y){
+
+        ArrayList<int[]> closestCells =
+                this.getClosestCells(x, y, this.number_of_pix_x, this.number_of_pix_y, 5);
+
+        double totalWeight = 0.0;
+        double weightedValueSum = 0.0;
+
+        for(int[] cell : closestCells){
+
+            double value = dontcareformemory
+                    ? rasterArray[cell[0]][cell[1]]
+                    : this.readValue(cell[0], cell[1]);
+
+            // Skip NaN values
+            if ((float)value == this.nanValue[0]) {
+                continue;
+            }
+
+            double cellCenterX = cell[0] + 0.5;
+            double cellCenterY = cell[1] + 0.5;
+
+            double dx = x - cellCenterX;
+            double dy = y - cellCenterY;
+            double distSq = dx * dx + dy * dy;
+
+            // Exact hit (only if value is valid)
+            if (distSq == 0) {
+                return (float)value;
+            }
+
+            double weight = 1.0 / distSq;
+
+            totalWeight += weight;
+            weightedValueSum += weight * value;
+        }
+
+        // If all neighbors were NaN → return NaN (more correct than 0)
+        return totalWeight > 0
+                ? (float)(weightedValueSum / totalWeight)
+                : Float.NaN;
+    }
+
+    public ArrayList<int[]> getClosestCells(double x, double y, int rows, int cols, int N) {
+        ArrayList<int[]> result = new ArrayList<>();
+
+        int startX = (int) Math.floor(x);
+        int startY = (int) Math.floor(y);
+
+        // Min-heap (closest first)
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> {
+            double da = (x - a[0]) * (x - a[0]) + (y - a[1]) * (y - a[1]);
+            double db = (x - b[0]) * (x - b[0]) + (y - b[1]) * (y - b[1]);
+            return Double.compare(da, db);
+        });
+
+        // Track visited cells
+        HashSet<Long> visited = new HashSet<>();
+
+        // Helper to encode (x,y) into a single long
+        java.util.function.BiFunction<Integer, Integer, Long> key =
+                (i, j) -> (((long) i) << 32) | (j & 0xffffffffL);
+
+        pq.offer(new int[]{startX, startY});
+        visited.add(key.apply(startX, startY));
+
+        int[][] directions = {{1,0},{-1,0},{0,1},{0,-1}};
+
+        while (!pq.isEmpty() && result.size() < N) {
+            int[] cell = pq.poll();
+            result.add(cell);
+
+            for (int[] d : directions) {
+                int nx = cell[0] + d[0];
+                int ny = cell[1] + d[1];
+
+                if (nx < 0 || ny < 0 || nx >= rows || ny >= cols) continue;
+
+                long k = key.apply(nx, ny);
+                if (visited.contains(k)) continue;
+
+                visited.add(k);
+                pq.offer(new int[]{nx, ny});
+            }
+        }
+
+        return result;
     }
 
     public synchronized int[] correct_requested_extent(int[] input){

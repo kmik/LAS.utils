@@ -3458,7 +3458,7 @@ class solarParallel_3d extends Thread {
         float[] lineEnd = new float[3];
 
 
-        int minPenetration = 1;
+        int minPenetration = 0;
 
         double distance_threshold_solid = 100000;
         double distance_threshold = 10000;
@@ -3690,7 +3690,7 @@ class solarParallel_3d extends Thread {
                 if(n_points_in_voxel > 1)
                     penetration++;
 
-                if(n_points_in_voxel > (1) && penetration >= minPenetration){ // PERHAPS only > minPenetration to ignore neighboring voxels?
+                if(n_points_in_voxel > (1) && penetration > minPenetration){ // PERHAPS only > minPenetration to ignore neighboring voxels?
 
                     double length = getLengthInCurrentVoxel(t_max_x, t_max_y, t_max_z, t_d_x, t_d_y, t_d_z, t_current, current_x, current_y, current_z, step_x,
                             step_y, step_z, delta_t_last);
@@ -3757,7 +3757,7 @@ class solarParallel_3d extends Thread {
                             //    return 0.0;
                             //}
 
-                            float neg = 1.0f - rM.vox_[current_x][current_y][current_z].flatness;
+                            //float neg = 1.0f - rM.vox_[current_x][current_y][current_z].flatness;
 
                             //dampening -= dampening_factor_per_voxel; // * neg;
                             dampening -= dampening_factor_per_meter * length; // * neg;
@@ -4083,7 +4083,7 @@ class solarParallel_3d extends Thread {
                 }
 
                 if(!debug)
-                    if(n_points_in_voxel > (1) && penetration >= minPenetration){
+                    if(n_points_in_voxel > (1) && penetration > minPenetration){
 
                         double length = getLengthInCurrentVoxel(t_max_x, t_max_y, t_max_z, t_d_x, t_d_y, t_d_z, t_current, current_x, current_y, current_z, step_x,
                                 step_y, step_z, delta_t_last);
@@ -4145,7 +4145,7 @@ class solarParallel_3d extends Thread {
                                 //    return 0.0;
                                 //}
 
-                                float neg = 1.0f - rM.vox_[current_x][current_y][current_z].flatness;
+                                //float neg = 1.0f - rM.vox_[current_x][current_y][current_z].flatness;
 
                                 //dampening -= dampening_factor_per_voxel; // * neg;
                                 dampening -= dampening_factor_per_meter * length; // * neg;
@@ -4318,7 +4318,7 @@ class solarParallel_3d extends Thread {
                 if(n_points_in_voxel > 1)
                     penetration++;
 
-                if(n_points_in_voxel > (1) && penetration >= minPenetration){
+                if(n_points_in_voxel > (1) && penetration > minPenetration){
 
                     double length = getLengthInCurrentVoxel(t_max_x, t_max_y, t_max_z, t_d_x, t_d_y, t_d_z, t_current, current_x, current_y, current_z, step_x,
                             step_y, step_z, delta_t_last);
@@ -4380,7 +4380,7 @@ class solarParallel_3d extends Thread {
                             //    return 0.0;
                             //}
 
-                            float neg = 1.0f - rM.vox_[current_x][current_y][current_z].flatness;
+                            //float neg = 1.0f - rM.vox_[current_x][current_y][current_z].flatness;
 
                             //dampening -= dampening_factor_per_voxel; // * neg;
                             dampening -= dampening_factor_per_meter * length; // * neg;
@@ -4539,7 +4539,7 @@ class solarParallel_3d extends Thread {
                 if(n_points_in_voxel > 1)
                     penetration++;
 
-                if(n_points_in_voxel > (1) && penetration >= minPenetration){
+                if(n_points_in_voxel > (1) && penetration > minPenetration){
 
                     double length = getLengthInCurrentVoxel(t_max_x, t_max_y, t_max_z, t_d_x, t_d_y, t_d_z, t_current, current_x, current_y, current_z, step_x,
                             step_y, step_z, delta_t_last);
@@ -4601,7 +4601,7 @@ class solarParallel_3d extends Thread {
                             //    return 0.0;
                             //}
 
-                            float neg = 1.0f - rM.vox_[current_x][current_y][current_z].flatness;
+                            //float neg = 1.0f - rM.vox_[current_x][current_y][current_z].flatness;
 
                             //dampening -= dampening_factor_per_voxel; // * neg;
                             dampening -= dampening_factor_per_meter * length; // * neg;
