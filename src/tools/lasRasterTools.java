@@ -927,10 +927,470 @@ public class lasRasterTools {
 
     }
 
+    public void rasterize3d(LASReader pointCloud, double resolution){
+
+        String outputFileNameMask = "notAssigned";
+        String outputFileNameColor = "notAssigned";
+        String outputFileNameIntensity = "notAssigned";
+
+
+        String year = "0000";
+
+        for(MyPair pair : this.metadata){
+            //System.out.println(pair.getKey() + " " + pair.getValue());
+
+            if(pair.getKey().equals("DATA_DATE")){
+
+                year = pair.getValue().toString().substring(0, 4);
+
+            }
+        }
+
+        String outputFileName = "";
+
+
+        KarttaLehtiJako karttaLehtiJako = new KarttaLehtiJako();
+
+        try {
+            karttaLehtiJako.readFromFile(new File(""));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        // point cloud geometric center
+        double x__ = (pointCloud.getMinX() + pointCloud.getMaxX()) / 2.0;
+        double y__ = (pointCloud.getMinY() + pointCloud.getMaxY()) / 2.0;
+
+        String mapSheetName_ = karttaLehtiJako.getMapSheetNameByCoordinates(x__, y__);
+
+        outputFileName = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster.tif").getAbsolutePath();
+
+        if(!year.equals("0000")){
+
+            outputFileName = fo.createNewFileWithoutNewExtension(pointCloud.getFile(), mapSheetName_ + "_" + year + "_IPC.tif").getAbsolutePath();
+
+            if(aR.outputMask){
+                //outputFileNameMask = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_mask.tif").getAbsolutePath();
+                outputFileNameMask = fo.createNewFileWithoutNewExtension(pointCloud.getFile(), mapSheetName_ + "_" + year + "_IPC_mask.tif").getAbsolutePath();
+            }
+
+            if(aR.rasterizeColor){
+                outputFileNameColor = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_color.tif").getAbsolutePath();
+            }
+            if(aR.rasterizeIntensity){
+                outputFileNameIntensity = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_intensity.tif").getAbsolutePath();
+            }
+
+        }else {
+
+            if (aR.outputMask) {
+                outputFileNameMask = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_mask.tif").getAbsolutePath();
+            }
+            if (aR.rasterizeColor) {
+                outputFileNameColor = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_color.tif").getAbsolutePath();
+            }
+            if (aR.rasterizeIntensity) {
+                outputFileNameIntensity = fo.createNewFileWithNewExtension(pointCloud.getFile(), "_raster_intensity.tif").getAbsolutePath();
+            }
+        }
+
+        double pointCloudMinX = pointCloud.getMinX() - aR.res/2.0;
+        double pointCloudMinY = pointCloud.getMinY() - aR.res/2.0;
+        double pointCloudMaxX = pointCloud.getMaxX() + aR.res/2.0;
+        double pointCloudMaxY = pointCloud.getMaxY() + aR.res/2.0;
+
+        double pointCloudMinZ = pointCloud.getMinZ() - aR.res/2.0;
+
+        double pointCloudMaxZ = pointCloud.getMaxZ() + aR.res/2.0;
+/*
+        double pointCloudMinX = pointCloud.getMinX();
+        double pointCloudMinY = pointCloud.getMinY();
+        double pointCloudMaxX = pointCloud.getMaxX();
+        double pointCloudMaxY = pointCloud.getMaxY();
+*/
+
+
+        int rasterWidth = (int) Math.ceil((pointCloudMaxX - pointCloudMinX) / resolution);
+        int rasterHeight = (int) Math.ceil((pointCloudMaxY - pointCloudMinY) / resolution);
+
+        int rasterDepth = (int) Math.ceil((pointCloudMaxZ - pointCloudMinZ) / resolution);
+
+
+        double[] geoTransform = new double[6];
+        geoTransform[0] = pointCloudMinX;
+        geoTransform[1] = resolution;
+        geoTransform[2] = 0;
+        geoTransform[3] = pointCloudMaxY;
+        geoTransform[4] = 0;
+        geoTransform[5] = -resolution;
+
+        LasPoint tempPoint = new LasPoint();
+
+        org.gdal.gdal.Driver driver = null;
+        driver = gdal.GetDriverByName("GTiff");
+        driver.Register();
+
+        Dataset cehoam;
+        String compressionOptions = "COMPRESS=LZW";
+
+        Dataset mask = null;
+        Dataset color = null;
+        Dataset intensity = null;
+        try {
+            cehoam = driver.Create(outputFileName, rasterWidth, rasterHeight, rasterDepth, gdalconst.GDT_Float32);
+            //cehoam.SetMetadataItem("COMPRESSION", compressionOptions);
+
+            if(aR.outputMask){
+                mask = driver.Create(outputFileNameMask, rasterWidth, rasterHeight, 1, gdalconst.GDT_Byte);
+                //mask.SetMetadataItem("COMPRESSION", compressionOptions);
+            }
+
+            if(aR.rasterizeColor){
+                color = driver.Create(outputFileNameColor, rasterWidth, rasterHeight, aR.nBands, gdalconst.GDT_Float32);
+                //color.SetMetadataItem("COMPRESSION", compressionOptions);
+            }
+
+            if(aR.rasterizeIntensity){
+                intensity = driver.Create(outputFileNameIntensity, rasterWidth, rasterHeight, 1, gdalconst.GDT_Float32);
+                //color.SetMetadataItem("COMPRESSION", compressionOptions);
+            }
+
+
+        }catch (Exception e){
+            System.out.println("Not enough points! Are you using remove_buffer and ALL points in this .las file are part of the buffer?");
+            return;
+        }
+        //cehoam.SetMetadataItem("test", "leaf-off");
+        Band band = cehoam.GetRasterBand(1);
+
+
+
+        Band maskBand = null;
+        Band intensityBand = null;
+        ArrayList<Band> colorBands = new ArrayList<Band>(aR.nBands);
+        ArrayList<Band> depthBands = new ArrayList<Band>(rasterDepth);
+
+        boolean [][][] written = new boolean[rasterWidth][rasterHeight][rasterDepth];
+
+
+        for(int i = 0; i < rasterDepth; i++){
+
+            depthBands.add(cehoam.GetRasterBand(i+1));
+            cehoam.GetRasterBand(i+1).SetNoDataValue(-9999.0f);
+        }
+
+
+        if(aR.outputMask){
+            maskBand = mask.GetRasterBand(1);
+
+        }
+
+        if(aR.rasterizeColor) {
+            for(int i = 0; i < aR.nBands; i++){
+                colorBands.add(color.GetRasterBand(i+1));
+            }
+        }
+
+        if(aR.rasterizeIntensity){
+            intensityBand = intensity.GetRasterBand(1);
+        }
+
+        //band.SetNoDataValue(-9999.0f);
+
+        SpatialReference sr = new SpatialReference();
+
+        sr.ImportFromEPSG(3067);
+
+        cehoam.SetProjection(sr.ExportToWkt());
+        cehoam.SetGeoTransform(geoTransform);
+
+        if(aR.outputMask){
+            mask.SetProjection(sr.ExportToWkt());
+            mask.SetGeoTransform(geoTransform);
+        }
+
+        if(aR.rasterizeColor){
+            color.SetProjection(sr.ExportToWkt());
+            color.SetGeoTransform(geoTransform);
+        }
+
+        if(aR.rasterizeIntensity){
+            intensity.SetProjection(sr.ExportToWkt());
+            intensity.SetGeoTransform(geoTransform);
+        }
+
+
+        float[][] chm_array = new float[rasterWidth][rasterHeight];
+        float[][][] chm_array_3d = new float[rasterWidth][rasterHeight][rasterDepth];
+
+        float[][] intensity_array = new float[rasterWidth][rasterHeight];
+
+        reset2dArray(chm_array, -99.0f);
+        reset3dArray(chm_array_3d, -9999.0f);
+
+        ArrayList<int[][]> color_array = new ArrayList<int[][]>(aR.nBands);
+        boolean[][] mask_array = new boolean[rasterWidth][rasterHeight];
+
+        double minx = pointCloud.getMinX();
+        double miny = pointCloud.getMinY();
+        double maxx = pointCloud.getMaxX();
+        double maxy = pointCloud.getMaxY();
+
+        long n = pointCloud.getNumberOfPointRecords();
+
+        int thread_n = aR.pfac.addReadThread(pointCloud);
+
+        byte[] colorValue = new byte[1];
+
+        if(aR.rasterizeColor){
+            for(int i = 0; i < aR.nBands; i++){
+                color_array.add(new int[rasterWidth][rasterHeight]);
+            }
+        }
+
+
+        for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
+
+            int maxi = (int) Math.min(20000, Math.abs(pointCloud.getNumberOfPointRecords() - i));
+
+            try {
+                aR.pfac.prepareBuffer(thread_n, i, maxi);
+            }catch (Exception e){
+                e.printStackTrace();
+                System.exit(1);
+            }
+
+            for (int j = 0; j < maxi; j++) {
+
+                pointCloud.readFromBuffer(tempPoint);
+
+                if(tempPoint.x < minx)
+                    minx = tempPoint.x;
+                if(tempPoint.y < miny)
+                    miny = tempPoint.y;
+                if(tempPoint.x > maxx)
+                    maxx = tempPoint.x;
+
+                int x = (int) Math.floor((tempPoint.x - geoTransform[0]) / geoTransform[1]);
+                int y = (int) Math.floor((tempPoint.y - geoTransform[3]) / geoTransform[5]);
+
+                int z = (int) Math.floor((tempPoint.z - pointCloudMinZ) / resolution);
+
+                if (x >= 0 && x < rasterWidth && y >= 0 && y < rasterHeight && z >= 0 && z < rasterDepth) {
+
+                    if((chm_array_3d[x][y][z]) == -9999.0f) {
+                        //System.out.println("HERE!!");
+                        chm_array_3d[x][y][z] = 1;
+                    }else {
+                        chm_array_3d[x][y][z] += 1;
+                    }
+
+                    if(tempPoint.synthetic){
+                        mask_array[x][y] = true;
+                    }
+
+                    if(aR.rasterizeColor){
+
+                        if(aR.nBands == 3){
+
+                            color_array.get(0)[x][y] = tempPoint.R;
+                            color_array.get(1)[x][y] = tempPoint.G;
+                            color_array.get(2)[x][y] = tempPoint.B;
+                            //color_array[x][y][0] = tempPoint.R;
+
+                            /*
+                            // write tempPoint.R to raster
+                            colorValue[0] = (byte)tempPoint.R;
+                            colorBands.get(0).WriteRaster(x, y, 1, 1, colorValue);
+
+                            // write tempPoint.G to raster
+                            colorValue[0] = (byte)tempPoint.G;
+                            colorBands.get(1).WriteRaster(x, y, 1, 1, colorValue);
+
+                            // write tempPoint.B to raster
+                            colorValue[0] = (byte)tempPoint.B;
+                            colorBands.get(2).WriteRaster(x, y, 1, 1, colorValue);
+*/
+
+
+                        }
+                        if(aR.nBands == 4){
+
+                            color_array.get(0)[x][y] = tempPoint.R;
+                            color_array.get(1)[x][y] = tempPoint.G;
+                            color_array.get(2)[x][y] = tempPoint.B;
+                            color_array.get(3)[x][y] = tempPoint.N;
+
+                            //System.out.println(tempPoint.R + " " + tempPoint.G + " " + tempPoint.B + " " + tempPoint.N);
+                            //System.out.println(color_array.get(0)[x][y] + " " + color_array.get(1)[x][y] + " " + color_array.get(2)[x][y] + " " + color_array.get(3)[x][y]);
+                            /*
+                            // write tempPoint.R to raster
+                            colorValue[0] = (byte)tempPoint.R;
+                            colorBands.get(0).WriteRaster(x, y, 1, 1, colorValue);
+
+                            // write tempPoint.G to raster
+                            colorValue[0] = (byte)tempPoint.G;
+                            colorBands.get(1).WriteRaster(x, y, 1, 1, colorValue);
+
+                            // write tempPoint.B to raster
+                            colorValue[0] = (byte)tempPoint.B;
+                            colorBands.get(2).WriteRaster(x, y, 1, 1, colorValue);
+
+                            // write tempPoint.N to raster
+                            colorValue[0] = (byte)tempPoint.N;
+                            colorBands.get(3).WriteRaster(x, y, 1, 1, colorValue);
+
+
+                             */
+                        }
+
+                    }
+
+                    if(aR.rasterizeIntensity){
+                        intensity_array[x][y] = (float)tempPoint.intensity;
+                    }
+                }
+
+            }
+        }
+        boolean interpolated[][] = null;
+
+        if(aR.rasterizeInterpolate)
+            interpolated = interpolate2dArrayMedian(chm_array, -99.0f, -100.0f);
+
+        for(int i = 0; i < depthBands.size(); i++){
+            float[][] slice = getSlice(chm_array_3d, i);
+
+            copyRasterContents(slice, depthBands.get(i));
+        }
+
+
+        if(aR.outputMask)
+            copyRasterContents(mask_array, maskBand);
+
+        if(aR.rasterizeColor) {
+
+            if(aR.nBands == 4)
+                colorBands.get(3).SetColorInterpretation(GCI_GrayIndex);
+            for (int i = 0; i < aR.nBands; i++) {
+                copyRasterContents(color_array.get(i), colorBands.get(i));
+                //colorBands.get(i).SetColorInterpretation(GCI_GrayIndex);
+            }
+        }
+
+        if(aR.rasterizeIntensity){
+            copyRasterContents(intensity_array, intensityBand);
+        }
+
+        //String[] options = new String[]{"COMPRESS=LZW"};
+
+        // Compression options
+        String[] options = new String[]{
+                "COMPRESS=DEFLATE",   // Use DEFLATE compression
+                "PREDICTOR=1",        // Use predictor=1
+                //"TILED=YES",          // Enable tiling
+                "BLOCKXSIZE=256",    // Tile width in pixels
+                "BLOCKYSIZE=256"     // Tile height in pixels
+        };
+
+        cehoam.FlushCache();
+        band.FlushCache();
+
+
+        Dataset outputDataset = gdal.GetDriverByName("GTiff").CreateCopy(outputFileName, cehoam, 0, options);
+
+        if(this.metadata.size() > 0){
+
+            for(int i = 0; i < this.metadata.size(); i++){
+
+                outputDataset.SetMetadataItem(this.metadata.get(i).getKey(), this.metadata.get(i).getValue());
+
+            }
+
+        }
+
+        if(aR.outputMask){
+
+            Dataset outputDatasetMask = gdal.GetDriverByName("GTiff").CreateCopy(outputFileNameMask, mask, 0, options);
+
+            if(this.metadata.size() > 0){
+
+                for(int i = 0; i < this.metadata.size(); i++){
+
+                    outputDatasetMask.SetMetadataItem(this.metadata.get(i).getKey(), this.metadata.get(i).getValue());
+
+                }
+
+            }
+
+            outputDatasetMask.FlushCache();
+        }
+
+        if(aR.rasterizeColor){
+
+
+            Dataset outputDatasetColor = gdal.GetDriverByName("GTiff").CreateCopy(outputFileNameColor, color, 0, options);
+
+            if(this.metadata.size() > 0){
+
+                for(int i = 0; i < this.metadata.size(); i++){
+
+                    outputDatasetColor.SetMetadataItem(this.metadata.get(i).getKey(), this.metadata.get(i).getValue());
+
+                }
+
+            }
+
+            outputDatasetColor.FlushCache();
+        }
+
+        if(aR.rasterizeIntensity){
+
+            Dataset outputDatasetIntensity = gdal.GetDriverByName("GTiff").CreateCopy(outputFileNameIntensity, intensity, 0, options);
+
+            if(this.metadata.size() > 0){
+
+                for(int i = 0; i < this.metadata.size(); i++){
+
+                    outputDatasetIntensity.SetMetadataItem(this.metadata.get(i).getKey(), this.metadata.get(i).getValue());
+
+                }
+
+            }
+
+            outputDatasetIntensity.FlushCache();
+        }
+
+
+        outputDataset.FlushCache();
+
+    }
+
+    float[][] getSlice(float[][][] asd, int k) {
+        float[][] slice = new float[asd.length][];
+        for (int i = 0; i < asd.length; i++) {
+            slice[i] = new float[asd[i].length];
+            for (int j = 0; j < asd[i].length; j++) {
+                slice[i][j] = asd[i][j][k];
+            }
+        }
+        return slice;
+    }
+
     public void reset2dArray(float[][] array, float value){
         for(int i = 0; i < array.length; i++){
             for(int j = 0; j < array[0].length; j++){
                 array[i][j] = value;
+            }
+        }
+    }
+
+    public void reset3dArray(float[][][] array, float value){
+
+        for(int i = 0; i < array.length; i++){
+            for(int j = 0; j < array[0].length; j++){
+                for(int k = 0; k < array[0][0].length; k++){
+                    array[i][j][k] = value;
+                }
             }
         }
     }
@@ -1181,6 +1641,29 @@ public class lasRasterTools {
         to.WriteRaster(0, 0, x, y, read);
 
     }
+
+    public static void copyRasterContents3d(float[][] from, Band to){
+
+        int x = to.getXSize();
+        int y = to.getYSize();
+
+
+        float[] read = new float[x*y];
+
+        int counter = 0;
+
+        for(int y_ = 0; y_ < from[0].length; y_++){
+            for(int x_ = 0; x_ < from.length; x_++){
+
+                read[counter++] = (float)from[x_][y_];
+
+            }
+        }
+
+        to.WriteRaster(0, 0, x, y, read);
+
+    }
+
 
     public static void copyRasterContents(double[][] from, Band to){
 

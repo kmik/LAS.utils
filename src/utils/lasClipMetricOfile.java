@@ -399,6 +399,47 @@ public class lasClipMetricOfile {
 
     }
 
+
+    public synchronized void writeLine(ArrayList<Double> metrics_a, ArrayList<Double> metrics_f, ArrayList<Double> metrics_l, ArrayList<Double> metrics_i,
+                                       ArrayList<String> colnames_a, ArrayList<String> colnames_f, ArrayList<String> colnames_l, ArrayList<String> colnames_i, String poly_id){
+
+        if(!colnamesWritten) {
+
+
+            this.writeColumnNames(colnames_a, colnames_f, colnames_l, colnames_i);
+
+        }
+
+        try {
+
+            echo_class_FileWriter.get(0).write(poly_id + "\t");
+            echo_class_FileWriter.get(1).write(poly_id + "\t");
+            echo_class_FileWriter.get(2).write(poly_id + "\t");
+            echo_class_FileWriter.get(3).write(poly_id + "\t");
+
+            for (int i = 0; i < metrics_a.size(); i++) {
+
+                echo_class_FileWriter.get(0).write(metrics_a.get(i) + "\t");
+
+                echo_class_FileWriter.get(2).write(metrics_l.get(i) + "\t");
+                echo_class_FileWriter.get(3).write(metrics_i.get(i) + "\t");
+
+            }
+            for(int i = 0; i < metrics_f.size(); i++){
+                echo_class_FileWriter.get(1).write(metrics_f.get(i) + "\t");
+            }
+
+            echo_class_FileWriter.get(0).write("\n");
+            echo_class_FileWriter.get(1).write("\n");
+            echo_class_FileWriter.get(2).write("\n");
+            echo_class_FileWriter.get(3).write("\n");
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
     public synchronized <T> void writeLineZonal(ArrayList<Double> metrics_a,
                                        ArrayList<String> colnames_a, T poly_id){
 

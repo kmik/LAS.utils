@@ -1957,9 +1957,6 @@ public class MKid4pointsLAS{
 
                 //System.out.println("hERE " + pilvi.size());
 
-
-
-
                 for (int va = 0; va < valinta.size(); va++) {
 
                     doneIndexes.clear();

@@ -23,10 +23,8 @@ public class las2raster {
         ArrayList<File> inputFiles = prepareData(aR, "las2las");
         fileDistributor fD = new fileDistributor(aR.inputFiles);
 
-        if(aR.cores > 1){
-            threadTool(aR, fD);
-        }else{
 
+        if(aR.mode_3d){
             for (int i = 0; i < inputFiles.size(); i++) {
 
                 try {
@@ -37,18 +35,45 @@ public class las2raster {
 
                     LASReader temp = new LASReader(aR.inputFiles.get(i));
 
-                    tool.rasterize(temp, aR.res);
-                }catch (Exception e) {
+                    tool.rasterize3d(temp, aR.res);
+                } catch (Exception e) {
                     e.printStackTrace();
                     System.exit(1);
-                }
-                catch (Error e) {
+                } catch (Error e) {
                     e.printStackTrace();
                     System.exit(1);
                 }
 
             }
+        }
+        else {
 
+            if (aR.cores > 1) {
+                threadTool(aR, fD);
+            } else {
+
+                for (int i = 0; i < inputFiles.size(); i++) {
+
+                    try {
+                        lasRasterTools tool = new lasRasterTools(aR);
+
+                        if (aR.metadatafile != null)
+                            tool.readMetadata(aR.metadatafile);
+
+                        LASReader temp = new LASReader(aR.inputFiles.get(i));
+
+                        tool.rasterize(temp, aR.res);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    } catch (Error e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
+
+                }
+
+            }
         }
 
         aR.cleanup();
