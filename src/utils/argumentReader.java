@@ -347,6 +347,7 @@ public class argumentReader {
     public double delta = 5.0;
     public double lambda = 10.0;
 
+    public boolean frontier = false;
 
 
     public LasBlock blokki;
@@ -1790,6 +1791,13 @@ public class argumentReader {
                 .build());
 
         options.addOption(Option.builder()
+                .longOpt("frontier")
+                .hasArg(false)
+                .desc("frontier-based interpolation")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
                 .longOpt("drop_quintuple")
                 .hasArg(false)
                 .desc("Drop quintuple")
@@ -2717,6 +2725,9 @@ public class argumentReader {
                 this.EPSG = Integer.parseInt(cmd.getOptionValue("epsg"));
             }
 
+            if (cmd.hasOption(("frontier"))){
+                this.frontier = true;
+            }
 
 
             if (cmd.hasOption("oparse")) {

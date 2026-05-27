@@ -494,7 +494,18 @@ public class Thinner{
 
             System.out.println("CountNanBefore: " + countNanBefore);
 
-            boolean[][] interpolated = interpolate2dArrayMedian(min_z, -1.0f, -2.0f);
+            //float[][] clone1 = clone2DArray(min_z);
+            //float[][] clone2 = clone2DArray(min_z);
+
+            boolean [][] interpolated = null;
+
+            if(!aR.frontier)
+                interpolated = interpolate2dArrayMedian(min_z, -1.0f, -2.0f);
+            else
+                interpolated = interpolate2dArrayMedianFrontier(min_z, -1.0f, -2.0f);
+
+            //printArrayDifferences(clone1, clone2, 1e-5f);
+
 
             int countNanAfter = countNanvalues(min_z, -1.0f);
 
@@ -578,7 +589,57 @@ public class Thinner{
 
     }
 
+    public static void printArrayDifferences(float[][] a, float[][] b, float eps) {
 
+        if (a == null || b == null) {
+            System.out.println("One of the arrays is null");
+            return;
+        }
+
+        if (a.length != b.length) {
+            System.out.println("Different number of columns: " + a.length + " vs " + b.length);
+            return;
+        }
+
+        int totalDiffs = 0;
+        float maxDiff = 0f;
+
+        for (int i = 0; i < a.length; i++) {
+
+            if (a[i].length != b[i].length) {
+                System.out.println("Different number of rows at column " + i + ": "
+                        + a[i].length + " vs " + b[i].length);
+                return;
+            }
+
+            for (int j = 0; j < a[i].length; j++) {
+
+                float v1 = a[i][j];
+                float v2 = b[i][j];
+
+                boolean bothNaN = Float.isNaN(v1) && Float.isNaN(v2);
+
+                if (bothNaN) continue;
+
+                float diff = Math.abs(v1 - v2);
+
+                if (diff > eps || Float.isNaN(v1) != Float.isNaN(v2)) {
+
+                    System.out.printf(
+                            "Diff at (%d, %d): %.6f vs %.6f | diff=%.6f%n",
+                            i, j, v1, v2, diff
+                    );
+
+                    totalDiffs++;
+                    if (diff > maxDiff) maxDiff = diff;
+                }
+            }
+        }
+
+        System.out.println("---- SUMMARY ----");
+        System.out.println("Total differences: " + totalDiffs);
+        System.out.println("Max difference: " + maxDiff);
+    }
 
     public static <K, V> Map<V, K> swapKeysAndValues(Map<K, V> originalMap) {
         Map<V, K> swappedMap = new HashMap<>();
@@ -868,6 +929,254 @@ public class Thinner{
         return changed;
 
     }
+
+    public boolean[][] interpolate2dArrayMedianOptimized(
+            float[][] array,
+            float nanValue,
+            float ignoreValue) {
+
+        int ncols = array.length;
+        int nrows = array[0].length;
+
+        float[][] tmpArray = clone2DArray(array);
+        boolean[][] changed = new boolean[ncols][nrows];
+
+        // track NaN positions (primitive, no boxing)
+        int[] xs = new int[ncols * nrows];
+        int[] ys = new int[ncols * nrows];
+        int nanCount = 0;
+
+        boolean[][] isNan = new boolean[ncols][nrows];
+
+        for (int x = 0; x < ncols; x++) {
+            for (int y = 0; y < nrows; y++) {
+
+                if (array[x][y] == nanValue) {
+                    xs[nanCount] = x;
+                    ys[nanCount] = y;
+                    nanCount++;
+                    isNan[x][y] = true;
+                }
+
+                if (array[x][y] == ignoreValue) {
+                    changed[x][y] = true;
+                }
+            }
+        }
+
+        int remaining = nanCount;
+        int lastProgress = -1;
+
+        // reusable buffer (NO ALLOCATIONS INSIDE LOOP)
+        float[] updates = new float[nanCount];
+        int[] updateX = new int[nanCount];
+        int[] updateY = new int[nanCount];
+        boolean[] hasUpdate = new boolean[nanCount];
+
+        while (remaining > 0) {
+
+            int updateCount = 0;
+
+            // --- PASS (same semantics as your original loop) ---
+            for (int i = 0; i < nanCount; i++) {
+
+                if (!isNan[xs[i]][ys[i]]) continue;
+
+                float v = getMedianFromNeighborsFast(
+                        tmpArray, xs[i], ys[i], nanValue, ignoreValue);
+
+                if (v != nanValue) {
+                    updates[updateCount] = v;
+                    updateX[updateCount] = xs[i];
+                    updateY[updateCount] = ys[i];
+                    hasUpdate[updateCount] = true;
+                    updateCount++;
+                }
+            }
+
+            // --- APPLY PHASE (equivalent to your mapArray flush) ---
+            if (updateCount == 0) break;
+
+            for (int i = 0; i < updateCount; i++) {
+
+                int x = updateX[i];
+                int y = updateY[i];
+                float v = updates[i];
+
+                array[x][y] = v;
+                tmpArray[x][y] = v;
+
+                isNan[x][y] = false;
+                changed[x][y] = true;
+            }
+
+            remaining -= updateCount;
+
+            // convergence guard (same idea as your countDoneBefore)
+            if (updateCount == 0) {
+                if (lastProgress == remaining) {
+                    System.out.println("Stalled interpolation. Remaining: " + remaining);
+                    break;
+                }
+                lastProgress = remaining;
+            }
+        }
+
+        return changed;
+    }
+
+    public boolean[][] interpolate2dArrayMedianFrontier(
+            float[][] array,
+            float nanValue,
+            float ignoreValue) {
+
+        int ncols = array.length;
+        int nrows = array[0].length;
+
+        float[][] tmpArray = clone2DArray(array);
+        boolean[][] changed = new boolean[ncols][nrows];
+        boolean[][] isNan = new boolean[ncols][nrows];
+
+        ArrayDeque<int[]> frontier = new ArrayDeque<>();
+
+        // Track NaNs + initial frontier seeding
+        for (int x = 0; x < ncols; x++) {
+            for (int y = 0; y < nrows; y++) {
+
+                if (array[x][y] == nanValue) {
+                    isNan[x][y] = true;
+
+                    // only add NaNs that have at least one valid neighbor candidate
+                    if (hasAnyValidNeighbor(array, x, y, nanValue, ignoreValue)) {
+                        frontier.add(new int[]{x, y});
+                    }
+                }
+
+                if (array[x][y] == ignoreValue) {
+                    changed[x][y] = true;
+                }
+            }
+        }
+
+        int[] dx = {-1, -1, -1, 0, 0, 1, 1, 1};
+        int[] dy = {-1, 0, 1, -1, 1, -1, 0, 1};
+
+        while (!frontier.isEmpty()) {
+
+            int[] cell = frontier.poll();
+            int x = cell[0];
+            int y = cell[1];
+
+            if (!isNan[x][y]) continue;
+
+            float v = getMedianFromNeighborsFast(tmpArray, x, y, nanValue, ignoreValue);
+
+            if (v != nanValue) {
+
+                // apply update (same semantics as your old "flush step")
+                array[x][y] = v;
+                tmpArray[x][y] = v;
+
+                isNan[x][y] = false;
+                changed[x][y] = true;
+
+                // 🔥 key improvement: only neighbors become “dirty”
+                for (int k = 0; k < 8; k++) {
+                    int nx = x + dx[k];
+                    int ny = y + dy[k];
+
+                    if (nx < 0 || ny < 0 || nx >= ncols || ny >= nrows) continue;
+                    if (!isNan[nx][ny]) continue;
+
+                    frontier.add(new int[]{nx, ny});
+                }
+            }
+        }
+
+        return changed;
+    }
+
+    private boolean hasAnyValidNeighbor(
+            float[][] array,
+            int x,
+            int y,
+            float nanValue,
+            float ignoreValue) {
+
+        int ncols = array.length;
+        int nrows = array[0].length;
+
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+
+                if (dx == 0 && dy == 0) continue;
+
+                int nx = x + dx;
+                int ny = y + dy;
+
+                if (nx < 0 || ny < 0 || nx >= ncols || ny >= nrows) continue;
+
+                float v = array[nx][ny];
+
+                if (v != nanValue && v != ignoreValue) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private float getMedianFromNeighborsFast(
+            float[][] array,
+            int x,
+            int y,
+            float nanValue,
+            float ignoreValue) {
+
+        int ncols = array.length;
+        int nrows = array[0].length;
+
+        float[] vals = new float[9];
+        int count = 0;
+
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+
+                int nx = x + dx;
+                int ny = y + dy;
+
+                if (nx < 0 || ny < 0 || nx >= ncols || ny >= nrows) continue;
+
+                float v = array[nx][ny];
+
+                if (v != nanValue && v != ignoreValue) {
+                    vals[count++] = v;
+                }
+            }
+        }
+
+        if (count < 2) return nanValue;
+
+        // insertion sort (optimal for ≤8 values)
+        for (int i = 1; i < count; i++) {
+            float key = vals[i];
+            int j = i - 1;
+            while (j >= 0 && vals[j] > key) {
+                vals[j + 1] = vals[j];
+                j--;
+            }
+            vals[j + 1] = key;
+        }
+
+        int mid = count / 2;
+
+        if (count % 2 == 0) {
+            return (vals[mid - 1] + vals[mid]) * 0.5f;
+        } else {
+            return vals[mid];
+        }
+    }
+
 
     public float getMeanFromNeighbors(float[][] array, int x, int y, float nanvalue){
 
