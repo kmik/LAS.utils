@@ -68,7 +68,7 @@ public class las2solar_photogrammetry {
     short[][][] chm_values_mean_x;
     short[][][] chm_values_mean_y;
     short[][][] chm_values_mean_z;
-    /*
+
     final int[] months_to_use = new int[]{
             Calendar.JANUARY,
             Calendar.FEBRUARY,
@@ -83,8 +83,8 @@ public class las2solar_photogrammetry {
             Calendar.NOVEMBER,
             Calendar.DECEMBER
     };
-*/
-    final int[] months_to_use = new int[]{
+
+    final int[] months_to_use2 = new int[]{
 
             Calendar.JUNE,
             Calendar.JULY,
