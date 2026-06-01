@@ -229,9 +229,6 @@ public class gdalRaster {
         else
             this.nanValue[0] = nanValueDouble[0].floatValue();
 
-
-
-
         // Add a raster band
         if (this.raster == null) {
             throw new toolException("Raster " + filename + " could not be opened. Please check the file path and format.");
