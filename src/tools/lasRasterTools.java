@@ -693,7 +693,7 @@ public class lasRasterTools {
         float[][] chm_array = new float[rasterWidth][rasterHeight];
         float[][] intensity_array = new float[rasterWidth][rasterHeight];
 
-        reset2dArray(chm_array, -99.0f);
+        reset2dArray(chm_array, Float.NaN);
 
         ArrayList<int[][]> color_array = new ArrayList<int[][]>(aR.nBands);
         boolean[][] mask_array = new boolean[rasterWidth][rasterHeight];

@@ -223,8 +223,12 @@ public class gdalRaster {
         Double[] nanValueDouble = new Double[1];
         this.raster.GetRasterBand(1).GetNoDataValue(nanValueDouble);
 
-        if(nanValueDouble[0] == null || nanValueDouble[0].isNaN() || nanValueDouble[0].isInfinite()){
-
+        if(nanValueDouble[0] == null){
+            this.nanValue[0] = null;
+        }else if (nanValueDouble[0].isNaN()){
+            this.nanValue[0] = Float.NaN;
+        } else if ( nanValueDouble[0].isInfinite() ) {
+            this.nanValue[0] = Float.POSITIVE_INFINITY;
         }
         else
             this.nanValue[0] = nanValueDouble[0].floatValue();
@@ -319,7 +323,7 @@ public class gdalRaster {
         this.open(this.filename);
         this.isOpen = true;
 
-        if(dontcareformemory) {
+        if(dontcareformemory && this.rasterArray.length == 1){
             rasterArray = this.rasterToArray();
             //System.out.println(this.rasterArray.length + " " + this.rasterArray[0].length);
         }
@@ -583,7 +587,11 @@ public class gdalRaster {
 
         if(dontcareformemory){
 
-            System.out.println("here " + this.nanValue[0]) ;
+            //System.out.println("here " + rasterArray.length + " " + rasterArray[0].length + " " + x + " " + y);
+            //System.out.println(rasterArray[x][y]);
+            //System.out.println(this.nanValue[0]);
+            //Float nan = this.nanValue[0];
+
             if(rasterArray[x][y] == this.nanValue[0])
                 return Float.NaN;
 

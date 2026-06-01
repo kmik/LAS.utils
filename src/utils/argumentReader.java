@@ -36,6 +36,7 @@ public class argumentReader {
 
     public boolean inverse = false;
 
+    public float nanValue = -12345678.0f;
     public boolean writeIdToRaster = false;
     public int minimumVersion = -1;
     public boolean voxel_intensity = false;
@@ -1831,6 +1832,12 @@ public class argumentReader {
                 .required(false)
                 .build());
 
+        options.addOption(Option.builder()
+                .longOpt("nanValue")
+                .hasArg(true)
+                .desc("Set specified classification tag to all points")
+                .required(false)
+                .build());
 
         options.addOption(Option.builder()
                 .longOpt("set_user_data")
@@ -3110,6 +3117,10 @@ public class argumentReader {
 
                 this.thin3d = true;
 
+            }
+
+            if (cmd.hasOption("nanValue")){
+                this.nanValue = Float.parseFloat(cmd.getOptionValue("nanValue"));
             }
 
             if (cmd.hasOption("pit_free")) {
