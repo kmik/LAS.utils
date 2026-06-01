@@ -582,7 +582,8 @@ public class gdalRaster {
         //    this.open();
 
         if(dontcareformemory){
-            //System.out.println("here");
+
+            System.out.println("here");
             if(rasterArray[x][y] == this.nanValue[0])
                 return Float.NaN;
 
