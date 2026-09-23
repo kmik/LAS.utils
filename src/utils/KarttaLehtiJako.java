@@ -12,6 +12,13 @@ public class KarttaLehtiJako {
     public double maxX = 0;
     public double maxY = 0;
 
+    static double minX_finnishMap6k = 20000.0;
+    static double maxY_finnishMap6k = 7818000.0;
+
+    static double grid_x_size_MML = 45033;
+
+    static double cellSizeVMI = 16.0;
+
     public HashSet<String> mapSheetNames = new HashSet<String>();
 
     public HashMap<String, double[]> mapSheetExtents = new HashMap<String, double[]>();
@@ -150,6 +157,7 @@ public class KarttaLehtiJako {
 
     }
 
+
     public String getMapSheetNameByCoordinates(double x, double y){
 
         //System.out.println("x: " + x + " y: " + y);
@@ -164,6 +172,15 @@ public class KarttaLehtiJako {
         }
 
         return "null";
+    }
+
+    public double[] getMapSheetExtentByName(String name){
+
+        if(mapSheetExtents.containsKey(name))
+            return mapSheetExtents.get(name);
+        else
+            return null;
+
     }
 
     public boolean pointInRectangle(double x, double y, double[] extent){

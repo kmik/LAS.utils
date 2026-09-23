@@ -286,6 +286,7 @@ public class argumentReader {
 
     public boolean export_only_ITC_segments = false;
 
+    public String mapSheetId = null;
     public int set_seed = -1;
 
     public boolean by_gps_time = true;
@@ -704,6 +705,14 @@ public class argumentReader {
                 .longOpt("output")
                 .hasArg(true)
                 .desc("Output")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("sheetId")
+                .hasArg(true)
+                .desc("MapSheetId")
                 .numberOfArgs(Option.UNLIMITED_VALUES)
                 .required(false)
                 .build());
@@ -3029,6 +3038,10 @@ public class argumentReader {
 
                 this.onlyConvolutionMetrics = true;
                 this.noConvolution = false;
+            }
+
+            if (cmd.hasOption("sheetId")){
+                this.mapSheetId = cmd.getOptionValue("sheetId");
             }
 
 
