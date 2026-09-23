@@ -76,11 +76,11 @@ public class mapSheetCellCoords {
                 double decodedCenterYCoordinate = maxY_finnishMap6k - (decodedRow * cellSizeVMI) - (cellSizeVMI / 2);
 
 
-                System.out.println("Cell row: " + cellRow + ", Cell column: " + cellColumn + ", Cell ID: " + cellId + ", Center X: " + cellCenterX + ", Center Y: " + cellCenterY);
-                System.out.println("Decoded row: " + decodedRow + ", Decoded column: " + decodedColumn + ", Decoded ID: " + (decodedRow * (long) grid_x_size_MML + decodedColumn));
-                System.out.println("Decoded Center X: " + decodedCenterXCoordinate + ", Decoded Center Y: " + decodedCenterYCoordinate);
+                //System.out.println("Cell row: " + cellRow + ", Cell column: " + cellColumn + ", Cell ID: " + cellId + ", Center X: " + cellCenterX + ", Center Y: " + cellCenterY);
+                //System.out.println("Decoded row: " + decodedRow + ", Decoded column: " + decodedColumn + ", Decoded ID: " + (decodedRow * (long) grid_x_size_MML + decodedColumn));
+                //System.out.println("Decoded Center X: " + decodedCenterXCoordinate + ", Decoded Center Y: " + decodedCenterYCoordinate);
 
-                System.out.println("---------------------------------------");
+                //System.out.println("---------------------------------------");
                 // Write to file
                 bw.write(cellId + "\t" + cellCenterX + "\t" + cellCenterY + "\n");
 
