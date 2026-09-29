@@ -69,7 +69,7 @@ public class las2solar_photogrammetry {
     short[][][] chm_values_mean_y;
     short[][][] chm_values_mean_z;
 
-    final int[] months_to_use = new int[]{
+    final int[] months_to_use2 = new int[]{
             Calendar.JANUARY,
             Calendar.FEBRUARY,
             Calendar.MARCH,
@@ -84,7 +84,7 @@ public class las2solar_photogrammetry {
             Calendar.DECEMBER
     };
 
-    final int[] months_to_use2 = new int[]{
+    final int[] months_to_use = new int[]{
 
             Calendar.JUNE,
             Calendar.JULY,
@@ -92,7 +92,7 @@ public class las2solar_photogrammetry {
 
     };
 
-    int year = 2020;
+    int year = 2025;
     float rasterMaxValue = 0.0f;
 
     public las2solar_photogrammetry(String chm_name, argumentReader aR, LASReader pointCloud, boolean d3) throws Exception{
