@@ -2366,7 +2366,7 @@ class solarParallel_3d extends Thread {
 
                     for (int month : months_to_use) {
 
-                        for (int day = 1; day <= n_date_in_month[month]; day += 5) {
+                        for (int day = 1; day <= n_date_in_month[month]; day += 1) {
 
                             dailyAverageInsolation_ = 0.0;
 
