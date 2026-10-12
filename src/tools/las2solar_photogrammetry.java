@@ -416,7 +416,7 @@ public class las2solar_photogrammetry {
 
         threadSafeWriteToFile threadWriter = new threadSafeWriteToFile(outWriter, Math.addExact(Math.multiplyExact(Math.multiplyExact(x_size, y_size), raster_z_size), 1));
 
-        if(!aR.output_statistics)
+        if(!aR.outputMask)
             threadWriter = null;
 
         for (int i = 0; i < cores; i++) {
