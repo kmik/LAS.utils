@@ -61,6 +61,42 @@ public class miscProcessing {
 
     }
 
+    public static ArrayList<File> prepareDataSingleFileInput(argumentReader aR, String toolName) throws IOException {
+
+        tStart = System.currentTimeMillis();
+        //dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy 'at' hh:mm a");
+        now = LocalDateTime.now();
+
+
+        aR.setExecDir(System.getProperty("user.dir"));
+        aR.parseArguents(toolName);
+        String pathSep = System.getProperty("file.separator");
+        if (!System.getProperty("os.name").equals("Linux"))
+            pathSep = "\\" + pathSep;
+        boolean lasFormat, txtFormat;
+
+        ArrayList<File> inputFiles = new ArrayList<>();
+
+        if(aR.files != null)
+            if(aR.files.length != 0) {
+
+
+                String[] lasToken = new File(aR.files[0]).getName().split("\\.");
+                lasFormat = lasToken[lasToken.length - 1].equals("las");
+                txtFormat = lasToken[lasToken.length - 1].equals("txt");
+                ArrayList<String> filesList = new ArrayList<String>();
+                ArrayList<LASReader> pointClouds = new ArrayList<LASReader>();
+                filesList = getFileListAsString(aR, lasFormat, txtFormat, filesList, inputFiles);
+
+                aR.setInputFiles(inputFiles);
+                aR.p_update.totalFiles = aR.pointClouds.size();
+
+
+            }
+        return inputFiles;
+
+    }
+
     public static void printProcessingTime(){
 
         tEnd = System.currentTimeMillis();
