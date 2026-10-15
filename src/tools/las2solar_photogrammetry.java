@@ -96,9 +96,11 @@ public class las2solar_photogrammetry {
 
         final int firstExtra = registerExtraBytes(aR);
 
-        File outFileTxt = aR.createOutputFileWithExtension(pointCloud.getFile(), ".txt");
-
-        BufferedWriter outWriter = new BufferedWriter(new FileWriter(outFileTxt), 1 << 16);
+        BufferedWriter outWriter = null;
+        if (aR.outputMask) {
+            File outFileTxt = aR.createOutputFileWithExtension(pointCloud.getFile(), ".txt");
+            outWriter = new BufferedWriter(new FileWriter(outFileTxt), 1 << 16);
+        }
         try { 
 
         boolean amapVox_mode = false;
@@ -189,7 +191,7 @@ public class las2solar_photogrammetry {
         boolean[][][] hasGround = new boolean[this_y_size][this_x_size][this_z_size];
         SolarRayTracer.TerrainBuilder terrainBuilder = new SolarRayTracer.TerrainBuilder(this_x_size, this_y_size);
 
-        outWriter.newLine();
+        if (outWriter != null) outWriter.newLine();
 
         for(int i = 0; i < pointCloud.getNumberOfPointRecords(); i += 20000) {
 
@@ -307,7 +309,9 @@ public class las2solar_photogrammetry {
         int y_res = (int)Math.ceil((double)this_y_size / (double)steppi);
 
         int[] minutes = new int[]{0};        
-        float[][][][][][][] precomputed = new float[x_res][y_res][12][32][24][minutes.length][2];
+        final int requestedCores = Math.max(1, aR.cores);
+        final SolarSchedule schedule = new SolarSchedule(Math.multiplyExact(x_res,y_res),
+                months_to_use,year,minutes,aR.step,Math.max(4,Math.multiplyExact(2,requestedCores)),aR.outputMask);
 
         SpatialReference src = new SpatialReference();
         SpatialReference dst = new SpatialReference();
@@ -362,84 +366,58 @@ public class las2solar_photogrammetry {
 
         }
 
-        int n_funk_per_thread = (int)Math.ceil((double)y_size / (double)aR.cores);
-
+        long preparationStart = System.nanoTime();
         sunriseAndSunset.clear();
 
-        IntStream.range(0, x_res).parallel().forEach(x -> {
-
-            GregorianCalendar time_ = new GregorianCalendar(TimeZone.getTimeZone("GMT+2"));
-
-            double[] point_ = new double[3];
-            for(int y = 0; y < y_res; y++){
-
-                int precompute_x = (int)((double)steppi * (double)x + (double)steppi / 2.0); 
-                int precompute_y = (int)((double)steppi * (double)y + (double)steppi / 2.0); 
-
-                point_[0] = this_min_x + Math.min(this_x_size - 0.5, precompute_x) * aR.step;
-                point_[1] = this_max_y - Math.min(this_y_size - 0.5, precompute_y) * aR.step;
-                point_[2] = value;
-
-                double[] point_transformed;
-                synchronized (ct) { point_transformed = ct.TransformPoint(point_[0], point_[1]); }
-
-                for(int month : months_to_use) {
-                    for (int day = 1; day <= n_date_in_month[month]; day += 1) {
-
-                        for (int hour = 0; hour <= 23; hour += 1) {
-
-                            for(int minute = 0; minute < minutes.length; minute++) {
-
-                                time_.set(year, month, day, hour, minutes[minute], 00);
-
-                                AzimuthZenithAngle result = SPA.calculateSolarPosition(time_, point_transformed[1], point_transformed[0], 0, DeltaT.estimate(time_));
-
-                                precomputed[x][y][month][day][hour][minute][0] =  (float)result.getZenithAngle();
-                                precomputed[x][y][month][day][hour][minute][1] =  (float)result.getAzimuth();
-
-                            }
-                        }
+        // Bound precomputation to the requested thread count; no nested common-pool parallelism.
+        java.util.concurrent.ForkJoinPool sunPool = new java.util.concurrent.ForkJoinPool(requestedCores);
+        try {
+            sunPool.submit(() -> IntStream.range(0, x_res).parallel().forEach(x -> {
+                GregorianCalendar time_ = new GregorianCalendar(TimeZone.getTimeZone("GMT+2"));
+                for (int y=0; y<y_res; y++) {
+                    int precompute_x=(int)((double)steppi*x+(double)steppi/2.0);
+                    int precompute_y=(int)((double)steppi*y+(double)steppi/2.0);
+                    double px=this_min_x+Math.min(this_x_size-0.5,precompute_x)*aR.step;
+                    double py=this_max_y-Math.min(this_y_size-0.5,precompute_y)*aR.step;
+                    double[] transformed;
+                    synchronized(ct) {transformed=ct.TransformPoint(px,py);}
+                    for(int sample=0;sample<schedule.samples;sample++) {
+                        time_.set(year,schedule.month[sample],schedule.day[sample],schedule.hour[sample],schedule.minute[sample],0);
+                        AzimuthZenithAngle result=SPA.calculateSolarPosition(time_,transformed[1],transformed[0],0,DeltaT.estimate(time_));
+                        schedule.set(x*y_res+y,sample,(float)result.getZenithAngle(),(float)result.getAzimuth());
                     }
                 }
-            }
-        });
-
+            })).get();
+        } finally {sunPool.shutdown();}
+        long sunPrepared = System.nanoTime();
         long start = System.currentTimeMillis();
-
-        BlockingQueue<Pair<Integer, byte[][]>> provideRow = new LinkedBlockingQueue<>();
-
-        for(int y = 0; y < chm_values_f_3d.length; y++)
-            provideRow.add(Pair.of(y,chm_values_f_3d[y]));
-
-        int cores = Math.max(1, Math.min(aR.cores, y_size));
-        Thread[] threads = new Thread[cores];
-
-        threadSafeWriteToFile threadWriter = new threadSafeWriteToFile(outWriter, Math.addExact(Math.multiplyExact(Math.multiplyExact(x_size, y_size), raster_z_size), 1));
-
-        if(!aR.outputMask)
-            threadWriter = null;
-
-        for (int i = 0; i < cores; i++) {
-
-            int mini = i * n_funk_per_thread;
-            int maxi = Math.min(y_size, mini + n_funk_per_thread);
-
-            threads[i] = (new solarParallel_3d(mini, maxi, x_size,y_size, raster_z_size, rM, sunriseAndSunset, gt, ct, aR, chm_values_f, chm_output_f, precomputed, steppi, rasterMaxValue, provideRow, chm_values_f_3d,
-                    pointCloud, chm_values_mean_x, chm_values_mean_y, chm_values_mean_z, threadWriter,
-                    this_min_x, this_max_y, this_min_z, months_to_use, year));
-            ((solarParallel_3d)threads[i]).setTerrain(terrain, nonGround, hasGround, buildings);
-            threads[i].start();
-
+        long cells=Math.multiplyExact(Math.multiplyExact((long)x_size,y_size),raster_z_size);
+        int cores=(int)Math.max(1,Math.min(requestedCores,(cells+1023)/1024));
+        Thread[] threads=new Thread[cores];
+        threadSafeWriteToFile threadWriter=outWriter==null?null:new threadSafeWriteToFile(outWriter,
+                Math.addExact(Math.multiplyExact(Math.multiplyExact(x_size,y_size),raster_z_size),1));
+        // Material preparation can fail. Start the output thread only after it succeeds.
+        solarParallel_3d.Work work=new solarParallel_3d.Work(x_size,y_size,raster_z_size,aR.step,rM,
+                chm_values_f_3d,nonGround,hasGround,buildings,chm_values_mean_x,chm_values_mean_y,chm_values_mean_z,
+                terrain,schedule,steppi,y_res,null,this_min_x,this_max_y,this_min_z,year);
+        SolarTextOutput textOutput=threadWriter==null?null:new SolarTextOutput(threadWriter,schedule,cores);
+        work.output=textOutput;
+        long materialsPrepared=System.nanoTime();
+        System.out.println("Solar CPU workers: "+cores+"; text output: "+(textOutput!=null)
+                +"; attenuation: "+(work.grid.opticalDepth?"optical depth":"compatible arithmetic"));
+        try {
+            for(int i=0;i<cores;i++) {threads[i]=new solarParallel_3d(work,i);threads[i].start();}
+            joinWorkers(threads);
+        } finally {
+            // Also join already-started workers before closing output after a startup failure.
+            for(Thread worker:threads) if(worker!=null) joinWorkers(new Thread[]{worker});
+            if(textOutput!=null) textOutput.finish();
         }
-
-        joinWorkers(threads);
-
-        if(threadWriter != null)
-            threadWriter.close();
-        for (Thread worker : threads) {
-            RuntimeException failure = ((solarParallel_3d)worker).getFailure();
-            if (failure != null) throw failure;
-        }
+        if(work.failure!=null) throw work.failure;
+        if(Boolean.getBoolean("las2solar.profile")) System.out.printf(Locale.US,
+                "Solar timings: positions %.3f s; material/output setup %.3f s; tracing/output %.3f s%n",
+                (sunPrepared-preparationStart)/1e9,(materialsPrepared-sunPrepared)/1e9,
+                (System.nanoTime()-materialsPrepared)/1e9);
 
         File outFile = aR.createOutputFile(pointCloud);
 
@@ -534,7 +512,7 @@ public class las2solar_photogrammetry {
 
         chm.FlushCache();
 
-            } finally { outWriter.close(); }
+            } finally { if (outWriter != null) outWriter.close(); }
     }
 
     public las2solar_photogrammetry(String chm_name, argumentReader aR, LASReader pointCloud,
@@ -1197,157 +1175,135 @@ class solarParallel extends Thread {
 }
 
 class solarParallel_3d extends Thread {
-    private final int x_size, y_size, z_size, year, precomputed_resolution;
-    private final solar3dManipulator rM;
-    private final argumentReader aR;
-    private final byte[][][] occupancy;
-    private final short[][][] meanX, meanY, meanZ;
-    private final float[][][][][][][] precomputed;
-    private final BlockingQueue<Pair<Integer, byte[][]>> rows;
-    private final threadSafeWriteToFile writer;
-    private final double minx, maxy, minz;
-    private final int[] months;
-    private byte[][][] nonGround, building;
-    private boolean[][][] hasGround;
-    private SolarRayTracer.Terrain terrain;
-    private volatile RuntimeException failure;
-    private final double extinction;
-
-    public solarParallel_3d(int min, int max, int xSize, int ySize, int zSize,
-            solar3dManipulator manipulator, ArrayList<int[]> sunriseAndSunset,
-            double[] gt, CoordinateTransformation ct, argumentReader args, float[][] chm,
-            float[][] output, float[][][][][][][] sun, int sunStep, float rasterMax,
-            BlockingQueue<Pair<Integer, byte[][]>> provider, byte[][][] occupied,
-            LASReader cloud, short[][][] mx, short[][][] my, short[][][] mz,
-            threadSafeWriteToFile textWriter, double minX, double maxY, double minZ,
-            int[] selectedMonths, int selectedYear) {
-        x_size=xSize; y_size=ySize; z_size=zSize; rM=manipulator; aR=args;
-        precomputed=sun; precomputed_resolution=sunStep; rows=provider;
-        occupancy=occupied; meanX=mx; meanY=my; meanZ=mz; writer=textWriter;
-        minx=minX; maxy=maxY; minz=minZ; months=selectedMonths; year=selectedYear;
-        extinction=Double.parseDouble(System.getProperty("las2solar.extinctionPerMetre", "0.33"));
-        if (!Double.isFinite(extinction) || extinction < 0)
-            throw new IllegalArgumentException("Extinction must be finite and nonnegative");
-    }
-
-    public void setTerrain(SolarRayTracer.Terrain ground, byte[][][] vegetation,
-            boolean[][][] groundMask, byte[][][] buildings) {
-        terrain=ground; nonGround=vegetation; hasGround=groundMask; building=buildings;
-    }
-    public RuntimeException getFailure() { return failure; }
-
-    @Override public void run() {
-        try {
-            Pair<Integer, byte[][]> row;
-            while ((row=rows.poll()) != null) {
-                int y=row.getKey();
-                for (int x=0; x<x_size; x++) for (int z=0; z<z_size; z++) {
-                    if (occupancy[y][x][z] <= 0) continue;
-                    processVoxel(x,y,z);
-                }
-            }
-        } catch (RuntimeException e) {
-            failure=e;
-            rows.clear();
-        }
-    }
-
-    private void processVoxel(int x, int y, int z) {
-        double total=0;
-        int days=0;
-        ArrayList<Double> values=new ArrayList<Double>();
-        ArrayList<String> dates=new ArrayList<String>();
-        GregorianCalendar calendar=new GregorianCalendar(TimeZone.getTimeZone("GMT+2"));
-        for (int month:months) {
-            calendar.clear(); calendar.set(year,month,1);
-            int nDays=calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-            for (int day=1; day<=nDays; day++) {
-                days++;
-                for (int hour=0; hour<24; hour++) {
-                    float[][] samples=precomputed[x/precomputed_resolution][y/precomputed_resolution][month][day][hour];
-                    double hourly=0;
-                    for (int m=0; m<samples.length; m++) {
-                        double zenith=samples[m][0], azimuth=samples[m][1];
-                        double irradiance;
-                        try {
-                            double transmission=trace(x,y,z,zenith,azimuth,rM.hasAmapVox);
-                            irradiance=1366.0*Math.max(0,Math.cos(Math.toRadians(zenith)))*transmission;
-                            if (!Double.isFinite(irradiance)) throw new IllegalStateException("Non-finite irradiance");
-                        } catch (RuntimeException e) {
-                            throw new IllegalStateException("Ray failed at voxel ("+x+","+y+","+z+") on "
-                                    +year+"-"+(month+1)+"-"+day+" hour "+hour
-                                    +"; zenith="+zenith+", azimuth="+azimuth,e);
-                        }
-                        hourly+=irradiance/samples.length;
-                        if (writer!=null) {
-                            dates.add(String.format(Locale.US,"%04d%02d%02dT%02d%02d",year,month+1,day,hour,
-                                    m*60/samples.length));
-                            values.add(Math.round(irradiance*100.0)/100.0);
-                        }
+    /** Shared immutable inputs plus an atomic cursor over small Z-contiguous chunks. */
+    static final class Work {
+        final int nx,ny,nz,sunStep,sunRows,year;
+        final double minx,maxy,minz,resolution;
+        final byte[][][] occupancy,nonGround;
+        final boolean[][][] hasGround;
+        final short[][][] meanX,meanY,meanZ;
+        final solar3dManipulator model;
+        final SolarRayTracer.Terrain terrain;
+        final SolarCpuTracer.Grid grid;
+        final SolarSchedule schedule;
+        SolarTextOutput output;
+        final long cells,tileCells;
+        final java.util.concurrent.atomic.AtomicLong cursor=new java.util.concurrent.atomic.AtomicLong();
+        volatile RuntimeException failure;
+        Work(int nx,int ny,int nz,double resolution,solar3dManipulator model,
+                byte[][][] occupied,byte[][][] nonGround,boolean[][][] hasGround,byte[][][] buildings,
+                short[][][] mx,short[][][] my,short[][][] mz,SolarRayTracer.Terrain terrain,
+                SolarSchedule schedule,int sunStep,int sunRows,SolarTextOutput output,
+                double minx,double maxy,double minz,int year) {
+            this.nx=nx;this.ny=ny;this.nz=nz;this.resolution=resolution;this.model=model;
+            occupancy=occupied;this.nonGround=nonGround;this.hasGround=hasGround;
+            meanX=mx;meanY=my;meanZ=mz;this.terrain=terrain;this.schedule=schedule;
+            this.sunStep=sunStep;this.sunRows=sunRows;this.output=output;
+            this.minx=minx;this.maxy=maxy;this.minz=minz;this.year=year;
+            tileCells=Math.multiplyExact(Math.multiplyExact((long)sunStep,sunStep),nz);
+            // Tile-major ordering keeps nearby chunks on the same cached solar directions.
+            // Edge tiles are padded only in the cursor arithmetic, never in the voxel arrays.
+            cells=Math.multiplyExact(Math.multiplyExact((long)((nx-1)/sunStep+1),sunRows),tileCells);
+            double extinction=Double.parseDouble(System.getProperty("las2solar.extinctionPerMetre","0.33"));
+            grid=new SolarCpuTracer.Grid(nx,ny,nz,resolution,extinction,terrain,
+                    model.hasAmapVox?new SolarCpuTracer.Transmission() {
+                        public double get(int x,int y,int z) {return model.aV.data[x][y][z];}
+                    }:null,Boolean.getBoolean("las2solar.opticalDepth"),
+                    !Boolean.getBoolean("las2solar.disableBlockSkipping"));
+            if(!model.hasAmapVox) for(int y=0;y<ny;y++) for(int x=0;x<nx;x++) {
+                boolean representedGround=terrain!=null&&terrain.covers(x,y);
+                for(int z=0;z<nz;z++) {
+                    int count=representedGround&&nonGround!=null?nonGround[y][x][z]:occupied[y][x][z];
+                    byte material=SolarCpuTracer.CLEAR;
+                    if(count!=0) {
+                        boolean solid=buildings!=null&&buildings[y][x][z]>0;
+                        if(!solid&&(hasGround==null||!hasGround[y][x][z])&&model.vox_!=null
+                                &&model.vox_[x][y][z]!=null) solid=model.vox_[x][y][z].isSolid;
+                        material=solid?SolarCpuTracer.OPAQUE:SolarCpuTracer.ATTENUATING;
                     }
-                    total+=hourly;
+                    grid.set(x,y,z,material);
                 }
             }
         }
-        rM.setValue(x,y,z,(float)(total/(24.0*days)));
-        if (writer!=null) {
-            double[] coordinates={minx+(x+offset(meanX[y][x][z]))*aR.step,
-                    maxy-(y+offset(meanY[y][x][z]))*aR.step,
-                    minz+(z+offset(meanZ[y][x][z]))*aR.step};
-            try {
-                synchronized (writer) { writer.writeLineSpecial(values,dates,coordinates); }
-            } catch (Exception e) { throw new IllegalStateException("Cannot write voxel time series",e); }
-        }
+        synchronized void fail(RuntimeException e) {if(failure==null) failure=e;}
     }
-
-    private static double offset(short value) {
-        return Math.max(0,Math.min(0.999999,value/1000.0));
-    }
-
-    private double trace(final int x, final int y, final int z, double zenith,
-            double azimuth, final boolean amap) {
-        double ox=x+offset(meanX[y][x][z]);
-        double oy=y+offset(meanY[y][x][z]);
-        double oz=z+offset(meanZ[y][x][z]);
-        if (terrain!=null) {
-            double ground=terrain.heightAt(ox,oy);
-            boolean groundOnly=hasGround!=null && hasGround[y][x][z]
-                    && nonGround[y][x][z]==0;
-            // Ground receivers lie on the reconstructed surface, not inside its voxel.
-            if (Double.isFinite(ground) && (groundOnly || oz<=ground)) oz=Math.max(0,ground+1e-5);
-        }
-        return SolarRayTracer.trace(ox,oy,oz,x,y,z,x_size,y_size,z_size,aR.step,
-                zenith,azimuth,terrain,new SolarRayTracer.Optics() {
-            @Override public double transmission(int ix, int iy, int iz, double length) {
-                if (amap) {
-                    // AMAPVox input is assumed to store transmission for one voxel-side path.
-                    double t=rM.aV.data[ix][iy][iz];
-                    if (!Double.isFinite(t) || t<0 || t>1)
-                        throw new IllegalStateException("AMAPVox transmission must be in [0,1] at "
-                                +ix+","+iy+","+iz+": "+t);
-                    return Math.pow(t,length/aR.step);
+    private final Work work;
+    private SolarTextOutput.Batch batch;
+    private int cachedTile=-1;
+    private SolarCpuTracer.Sun[] sun;
+    solarParallel_3d(Work work,int number) {super("solar-compute-"+number);this.work=work;}
+    public RuntimeException getFailure() {return work.failure;}
+    public void run() {
+        try {
+            final long chunk=1024;
+            long start;
+            while(work.failure==null&&(start=work.cursor.getAndAdd(chunk))<work.cells) {
+                long end=Math.min(work.cells,start+chunk);
+                for(long index=start;index<end&&work.failure==null;) {
+                    int tile=(int)(index/work.tileCells);
+                    long local=index%work.tileCells;
+                    int column=(int)(local/work.nz),z=(int)(local%work.nz);
+                    int x=(tile/work.sunRows)*work.sunStep+column%work.sunStep;
+                    int y=(tile%work.sunRows)*work.sunStep+column/work.sunStep;
+                    int length=(int)Math.min(work.nz-z,end-index);
+                    if(x<work.nx&&y<work.ny) for(int stop=z+length;z<stop&&work.failure==null;z++) {
+                        if(work.occupancy[y][x][z]>0) processVoxel(x,y,z);
+                    }
+                    index+=length;
                 }
-                boolean representedGround=terrain!=null && terrain.covers(ix,iy);
-                int count=representedGround && nonGround!=null
-                        ? nonGround[iy][ix][iz] : occupancy[iy][ix][iz];
-                if (count==0) return 1;
-                if (building!=null && building[iy][ix][iz]>0) return 0;
-                // A mixed ground/vegetation voxel must not become opaque merely due to ground.
-                if ((hasGround==null || !hasGround[iy][ix][iz])
-                        && rM.vox_!=null && rM.vox_[ix][iy][iz]!=null
-                        && rM.vox_[ix][iy][iz].isSolid) return 0;
-                return Math.exp(-extinction*length);
             }
-        });
+        } catch(InterruptedException e) {
+            Thread.currentThread().interrupt();work.fail(new IllegalStateException("Solar worker interrupted",e));
+        } catch(RuntimeException e) {work.fail(e);}
+        finally {
+            if(work.output!=null&&batch!=null) try {work.output.submit(batch);batch=null;}
+                catch(InterruptedException e) {Thread.currentThread().interrupt();work.fail(new IllegalStateException("Output interrupted",e));}
+                catch(RuntimeException e) {work.fail(e);}
+        }
     }
-
-    // Keep the original entry-point signatures for callers within the package.
-    public double isBlocked_ray_trace_dampening(int x,int y,int z,byte count,double resolution,
-            double zenith,double slope,float azimuth,int hour,float max,solar3dManipulator manipulator) {
-        return trace(x,y,z,zenith,azimuth,false);
+    private void processVoxel(int x,int y,int z) throws InterruptedException {
+        int tile=(x/work.sunStep)*work.sunRows+y/work.sunStep;
+        if(tile!=cachedTile) {sun=work.schedule.prepared(tile);cachedTile=tile;}
+        double ox=x+offset(work.meanX[y][x][z]),oy=y+offset(work.meanY[y][x][z]),oz=z+offset(work.meanZ[y][x][z]);
+        final double originalZ=oz;
+        if(work.terrain!=null) {
+            double ground=work.terrain.heightAt(ox,oy);
+            boolean groundOnly=work.hasGround!=null&&work.hasGround[y][x][z]&&work.nonGround[y][x][z]==0;
+            if(Double.isFinite(ground)&&(groundOnly||oz<=ground)) oz=Math.max(0,ground+1e-5);
+        }
+        SolarCpuTracer.Receiver receiver=new SolarCpuTracer.Receiver(ox,oy,oz,x,y,z);
+        double[] values=null;
+        if(work.output!=null) {
+            if(batch==null) batch=work.output.acquire();
+            values=batch.values[batch.count];
+        }
+        double total=0;
+        int sample=0;
+        try {
+            for(int h=0;h<work.schedule.hours;h++) {
+                double hourly=0;
+                for(int m=0;m<work.schedule.samplesPerHour;m++,sample++) {
+                    SolarCpuTracer.Sun direction=sun[sample];
+                    double irradiance=direction==null?0:direction.irradiance*SolarCpuTracer.trace(receiver,direction,work.grid);
+                    if(!Double.isFinite(irradiance)) throw new IllegalStateException("Non-finite irradiance");
+                    // Preserve the previous per-hour grouping and sample division order.
+                    hourly+=irradiance/work.schedule.samplesPerHour;
+                    if(values!=null) values[sample]=Math.round(irradiance*100.0)/100.0;
+                }
+                total+=hourly;
+            }
+        } catch(RuntimeException e) {
+            throw new IllegalStateException("Ray failed at voxel ("+x+","+y+","+z+") in "+work.year+", "
+                    +work.schedule.describe(Math.min(sample,work.schedule.samples-1)),e);
+        }
+        work.model.setValue(x,y,z,(float)(total/(24.0*work.schedule.days)));
+        if(values!=null) {
+            double[] coordinates=batch.coordinates[batch.count];
+            coordinates[0]=work.minx+ox*work.resolution;
+            coordinates[1]=work.maxy-oy*work.resolution;
+            coordinates[2]=work.minz+originalZ*work.resolution;
+            if(++batch.count==batch.values.length) {work.output.submit(batch);batch=null;}
+        }
     }
-    public double isBlocked_ray_trace_amapVox(int x,int y,int z,byte count,double resolution,
-            double zenith,double slope,float azimuth,int hour,float max,solar3dManipulator manipulator) {
-        return trace(x,y,z,zenith,azimuth,true);
-    }
+    private static double offset(short value) {return Math.max(0,Math.min(0.999999,value/1000.0));}
 }

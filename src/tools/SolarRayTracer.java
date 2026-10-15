@@ -107,6 +107,13 @@ public final class SolarRayTracer {
                     && Double.isFinite(nodes[y+1][x]) && Double.isFinite(nodes[y+1][x+1]);
         }
 
+        /** Upper bound of a covered bilinear patch; unknown terrain casts no shadow. */
+        public double maximum(int x, int y) {
+            if (!covers(x,y)) return Double.NEGATIVE_INFINITY;
+            return Math.max(Math.max(nodes[y][x],nodes[y][x+1]),
+                    Math.max(nodes[y+1][x],nodes[y+1][x+1]));
+        }
+
         public double heightAt(double x, double y) {
             if (x < 0 || x > width || y < 0 || y > height) return Double.NaN;
             int ix = Math.min(width - 1, (int)Math.floor(x));
