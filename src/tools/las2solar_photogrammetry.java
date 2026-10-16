@@ -60,34 +60,36 @@ public class las2solar_photogrammetry {
     short[][][] chm_values_mean_y;
     short[][][] chm_values_mean_z;
 
-    final int[] months_to_use2 = new int[]{
-            Calendar.JANUARY,
-            Calendar.FEBRUARY,
-            Calendar.MARCH,
-            Calendar.APRIL,
-            Calendar.MAY,
-            Calendar.JUNE,
-            Calendar.JULY,
-            Calendar.AUGUST,
-            Calendar.SEPTEMBER,
-            Calendar.OCTOBER,
-            Calendar.NOVEMBER,
-            Calendar.DECEMBER
-    };
+    final int[] months_to_use;
 
-    final int[] months_to_use = new int[]{
-
-            Calendar.JUNE,
-            Calendar.JULY,
-            Calendar.AUGUST,
-
-    };
+    /** Full English month names, separated by semicolons; returns Calendar month indices. */
+    public static int[] parseMonths(String value) {
+        if (value == null || value.trim().isEmpty())
+            return new int[]{Calendar.JUNE, Calendar.JULY, Calendar.AUGUST};
+        String[] names={"january","february","march","april","may","june",
+                "july","august","september","october","november","december"};
+        LinkedHashSet<Integer> selected=new LinkedHashSet<Integer>();
+        for (String token:value.split(";",-1)) {
+            String name=token.trim().toLowerCase(Locale.ROOT);
+            int month=-1;
+            for (int i=0;i<names.length;i++) if (names[i].equals(name)) {month=i;break;}
+            if (month<0) throw new IllegalArgumentException("Invalid month '"+token
+                    +"' in aR.months. Use full English names separated by semicolons, "
+                    +"for example: june;july;august");
+            selected.add(month);
+        }
+        int[] result=new int[selected.size()];
+        int i=0;
+        for (int month:selected) result[i++]=month;
+        return result;
+    }
 
     int year = 2025;
     float rasterMaxValue = Float.NEGATIVE_INFINITY;
 
     public las2solar_photogrammetry(String chm_name, argumentReader aR, LASReader pointCloud, boolean d3) throws Exception{
 
+        this.months_to_use = parseMonths(aR.months);
         this.year = aR.year;
         if (!(aR.step > 0) || !Double.isFinite(aR.step))
             throw new IllegalArgumentException("Voxel size must be positive and finite");
@@ -332,9 +334,7 @@ public class las2solar_photogrammetry {
         int y_ = this_y_size;
         chm_output_f = new float[1][1];
 
-        int[] calendar_month = new int[]{Calendar.JUNE, Calendar.JULY, Calendar.AUGUST};
-
-        calendar_month = months_to_use;
+        int[] calendar_month = months_to_use;
 
         int[] n_date_in_month = las2solar_photogrammetry.daysInMonths(aR.year);
 
@@ -521,6 +521,7 @@ public class las2solar_photogrammetry {
     }
 
     public las2solar_photogrammetry(String chm_name, argumentReader aR, LASReader pointCloud){
+        this.months_to_use = parseMonths(aR.months);
         this.year = aR.year;
 
         this.pointCloud = pointCloud;
@@ -577,8 +578,7 @@ public class las2solar_photogrammetry {
         int y_ = chm_values.getYSize();
         chm_output_f = new float[1][1];
 
-        int[] calendar_month = new int[]{Calendar.JUNE, Calendar.JULY, Calendar.AUGUST};
-        calendar_month = months_to_use;
+        int[] calendar_month = months_to_use;
 
         int[] n_date_in_month = las2solar_photogrammetry.daysInMonths(aR.year);
 

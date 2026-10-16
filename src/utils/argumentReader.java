@@ -139,6 +139,8 @@ public class argumentReader {
 
     public boolean noModify = true;
 
+    public String months = "";
+
     public ArrayList<File> grounds = new ArrayList<>();
 
     public boolean harmonized = false;
@@ -700,6 +702,14 @@ public class argumentReader {
                 .desc("naming convention")
                 .required(false)
                 .build());
+
+        options.addOption( Option.builder()
+                .longOpt("months")
+                .hasArg(true)
+                .desc("naming convention")
+                .required(false)
+                .build());
+
 
         options.addOption(Option.builder("o")
                 .longOpt("output")
@@ -2724,6 +2734,11 @@ public class argumentReader {
 
                 this.iparse = cmd.getOptionValue("iparse");
 
+            }
+
+            if (cmd.hasOption("months")){
+
+                this.months = cmd.getOptionValue("months");
             }
 
             if (cmd.hasOption("field_string")) {
